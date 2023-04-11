@@ -1,0 +1,16 @@
+#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_REGISTER_H_
+#define BACKENDS_P4TOOLS_MODULES_FLAY_REGISTER_H_
+
+@include_statements_var@
+
+namespace P4Tools::Flay {
+
+inline void registerCompilerTargets() {
+@compiler_targets_var@}
+
+inline void registerFlayTargets() {
+@flay_targets_var@}
+
+}  // namespace P4Tools::Flay
+
+#endif  /* BACKENDS_P4TOOLS_MODULES_FLAY_REGISTER_H_ */
