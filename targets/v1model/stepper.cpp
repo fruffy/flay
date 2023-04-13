@@ -18,17 +18,13 @@ void V1ModelFlayStepper::initializeState() {
     for (const auto &blockTuple : *programmableBlocks) {
         const auto *typeDecl = blockTuple.second;
         const auto *archMember = archSpec->getArchMember(blockIdx);
-        initializeBlockParams(typeDecl, &archMember->blockParams, getExecutionState(), false);
+        initializeBlockParams(typeDecl, &archMember->blockParams, getExecutionState());
         blockIdx++;
     }
+    getExecutionState().printSymbolicEnv();
 }
 
-bool V1ModelFlayStepper::preorder(const IR::Node *node) {
-    printf("VISITING\n");
-    node->dbprint(std::cout);
-    printf("\n");
-    return false;
-}
+bool V1ModelFlayStepper::preorder(const IR::Node * /*node*/) { return false; }
 
 V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::V1ModelProgramInfo &programInfo,
                                        ExecutionState &executionState)

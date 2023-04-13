@@ -12,6 +12,7 @@ SymbolicExecutor::SymbolicExecutor(const ProgramInfo &programInfo)
 void SymbolicExecutor::run() {
     const auto *pipelineSequence = programInfo.getPipelineSequence();
     FlayStepper &stepper = FlayTarget::getStepper(programInfo, executionState);
+    stepper.initializeState();
     for (const auto *node : *pipelineSequence) {
         node->apply(stepper);
     }
