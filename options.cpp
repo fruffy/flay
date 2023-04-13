@@ -26,15 +26,6 @@ const char *FlayOptions::getIncludePath() {
 }
 
 FlayOptions::FlayOptions()
-    : AbstractP4cToolOptions("Remove control-plane dead code from a P4 program.") {
-    registerOption(
-        "--out-dir", "outputDir",
-        [this](const char *arg) {
-            outputDir = arg;
-            return true;
-        },
-        "The output directory for the generated tests. The directory will be created, if it does "
-        "not exist.");
-}
+    : AbstractP4cToolOptions("Remove control-plane dead code from a P4 program.") {}
 
 }  // namespace P4Tools

@@ -39,6 +39,11 @@ const FlayTarget &FlayTarget::get() { return Target::get<FlayTarget>("flay"); }
 
 const ArchSpec *FlayTarget::getArchSpec() { return get().getArchSpecImpl(); }
 
+FlayStepper &FlayTarget::getStepper(const ProgramInfo &programInfo,
+                                    ExecutionState &executionState) {
+    return get().getStepperImpl(programInfo, executionState);
+}
+
 void FlayTarget::argumentsToTypeDeclarations(
     const IR::IGeneralNamespace *ns, const IR::Vector<IR::Argument> *inputArgs,
     std::vector<const IR::Type_Declaration *> &resultDecls) {
@@ -75,6 +80,10 @@ void FlayTarget::argumentsToTypeDeclarations(
 
         resultDecls.emplace_back(declType);
     }
+}
+
+const ProgramInfo *FlayTarget::initProgram(const IR::P4Program *program) {
+    return get().initProgramImpl(program);
 }
 
 }  // namespace P4Tools::Flay

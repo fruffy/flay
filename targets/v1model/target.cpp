@@ -75,4 +75,9 @@ const ArchSpec V1ModelFlayTarget::ARCH_SPEC =
 
 const ArchSpec *V1ModelFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; }
 
+FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
+                                               ExecutionState &executionState) const {
+    return *new V1ModelFlayStepper(*programInfo.checkedTo<V1ModelProgramInfo>(), executionState);
+}
+
 }  // namespace P4Tools::Flay::V1Model

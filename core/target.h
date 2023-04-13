@@ -10,6 +10,7 @@
 #include "backends/p4tools/common/core/solver.h"
 #include "backends/p4tools/common/core/target.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
+#include "backends/p4tools/modules/flay/core/stepper.h"
 #include "ir/ir.h"
 #include "ir/vector.h"
 
@@ -23,9 +24,11 @@ class FlayTarget : public Target {
     /// Produces a @ProgramInfo for the given P4 program.
     ///
     /// @returns nullptr if the program is not supported by this target.
-    static const ProgramInfo *initProgram(const IR::P4Program *program) {
-        return get().initProgramImpl(program);
-    }
+    static const ProgramInfo *initProgram(const IR::P4Program *program);
+
+    /// @returns the stepper that will step through the program, tailored to the target.
+    [[nodiscard]] static FlayStepper &getStepper(const ProgramInfo &programInfo,
+                                                 ExecutionState &executionState);
 
     /// A vector that maps the architecture parameters of each pipe to the corresponding
     /// global architecture variables. For example, this map specifies which parameter of each pipe
@@ -37,6 +40,10 @@ class FlayTarget : public Target {
  protected:
     /// @see @initProgram.
     const ProgramInfo *initProgramImpl(const IR::P4Program *program) const;
+
+    // /// @see @getStepper.
+    [[nodiscard]] virtual FlayStepper &getStepperImpl(const ProgramInfo &programInfo,
+                                                      ExecutionState &executionState) const = 0;
 
     /// @see @initProgram.
     virtual const ProgramInfo *initProgramImpl(const IR::P4Program *program,

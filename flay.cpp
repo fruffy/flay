@@ -10,6 +10,8 @@
 #include "backends/p4tools/common/core/solver.h"
 #include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/common/lib/util.h"
+#include "backends/p4tools/modules/flay/core/program_info.h"
+#include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "frontends/common/parser_options.h"
@@ -39,11 +41,8 @@ int Flay::mainImpl(const IR::P4Program *program) {
         return EXIT_FAILURE;
     }
 
-    auto const inputFile = P4CContext::get().options().file;
-
-    // Get the filename of the input file and remove the extension
-    // This assumes that inputFile is not null.
-    auto testPath = std::filesystem::path(inputFile.c_str()).stem();
+    SymbolicExecutor symbex(*programInfo);
+    symbex.run();
 
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

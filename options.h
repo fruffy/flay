@@ -18,9 +18,6 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns the singleton instance of this class.
     static FlayOptions &get();
 
-    /// Directory for the pruned program. Defaults to PWD.
-    cstring outputDir = nullptr;
-
     const char *getIncludePath() override;
 
  private:
