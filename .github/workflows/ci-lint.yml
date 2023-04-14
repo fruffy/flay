@@ -29,7 +29,7 @@ jobs:
 
     - name: Pull P4C and link Flay.
       run: |
-        git clone -b fruffy/cleanup --recurse-submodules -j2 https://github.com/p4lang/p4c/ $GITHUB_WORKSPACE/../p4c
+        git clone --recurse-submodules -j2 https://github.com/p4lang/p4c/ $GITHUB_WORKSPACE/../p4c
         ln -sf $GITHUB_WORKSPACE $GITHUB_WORKSPACE/../p4c/backends/p4tools/modules/
 
     - name: Build (Ubuntu 20.04)
