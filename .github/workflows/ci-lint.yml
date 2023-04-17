@@ -1,0 +1,52 @@
+name: "lint-flay"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# Cancel any preceding run on the pull request.
+concurrency:
+  group: lint-flay-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  # Lint Flay on Ubuntu 20.04.
+  lint-flay:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-20.04
+    env:
+      CTEST_PARALLEL_LEVEL: 4
+      IMAGE_TYPE: test
+      ENABLE_TEST_TOOLS: ON
+      CMAKE_ONLY: ON
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Pull P4C and link Flay.
+      run: |
+        git clone --recurse-submodules -j2 https://github.com/p4lang/p4c/ $GITHUB_WORKSPACE/../p4c
+        ln -sf $GITHUB_WORKSPACE $GITHUB_WORKSPACE/../p4c/backends/p4tools/modules/
+
+    - name: Build (Ubuntu 20.04)
+      run: |
+        tools/ci-build.sh
+      working-directory: ../p4c
+
+    - name: Run cpplint on C/C++ files.
+      run: make cpplint
+      working-directory: ../p4c/build
+
+    - name: Run clang-format on C/C++ files.
+      run: make clang-format
+      working-directory: ../p4c/build
+
+    - name: Run black and isort on Python files.
+      run: |
+        make black
+        make isort
+      working-directory: ../p4c/build
