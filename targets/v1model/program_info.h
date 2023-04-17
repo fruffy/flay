@@ -2,11 +2,11 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_PROGRAM_INFO_H_
 
 #include <cstddef>
-#include <map>
 #include <vector>
 
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "ir/ir.h"
+#include "ir/node.h"
 #include "lib/cstring.h"
 #include "lib/ordered_map.h"
 

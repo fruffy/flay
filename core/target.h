@@ -1,14 +1,12 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_TARGET_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_TARGET_H_
 
-#include <cstdint>
-#include <filesystem>
-#include <optional>
 #include <string>
 #include <vector>
 
-#include "backends/p4tools/common/core/solver.h"
 #include "backends/p4tools/common/core/target.h"
+#include "backends/p4tools/common/lib/arch_spec.h"
+#include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "ir/ir.h"

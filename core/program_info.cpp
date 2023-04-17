@@ -1,12 +1,8 @@
 #include "backends/p4tools/modules/flay/core/program_info.h"
 
-#include "backends/p4tools/common/lib/arch_spec.h"
-#include "backends/p4tools/common/lib/util.h"
-#include "backends/p4tools/modules/flay/options.h"
 #include "ir/id.h"
-#include "lib/cstring.h"
+#include "lib/enumerator.h"
 #include "lib/exceptions.h"
-#include "midend/coverage.h"
 
 namespace P4Tools::Flay {
 
@@ -51,5 +47,13 @@ const std::vector<const IR::Node *> *ProgramInfo::getPipelineSequence() const {
 }
 
 const IR::P4Program *ProgramInfo::getProgram() const { return program; }
+
+cstring ProgramInfo::getCanonicalBlockName(cstring programBlockName) const {
+    auto it = blockMap.find(programBlockName);
+    if (it != blockMap.end()) {
+        return it->second;
+    }
+    BUG("Unable to find var %s in the canonical block map.", programBlockName);
+}
 
 }  // namespace P4Tools::Flay

@@ -1,9 +1,18 @@
 #include "backends/p4tools/modules/flay/core/stepper.h"
 
-#include "backends/p4tools/common/lib/util.h"
+#include <cstddef>
+#include <string>
+
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include "backends/p4tools/modules/flay/core/target.h"
-#include "frontends/p4/defaultValues.h"
-#include "ir/irutils.h"
+#include "ir/id.h"
+#include "ir/indexed_vector.h"
+#include "ir/vector.h"
+#include "lib/error.h"
+#include "lib/error_catalog.h"
+#include "lib/exceptions.h"
+#include "lib/source_file.h"
 
 namespace P4Tools::Flay {
 
@@ -95,6 +104,91 @@ const IR::Expression *defaultValue(ExecutionState &nextState, const Util::Source
     }
     ::error(ErrorType::ERR_INVALID, "%1%: No default value for type %2%", srcInfo, type);
     return nullptr;
+}
+
+bool FlayStepper::preorder(const IR::Node *node) {
+    P4C_UNIMPLEMENTED("Node %1% of type %2% not implemented in the core stepper.", node,
+                      node->node_type_name());
+}
+
+bool FlayStepper::preorder(const IR::P4Control *control) {
+    auto &executionState = getExecutionState();
+    // Enter the control's namespace.
+    executionState.pushNamespace(control);
+
+    auto blockName = control->getName().name;
+    auto canonicalName = getProgramInfo().getCanonicalBlockName(blockName);
+    const auto *controlParams = control->getApplyParameters();
+    const auto *archSpec = FlayTarget::getArchSpec();
+    for (size_t paramIdx = 0; paramIdx < controlParams->size(); ++paramIdx) {
+        const auto *internalParam = controlParams->getParameter(paramIdx);
+        const auto *paramType = internalParam->type;
+        auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
+        paramType = executionState.resolveType(paramType);
+        const auto *externalParamPath =
+            new IR::PathExpression(paramType, new IR::Path(externalParamName));
+        const auto &externalParamRef = new IR::Member(paramType, externalParamPath, "*");
+        const auto *internalParamPath =
+            new IR::PathExpression(internalParam->getSourceInfo(), paramType,
+                                   new IR::Path(internalParam->controlPlaneName()));
+        const auto &internalParamRef = new IR::Member(paramType, internalParamPath, "*");
+        if (internalParam->direction == IR::Direction::Out) {
+            executionState.set(internalParamRef,
+                               defaultValue(executionState, Util::SourceInfo(), paramType));
+        } else {
+            executionState.set(internalParamRef, executionState.get(externalParamRef));
+        }
+    }
+    control->body->apply_visitor_preorder(*this);
+
+    for (size_t paramIdx = 0; paramIdx < controlParams->size(); ++paramIdx) {
+        const auto *internalParam = controlParams->getParameter(paramIdx);
+        const auto *paramType = internalParam->type;
+        auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
+        paramType = executionState.resolveType(paramType);
+        const auto *externalParamPath =
+            new IR::PathExpression(paramType, new IR::Path(externalParamName));
+        const auto &externalParamRef = new IR::Member(paramType, externalParamPath, "*");
+        const auto *internalParamPath =
+            new IR::PathExpression(internalParam->getSourceInfo(), paramType,
+                                   new IR::Path(internalParam->controlPlaneName()));
+        const auto &internalParamRef = new IR::Member(paramType, internalParamPath, "*");
+        if (internalParam->direction == IR::Direction::Out ||
+            internalParam->direction == IR::Direction::InOut) {
+            executionState.set(externalParamRef, executionState.get(internalParamRef));
+        }
+    }
+    executionState.popNamespace();
+    return false;
+}
+
+bool FlayStepper::preorder(const IR::AssignmentStatement * /*assign*/) { return false; }
+
+bool FlayStepper::preorder(const IR::BlockStatement *block) {
+    auto &executionState = getExecutionState();
+
+    // Enter the block's namespace.
+    executionState.pushNamespace(block);
+    for (const auto *declOrStmt : block->components) {
+        declOrStmt->apply_visitor_preorder(*this);
+    }
+    executionState.popNamespace();
+    return false;
+}
+
+bool FlayStepper::preorder(const IR::IfStatement *ifStmt) {
+    auto &executionState = getExecutionState();
+
+    // const auto *cond = ifStmt->condition;
+
+    auto trueState = executionState.clone();
+    auto &trueStepper = FlayTarget::getStepper(programInfo, executionState);
+    ifStmt->ifTrue->apply(trueStepper);
+
+    if (ifStmt->ifFalse != nullptr) {
+        ifStmt->ifFalse->apply_visitor_preorder(*this);
+    }
+    return false;
 }
 
 void FlayStepper::initializeBlockParams(const IR::Type_Declaration *typeDecl,

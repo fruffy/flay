@@ -1,24 +1,14 @@
 #include "backends/p4tools/modules/flay/targets/v1model/program_info.h"
 
 #include <list>
-#include <map>
-#include <optional>
-#include <string>
 #include <utility>
-#include <variant>
 #include <vector>
 
-#include <boost/multiprecision/cpp_int.hpp>
-
-#include "backends/p4tools/common/lib/formulae.h"
-#include "backends/p4tools/common/lib/util.h"
+#include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/target.h"
-#include "backends/p4tools/modules/flay/options.h"
 #include "ir/id.h"
-#include "ir/indexed_vector.h"
 #include "ir/ir.h"
-#include "ir/irutils.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 #include "lib/null.h"
@@ -41,11 +31,13 @@ V1ModelProgramInfo::V1ModelProgramInfo(
     /// the deparser. This sequence also includes nodes that handle transitions between the
     /// individual component instantiations.
     int pipeIdx = 0;
-
     for (const auto &declTuple : programmableBlocks) {
+        blockMap.emplace(declTuple.second->controlPlaneName(), declTuple.first);
         // Iterate through the (ordered) pipes of the target architecture.
-        auto subResult = processDeclaration(declTuple.second, pipeIdx);
-        pipelineSequence.insert(pipelineSequence.end(), subResult.begin(), subResult.end());
+        if (declTuple.first == "Ingress") {
+            auto subResult = processDeclaration(declTuple.second, pipeIdx);
+            pipelineSequence.insert(pipelineSequence.end(), subResult.begin(), subResult.end());
+        }
         ++pipeIdx;
     }
 }

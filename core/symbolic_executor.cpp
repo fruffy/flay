@@ -1,8 +1,10 @@
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 
-#include "backends/p4tools/modules/flay/core/execution_state.h"
+#include <vector>
+
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
+#include "ir/node.h"
 
 namespace P4Tools::Flay {
 
@@ -11,10 +13,11 @@ SymbolicExecutor::SymbolicExecutor(const ProgramInfo &programInfo)
 
 void SymbolicExecutor::run() {
     const auto *pipelineSequence = programInfo.getPipelineSequence();
-    FlayStepper &stepper = FlayTarget::getStepper(programInfo, executionState);
+    auto &stepper = FlayTarget::getStepper(programInfo, executionState);
     stepper.initializeState();
     for (const auto *node : *pipelineSequence) {
         node->apply(stepper);
+        executionState.printSymbolicEnv();
     }
 }
 

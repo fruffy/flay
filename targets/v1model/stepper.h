@@ -4,14 +4,11 @@
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/targets/v1model/program_info.h"
-#include "ir/visitor.h"
+#include "ir/node.h"
 
 namespace P4Tools::Flay::V1Model {
 
 class V1ModelFlayStepper : public FlayStepper {
- private:
-    bool preorder(const IR::Node *node) override;
-
  protected:
     const V1ModelProgramInfo &getProgramInfo() const override;
 

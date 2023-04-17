@@ -1,3 +1,7 @@
+#include <exception>
+#include <iostream>
+#include <vector>
+
 #include "backends/p4tools/modules/flay/flay.h"
 #include "lib/crash.h"
 #include "lib/exceptions.h"

@@ -1,6 +1,15 @@
 #include "backends/p4tools/modules/flay/targets/v1model/stepper.h"
 
+#include <stddef.h>
+
+#include <list>
+#include <utility>
+
+#include "backends/p4tools/common/lib/arch_spec.h"
+#include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/target.h"
+#include "lib/cstring.h"
+#include "lib/ordered_map.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -21,10 +30,7 @@ void V1ModelFlayStepper::initializeState() {
         initializeBlockParams(typeDecl, &archMember->blockParams, getExecutionState());
         blockIdx++;
     }
-    getExecutionState().printSymbolicEnv();
 }
-
-bool V1ModelFlayStepper::preorder(const IR::Node * /*node*/) { return false; }
 
 V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::V1ModelProgramInfo &programInfo,
                                        ExecutionState &executionState)

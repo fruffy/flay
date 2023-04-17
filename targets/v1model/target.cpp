@@ -1,9 +1,11 @@
 #include "backends/p4tools/modules/flay/targets/v1model/target.h"
 
 #include <cstddef>
+#include <map>
+#include <vector>
 
-#include "backends/p4tools/common/core/solver.h"
 #include "backends/p4tools/modules/flay/targets/v1model/program_info.h"
+#include "backends/p4tools/modules/flay/targets/v1model/stepper.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"

@@ -1,9 +1,14 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXECUTION_STATE_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXECUTION_STATE_H_
 
+#include <iostream>
+
 #include "backends/p4tools/common/lib/formulae.h"
 #include "backends/p4tools/common/lib/namespace_context.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
+#include "ir/declaration.h"
+#include "ir/ir.h"
+#include "lib/cstring.h"
 
 namespace P4Tools::Flay {
 
@@ -22,14 +27,14 @@ class ExecutionState {
      * ========================================================================================= */
  public:
     /// @returns the value associated with the given state variable.
-    [[nodiscard]] const IR::Expression *get(const StateVariable &var) const;
+    [[nodiscard]] const IR::Expression *get(const IR::StateVariable &var) const;
 
     /// Sets the symbolic value of the given state variable to the given value. Constant folding
     /// is done on the given value before updating the symbolic state.
-    void set(const StateVariable &var, const IR::Expression *value);
+    void set(const IR::StateVariable &var, const IR::Expression *value);
 
     /// Checks whether the given variable exists in the symbolic environment of this state.
-    [[nodiscard]] bool exists(const StateVariable &var) const;
+    [[nodiscard]] bool exists(const IR::StateVariable &var) const;
 
     /// @returns the current symbolic environment.
     [[nodiscard]] const SymbolicEnv &getSymbolicEnv() const;
@@ -67,6 +72,14 @@ class ExecutionState {
      * ========================================================================================= */
     /// Creates an initial execution state for the given program.
     explicit ExecutionState(const IR::P4Program *program);
+
+    /// Allocate a new execution state object with the same state as this object.
+    /// Returns a reference, not a pointer.
+    [[nodiscard]] ExecutionState &clone() const;
+
+    /// Create a new execution state object from the input program.
+    /// Returns a reference not a pointer.
+    [[nodiscard]] static ExecutionState &create(const IR::P4Program *program);
 };
 
 }  // namespace P4Tools::Flay

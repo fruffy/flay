@@ -1,21 +1,10 @@
 #include "backends/p4tools/modules/flay/flay.h"
 
 #include <cstdlib>
-#include <filesystem>
-#include <iostream>
-#include <optional>
-#include <string>
-#include <utility>
 
-#include "backends/p4tools/common/core/solver.h"
-#include "backends/p4tools/common/core/z3_solver.h"
-#include "backends/p4tools/common/lib/util.h"
-#include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/register.h"
-#include "frontends/common/parser_options.h"
-#include "lib/cstring.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {

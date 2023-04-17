@@ -1,17 +1,12 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_PROGRAM_INFO_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_PROGRAM_INFO_H_
 
-#include <cstddef>
-#include <optional>
 #include <vector>
 
-#include "backends/p4tools/common/compiler/reachability.h"
-#include "backends/p4tools/common/lib/arch_spec.h"
-#include "backends/p4tools/common/lib/formulae.h"
 #include "ir/declaration.h"
 #include "ir/ir.h"
+#include "ir/node.h"
 #include "lib/castable.h"
-#include "midend/coverage.h"
 
 namespace P4Tools::Flay {
 
@@ -26,6 +21,9 @@ class ProgramInfo : public ICastable {
 
     /// The pipeline sequence of this P4 program. Can be modified by subclasses.
     std::vector<const IR::Node *> pipelineSequence;
+
+    /// Maps the programmable blocks in the P4 program to their canonical counterpart.
+    std::map<cstring, cstring> blockMap;
 
  public:
     ProgramInfo(const ProgramInfo &) = default;
@@ -55,6 +53,8 @@ class ProgramInfo : public ICastable {
     /// Resolves a Type_Name in the current environment.
     static const IR::Type_Declaration *resolveProgramType(const IR::IGeneralNamespace *ns,
                                                           const IR::Type_Name *type);
+
+    [[nodiscard]] cstring getCanonicalBlockName(cstring programBlockName) const;
 };
 
 }  // namespace P4Tools::Flay

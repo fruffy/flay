@@ -1,6 +1,12 @@
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 
-#include "backends/p4tools/common/lib/formulae.h"
+#include <ostream>
+#include <utility>
+
+#include <boost/container/vector.hpp>
+
+#include "lib/exceptions.h"
+#include "lib/log.h"
 
 namespace P4Tools::Flay {
 
@@ -11,14 +17,14 @@ ExecutionState::ExecutionState(const IR::P4Program *program)
  *  Accessors
  * ============================================================================================= */
 
-const IR::Expression *ExecutionState::get(const StateVariable &var) const {
+const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
     const auto *expr = env.get(var);
     return expr;
 }
 
-bool ExecutionState::exists(const StateVariable &var) const { return env.exists(var); }
+bool ExecutionState::exists(const IR::StateVariable &var) const { return env.exists(var); }
 
-void ExecutionState::set(const StateVariable &var, const IR::Expression *value) {
+void ExecutionState::set(const IR::StateVariable &var, const IR::Expression *value) {
     env.set(var, value);
 }
 
@@ -65,5 +71,17 @@ void ExecutionState::setNamespaceContext(const NamespaceContext *namespaces) {
 }
 
 void ExecutionState::pushNamespace(const IR::INamespace *ns) { namespaces = namespaces->push(ns); }
+
+void ExecutionState::popNamespace() { namespaces = namespaces->pop(); }
+
+/* =========================================================================================
+ *  Constructors
+ * ========================================================================================= */
+
+ExecutionState &ExecutionState::create(const IR::P4Program *program) {
+    return *new ExecutionState(program);
+}
+
+ExecutionState &ExecutionState::clone() const { return *new ExecutionState(*this); }
 
 }  // namespace P4Tools::Flay

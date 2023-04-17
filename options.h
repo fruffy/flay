@@ -1,12 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_OPTIONS_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_OPTIONS_H_
 
-#include <cstdint>
-#include <set>
-#include <string>
-
 #include "backends/p4tools/common/options.h"
-#include "lib/cstring.h"
 
 namespace P4Tools {
 
