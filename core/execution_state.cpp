@@ -17,14 +17,13 @@ ExecutionState::ExecutionState(const IR::P4Program *program)
  *  Accessors
  * ============================================================================================= */
 
-const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
-    const auto *expr = env.get(var);
-    return expr;
+IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
+    return env.get(var);
 }
 
 bool ExecutionState::exists(const IR::StateVariable &var) const { return env.exists(var); }
 
-void ExecutionState::set(const IR::StateVariable &var, const IR::Expression *value) {
+void ExecutionState::set(const IR::StateVariable &var, IR::Expression *value) {
     env.set(var, value);
 }
 

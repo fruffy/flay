@@ -23,8 +23,8 @@ const ProgramInfo &FlayStepper::getProgramInfo() const { return programInfo.get(
 
 ExecutionState &FlayStepper::getExecutionState() const { return executionState.get(); }
 
-const IR::Expression *defaultValue(ExecutionState &nextState, const Util::SourceInfo &srcInfo,
-                                   const IR::Type *type) {
+IR::Expression *defaultValue(ExecutionState &nextState, const Util::SourceInfo &srcInfo,
+                             const IR::Type *type) {
     if (const auto *tb = type->to<IR::Type_Bits>()) {
         return new IR::Constant(srcInfo, tb, 0);
     }
@@ -215,7 +215,7 @@ void FlayStepper::initializeBlockParams(const IR::Type_Declaration *typeDecl,
         paramType = nextState.resolveType(paramType);
         const auto *paramPath = new IR::PathExpression(paramType, new IR::Path(archRef));
         const auto &paramRef = new IR::Member(paramType, paramPath, "*");
-        const auto *val = defaultValue(nextState, Util::SourceInfo(), paramType);
+        auto *val = defaultValue(nextState, Util::SourceInfo(), paramType);
         nextState.set(paramRef, val);
     }
 }

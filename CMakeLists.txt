@@ -10,6 +10,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/program_info.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/symbolic_executor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/symbolic_env_2.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/target.cpp
 )
 

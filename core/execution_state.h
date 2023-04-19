@@ -5,7 +5,7 @@
 
 #include "backends/p4tools/common/lib/formulae.h"
 #include "backends/p4tools/common/lib/namespace_context.h"
-#include "backends/p4tools/common/lib/symbolic_env.h"
+#include "backends/p4tools/modules/flay/core/symbolic_env_2.h"
 #include "ir/declaration.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
@@ -27,11 +27,11 @@ class ExecutionState {
      * ========================================================================================= */
  public:
     /// @returns the value associated with the given state variable.
-    [[nodiscard]] const IR::Expression *get(const IR::StateVariable &var) const;
+    [[nodiscard]] IR::Expression *get(const IR::StateVariable &var) const;
 
     /// Sets the symbolic value of the given state variable to the given value. Constant folding
     /// is done on the given value before updating the symbolic state.
-    void set(const IR::StateVariable &var, const IR::Expression *value);
+    void set(const IR::StateVariable &var, IR::Expression *value);
 
     /// Checks whether the given variable exists in the symbolic environment of this state.
     [[nodiscard]] bool exists(const IR::StateVariable &var) const;
