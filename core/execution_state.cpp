@@ -17,9 +17,7 @@ ExecutionState::ExecutionState(const IR::P4Program *program)
  *  Accessors
  * ============================================================================================= */
 
-IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
-    return env.get(var);
-}
+IR::Expression *ExecutionState::get(const IR::StateVariable &var) const { return env.get(var); }
 
 bool ExecutionState::exists(const IR::StateVariable &var) const { return env.exists(var); }
 
