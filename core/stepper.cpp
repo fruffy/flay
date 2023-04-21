@@ -5,6 +5,7 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
@@ -125,13 +126,10 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
         const auto *paramType = internalParam->type;
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
         paramType = executionState.resolveType(paramType);
-        const auto *externalParamPath =
-            new IR::PathExpression(paramType, new IR::Path(externalParamName));
-        const auto &externalParamRef = new IR::Member(paramType, externalParamPath, "*");
-        const auto *internalParamPath =
-            new IR::PathExpression(internalParam->getSourceInfo(), paramType,
-                                   new IR::Path(internalParam->controlPlaneName()));
-        const auto &internalParamRef = new IR::Member(paramType, internalParamPath, "*");
+        const auto &externalParamRef =
+            ExecutionState::createStateVariable(paramType, externalParamName);
+        const auto &internalParamRef =
+            ExecutionState::createStateVariable(paramType, internalParam->controlPlaneName());
         if (internalParam->direction == IR::Direction::Out) {
             executionState.set(internalParamRef,
                                defaultValue(executionState, Util::SourceInfo(), paramType));
@@ -146,13 +144,10 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
         const auto *paramType = internalParam->type;
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
         paramType = executionState.resolveType(paramType);
-        const auto *externalParamPath =
-            new IR::PathExpression(paramType, new IR::Path(externalParamName));
-        const auto &externalParamRef = new IR::Member(paramType, externalParamPath, "*");
-        const auto *internalParamPath =
-            new IR::PathExpression(internalParam->getSourceInfo(), paramType,
-                                   new IR::Path(internalParam->controlPlaneName()));
-        const auto &internalParamRef = new IR::Member(paramType, internalParamPath, "*");
+        const auto &externalParamRef =
+            ExecutionState::createStateVariable(paramType, externalParamName);
+        const auto &internalParamRef =
+            ExecutionState::createStateVariable(paramType, internalParam->controlPlaneName());
         if (internalParam->direction == IR::Direction::Out ||
             internalParam->direction == IR::Direction::InOut) {
             executionState.set(externalParamRef, executionState.get(internalParamRef));
@@ -162,7 +157,15 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
     return false;
 }
 
-bool FlayStepper::preorder(const IR::AssignmentStatement * /*assign*/) { return false; }
+bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
+    const auto *left = assign->left;
+    const auto *right = assign->right;
+    auto executionState = getExecutionState();
+    auto leftRef = P4Tools::Flay::ExecutionState::convertReference(left);
+
+    executionState.set(leftRef, right->clone());
+    return false;
+}
 
 bool FlayStepper::preorder(const IR::BlockStatement *block) {
     auto &executionState = getExecutionState();
@@ -213,8 +216,8 @@ void FlayStepper::initializeBlockParams(const IR::Type_Declaration *typeDecl,
         }
         // We need to resolve type names.
         paramType = nextState.resolveType(paramType);
-        const auto *paramPath = new IR::PathExpression(paramType, new IR::Path(archRef));
-        const auto &paramRef = new IR::Member(paramType, paramPath, "*");
+        const auto &paramRef = ExecutionState::createStateVariable(paramType, archRef);
+
         auto *val = defaultValue(nextState, Util::SourceInfo(), paramType);
         nextState.set(paramRef, val);
     }

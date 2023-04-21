@@ -67,6 +67,14 @@ class ExecutionState {
     /// Exists a namespace of declarations.
     void popNamespace();
 
+    /// @returns a translation of the path expression into a member.
+    /// This function looks up the path expression in the namespace and tries to find the
+    /// corresponding declaration. It then converts the name of the declaration into a variables
+    /// constant and returns. This is necessary because we sometimes
+    /// get flat declarations without members (e.g., bit<8> tmp;)
+    [[nodiscard]] static IR::StateVariable convertReference(const IR::Expression *ref);
+    [[nodiscard]] static IR::StateVariable createStateVariable(const IR::Type *type, cstring name);
+
     /* =========================================================================================
      *  Constructors
      * ========================================================================================= */
