@@ -2,6 +2,7 @@
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 
 #include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/core/state_utils.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay {
@@ -26,6 +27,42 @@ const IR::Expression *ExpressionResolver::getResult() {
 bool ExpressionResolver::preorder(const IR::Node *node) {
     P4C_UNIMPLEMENTED("Node %1% of type %2% not implemented in the expression resolver.", node,
                       node->node_type_name());
+}
+
+bool ExpressionResolver::preorder(const IR::PathExpression *path) {
+    result = getExecutionState().get(StateUtils::convertReference(path));
+    return false;
+}
+
+bool ExpressionResolver::preorder(const IR::Operation_Binary *op) {
+    const auto *left = op->left;
+    const auto *right = op->right;
+    bool hasChanged = false;
+    if (!SymbolicEnv::isSymbolicValue(left)) {
+        left->apply_visitor_preorder(*this);
+        left = getResult();
+        hasChanged = true;
+    }
+
+    if (!SymbolicEnv::isSymbolicValue(right)) {
+        right->apply_visitor_preorder(*this);
+        right = getResult();
+        hasChanged = true;
+    }
+    if (hasChanged) {
+        auto *newOp = op->clone();
+        newOp->left = left;
+        newOp->right = right;
+        result = newOp;
+        return false;
+    }
+    result = op;
+    return false;
+}
+
+bool ExpressionResolver::preorder(const IR::Member *member) {
+    result = getExecutionState().get(member);
+    return false;
 }
 
 bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {

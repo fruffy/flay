@@ -72,36 +72,8 @@ class ExecutionState {
      *  General utilities involving ExecutionState.
      * ========================================================================================= */
  public:
-    /// Takes an input struct type @ts and a prefix @parent and appends each field of the struct
-    /// type to the provided vector @flatFields. The result is a vector of all in the bit and bool
-    /// members in canonical representation (e.g., {"prefix.h.ethernet.dst_address",
-    /// "prefix.h.ethernet.src_address", ...}).
-    /// If @arg validVector is provided, this function also collects the validity bits of the
-    /// headers.
-    [[nodiscard]] std::vector<const IR::Member *> getFlatFields(
-        const IR::Expression *parent, const IR::Type_StructLike *ts,
-        std::vector<const IR::Member *> *validVector = nullptr) const;
-
     /// Merge another symbolic environment into this state under @param cond.
-    void merge(const SymbolicEnv &mergeEnv, const IR::Expression *cond) {
-        cond = P4::optimizeExpression(cond);
-        if (const auto *boolExpr = cond->to<IR::BoolLiteral>()) {
-            // If the condition is false, do nothing. If it is true, set all the values.
-            if (boolExpr->value) {
-                for (const auto &envTuple : mergeEnv.getInternalMap()) {
-                    set(envTuple.first, envTuple.second);
-                }
-            }
-            return;
-        }
-        for (const auto &envTuple : mergeEnv.getInternalMap()) {
-            auto ref = envTuple.first;
-            const auto *mergeExpr = envTuple.second;
-            const auto *currentExpr = get(ref);
-            auto *mergedExpr = new IR::Mux(currentExpr->type, cond, mergeExpr, currentExpr);
-            set(envTuple.first, mergedExpr);
-        }
-    }
+    void merge(const SymbolicEnv &mergeEnv, const IR::Expression *cond);
 
     /* =========================================================================================
      *  Constructors

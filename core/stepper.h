@@ -30,13 +30,6 @@ class FlayStepper : public Inspector {
 
     virtual const ProgramInfo &getProgramInfo() const;
 
-    void declareStructLike(ExecutionState &nextState, const IR::Expression *parentExpr,
-                           const IR::Type_StructLike *structType, bool forceTaint) const;
-
-    void initializeBlockParams(const IR::Type_Declaration *typeDecl,
-                               const std::vector<cstring> *blockParams,
-                               ExecutionState &nextState) const;
-
  public:
     virtual void initializeState() = 0;
 
