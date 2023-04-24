@@ -21,10 +21,14 @@ class ExpressionResolver : public Inspector {
     std::reference_wrapper<ExecutionState> executionState;
 
     bool preorder(const IR::Node *node) override;
-    bool preorder(const IR::Operation_Binary *op) override;
-    bool preorder(const IR::Member *member) override;
+    bool preorder(const IR::Literal *lit) override;
     bool preorder(const IR::PathExpression *path) override;
+    bool preorder(const IR::Member *member) override;
+    bool preorder(const IR::Operation_Unary *op) override;
+    bool preorder(const IR::Operation_Binary *op) override;
+    bool preorder(const IR::Operation_Ternary *op) override;
     bool preorder(const IR::MethodCallExpression *call) override;
+    bool preorder(const IR::StructExpression *structExpr) override;
 
  protected:
     ExecutionState &getExecutionState() const;

@@ -29,8 +29,37 @@ bool ExpressionResolver::preorder(const IR::Node *node) {
                       node->node_type_name());
 }
 
+bool ExpressionResolver::preorder(const IR::Literal *lit) {
+    result = lit;
+    return false;
+}
+
 bool ExpressionResolver::preorder(const IR::PathExpression *path) {
     result = getExecutionState().get(StateUtils::convertReference(path));
+    return false;
+}
+
+bool ExpressionResolver::preorder(const IR::Member *member) {
+    result = getExecutionState().get(member);
+    return false;
+}
+
+bool ExpressionResolver::preorder(const IR::Operation_Unary *op) {
+    const auto *expr = op->expr;
+    bool hasChanged = false;
+    if (!SymbolicEnv::isSymbolicValue(expr)) {
+        expr->apply_visitor_preorder(*this);
+        expr = getResult();
+        hasChanged = true;
+    }
+
+    if (hasChanged) {
+        auto *newOp = op->clone();
+        newOp->expr = expr;
+        result = newOp;
+        return false;
+    }
+    result = op;
     return false;
 }
 
@@ -60,8 +89,65 @@ bool ExpressionResolver::preorder(const IR::Operation_Binary *op) {
     return false;
 }
 
-bool ExpressionResolver::preorder(const IR::Member *member) {
-    result = getExecutionState().get(member);
+bool ExpressionResolver::preorder(const IR::Operation_Ternary *op) {
+    const auto *e0 = op->e0;
+    const auto *e1 = op->e1;
+    const auto *e2 = op->e2;
+    bool hasChanged = false;
+    if (!SymbolicEnv::isSymbolicValue(e0)) {
+        e0->apply_visitor_preorder(*this);
+        e0 = getResult();
+        hasChanged = true;
+    }
+
+    if (!SymbolicEnv::isSymbolicValue(e1)) {
+        e1->apply_visitor_preorder(*this);
+        e1 = getResult();
+        hasChanged = true;
+    }
+
+    if (!SymbolicEnv::isSymbolicValue(e2)) {
+        e2->apply_visitor_preorder(*this);
+        e2 = getResult();
+        hasChanged = true;
+    }
+    if (hasChanged) {
+        auto *newOp = op->clone();
+        newOp->e0 = e0;
+        newOp->e1 = e1;
+        newOp->e2 = e2;
+        result = newOp;
+        return false;
+    }
+    result = op;
+    return false;
+}
+
+bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
+    IR::IndexedVector<IR::NamedExpression> components;
+    bool hasChanged = false;
+    for (const auto *field : structExpr->components) {
+        const auto *expr = field->expression;
+        bool fieldHasChanged = false;
+        if (!SymbolicEnv::isSymbolicValue(expr)) {
+            expr->apply_visitor_preorder(*this);
+            expr = getResult();
+            fieldHasChanged = true;
+        }
+        if (fieldHasChanged) {
+            auto *newField = field->clone();
+            newField->expression = expr;
+            components.push_back(newField);
+            hasChanged = true;
+        }
+    }
+    if (hasChanged) {
+        auto *newStructExpr = structExpr->clone();
+        newStructExpr->components = components;
+        result = newStructExpr;
+        return false;
+    }
+    result = structExpr;
     return false;
 }
 
