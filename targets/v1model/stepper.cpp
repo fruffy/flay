@@ -1,7 +1,6 @@
 #include "backends/p4tools/modules/flay/targets/v1model/stepper.h"
 
-#include <stddef.h>
-
+#include <cstddef>
 #include <list>
 #include <utility>
 

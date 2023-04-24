@@ -23,14 +23,15 @@ class FlayStepper : public Inspector {
     bool preorder(const IR::AssignmentStatement *assign) override;
     bool preorder(const IR::BlockStatement *block) override;
     bool preorder(const IR::IfStatement *ifStmt) override;
+    bool preorder(const IR::MethodCallStatement *stmt) override;
 
  protected:
     ExecutionState &getExecutionState() const;
 
     virtual const ProgramInfo &getProgramInfo() const;
 
-    static void declareStructLike(ExecutionState &nextState, const IR::Expression *parentExpr,
-                                  const IR::Type_StructLike *structType, bool forceTaint);
+    void declareStructLike(ExecutionState &nextState, const IR::Expression *parentExpr,
+                           const IR::Type_StructLike *structType, bool forceTaint) const;
 
     void initializeBlockParams(const IR::Type_Declaration *typeDecl,
                                const std::vector<cstring> *blockParams,

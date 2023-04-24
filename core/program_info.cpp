@@ -1,6 +1,8 @@
 #include "backends/p4tools/modules/flay/core/program_info.h"
 
+#include "backends/p4tools/common/lib/variables.h"
 #include "ir/id.h"
+#include "ir/irutils.h"
 #include "lib/enumerator.h"
 #include "lib/exceptions.h"
 
@@ -36,6 +38,14 @@ const IR::Type_Declaration *ProgramInfo::resolveProgramType(const IR::IGeneralNa
     const auto *decl = findProgramDecl(ns, path)->to<IR::Type_Declaration>();
     BUG_CHECK(decl, "Not a type: %1%", path);
     return decl;
+}
+
+const IR::Expression *ProgramInfo::createTargetUninitialized(const IR::Type *type,
+                                                             bool forceTaint) const {
+    if (forceTaint) {
+        return ToolsVariables::getTaintExpression(type);
+    }
+    return IR::getDefaultValue(type);
 }
 
 /* =============================================================================================

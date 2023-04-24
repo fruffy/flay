@@ -68,6 +68,20 @@ class ExecutionState {
     void popNamespace();
 
     /* =========================================================================================
+     *  General utilities involving ExecutionState.
+     * ========================================================================================= */
+ public:
+    /// Takes an input struct type @ts and a prefix @parent and appends each field of the struct
+    /// type to the provided vector @flatFields. The result is a vector of all in the bit and bool
+    /// members in canonical representation (e.g., {"prefix.h.ethernet.dst_address",
+    /// "prefix.h.ethernet.src_address", ...}).
+    /// If @arg validVector is provided, this function also collects the validity bits of the
+    /// headers.
+    [[nodiscard]] std::vector<const IR::Member *> getFlatFields(
+        const IR::Expression *parent, const IR::Type_StructLike *ts,
+        std::vector<const IR::Member *> *validVector = nullptr) const;
+
+    /* =========================================================================================
      *  Constructors
      * ========================================================================================= */
     /// Creates an initial execution state for the given program.
@@ -80,6 +94,11 @@ class ExecutionState {
     /// Create a new execution state object from the input program.
     /// Returns a reference not a pointer.
     [[nodiscard]] static ExecutionState &create(const IR::P4Program *program);
+
+    ExecutionState &operator=(const ExecutionState &) = delete;
+
+ private:
+    ExecutionState(const ExecutionState &) = default;
 };
 
 }  // namespace P4Tools::Flay
