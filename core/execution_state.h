@@ -6,6 +6,7 @@
 #include "backends/p4tools/common/lib/formulae.h"
 #include "backends/p4tools/common/lib/namespace_context.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
+#include "frontends/p4/optimizeExpressions.h"
 #include "ir/declaration.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
@@ -80,6 +81,27 @@ class ExecutionState {
     [[nodiscard]] std::vector<const IR::Member *> getFlatFields(
         const IR::Expression *parent, const IR::Type_StructLike *ts,
         std::vector<const IR::Member *> *validVector = nullptr) const;
+
+    /// Merge another symbolic environment into this state under @param cond.
+    void merge(const SymbolicEnv &mergeEnv, const IR::Expression *cond) {
+        cond = P4::optimizeExpression(cond);
+        if (const auto *boolExpr = cond->to<IR::BoolLiteral>()) {
+            // If the condition is false, do nothing. If it is true, set all the values.
+            if (boolExpr->value) {
+                for (const auto &envTuple : mergeEnv.getInternalMap()) {
+                    set(envTuple.first, envTuple.second);
+                }
+            }
+            return;
+        }
+        for (const auto &envTuple : mergeEnv.getInternalMap()) {
+            auto ref = envTuple.first;
+            const auto *mergeExpr = envTuple.second;
+            const auto *currentExpr = get(ref);
+            auto *mergedExpr = new IR::Mux(currentExpr->type, cond, mergeExpr, currentExpr);
+            set(envTuple.first, mergedExpr);
+        }
+    }
 
     /* =========================================================================================
      *  Constructors

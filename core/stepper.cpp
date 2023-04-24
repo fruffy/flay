@@ -225,7 +225,10 @@ bool FlayStepper::preorder(const IR::BlockStatement *block) {
 bool FlayStepper::preorder(const IR::IfStatement *ifStmt) {
     auto &executionState = getExecutionState();
 
-    // const auto *cond = ifStmt->condition;
+    const auto *cond = ifStmt->condition;
+    auto resolver = ExpressionResolver(getProgramInfo(), getExecutionState());
+    cond->apply(resolver);
+    cond = resolver.getResult();
 
     auto &trueState = executionState.clone();
     auto &trueStepper = FlayTarget::getStepper(programInfo, trueState);
@@ -234,6 +237,7 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStmt) {
     if (ifStmt->ifFalse != nullptr) {
         ifStmt->ifFalse->apply_visitor_preorder(*this);
     }
+    executionState.merge(trueState.getSymbolicEnv(), cond);
     return false;
 }
 
