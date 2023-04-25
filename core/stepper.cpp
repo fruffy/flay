@@ -105,19 +105,19 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     assignType = executionState.resolveType(assignType);
     if (const auto *ts = assignType->to<IR::Type_StructLike>()) {
         if (const auto *structExpr = right->to<IR::StructExpression>()) {
-            std::vector<const IR::Member *> flatTargetValids;
+            std::vector<IR::StateVariable> flatTargetValids;
             auto flatTargetFields =
                 StateUtils::getFlatFields(executionState, left, ts, &flatTargetValids);
             auto flatStructFields = StateUtils::getFlatStructFields(structExpr);
             BUG_CHECK(
                 flatTargetFields.size() == flatStructFields.size(),
                 "The list of target fields and the list of source fields have different sizes.");
-            for (const auto *fieldTargetValid : flatTargetValids) {
+            for (const auto &fieldTargetValid : flatTargetValids) {
                 executionState.set(fieldTargetValid, IR::getBoolLiteral(true));
             }
             // First, complete the assignments for the data structure.
             for (size_t idx = 0; idx < flatTargetFields.size(); ++idx) {
-                const auto *flatTargetRef = flatTargetFields[idx];
+                const auto &flatTargetRef = flatTargetFields[idx];
                 const auto *flatStructField = flatStructFields[idx];
                 executionState.set(flatTargetRef, flatStructField);
             }

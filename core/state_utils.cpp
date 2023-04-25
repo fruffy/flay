@@ -8,10 +8,10 @@ namespace P4Tools::Flay {
  *  General utilities involving ExecutionState.
  * ========================================================================================= */
 
-std::vector<const IR::Member *> StateUtils::getFlatFields(
+std::vector<IR::StateVariable> StateUtils::getFlatFields(
     ExecutionState &state, const IR::Expression *parent, const IR::Type_StructLike *ts,
-    std::vector<const IR::Member *> *validVector) {
-    std::vector<const IR::Member *> flatFields;
+    std::vector<IR::StateVariable> *validVector) {
+    std::vector<IR::StateVariable> flatFields;
     for (const auto *field : ts->fields) {
         const auto *fieldType = state.resolveType(field->type);
         if (const auto *ts = fieldType->to<IR::Type_StructLike>()) {
@@ -45,12 +45,12 @@ std::vector<const IR::Member *> StateUtils::getFlatFields(
 void StateUtils::initializeStructLike(const ProgramInfo &programInfo, ExecutionState &state,
                                       const IR::Expression *target, bool forceTaint) {
     const auto *typeTarget = target->type->checkedTo<IR::Type_StructLike>();
-    std::vector<const IR::Member *> flatTargetValids;
+    std::vector<IR::StateVariable> flatTargetValids;
     auto flatTargetFields = getFlatFields(state, target, typeTarget, &flatTargetValids);
-    for (const auto *fieldTargetValid : flatTargetValids) {
+    for (const auto &fieldTargetValid : flatTargetValids) {
         state.set(fieldTargetValid, IR::getBoolLiteral(false));
     }
-    for (const auto *flatTargetRef : flatTargetFields) {
+    for (const auto &flatTargetRef : flatTargetFields) {
         state.set(flatTargetRef,
                   programInfo.createTargetUninitialized(flatTargetRef->type, forceTaint));
     }
@@ -69,22 +69,22 @@ void StateUtils::setStructLike(ExecutionState &state, const IR::Expression *targ
                                const IR::Expression *source) {
     const auto *typeTarget = target->type->checkedTo<IR::Type_StructLike>();
     const auto *typeSource = target->type->checkedTo<IR::Type_StructLike>();
-    std::vector<const IR::Member *> flatTargetValids;
-    std::vector<const IR::Member *> flatSourceValids;
+    std::vector<IR::StateVariable> flatTargetValids;
+    std::vector<IR::StateVariable> flatSourceValids;
     auto flatTargetFields = getFlatFields(state, target, typeTarget, &flatTargetValids);
     auto flatSourceFields = getFlatFields(state, source, typeSource, &flatSourceValids);
     BUG_CHECK(flatTargetFields.size() == flatSourceFields.size(),
               "The list of target fields and the list of source fields have "
               "different sizes.");
     for (size_t idx = 0; idx < flatTargetValids.size(); ++idx) {
-        const auto *fieldTargetValid = flatTargetValids[idx];
-        const auto *fieldSourceTarget = flatSourceValids[idx];
+        const auto &fieldTargetValid = flatTargetValids[idx];
+        const auto &fieldSourceTarget = flatSourceValids[idx];
         state.set(fieldTargetValid, state.get(fieldSourceTarget));
     }
     // First, complete the assignments for the data structure.
     for (size_t idx = 0; idx < flatSourceFields.size(); ++idx) {
-        const auto *flatTargetRef = flatTargetFields[idx];
-        const auto *fieldSourceRef = flatSourceFields[idx];
+        const auto &flatTargetRef = flatTargetFields[idx];
+        const auto &fieldSourceRef = flatSourceFields[idx];
         state.set(flatTargetRef, state.get(fieldSourceRef));
     }
 }
@@ -192,7 +192,6 @@ void StateUtils::initializeBlockParams(const ProgramInfo &programInfo, Execution
             initializeStructLike(programInfo, state, paramRef, false);
         } else if (const auto *tb = paramType->to<IR::Type_Base>()) {
             const auto &paramRef = ToolsVariables::getStateVariable(paramType, archRef);
-            // If the type is a flat Type_Base, postfix it with a "*".
             state.set(paramRef, programInfo.createTargetUninitialized(paramType, false));
         } else {
             P4C_UNIMPLEMENTED("Unsupported initialization type %1%", paramType->node_type_name());

@@ -89,9 +89,11 @@ class ExecutionState {
     /// Returns a reference not a pointer.
     [[nodiscard]] static ExecutionState &create(const IR::P4Program *program);
 
+    /// Do not accidentally copy-assign the execution state.
     ExecutionState &operator=(const ExecutionState &) = delete;
 
  private:
+    /// Execution state needs to be explicitly copied using the @ref clone call..
     ExecutionState(const ExecutionState &) = default;
 };
 
