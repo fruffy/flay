@@ -82,7 +82,10 @@ void ExecutionState::merge(const SymbolicEnv &mergeEnv, const IR::Expression *co
         // If the condition is false, do nothing. If it is true, set all the values.
         if (boolExpr->value) {
             for (const auto &envTuple : mergeEnv.getInternalMap()) {
-                set(envTuple.first, envTuple.second);
+                auto ref = envTuple.first;
+                if (exists(ref)) {
+                    set(ref, envTuple.second);
+                }
             }
         }
         return;
@@ -90,9 +93,11 @@ void ExecutionState::merge(const SymbolicEnv &mergeEnv, const IR::Expression *co
     for (const auto &envTuple : mergeEnv.getInternalMap()) {
         auto ref = envTuple.first;
         const auto *mergeExpr = envTuple.second;
-        const auto *currentExpr = get(ref);
-        auto *mergedExpr = new IR::Mux(currentExpr->type, cond, mergeExpr, currentExpr);
-        set(envTuple.first, mergedExpr);
+        if (exists(ref)) {
+            const auto *currentExpr = get(ref);
+            auto *mergedExpr = new IR::Mux(currentExpr->type, cond, mergeExpr, currentExpr);
+            set(envTuple.first, mergedExpr);
+        }
     }
 }
 

@@ -14,10 +14,13 @@ namespace P4Tools::Flay {
 
 class FlayStepper : public Inspector {
  private:
+    /// The program info of the target.
     std::reference_wrapper<const ProgramInfo> programInfo;
 
+    /// The current execution state.
     std::reference_wrapper<ExecutionState> executionState;
 
+    /// Visitor methods.
     bool preorder(const IR::Node *node) override;
     bool preorder(const IR::P4Control *control) override;
     bool preorder(const IR::P4Parser *parser) override;
@@ -28,11 +31,15 @@ class FlayStepper : public Inspector {
     bool preorder(const IR::MethodCallStatement *stmt) override;
 
  protected:
+    /// @returns the current execution state.
     ExecutionState &getExecutionState() const;
 
+    /// @returns the program info associated with the current target.
     virtual const ProgramInfo &getProgramInfo() const;
 
  public:
+    /// Pre-run initialization method. Every stepper should implement this.
+    /// TODO: Replace with init_apply?
     virtual void initializeState() = 0;
 
     explicit FlayStepper(const ProgramInfo &programInfo, ExecutionState &executionState);

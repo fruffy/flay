@@ -62,7 +62,23 @@ IR::StateVariable StateUtils::convertReference(const IR::Expression *ref) {
     }
     // Local variable.
     const auto *path = ref->checkedTo<IR::PathExpression>();
-    return ToolsVariables::getStateVariable(path->type, path->path->name);
+    // return ToolsVariables::getStateVariable(path->type, path->path->name);
+    return path;
+}
+
+const IR::P4Table *StateUtils::findTable(const ExecutionState &state, const IR::Member *member) {
+    if (member->member != IR::IApply::applyMethodName) {
+        return nullptr;
+    }
+    if (member->expr->is<IR::PathExpression>()) {
+        const auto *declaration = state.findDecl(member->expr->to<IR::PathExpression>());
+        return declaration->to<IR::P4Table>();
+    }
+    const auto *type = member->expr->type;
+    if (const auto *tableType = type->to<IR::Type_Table>()) {
+        return tableType->table;
+    }
+    return nullptr;
 }
 
 void StateUtils::setStructLike(ExecutionState &state, const IR::Expression *target,

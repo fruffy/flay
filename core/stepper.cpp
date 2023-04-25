@@ -98,11 +98,16 @@ bool FlayStepper::preorder(const IR::ParserState *parserState) {
 }
 
 bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
-    const auto *left = assign->left;
+    // Resolve the rval of the assignment statement.
     const auto *right = assign->right;
+    auto resolver = ExpressionResolver(getProgramInfo(), getExecutionState());
+    right->apply(resolver);
+    right = resolver.getResult();
+
+    const auto *left = assign->left;
     auto &executionState = getExecutionState();
-    const auto *assignType = left->type;
-    assignType = executionState.resolveType(assignType);
+
+    const auto *assignType = executionState.resolveType(left->type);
     if (const auto *ts = assignType->to<IR::Type_StructLike>()) {
         if (const auto *structExpr = right->to<IR::StructExpression>()) {
             std::vector<IR::StateVariable> flatTargetValids;

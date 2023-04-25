@@ -1,5 +1,5 @@
-#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXPRESSION_RESOLVER_H_
-#define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXPRESSION_RESOLVER_H_
+#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_TABLE_EXECUTOR_H_
+#define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_TABLE_EXECUTOR_H_
 
 #include <functional>
 #include <vector>
@@ -12,8 +12,8 @@
 
 namespace P4Tools::Flay {
 
-/// Simplifies an expression, executes method calls, and resolves state references.
-class ExpressionResolver : public Inspector {
+/// Executes a table and synthesizes control plane action parameters.
+class TableExecutor : public Inspector {
  private:
     /// The result of the table execution. Typically, a table info file.
     const IR::Expression *result = nullptr;
@@ -24,16 +24,16 @@ class ExpressionResolver : public Inspector {
     /// The current execution state.
     std::reference_wrapper<ExecutionState> executionState;
 
+    /// Resolves the input key and ensures that all members of the key are pure symbolic.
+    /// @returns the symbolic key.
+    const IR::Key *resolveKey(const IR::Key *key) const;
+
+    static std::vector<const IR::ActionListElement *> buildTableActionList(
+        const IR::P4Table *table);
+
     /// Visitor methods.
     bool preorder(const IR::Node *node) override;
-    bool preorder(const IR::Literal *lit) override;
-    bool preorder(const IR::PathExpression *path) override;
-    bool preorder(const IR::Member *member) override;
-    bool preorder(const IR::Operation_Unary *op) override;
-    bool preorder(const IR::Operation_Binary *op) override;
-    bool preorder(const IR::Operation_Ternary *op) override;
-    bool preorder(const IR::StructExpression *structExpr) override;
-    bool preorder(const IR::MethodCallExpression *call) override;
+    bool preorder(const IR::P4Table *table) override;
 
  protected:
     /// @returns the current execution state.
@@ -47,9 +47,9 @@ class ExpressionResolver : public Inspector {
     /// Throws BUG if the result is a nullptr.
     const IR::Expression *getResult();
 
-    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);
+    explicit TableExecutor(const ProgramInfo &programInfo, ExecutionState &executionState);
 };
 
 }  // namespace P4Tools::Flay
 
-#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXPRESSION_RESOLVER_H_ */
+#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_TABLE_EXECUTOR_H_ */

@@ -18,6 +18,10 @@ class StateUtils {
     /// and IR::Member can be converted into a state variable.
     static IR::StateVariable convertReference(const IR::Expression *ref);
 
+    /// Looks up the @param member in the environment of @param state. Returns nullptr if the member
+    /// is not a table type.
+    static const IR::P4Table *findTable(const ExecutionState &state, const IR::Member *member);
+
     /// Takes an input struct type @ts and a prefix @parent and returns a vector of references to
     /// members of the struct. The vector contains all the Type_Base (bit and bool) members in
     /// canonical representation (e.g.,

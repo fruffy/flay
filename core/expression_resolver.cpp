@@ -3,6 +3,7 @@
 
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/state_utils.h"
+#include "backends/p4tools/modules/flay/core/table_executor.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay {
@@ -161,6 +162,14 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
             // qualifier of the member determines the table being invoked. For extern calls,
             // the qualifier determines the extern object containing the method being invoked.
             BUG_CHECK(method->expr, "Method call has unexpected format: %1%", call);
+
+            // Handle table calls.
+            if (const auto *table = StateUtils::findTable(executionState, method)) {
+                TableExecutor executor(programInfo, executionState);
+                table->apply(executor);
+                result = executor.getResult();
+                return false;
+            }
 
             // Handle calls to header methods.
             if (method->expr->type->is<IR::Type_Header>() ||
