@@ -176,16 +176,17 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
                     return false;
                 }
 
-                BUG("Unknown method call on header instance: %1%", call);
+                P4C_UNIMPLEMENTED("Unknown method call on header instance: %1%", call);
             }
 
-            BUG("Unknown method member expression: %1% of type %2%", method->expr,
-                method->expr->type);
+            P4C_UNIMPLEMENTED("Unknown method member expression: %1% of type %2%", method->expr,
+                              method->expr->type);
         }
 
-        BUG("Unknown method call: %1% of type %2%", call->method, call->method->node_type_name());
+        P4C_UNIMPLEMENTED("Unknown method call: %1% of type %2%", call->method,
+                          call->method->node_type_name());
     }
-    BUG("Unknown method call expression: %1%", call);
+    P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
 }
 
 }  // namespace P4Tools::Flay

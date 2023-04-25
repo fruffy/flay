@@ -92,6 +92,10 @@ void StateUtils::setStructLike(ExecutionState &state, const IR::Expression *targ
 void StateUtils::copyIn(ExecutionState &executionState, const ProgramInfo &programInfo,
                         const IR::Parameter *internalParam, cstring externalParamName) {
     const auto *paramType = executionState.resolveType(internalParam->type);
+    // We can not copy externs.
+    if (paramType->is<IR::Type_Extern>()) {
+        return;
+    }
     if (const auto *ts = paramType->to<IR::Type_StructLike>()) {
         const auto *externalParamRef =
             new IR::PathExpression(paramType, new IR::Path(externalParamName));
@@ -120,6 +124,10 @@ void StateUtils::copyIn(ExecutionState &executionState, const ProgramInfo &progr
 void StateUtils::copyOut(ExecutionState &executionState, const IR::Parameter *internalParam,
                          cstring externalParamName) {
     const auto *paramType = executionState.resolveType(internalParam->type);
+    // We can not copy externs.
+    if (paramType->is<IR::Type_Extern>()) {
+        return;
+    }
     if (const auto *ts = paramType->to<IR::Type_StructLike>()) {
         const auto *externalParamRef =
             new IR::PathExpression(paramType, new IR::Path(externalParamName));

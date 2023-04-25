@@ -19,7 +19,9 @@ class FlayStepper : public Inspector {
     std::reference_wrapper<ExecutionState> executionState;
 
     bool preorder(const IR::Node *node) override;
-    bool preorder(const IR::P4Control *p4control) override;
+    bool preorder(const IR::P4Control *control) override;
+    bool preorder(const IR::P4Parser *parser) override;
+    bool preorder(const IR::ParserState *parserState) override;
     bool preorder(const IR::AssignmentStatement *assign) override;
     bool preorder(const IR::BlockStatement *block) override;
     bool preorder(const IR::IfStatement *ifStmt) override;

@@ -37,6 +37,31 @@ bool FlayStepper::preorder(const IR::Node *node) {
  *  Visitor functions
  * ============================================================================================= */
 
+bool FlayStepper::preorder(const IR::P4Parser *parser) {
+    auto &executionState = getExecutionState();
+    // Enter the parser's namespace.
+    executionState.pushNamespace(parser);
+    auto blockName = parser->getName().name;
+    auto canonicalName = getProgramInfo().getCanonicalBlockName(blockName);
+    const auto *parserParams = parser->getApplyParameters();
+    const auto *archSpec = FlayTarget::getArchSpec();
+    for (size_t paramIdx = 0; paramIdx < parserParams->size(); ++paramIdx) {
+        const auto *internalParam = parserParams->getParameter(paramIdx);
+        auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
+        StateUtils::copyIn(executionState, getProgramInfo(), internalParam, externalParamName);
+    }
+    const auto *startState = parser->states.getDeclaration<IR::ParserState>("start");
+    startState->apply_visitor_preorder(*this);
+
+    for (size_t paramIdx = 0; paramIdx < parserParams->size(); ++paramIdx) {
+        const auto *internalParam = parserParams->getParameter(paramIdx);
+        auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
+        StateUtils::copyOut(executionState, internalParam, externalParamName);
+    }
+    executionState.popNamespace();
+    return false;
+}
+
 bool FlayStepper::preorder(const IR::P4Control *control) {
     auto &executionState = getExecutionState();
     // Enter the control's namespace.
@@ -56,6 +81,17 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
         const auto *internalParam = controlParams->getParameter(paramIdx);
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
         StateUtils::copyOut(executionState, internalParam, externalParamName);
+    }
+    executionState.popNamespace();
+    return false;
+}
+
+bool FlayStepper::preorder(const IR::ParserState *parserState) {
+    auto &executionState = getExecutionState();
+    // Enter the parser state's namespace.
+    executionState.pushNamespace(parserState);
+    for (const auto *declOrStmt : parserState->components) {
+        declOrStmt->apply_visitor_preorder(*this);
     }
     executionState.popNamespace();
     return false;
