@@ -6,6 +6,7 @@
 
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
+#include "backends/p4tools/modules/flay/core/table_executor.h"
 #include "ir/ir.h"
 #include "ir/visitor.h"
 #include "lib/cstring.h"
@@ -14,6 +15,8 @@ namespace P4Tools::Flay {
 
 /// Simplifies an expression, executes method calls, and resolves state references.
 class ExpressionResolver : public Inspector {
+    friend TableExecutor;
+
  private:
     /// The result of the table execution. Typically, a table info file.
     const IR::Expression *result = nullptr;
@@ -40,14 +43,17 @@ class ExpressionResolver : public Inspector {
     ExecutionState &getExecutionState() const;
 
     /// @returns the program info associated with the current target.
-    virtual const ProgramInfo &getProgramInfo() const;
+    const ProgramInfo &getProgramInfo() const;
+
+    /// @returns Executes the target-specific table implementation and returns a result.
+    virtual const IR::Expression *processTable(const IR::P4Table *table) = 0;
 
  public:
+    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);
+
     /// @returns the result of the execution of this visitor.
     /// Throws BUG if the result is a nullptr.
     const IR::Expression *getResult();
-
-    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);
 };
 
 }  // namespace P4Tools::Flay

@@ -165,9 +165,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
 
             // Handle table calls.
             if (const auto *table = StateUtils::findTable(executionState, method)) {
-                TableExecutor executor(programInfo, executionState);
-                table->apply(executor);
-                result = executor.getResult();
+                result = processTable(table);
                 return false;
             }
 

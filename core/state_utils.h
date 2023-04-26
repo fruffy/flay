@@ -52,7 +52,7 @@ class StateUtils {
 
     /// Copy the values referenced by @param @internalParam into the values references by @param
     /// @externalParamName. Only parameters with the direction out or inout are copied.
-    void static copyOut(ExecutionState &executionState, const IR::Parameter *internalParam,
+    static void copyOut(ExecutionState &executionState, const IR::Parameter *internalParam,
                         cstring externalParamName);
 
     /// Initialize a set of parameters contained in @param @blockParams to their default values. The
@@ -60,6 +60,9 @@ class StateUtils {
     static void initializeBlockParams(const ProgramInfo &programInfo, ExecutionState &state,
                                       const IR::Type_Declaration *typeDecl,
                                       const std::vector<cstring> *blockParams);
+
+    [[nodiscard]] static const IR::P4Action *getP4Action(ExecutionState &state,
+                                                         const IR::Expression *actionExpr);
 };
 
 }  // namespace P4Tools::Flay

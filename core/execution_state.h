@@ -92,6 +92,8 @@ class ExecutionState {
     /// Do not accidentally copy-assign the execution state.
     ExecutionState &operator=(const ExecutionState &) = delete;
 
+    ExecutionState(ExecutionState &&) = default;
+
  private:
     /// Execution state needs to be explicitly copied using the @ref clone call..
     ExecutionState(const ExecutionState &) = default;

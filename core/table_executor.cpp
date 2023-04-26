@@ -1,6 +1,8 @@
 
 #include "backends/p4tools/modules/flay/core/table_executor.h"
 
+#include "backends/p4tools/common/lib/constants.h"
+#include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/state_utils.h"
@@ -9,28 +11,25 @@
 
 namespace P4Tools::Flay {
 
-TableExecutor::TableExecutor(const ProgramInfo &programInfo, ExecutionState &executionState)
-    : programInfo(programInfo), executionState(executionState) {}
+const IR::Type_Bits TableExecutor::ACTION_BIT_TYPE = IR::Type_Bits(8, false);
 
-const ProgramInfo &TableExecutor::getProgramInfo() const { return programInfo.get(); }
+TableExecutor::TableExecutor(ExpressionResolver &callingResolver) : resolver(callingResolver) {}
 
-ExecutionState &TableExecutor::getExecutionState() const { return executionState.get(); }
+const ProgramInfo &TableExecutor::getProgramInfo() const { return resolver.get().getProgramInfo(); }
 
-const IR::Expression *TableExecutor::getResult() {
-    CHECK_NULL(result);
-    return result;
+ExecutionState &TableExecutor::getExecutionState() const {
+    return resolver.get().getExecutionState();
 }
 
 const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
     IR::Vector<IR::KeyElement> keyElements;
     bool hasChanged = false;
-    ExpressionResolver resolver(programInfo, executionState);
     for (const auto *keyField : key->keyElements) {
         const auto *expr = keyField->expression;
         bool keyFieldHasChanged = false;
         if (!SymbolicEnv::isSymbolicValue(expr)) {
             expr->apply(resolver);
-            expr = resolver.getResult();
+            expr = resolver.get().getResult();
             keyFieldHasChanged = true;
         }
         if (keyFieldHasChanged) {
@@ -47,52 +46,6 @@ const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
     }
     return key;
 }
-
-std::vector<const IR::ActionListElement *> TableExecutor::buildTableActionList(
-    const IR::P4Table *table) {
-    std::vector<const IR::ActionListElement *> tableActionList;
-    const auto *actionList = table->getActionList();
-    if (actionList == nullptr) {
-        return tableActionList;
-    }
-    for (size_t idx = 0; idx < actionList->size(); idx++) {
-        const auto *action = actionList->actionList.at(idx);
-        if (action->getAnnotation("defaultonly") != nullptr) {
-            continue;
-        }
-        // Check some properties of the list.
-        CHECK_NULL(action->expression);
-        action->expression->checkedTo<IR::MethodCallExpression>();
-        tableActionList.emplace_back(action);
-    }
-    return tableActionList;
-}
-
-class P4Constants {
- public:
-    // Parser error codes, copied from core.p4.
-    /// No error.
-    static constexpr int NO_ERROR = 0x0000;
-    /// Not enough bits in packet for 'extract'.
-    static constexpr int PARSER_ERROR_PACKET_TOO_SHORT = 0x0001;
-    /// 'select' expression has no matches
-    static constexpr int PARSER_ERROR_NO_MATCH = 0x0002;
-    /// Reference to invalid element of a header stack.
-    static constexpr int PARSER_ERROR_STACK_OUT_OF_BOUNDS = 0x0003;
-    /// Extracting too many bits into a varbit field.
-    static constexpr int PARSER_ERROR_HEADER_TOO_SHORT = 0x0004;
-    /// Parser execution time limit exceeded.
-    static constexpr int PARSER_ERROR_TIMEOUT = 0x005;
-    /// Parser operation was called with a value
-    /// not supported by the implementation.
-    static constexpr int PARSER_ERROR_INVALID_ARGUMENT = 0x0020;
-    /// Match bits exactly.
-    static constexpr const char *MATCH_KIND_EXACT = "exact";
-    /// Ternary match, using a mask.
-    static constexpr const char *MATCH_KIND_TERNARY = "ternary";
-    /// Longest-prefix match.
-    static constexpr const char *MATCH_KIND_LPM = "lpm";
-};
 
 const IR::Expression *computeTargetMatchType(const IR::P4Table *table, const IR::Key *key) {
     auto tableName = table->controlPlaneName();
@@ -162,29 +115,13 @@ const IR::Expression *computeTargetMatchType(const IR::P4Table *table, const IR:
     return hitCondition;
 }
 
-/* =============================================================================================
- *  Visitor functions
- * =============================================================================================
- */
-
-bool TableExecutor::preorder(const IR::Node *node) {
-    P4C_UNIMPLEMENTED("Node %1% of type %2% not implemented in the expression resolver.", node,
-                      node->node_type_name());
-}
-
-void handleDefaultAction(const IR::P4Table *table, ExecutionState &state,
-                         FlayStepper &actionStepper) {
+void TableExecutor::processDefaultAction(const IR::P4Table *table) const {
+    auto &state = getExecutionState();
     const auto *defaultAction = table->getDefaultAction();
-    CHECK_NULL(defaultAction);
-    BUG_CHECK(defaultAction->is<IR::MethodCallExpression>(),
-              "Unknown format of default action in the table '%1%'", table);
-    const auto *tableAction = defaultAction->to<IR::MethodCallExpression>();
-    BUG_CHECK(tableAction, "Invalid action default action in the table '%1%'", table);
-    const auto *actionPath = tableAction->method->to<IR::PathExpression>();
-    BUG_CHECK(actionPath, "Unknown formation of action '%1%' in table %2%", tableAction, table);
-    const auto *declaration = state.findDecl(actionPath);
-    const auto *actionType = declaration->checkedTo<IR::P4Action>();
+    const auto *tableAction = defaultAction->checkedTo<IR::MethodCallExpression>();
+    const auto *actionType = StateUtils::getP4Action(state, tableAction);
 
+    auto &actionStepper = FlayTarget::getStepper(getProgramInfo(), state);
     // Synthesize arguments for the call based on the action parameters.
     const auto &parameters = actionType->parameters;
     const auto *arguments = tableAction->arguments;
@@ -204,41 +141,22 @@ void handleDefaultAction(const IR::P4Table *table, ExecutionState &state,
     actionType->body->apply(actionStepper);
 }
 
-bool TableExecutor::preorder(const IR::P4Table *table) {
-    const auto tableName = table->controlPlaneName();
-    const auto actionVar = tableName + "_action";
-    const auto *tableActionID =
-        ToolsVariables::getSymbolicVariable(IR::getBitType(8), 0, actionVar);
-    // Dummy the result until we have implemented the return struct.
-    result = IR::getBoolLiteral(true);
-
-    // First, resolve the key.
-    const auto *key = table->getKey();
-    if (key == nullptr) {
-        return false;
-    }
-    key = resolveKey(key);
-    auto tableActionList = buildTableActionList(table);
+void TableExecutor::processTableActionOptions(const IR::P4Table *table,
+                                              const IR::SymbolicVariable *tableActionID,
+                                              const IR::Key *key) const {
+    auto tableActionList = TableUtils::buildTableActionList(table);
     auto &state = getExecutionState();
-
-    handleDefaultAction(table, state, FlayTarget::getStepper(programInfo, state));
 
     for (size_t actionIdx = 0; actionIdx < tableActionList.size(); ++actionIdx) {
         const auto *action = tableActionList.at(actionIdx);
+        const auto *actionType = StateUtils::getP4Action(state, action->expression);
         auto &actionState = state.clone();
-        auto &actionStepper = FlayTarget::getStepper(programInfo, actionState);
-        // Grab the path from the method call.
-        const auto *tableAction = action->expression->checkedTo<IR::MethodCallExpression>();
-        // Try to find the action declaration corresponding to the path reference in the table.
-        const auto *path = tableAction->method->to<IR::PathExpression>();
-        const auto *declaration = state.findDecl(path);
-        const auto *actionType = declaration->checkedTo<IR::P4Action>();
+        auto &actionStepper = FlayTarget::getStepper(getProgramInfo(), actionState);
 
         // First, we compute the hit condition to trigger this particular action call.
         const auto *hitCondition = computeTargetMatchType(table, key);
-        hitCondition =
-            new IR::LAnd(hitCondition,
-                         new IR::Equ(tableActionID, IR::getConstant(IR::getBitType(8), actionIdx)));
+        hitCondition = new IR::LAnd(
+            hitCondition, new IR::Equ(tableActionID, IR::getConstant(&ACTION_BIT_TYPE, actionIdx)));
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();
         // Synthesize arguments for the call based on the action parameters.
@@ -259,7 +177,26 @@ bool TableExecutor::preorder(const IR::P4Table *table) {
         actionType->body->apply(actionStepper);
         state.merge(actionState.getSymbolicEnv(), hitCondition);
     }
-    return false;
+}
+
+const IR::Expression *TableExecutor::processTable(const IR::P4Table *table) {
+    const auto tableName = table->controlPlaneName();
+    const auto actionVar = tableName + "_action";
+    const auto *tableActionID = ToolsVariables::getSymbolicVariable(&ACTION_BIT_TYPE, 0, actionVar);
+
+    // First, resolve the key.
+    const auto *key = table->getKey();
+    if (key == nullptr) {
+        return new IR::BoolLiteral(false);
+    }
+    key = resolveKey(key);
+
+    // Execute the default action.
+    processDefaultAction(table);
+
+    // Execute all other possible action options.
+    processTableActionOptions(table, tableActionID, key);
+    return new IR::BoolLiteral(false);
 }
 
 }  // namespace P4Tools::Flay

@@ -215,4 +215,12 @@ void StateUtils::initializeBlockParams(const ProgramInfo &programInfo, Execution
     }
 }
 
+const IR::P4Action *StateUtils::getP4Action(ExecutionState &state,
+                                            const IR::Expression *actionExpr) {
+    const auto *tableAction = actionExpr->checkedTo<IR::MethodCallExpression>();
+    const auto *actionPath = tableAction->method->checkedTo<IR::PathExpression>();
+    const auto *declaration = state.findDecl(actionPath);
+    return declaration->checkedTo<IR::P4Action>();
+}
+
 }  // namespace P4Tools::Flay

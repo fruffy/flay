@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "backends/p4tools/modules/flay/core/execution_state.h"
+#include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "ir/ir.h"
 #include "ir/visitor.h"
@@ -36,6 +37,12 @@ class FlayStepper : public Inspector {
 
     /// @returns the program info associated with the current target.
     virtual const ProgramInfo &getProgramInfo() const;
+
+    /// @returns the expression resolver associated with this stepper. And with that the expression
+    /// resolver associated with this target. Targets may implement custom externs and table
+    /// definitions, which are modeled within the expression resolver.
+    virtual ExpressionResolver &createExpressionResolver(const ProgramInfo &programInfo,
+                                                         ExecutionState &executionState) const = 0;
 
  public:
     /// Pre-run initialization method. Every stepper should implement this.

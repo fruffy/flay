@@ -38,4 +38,9 @@ V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::V1ModelProgramInfo &progra
                                        ExecutionState &executionState)
     : FlayStepper(programInfo, executionState) {}
 
+V1ModelExpressionResolver &V1ModelFlayStepper::createExpressionResolver(
+    const ProgramInfo &programInfo, ExecutionState &executionState) const {
+    return *new V1ModelExpressionResolver(programInfo, executionState);
+};
+
 }  // namespace P4Tools::Flay::V1Model

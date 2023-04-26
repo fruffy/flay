@@ -100,7 +100,7 @@ bool FlayStepper::preorder(const IR::ParserState *parserState) {
 bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     // Resolve the rval of the assignment statement.
     const auto *right = assign->right;
-    auto resolver = ExpressionResolver(getProgramInfo(), getExecutionState());
+    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
     right->apply(resolver);
     right = resolver.getResult();
 
@@ -155,7 +155,7 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStmt) {
     auto &executionState = getExecutionState();
 
     const auto *cond = ifStmt->condition;
-    auto resolver = ExpressionResolver(getProgramInfo(), getExecutionState());
+    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
     cond->apply(resolver);
     cond = resolver.getResult();
 
@@ -171,7 +171,8 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStmt) {
 }
 
 bool FlayStepper::preorder(const IR::MethodCallStatement *stmt) {
-    stmt->methodCall->apply(ExpressionResolver(getProgramInfo(), getExecutionState()));
+    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
+    stmt->methodCall->apply(resolver);
     return false;
 }
 

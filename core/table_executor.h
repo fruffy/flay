@@ -12,42 +12,43 @@
 
 namespace P4Tools::Flay {
 
+/// Forward declaration of the calling expression resolver.
+class ExpressionResolver;
+
 /// Executes a table and synthesizes control plane action parameters.
-class TableExecutor : public Inspector {
+class TableExecutor {
  private:
-    /// The result of the table execution. Typically, a table info file.
-    const IR::Expression *result = nullptr;
+    static const IR::Type_Bits ACTION_BIT_TYPE;
 
-    /// The program info of the target.
-    std::reference_wrapper<const ProgramInfo> programInfo;
-
-    /// The current execution state.
-    std::reference_wrapper<ExecutionState> executionState;
+    /// The resolver that instantiated this table execution..
+    std::reference_wrapper<ExpressionResolver> resolver;
 
     /// Resolves the input key and ensures that all members of the key are pure symbolic.
     /// @returns the symbolic key.
     const IR::Key *resolveKey(const IR::Key *key) const;
 
-    static std::vector<const IR::ActionListElement *> buildTableActionList(
-        const IR::P4Table *table);
+    void processDefaultAction(const IR::P4Table *table) const;
 
-    /// Visitor methods.
-    bool preorder(const IR::Node *node) override;
-    bool preorder(const IR::P4Table *table) override;
+    void processTableActionOptions(const IR::P4Table *table,
+                                   const IR::SymbolicVariable *tableActionID,
+                                   const IR::Key *key) const;
 
  protected:
     /// @returns the current execution state.
-    ExecutionState &getExecutionState() const;
+    [[nodiscard]] ExecutionState &getExecutionState() const;
 
     /// @returns the program info associated with the current target.
-    virtual const ProgramInfo &getProgramInfo() const;
+    [[nodiscard]] const ProgramInfo &getProgramInfo() const;
 
  public:
-    /// @returns the result of the execution of this visitor.
-    /// Throws BUG if the result is a nullptr.
-    const IR::Expression *getResult();
+    const IR::Expression *processTable(const IR::P4Table *table);
 
-    explicit TableExecutor(const ProgramInfo &programInfo, ExecutionState &executionState);
+    explicit TableExecutor(ExpressionResolver &callingResolver);
+    TableExecutor(const TableExecutor &) = default;
+    TableExecutor(TableExecutor &&) = default;
+    TableExecutor &operator=(const TableExecutor &) = default;
+    TableExecutor &operator=(TableExecutor &&) = default;
+    virtual ~TableExecutor() = default;
 };
 
 }  // namespace P4Tools::Flay
