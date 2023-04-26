@@ -68,110 +68,99 @@ std::vector<const IR::ActionListElement *> TableExecutor::buildTableActionList(
     return tableActionList;
 }
 
-// class P4Constants {
-//  public:
-//     // Parser error codes, copied from core.p4.
-//     /// No error.
-//     static constexpr int NO_ERROR = 0x0000;
-//     /// Not enough bits in packet for 'extract'.
-//     static constexpr int PARSER_ERROR_PACKET_TOO_SHORT = 0x0001;
-//     /// 'select' expression has no matches
-//     static constexpr int PARSER_ERROR_NO_MATCH = 0x0002;
-//     /// Reference to invalid element of a header stack.
-//     static constexpr int PARSER_ERROR_STACK_OUT_OF_BOUNDS = 0x0003;
-//     /// Extracting too many bits into a varbit field.
-//     static constexpr int PARSER_ERROR_HEADER_TOO_SHORT = 0x0004;
-//     /// Parser execution time limit exceeded.
-//     static constexpr int PARSER_ERROR_TIMEOUT = 0x005;
-//     /// Parser operation was called with a value
-//     /// not supported by the implementation.
-//     static constexpr int PARSER_ERROR_INVALID_ARGUMENT = 0x0020;
-//     /// Match bits exactly.
-//     static constexpr const char *MATCH_KIND_EXACT = "exact";
-//     /// Ternary match, using a mask.
-//     static constexpr const char *MATCH_KIND_TERNARY = "ternary";
-//     /// Longest-prefix match.
-//     static constexpr const char *MATCH_KIND_LPM = "lpm";
-// };
+class P4Constants {
+ public:
+    // Parser error codes, copied from core.p4.
+    /// No error.
+    static constexpr int NO_ERROR = 0x0000;
+    /// Not enough bits in packet for 'extract'.
+    static constexpr int PARSER_ERROR_PACKET_TOO_SHORT = 0x0001;
+    /// 'select' expression has no matches
+    static constexpr int PARSER_ERROR_NO_MATCH = 0x0002;
+    /// Reference to invalid element of a header stack.
+    static constexpr int PARSER_ERROR_STACK_OUT_OF_BOUNDS = 0x0003;
+    /// Extracting too many bits into a varbit field.
+    static constexpr int PARSER_ERROR_HEADER_TOO_SHORT = 0x0004;
+    /// Parser execution time limit exceeded.
+    static constexpr int PARSER_ERROR_TIMEOUT = 0x005;
+    /// Parser operation was called with a value
+    /// not supported by the implementation.
+    static constexpr int PARSER_ERROR_INVALID_ARGUMENT = 0x0020;
+    /// Match bits exactly.
+    static constexpr const char *MATCH_KIND_EXACT = "exact";
+    /// Ternary match, using a mask.
+    static constexpr const char *MATCH_KIND_TERNARY = "ternary";
+    /// Longest-prefix match.
+    static constexpr const char *MATCH_KIND_LPM = "lpm";
+};
 
-// const IR::Expression *computeTargetMatchType(ExecutionState &state, const IR::P4Table *table,
-//                                              const IR::Key *key) {
-//     auto tableName = table->controlPlaneName();
-//     const IR::Expression *hitCondition = IR::getBoolLiteral(true);
-//     for (const auto *keyField : key->keyElements) {
-//         const auto *keyExpr = keyField->expression;
-//         const auto matchType = keyField->matchType->toString();
-//         const auto *nameAnnot = keyField->getAnnotation("name");
-//         bool isTainted = false;
-//         // Some hidden tables do not have any key name annotations.
-//         BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
-//                   "Non-constant table key without an annotation");
-//         cstring fieldName;
-//         if (nameAnnot != nullptr) {
-//             fieldName = nameAnnot->getName();
-//         }
-//         // Create a new variable constant that corresponds to the key expression.
-//         cstring keyName = tableName + "_key_" + fieldName;
-//         const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, 0,
-//         keyName);
+const IR::Expression *computeTargetMatchType(const IR::P4Table *table, const IR::Key *key) {
+    auto tableName = table->controlPlaneName();
+    const IR::Expression *hitCondition = IR::getBoolLiteral(true);
+    for (const auto *keyField : key->keyElements) {
+        const auto *keyExpr = keyField->expression;
+        const auto matchType = keyField->matchType->toString();
+        const auto *nameAnnot = keyField->getAnnotation("name");
+        bool isTainted = false;
+        // Some hidden tables do not have any key name annotations.
+        BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
+                  "Non-constant table key without an annotation");
+        cstring fieldName;
+        if (nameAnnot != nullptr) {
+            fieldName = nameAnnot->getName();
+        }
+        // Create a new variable constant that corresponds to the key expression.
+        cstring keyName = tableName + "_key_" + fieldName;
+        const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, 0, keyName);
 
-//         if (matchType == P4Constants::MATCH_KIND_EXACT) {
-//             hitCondition = new IR::LAnd(hitCondition, new IR::Equ(keyExpr, ctrlPlaneKey));
-//             return hitCondition;
-//         }
-//         if (matchType == P4Constants::MATCH_KIND_TERNARY) {
-//             cstring maskName = tableName + "_mask_" + fieldName;
-//             const IR::Expression *ternaryMask = nullptr;
-//             // We can recover from taint by inserting a ternary match that is 0.
-//             if (isTainted) {
-//                 ternaryMask = IR::getConstant(keyExpr->type, 0);
-//                 keyExpr = ternaryMask;
-//             } else {
-//                 ternaryMask = ToolsVariables::getSymbolicVariable(keyExpr->type, 0, maskName);
-//             }
-//             return new IR::LAnd(hitCondition, new IR::Equ(new IR::BAnd(keyExpr, ternaryMask),
-//                                                           new IR::BAnd(ctrlPlaneKey,
-//                                                           ternaryMask)));
-//         }
-//         if (matchType == P4Constants::MATCH_KIND_LPM) {
-//             const auto *keyType = keyExpr->type->checkedTo<IR::Type_Bits>();
-//             auto keyWidth = keyType->width_bits();
-//             cstring maskName = tableName + "_lpm_prefix_" + fieldName;
-//             const IR::Expression *maskVar =
-//                 ToolsVariables::getSymbolicVariable(keyExpr->type, 0, maskName);
-//             // The maxReturn is the maximum vale for the given bit width. This value is shifted
-//             by
-//             // the mask variable to create a mask (and with that, a prefix).
-//             auto maxReturn = IR::getMaxBvVal(keyWidth);
-//             auto *prefix = new IR::Sub(IR::getConstant(keyType, keyWidth), maskVar);
-//             const IR::Expression *lpmMask = nullptr;
-//             // We can recover from taint by inserting a ternary match that is 0.
-//             if (isTainted) {
-//                 lpmMask = IR::getConstant(keyExpr->type, 0);
-//                 maskVar = lpmMask;
-//                 keyExpr = lpmMask;
-//             } else {
-//                 lpmMask = new IR::Shl(IR::getConstant(keyType, maxReturn), prefix);
-//             }
-//             return new IR::LAnd(
-//                 hitCondition,
-//                 new IR::LAnd(
-//                     // This is the actual LPM match under the shifted mask (the prefix).
-//                     new IR::Leq(maskVar, IR::getConstant(keyType, keyWidth)),
-//                     // The mask variable shift should not be larger than the key width.
-//                     new IR::Equ(new IR::BAnd(keyExpr, lpmMask),
-//                                 new IR::BAnd(ctrlPlaneKey, lpmMask))));
-//         }
-
-//         P4C_UNIMPLEMENTED("Match type %s not implemented for table keys.", matchType);
-//     }
-// }
-
-// const IR::Expression *computeHit(ExecutionState &state) {
-//     const IR::Expression *hitCondition = IR::getBoolLiteral(!properties.resolvedKeys.empty());
-//     hitCondition = computeTargetMatchType(state, keyProperties, matches, hitCondition);
-//     return hitCondition;
-// }
+        if (matchType == P4Constants::MATCH_KIND_EXACT) {
+            hitCondition = new IR::LAnd(hitCondition, new IR::Equ(keyExpr, ctrlPlaneKey));
+        } else if (matchType == P4Constants::MATCH_KIND_TERNARY) {
+            cstring maskName = tableName + "_mask_" + fieldName;
+            const IR::Expression *ternaryMask = nullptr;
+            // We can recover from taint by inserting a ternary match that is 0.
+            if (isTainted) {
+                ternaryMask = IR::getConstant(keyExpr->type, 0);
+                keyExpr = ternaryMask;
+            } else {
+                ternaryMask = ToolsVariables::getSymbolicVariable(keyExpr->type, 0, maskName);
+            }
+            hitCondition =
+                new IR::LAnd(hitCondition, new IR::Equ(new IR::BAnd(keyExpr, ternaryMask),
+                                                       new IR::BAnd(ctrlPlaneKey, ternaryMask)));
+        } else if (matchType == P4Constants::MATCH_KIND_LPM) {
+            const auto *keyType = keyExpr->type->checkedTo<IR::Type_Bits>();
+            auto keyWidth = keyType->width_bits();
+            cstring maskName = tableName + "_lpm_prefix_" + fieldName;
+            const IR::Expression *maskVar =
+                ToolsVariables::getSymbolicVariable(keyExpr->type, 0, maskName);
+            // The maxReturn is the maximum vale for the given bit width. This value is shifted by
+            // the mask variable to create a mask (and with that, a prefix).
+            auto maxReturn = IR::getMaxBvVal(keyWidth);
+            auto *prefix = new IR::Sub(IR::getConstant(keyType, keyWidth), maskVar);
+            const IR::Expression *lpmMask = nullptr;
+            // We can recover from taint by inserting a ternary match that is 0.
+            if (isTainted) {
+                lpmMask = IR::getConstant(keyExpr->type, 0);
+                maskVar = lpmMask;
+                keyExpr = lpmMask;
+            } else {
+                lpmMask = new IR::Shl(IR::getConstant(keyType, maxReturn), prefix);
+            }
+            hitCondition = new IR::LAnd(
+                hitCondition,
+                new IR::LAnd(
+                    // This is the actual LPM match under the shifted mask (the prefix).
+                    new IR::Leq(maskVar, IR::getConstant(keyType, keyWidth)),
+                    // The mask variable shift should not be larger than the key width.
+                    new IR::Equ(new IR::BAnd(keyExpr, lpmMask),
+                                new IR::BAnd(ctrlPlaneKey, lpmMask))));
+        } else {
+            P4C_UNIMPLEMENTED("Match type %s not implemented for table keys.", matchType);
+        }
+    }
+    return hitCondition;
+}
 
 /* =============================================================================================
  *  Visitor functions
@@ -183,7 +172,43 @@ bool TableExecutor::preorder(const IR::Node *node) {
                       node->node_type_name());
 }
 
+void handleDefaultAction(const IR::P4Table *table, ExecutionState &state,
+                         FlayStepper &actionStepper) {
+    const auto *defaultAction = table->getDefaultAction();
+    CHECK_NULL(defaultAction);
+    BUG_CHECK(defaultAction->is<IR::MethodCallExpression>(),
+              "Unknown format of default action in the table '%1%'", table);
+    const auto *tableAction = defaultAction->to<IR::MethodCallExpression>();
+    BUG_CHECK(tableAction, "Invalid action default action in the table '%1%'", table);
+    const auto *actionPath = tableAction->method->to<IR::PathExpression>();
+    BUG_CHECK(actionPath, "Unknown formation of action '%1%' in table %2%", tableAction, table);
+    const auto *declaration = state.findDecl(actionPath);
+    const auto *actionType = declaration->checkedTo<IR::P4Action>();
+
+    // Synthesize arguments for the call based on the action parameters.
+    const auto &parameters = actionType->parameters;
+    const auto *arguments = tableAction->arguments;
+    BUG_CHECK(
+        arguments->size() == parameters->parameters.size(),
+        "Method call does not have the same number of arguments as the action has parameters.");
+    for (size_t argIdx = 0; argIdx < parameters->size(); ++argIdx) {
+        const auto *parameter = parameters->getParameter(argIdx);
+        const auto *paramType = state.resolveType(parameter->type);
+        // Synthesize a variable constant here that corresponds to a control plane argument.
+        // We get the unique name of the table coupled with the unique name of the action.
+        // Getting the unique name is needed to avoid generating duplicate arguments.
+        const auto *actionArg = arguments->at(argIdx)->expression;
+        const auto *paramRef = new IR::PathExpression(paramType, new IR::Path(parameter->name));
+        state.set(paramRef, actionArg);
+    }
+    actionType->body->apply(actionStepper);
+}
+
 bool TableExecutor::preorder(const IR::P4Table *table) {
+    const auto tableName = table->controlPlaneName();
+    const auto actionVar = tableName + "_action";
+    const auto *tableActionID =
+        ToolsVariables::getSymbolicVariable(IR::getBitType(8), 0, actionVar);
     // Dummy the result until we have implemented the return struct.
     result = IR::getBoolLiteral(true);
 
@@ -195,7 +220,11 @@ bool TableExecutor::preorder(const IR::P4Table *table) {
     key = resolveKey(key);
     auto tableActionList = buildTableActionList(table);
     auto &state = getExecutionState();
-    for (const auto *action : tableActionList) {
+
+    handleDefaultAction(table, state, FlayTarget::getStepper(programInfo, state));
+
+    for (size_t actionIdx = 0; actionIdx < tableActionList.size(); ++actionIdx) {
+        const auto *action = tableActionList.at(actionIdx);
         auto &actionState = state.clone();
         auto &actionStepper = FlayTarget::getStepper(programInfo, actionState);
         // Grab the path from the method call.
@@ -206,8 +235,10 @@ bool TableExecutor::preorder(const IR::P4Table *table) {
         const auto *actionType = declaration->checkedTo<IR::P4Action>();
 
         // First, we compute the hit condition to trigger this particular action call.
-        const auto *hitCondition = IR::getBoolLiteral(true);
-
+        const auto *hitCondition = computeTargetMatchType(table, key);
+        hitCondition =
+            new IR::LAnd(hitCondition,
+                         new IR::Equ(tableActionID, IR::getConstant(IR::getBitType(8), actionIdx)));
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();
         // Synthesize arguments for the call based on the action parameters.
