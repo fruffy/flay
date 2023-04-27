@@ -6,10 +6,15 @@ project(flay)
 set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/options.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/flay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/collapse_mux.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/execution_state.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/expression_resolver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/externs.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/program_info.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/state_utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/symbolic_executor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/table_executor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/target.cpp
 )
 

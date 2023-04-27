@@ -6,6 +6,7 @@
 #include "backends/p4tools/common/lib/formulae.h"
 #include "backends/p4tools/common/lib/namespace_context.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
+#include "frontends/p4/optimizeExpressions.h"
 #include "ir/declaration.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
@@ -68,6 +69,13 @@ class ExecutionState {
     void popNamespace();
 
     /* =========================================================================================
+     *  General utilities involving ExecutionState.
+     * ========================================================================================= */
+ public:
+    /// Merge another symbolic environment into this state under @param cond.
+    void merge(const SymbolicEnv &mergeEnv, const IR::Expression *cond);
+
+    /* =========================================================================================
      *  Constructors
      * ========================================================================================= */
     /// Creates an initial execution state for the given program.
@@ -80,6 +88,15 @@ class ExecutionState {
     /// Create a new execution state object from the input program.
     /// Returns a reference not a pointer.
     [[nodiscard]] static ExecutionState &create(const IR::P4Program *program);
+
+    /// Do not accidentally copy-assign the execution state.
+    ExecutionState &operator=(const ExecutionState &) = delete;
+
+    ExecutionState(ExecutionState &&) = default;
+
+ private:
+    /// Execution state needs to be explicitly copied using the @ref clone call..
+    ExecutionState(const ExecutionState &) = default;
 };
 
 }  // namespace P4Tools::Flay
