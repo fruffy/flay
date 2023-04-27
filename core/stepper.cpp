@@ -129,7 +129,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
         } else if (right->is<IR::PathExpression>() || right->is<IR::Member>()) {
             StateUtils::setStructLike(executionState, left, right);
         }
-    } else if (const auto *tb = assignType->to<IR::Type_Base>()) {
+    } else if (assignType->is<IR::Type_Base>()) {
         auto leftRef = StateUtils::convertReference(left);
         executionState.set(leftRef, right);
     } else {

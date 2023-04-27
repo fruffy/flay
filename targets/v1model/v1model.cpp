@@ -6,6 +6,7 @@
 #include "midend/eliminateSerEnums.h"
 #include "midend/eliminateTypedefs.h"
 #include "midend/orderArguments.h"
+#include "midend/removeExits.h"
 #include "midend/removeLeftSlices.h"
 #include "midend/simplifySelectList.h"
 
@@ -37,6 +38,9 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
     auto *refMap = midEnd.getRefMap();
     auto *typeMap = midEnd.getTypeMap();
     midEnd.addPasses({
+        // Remove exit statements from the program.
+        // TODO: We should not depend on this pass. It has bugs.
+        new P4::RemoveExits(refMap, typeMap),
         // Replace types introduced by 'type' with 'typedef'.
         new P4::EliminateNewtype(refMap, typeMap),
         // Replace serializable enum constants with their values.
@@ -51,6 +55,8 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
         new P4::RemoveLeftSlices(refMap, typeMap),
         // Flatten nested list expressions.
         new P4::SimplifySelectList(refMap, typeMap),
+        // A final type checking pass to make sure everything is well-typed.
+        new P4::TypeChecking(refMap, typeMap, true),
     });
     return midEnd;
 }

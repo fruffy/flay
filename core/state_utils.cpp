@@ -112,7 +112,7 @@ void StateUtils::copyIn(ExecutionState &executionState, const ProgramInfo &progr
     if (paramType->is<IR::Type_Extern>()) {
         return;
     }
-    if (const auto *ts = paramType->to<IR::Type_StructLike>()) {
+    if (paramType->is<IR::Type_StructLike>()) {
         const auto *externalParamRef =
             new IR::PathExpression(paramType, new IR::Path(externalParamName));
         const auto *internalParamRef =
@@ -122,13 +122,14 @@ void StateUtils::copyIn(ExecutionState &executionState, const ProgramInfo &progr
         } else {
             setStructLike(executionState, internalParamRef, externalParamRef);
         }
-    } else if (const auto *tb = paramType->to<IR::Type_Base>()) {
+    } else if (paramType->is<IR::Type_Base>()) {
         const auto &externalParamRef =
             ToolsVariables::getStateVariable(paramType, externalParamName);
         const auto &internalParamRef =
             ToolsVariables::getStateVariable(paramType, internalParam->controlPlaneName());
         if (internalParam->direction == IR::Direction::Out) {
-            executionState.set(internalParamRef, programInfo.createTargetUninitialized(tb, false));
+            executionState.set(internalParamRef,
+                               programInfo.createTargetUninitialized(paramType, false));
         } else {
             executionState.set(internalParamRef, executionState.get(externalParamRef));
         }
@@ -144,7 +145,7 @@ void StateUtils::copyOut(ExecutionState &executionState, const IR::Parameter *in
     if (paramType->is<IR::Type_Extern>()) {
         return;
     }
-    if (const auto *ts = paramType->to<IR::Type_StructLike>()) {
+    if (paramType->is<IR::Type_StructLike>()) {
         const auto *externalParamRef =
             new IR::PathExpression(paramType, new IR::Path(externalParamName));
         const auto *internalParamRef =
@@ -153,7 +154,7 @@ void StateUtils::copyOut(ExecutionState &executionState, const IR::Parameter *in
             internalParam->direction == IR::Direction::InOut) {
             setStructLike(executionState, externalParamRef, internalParamRef);
         }
-    } else if (const auto *tb = paramType->to<IR::Type_Base>()) {
+    } else if (paramType->is<IR::Type_Base>()) {
         const auto &externalParamRef =
             ToolsVariables::getStateVariable(paramType, externalParamName);
         const auto &internalParamRef =
@@ -203,10 +204,10 @@ void StateUtils::initializeBlockParams(const ProgramInfo &programInfo, Execution
         }
         // We need to resolve type names.
         paramType = state.resolveType(paramType);
-        if (const auto *ts = paramType->to<IR::Type_StructLike>()) {
+        if (paramType->is<IR::Type_StructLike>()) {
             const auto *paramRef = new IR::PathExpression(paramType, new IR::Path(archRef));
             initializeStructLike(programInfo, state, paramRef, false);
-        } else if (const auto *tb = paramType->to<IR::Type_Base>()) {
+        } else if (paramType->is<IR::Type_Base>()) {
             const auto &paramRef = ToolsVariables::getStateVariable(paramType, archRef);
             state.set(paramRef, programInfo.createTargetUninitialized(paramType, false));
         } else {

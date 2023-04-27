@@ -49,7 +49,7 @@ bool ExecutionState::exists(const IR::StateVariable &var) const { return env.exi
 
 void ExecutionState::set(const IR::StateVariable &var, const IR::Expression *value) {
     // Small optimization. Do not nest Mux that are the same.
-    if (const auto *mux = value->to<IR::Mux>()) {
+    if (value->is<IR::Mux>()) {
         value = value->apply(CollapseMux());
     }
     env.set(var, value);
