@@ -5,9 +5,9 @@
 
 #include <boost/container/vector.hpp>
 
-#include "backends/p4tools/common/compiler/collapse_mux.h"
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/core/collapse_mux.h"
 #include "ir/irutils.h"
 #include "lib/exceptions.h"
 #include "lib/log.h"
