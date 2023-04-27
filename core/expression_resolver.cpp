@@ -2,6 +2,7 @@
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 
 #include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/core/state_utils.h"
 #include "backends/p4tools/modules/flay/core/table_executor.h"
 #include "ir/irutils.h"
@@ -157,11 +158,25 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
 
     // Handle method calls. These are either table invocations or extern calls.
     if (call->method->type->is<IR::Type_Method>()) {
+        // Assume that all cases of path expressions are extern calls.
+        if (const auto *path = call->method->to<IR::PathExpression>()) {
+            processExtern(IR::ID("*method"), path->path->name, call->arguments);
+            return false;
+        }
+
         if (const auto *method = call->method->to<IR::Member>()) {
             // Case where call->method is a Member expression. For table invocations, the
             // qualifier of the member determines the table being invoked. For extern calls,
             // the qualifier determines the extern object containing the method being invoked.
             BUG_CHECK(method->expr, "Method call has unexpected format: %1%", call);
+
+            // Handle extern calls. They may also be of Type_SpecializedCanonical.
+            if (method->expr->type->is<IR::Type_Extern>() ||
+                method->expr->type->is<IR::Type_SpecializedCanonical>()) {
+                const auto *path = method->expr->checkedTo<IR::PathExpression>();
+                processExtern(*path, method->member, call->arguments);
+                return false;
+            }
 
             // Handle table calls.
             if (const auto *table = StateUtils::findTable(executionState, method)) {
@@ -194,6 +209,53 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
                           call->method->node_type_name());
     }
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
+}
+
+/* =============================================================================================
+ *  Extern implementations
+ * ============================================================================================= */
+
+const IR::Expression *ExpressionResolver::processExtern(const IR::PathExpression &externObjectRef,
+                                                        const IR::ID &methodName,
+                                                        const IR::Vector<IR::Argument> *args) {
+    // Provides implementations of BMv2 externs.
+    static const ExternMethodImpls EXTERN_METHOD_IMPLS({
+        {"packet_in.extract",
+         {"hdr"},
+         [](const IR::PathExpression &externObjectRef, const IR::ID &methodName,
+            const IR::Vector<IR::Argument> *args, ExecutionState &state) {
+             // This argument is the structure being written by the extract.
+             const auto &extractRef = StateUtils::convertReference(args->at(0)->expression);
+             const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
+             const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
+             // First, set the validity.
+             auto extractLabel =
+                 externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
+             state.set(headerRefValidity, ToolsVariables::getSymbolicVariable(
+                                              IR::Type_Boolean::get(), 0, extractLabel));
+             // Then, set the fields.
+             const auto flatFields = StateUtils::getFlatFields(state, extractRef, headerType);
+             for (const auto &field : flatFields) {
+                 auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName +
+                                          "_" + extractRef->toString() + "_" + field.toString();
+                 state.set(field,
+                           ToolsVariables::getSymbolicVariable(field->type, 0, extractFieldLabel));
+             }
+             return nullptr;
+         }},
+        {"packet_out.emit",
+         {"hdr"},
+         [](const IR::PathExpression & /*externObjectRef*/, const IR::ID & /*methodName*/,
+            const IR::Vector<IR::Argument> * /*args*/,
+            ExecutionState & /*state*/) { return nullptr; }},
+    });
+
+    auto method = EXTERN_METHOD_IMPLS.find(externObjectRef, methodName, args);
+    if (method.has_value()) {
+        return method.value()(externObjectRef, methodName, args, getExecutionState());
+    }
+    P4C_UNIMPLEMENTED("Unknown or unimplemented extern method: %1%.%2%", externObjectRef.toString(),
+                      methodName);
 }
 
 }  // namespace P4Tools::Flay

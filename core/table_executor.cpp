@@ -150,8 +150,6 @@ void TableExecutor::processTableActionOptions(const IR::P4Table *table,
     for (size_t actionIdx = 0; actionIdx < tableActionList.size(); ++actionIdx) {
         const auto *action = tableActionList.at(actionIdx);
         const auto *actionType = StateUtils::getP4Action(state, action->expression);
-        auto &actionState = state.clone();
-        auto &actionStepper = FlayTarget::getStepper(getProgramInfo(), actionState);
 
         // First, we compute the hit condition to trigger this particular action call.
         const auto *hitCondition = computeTargetMatchType(table, key);
@@ -161,6 +159,7 @@ void TableExecutor::processTableActionOptions(const IR::P4Table *table,
         cstring actionName = actionType->controlPlaneName();
         // Synthesize arguments for the call based on the action parameters.
         const auto &parameters = actionType->parameters;
+        auto &actionState = state.clone();
         for (size_t argIdx = 0; argIdx < parameters->size(); ++argIdx) {
             const auto *parameter = parameters->getParameter(argIdx);
             const auto *paramType = state.resolveType(parameter->type);
@@ -174,6 +173,7 @@ void TableExecutor::processTableActionOptions(const IR::P4Table *table,
             const auto *paramRef = new IR::PathExpression(paramType, new IR::Path(parameter->name));
             actionState.set(paramRef, actionArg);
         }
+        auto &actionStepper = FlayTarget::getStepper(getProgramInfo(), actionState);
         actionType->body->apply(actionStepper);
         state.merge(actionState.getSymbolicEnv(), hitCondition);
     }

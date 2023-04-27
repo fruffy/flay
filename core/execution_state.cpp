@@ -5,8 +5,10 @@
 
 #include <boost/container/vector.hpp>
 
+#include "backends/p4tools/common/compiler/collapse_mux.h"
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/common/lib/variables.h"
+#include "ir/irutils.h"
 #include "lib/exceptions.h"
 #include "lib/log.h"
 
@@ -20,13 +22,36 @@ ExecutionState::ExecutionState(const IR::P4Program *program)
  * ============================================================================================= */
 
 const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
+    // TODO: This is a convoluted (and expensive?) check because struct members are not directly
+    // associated with a header. We should be using runtime objects instead of flat assignments.
     const auto *expr = env.get(var);
+    if (const auto *member = var->to<IR::Member>()) {
+        if (member->expr->type->is<IR::Type_Header>() && member->member != ToolsVariables::VALID) {
+            // If we are setting the member of a header, we need to check whether the
+            // header is valid.
+            // If the header is invalid, the get returns a tainted expression.
+            // The member could have any value.
+            auto validity = ToolsVariables::getHeaderValidity(member->expr);
+            const auto *validVar = env.get(validity);
+            if (const auto *validBool = validVar->to<IR::BoolLiteral>()) {
+                if (validBool->value) {
+                    return expr;
+                }
+                return IR::getDefaultValue(expr->type);
+            }
+            return new IR::Mux(expr->type, validVar, expr, IR::getDefaultValue(expr->type));
+        }
+    }
     return expr;
 }
 
 bool ExecutionState::exists(const IR::StateVariable &var) const { return env.exists(var); }
 
 void ExecutionState::set(const IR::StateVariable &var, const IR::Expression *value) {
+    // Small optimization. Do not nest Mux that are the same.
+    if (const auto *mux = value->to<IR::Mux>()) {
+        value = value->apply(CollapseMux());
+    }
     env.set(var, value);
 }
 

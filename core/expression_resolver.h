@@ -45,8 +45,14 @@ class ExpressionResolver : public Inspector {
     /// @returns the program info associated with the current target.
     const ProgramInfo &getProgramInfo() const;
 
-    /// @returns Executes the target-specific table implementation and returns a result.
+    /// Executes the target-specific table implementation and @returns the result of the execution.
     virtual const IR::Expression *processTable(const IR::P4Table *table) = 0;
+
+    /// Tries to look up the implementation of the extern in the list of available extern functions
+    /// for the expression resolver of the target. Returns the result of the execution.
+    virtual const IR::Expression *processExtern(const IR::PathExpression &externObjectRef,
+                                                const IR::ID &methodName,
+                                                const IR::Vector<IR::Argument> *args);
 
  public:
     explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);

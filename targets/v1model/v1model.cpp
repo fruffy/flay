@@ -7,6 +7,7 @@
 #include "midend/eliminateTypedefs.h"
 #include "midend/orderArguments.h"
 #include "midend/removeLeftSlices.h"
+#include "midend/simplifySelectList.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -48,6 +49,8 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
         new P4::ConvertErrors(refMap, typeMap, new ErrorOn32Bits()),
         // Replace any slices in the left side of assignments and convert them to casts.
         new P4::RemoveLeftSlices(refMap, typeMap),
+        // Flatten nested list expressions.
+        new P4::SimplifySelectList(refMap, typeMap),
     });
     return midEnd;
 }

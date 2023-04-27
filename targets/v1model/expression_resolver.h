@@ -20,6 +20,10 @@ class V1ModelExpressionResolver : public ExpressionResolver {
 
  private:
     const IR::Expression *processTable(const IR::P4Table *table) override;
+
+    const IR::Expression *processExtern(const IR::PathExpression &externObjectRef,
+                                        const IR::ID &methodName,
+                                        const IR::Vector<IR::Argument> *args) override;
 };
 
 }  // namespace P4Tools::Flay
