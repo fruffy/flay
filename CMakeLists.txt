@@ -1,6 +1,12 @@
+# CMake file for P4Flay.
+
 include(common)
 
 project(flay)
+
+# Declare common P4Flay variables.
+set(FLAY_DIR ${P4C_BINARY_DIR}/flay)
+set(FLAY_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4flay")
 
 # Source files for flay.
 set(FLAY_SOURCES

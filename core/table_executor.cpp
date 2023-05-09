@@ -34,7 +34,7 @@ ExecutionState &TableExecutor::getExecutionState() const {
     return resolver.get().getExecutionState();
 }
 
-const IR::P4Table &TableExecutor::getP4Table() const { return table; };
+const IR::P4Table &TableExecutor::getP4Table() const { return table; }
 
 const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
     IR::Vector<IR::KeyElement> keyElements;
