@@ -38,7 +38,13 @@ class TableExecutor {
     [[nodiscard]] const ProgramInfo &getProgramInfo() const;
 
  public:
+    /// Execute the table and @return the state after executing it (hit, action_run).
     const IR::Expression *processTable(const IR::P4Table *table);
+
+    /// Helper function to call an action with arguments.
+    static void callAction(const ProgramInfo &programInfo, ExecutionState &state,
+                           const IR::P4Action *actionType,
+                           const IR::Vector<IR::Argument> &arguments);
 
     explicit TableExecutor(ExpressionResolver &callingResolver);
     TableExecutor(const TableExecutor &) = default;

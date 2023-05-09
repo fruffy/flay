@@ -128,18 +128,13 @@ const IR::Expression *computeTargetMatchType(const IR::P4Table *table, const IR:
     return hitCondition;
 }
 
-void TableExecutor::processDefaultAction(const IR::P4Table *table) const {
-    auto &state = getExecutionState();
-    const auto *defaultAction = table->getDefaultAction();
-    const auto *tableAction = defaultAction->checkedTo<IR::MethodCallExpression>();
-    const auto *actionType = StateUtils::getP4Action(state, tableAction);
-
-    auto &actionStepper = FlayTarget::getStepper(getProgramInfo(), state);
-    // Synthesize arguments for the call based on the action parameters.
-    const auto &parameters = actionType->parameters;
-    const auto *arguments = tableAction->arguments;
+void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &state,
+                               const IR::P4Action *actionType,
+                               const IR::Vector<IR::Argument> &arguments) {
+    auto &actionStepper = FlayTarget::getStepper(programInfo, state);
+    const auto *parameters = actionType->parameters;
     BUG_CHECK(
-        arguments->size() == parameters->parameters.size(),
+        arguments.size() == parameters->parameters.size(),
         "Method call does not have the same number of arguments as the action has parameters.");
     for (size_t argIdx = 0; argIdx < parameters->size(); ++argIdx) {
         const auto *parameter = parameters->getParameter(argIdx);
@@ -147,11 +142,22 @@ void TableExecutor::processDefaultAction(const IR::P4Table *table) const {
         // Synthesize a variable constant here that corresponds to a control plane argument.
         // We get the unique name of the table coupled with the unique name of the action.
         // Getting the unique name is needed to avoid generating duplicate arguments.
-        const auto *actionArg = arguments->at(argIdx)->expression;
+        const auto *actionArg = arguments.at(argIdx)->expression;
         const auto *paramRef = new IR::PathExpression(paramType, new IR::Path(parameter->name));
         state.set(paramRef, actionArg);
     }
     actionType->body->apply(actionStepper);
+}
+
+void TableExecutor::processDefaultAction(const IR::P4Table *table) const {
+    auto &state = getExecutionState();
+    const auto *defaultAction = table->getDefaultAction();
+    const auto *tableAction = defaultAction->checkedTo<IR::MethodCallExpression>();
+    const auto *actionType = StateUtils::getP4Action(state, tableAction);
+
+    // Synthesize arguments for the call based on the action parameters.
+    const auto *arguments = tableAction->arguments;
+    callAction(getProgramInfo(), state, actionType, *arguments);
 }
 
 void TableExecutor::processTableActionOptions(const IR::P4Table *table,
@@ -173,9 +179,9 @@ void TableExecutor::processTableActionOptions(const IR::P4Table *table,
         // Synthesize arguments for the call based on the action parameters.
         const auto &parameters = actionType->parameters;
         auto &actionState = state.clone();
+        IR::Vector<IR::Argument> arguments;
         for (size_t argIdx = 0; argIdx < parameters->size(); ++argIdx) {
             const auto *parameter = parameters->getParameter(argIdx);
-            const auto *paramType = state.resolveType(parameter->type);
             // Synthesize a variable constant here that corresponds to a control plane argument.
             // We get the unique name of the table coupled with the unique name of the action.
             // Getting the unique name is needed to avoid generating duplicate arguments.
@@ -183,11 +189,10 @@ void TableExecutor::processTableActionOptions(const IR::P4Table *table,
                 table->controlPlaneName() + "_" + actionName + "_" + parameter->controlPlaneName();
             const auto &actionArg =
                 ToolsVariables::getSymbolicVariable(parameter->type, 0, paramName);
-            const auto *paramRef = new IR::PathExpression(paramType, new IR::Path(parameter->name));
-            actionState.set(paramRef, actionArg);
+            arguments.push_back(new IR::Argument(actionArg));
         }
-        auto &actionStepper = FlayTarget::getStepper(getProgramInfo(), actionState);
-        actionType->body->apply(actionStepper);
+        callAction(getProgramInfo(), actionState, actionType, arguments);
+        // Finally, merge in the state of the action call.
         state.merge(actionState.getSymbolicEnv(), hitCondition);
     }
 }

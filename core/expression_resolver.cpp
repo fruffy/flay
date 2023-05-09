@@ -215,6 +215,12 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
 
         P4C_UNIMPLEMENTED("Unknown method call: %1% of type %2%", call->method,
                           call->method->node_type_name());
+    } else if (call->method->type->is<IR::Type_Action>()) {
+        // Handle action calls. Actions are called by tables and are not inlined, unlike
+        // functions.
+        const auto *actionType = StateUtils::getP4Action(executionState, call);
+        TableExecutor::callAction(programInfo, executionState, actionType, *call->arguments);
+        return false;
     }
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
 }
