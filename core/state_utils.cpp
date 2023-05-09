@@ -1,6 +1,16 @@
 #include "backends/p4tools/modules/flay/core/state_utils.h"
 
+#include <stddef.h>
+
+#include <string>
+
 #include "backends/p4tools/common/compiler/convert_hs_index.h"
+#include "backends/p4tools/common/lib/variables.h"
+#include "ir/declaration.h"
+#include "ir/id.h"
+#include "ir/indexed_vector.h"
+#include "ir/irutils.h"
+#include "lib/exceptions.h"
 
 namespace P4Tools::Flay {
 

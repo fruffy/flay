@@ -2,14 +2,15 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXPRESSION_RESOLVER_H_
 
 #include <functional>
-#include <vector>
 
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/table_executor.h"
+#include "ir/id.h"
 #include "ir/ir.h"
+#include "ir/node.h"
+#include "ir/vector.h"
 #include "ir/visitor.h"
-#include "lib/cstring.h"
 
 namespace P4Tools::Flay {
 

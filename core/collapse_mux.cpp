@@ -1,6 +1,6 @@
 #include "backends/p4tools/modules/flay/core/collapse_mux.h"
 
-#include "lib/log.h"
+#include <utility>
 
 namespace P4Tools {
 

@@ -1,6 +1,7 @@
 #include "backends/p4tools/modules/flay/targets/v1model/program_info.h"
 
 #include <list>
+#include <map>
 #include <utility>
 #include <vector>
 

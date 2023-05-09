@@ -2,6 +2,10 @@
 
 #include <string>
 
+#include "frontends/p4/typeChecking/typeChecker.h"
+#include "ir/ir.h"
+#include "midend/convertEnums.h"
+#include "midend/convertErrors.h"
 #include "midend/eliminateNewtype.h"
 #include "midend/eliminateSerEnums.h"
 #include "midend/eliminateTypedefs.h"

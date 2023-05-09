@@ -1,13 +1,26 @@
 
 #include "backends/p4tools/modules/flay/core/table_executor.h"
 
+#include <stddef.h>
+
+#include <string>
+#include <vector>
+
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include "backends/p4tools/common/lib/constants.h"
+#include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/state_utils.h"
+#include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
+#include "ir/indexed_vector.h"
 #include "ir/irutils.h"
+#include "ir/vector.h"
+#include "lib/cstring.h"
+#include "lib/exceptions.h"
 
 namespace P4Tools::Flay {
 

@@ -1,14 +1,12 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_STATE_UTILS_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_STATE_UTILS_H_
 
-#include <functional>
 #include <vector>
 
-#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "ir/ir.h"
-#include "ir/irutils.h"
+#include "lib/cstring.h"
 
 namespace P4Tools::Flay {
 

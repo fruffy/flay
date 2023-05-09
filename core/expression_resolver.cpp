@@ -1,11 +1,19 @@
 
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 
+#include <optional>
+#include <string>
+#include <vector>
+
+#include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/core/state_utils.h"
-#include "backends/p4tools/modules/flay/core/table_executor.h"
+#include "ir/indexed_vector.h"
 #include "ir/irutils.h"
+#include "lib/cstring.h"
+#include "lib/exceptions.h"
+#include "lib/null.h"
 
 namespace P4Tools::Flay {
 

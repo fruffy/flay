@@ -1,10 +1,10 @@
 #include "backends/p4tools/modules/flay/targets/v1model/expression_resolver.h"
 
-#include "backends/p4tools/common/lib/variables.h"
+#include <functional>
+#include <optional>
+
 #include "backends/p4tools/modules/flay/core/externs.h"
-#include "backends/p4tools/modules/flay/core/state_utils.h"
-#include "backends/p4tools/modules/flay/core/table_executor.h"
-#include "ir/irutils.h"
+#include "backends/p4tools/modules/flay/targets/v1model/table_executor.h"
 
 namespace P4Tools::Flay {
 

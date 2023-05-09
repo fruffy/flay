@@ -6,6 +6,7 @@
 #include <functional>
 #include <list>
 #include <map>
+#include <optional>
 #include <tuple>
 #include <utility>
 #include <vector>
