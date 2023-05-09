@@ -45,5 +45,5 @@ jobs:
 
     - name: Test
       run: |
-        ctest -R flay/ --output-on-failure --schedule-random
+        ctest -R flay- --output-on-failure --schedule-random
       working-directory: ../p4c/build
