@@ -1,8 +1,7 @@
 
 #include "backends/p4tools/modules/flay/core/table_executor.h"
 
-#include <stddef.h>
-
+#include <cstddef>
 #include <string>
 #include <vector>
 

@@ -168,7 +168,9 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     if (call->method->type->is<IR::Type_Method>()) {
         // Assume that all cases of path expressions are extern calls.
         if (const auto *path = call->method->to<IR::PathExpression>()) {
-            processExtern(IR::ID("*method"), path->path->name, call->arguments);
+            static auto METHOD_DUMMY =
+                IR::PathExpression(new IR::Type_Extern("*method"), new IR::Path("*method"));
+            processExtern(METHOD_DUMMY, path->path->name, call->arguments);
             return false;
         }
 
@@ -205,7 +207,11 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
                     executionState.set(headerRefValidity, IR::getBoolLiteral(false));
                     return false;
                 }
-
+                if (method->member == "isValid") {
+                    const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
+                    result = executionState.get(headerRefValidity);
+                    return false;
+                }
                 P4C_UNIMPLEMENTED("Unknown method call on header instance: %1%", call);
             }
 
@@ -232,7 +238,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
 const IR::Expression *ExpressionResolver::processExtern(const IR::PathExpression &externObjectRef,
                                                         const IR::ID &methodName,
                                                         const IR::Vector<IR::Argument> *args) {
-    // Provides implementations of BMv2 externs.
+    // Provides implementations of P4 core externs.
     static const ExternMethodImpls EXTERN_METHOD_IMPLS({
         {"packet_in.extract",
          {"hdr"},
