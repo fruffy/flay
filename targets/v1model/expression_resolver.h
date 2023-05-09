@@ -8,7 +8,7 @@
 #include "ir/ir.h"
 #include "ir/vector.h"
 
-namespace P4Tools::Flay {
+namespace P4Tools::Flay::V1Model {
 
 /// Simplifies an expression, executes method calls, and resolves state references.
 class V1ModelExpressionResolver : public ExpressionResolver {
@@ -24,6 +24,6 @@ class V1ModelExpressionResolver : public ExpressionResolver {
                                         const IR::Vector<IR::Argument> *args) override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4Tools::Flay::V1Model
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_EXPRESSION_RESOLVER_H_ */

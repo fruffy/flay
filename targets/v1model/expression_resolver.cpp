@@ -7,7 +7,7 @@
 #include "backends/p4tools/modules/flay/targets/v1model/table_executor.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::Flay {
+namespace P4Tools::Flay::V1Model {
 
 V1ModelExpressionResolver::V1ModelExpressionResolver(const ProgramInfo &programInfo,
                                                      ExecutionState &executionState)
@@ -15,8 +15,8 @@ V1ModelExpressionResolver::V1ModelExpressionResolver(const ProgramInfo &programI
 
 const IR::Expression *V1ModelExpressionResolver::processTable(const IR::P4Table *table) {
     auto copy = V1ModelExpressionResolver(*this);
-    auto tableExecutor = V1ModelTableExecutor(copy);
-    return tableExecutor.processTable(table);
+    auto tableExecutor = V1ModelTableExecutor(*table, copy);
+    return tableExecutor.processTable();
 }
 
 const IR::Expression *V1ModelExpressionResolver::processExtern(
@@ -48,4 +48,4 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
     return ExpressionResolver::processExtern(externObjectRef, methodName, args);
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4Tools::Flay::V1Model
