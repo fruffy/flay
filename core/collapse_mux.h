@@ -1,7 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COLLAPSE_MUX_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COLLAPSE_MUX_H_
 
-#include <utility>
+#include <map>
 
 #include "ir/ir.h"
 #include "ir/node.h"

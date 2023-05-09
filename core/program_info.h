@@ -1,12 +1,14 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_PROGRAM_INFO_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_PROGRAM_INFO_H_
 
+#include <map>
 #include <vector>
 
 #include "ir/declaration.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 #include "lib/castable.h"
+#include "lib/cstring.h"
 
 namespace P4Tools::Flay {
 

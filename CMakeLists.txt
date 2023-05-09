@@ -1,6 +1,12 @@
+# CMake file for P4Flay.
+
 include(common)
 
 project(flay)
+
+# Declare common P4Flay variables.
+set(FLAY_DIR ${P4C_BINARY_DIR}/flay)
+set(FLAY_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4flay")
 
 # Source files for flay.
 set(FLAY_SOURCES
@@ -58,20 +64,18 @@ configure_file(register.h.in register.h)
 
 add_p4tools_library(libflay ${FLAY_SOURCES})
 
-target_link_libraries(libflay ${FLAY_LIBS})
+add_p4tools_executable(p4flay main.cpp)
 
-add_p4tools_executable(flay main.cpp)
+target_link_libraries(p4flay libflay ${FLAY_LIBS})
 
-target_link_libraries(flay libflay ${FLAY_LIBS})
-
+# Add some convenience links for invoking flay.
 add_custom_target(
-  linkflay # Add some convenience links for invoking flay.
-  COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/flay
-          ${CMAKE_BINARY_DIR}/flay
+  linkflay
+  COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/p4flay
+          ${P4C_BINARY_DIR}/p4flay
+  COMMAND ${CMAKE_COMMAND} -E create_symlink ${P4C_BINARY_DIR}/p4include
+          ${CMAKE_CURRENT_BINARY_DIR}/p4include
+  DEPENDS update_includes
 )
 
-add_dependencies(flay linkflay)
-
-if(ENABLE_IWYU)
-  set_property(TARGET flay PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
-endif()
+add_dependencies(p4flay linkflay)

@@ -7,7 +7,6 @@
 
 #include "ir/ir.h"
 #include "lib/exceptions.h"
-#include "lib/log.h"
 #include "lib/null.h"
 
 namespace P4Tools::Flay {
@@ -23,10 +22,11 @@ std::optional<ExternMethodImpls::MethodImpl> ExternMethodImpls::find(
     } else if (const auto *specType = externObjectRef.type->to<IR::Type_SpecializedCanonical>()) {
         CHECK_NULL(specType->substituted);
         externType = specType->substituted->checkedTo<IR::Type_Extern>();
+    } else if (externObjectRef.path->name == IR::ID("*method")) {
+    } else {
+        BUG("Not a valid extern: %1% with member %2%. Type is %3%.", externObjectRef, methodName,
+            externObjectRef.type->node_type_name());
     }
-
-    BUG_CHECK(externType, "Not an extern: %1% Type is %2%.", externObjectRef,
-              externObjectRef.type->node_type_name());
 
     cstring qualifiedMethodName = externType->name + "." + methodName;
     if (impls.count(qualifiedMethodName) == 0) {

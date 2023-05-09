@@ -1,13 +1,13 @@
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 
-#include <ostream>
 #include <utility>
 
 #include <boost/container/vector.hpp>
 
-#include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/collapse_mux.h"
+#include "frontends/p4/optimizeExpressions.h"
+#include "ir/id.h"
 #include "ir/irutils.h"
 #include "lib/exceptions.h"
 #include "lib/log.h"

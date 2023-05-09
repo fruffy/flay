@@ -8,7 +8,7 @@ on:
 
 # Cancel any preceding run on the pull request.
 concurrency:
-  group: build-flay-${{ github.event.pull_request.number || github.ref }}
+  group: test-flay-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
@@ -35,10 +35,15 @@ jobs:
 
     - name: Pull P4C and link Flay.
       run: |
-        git clone --recurse-submodules -j2 https://github.com/p4lang/p4c/ -b fruffy/refactoring_2 $GITHUB_WORKSPACE/../p4c
+        git clone --recurse-submodules -j2 https://github.com/p4lang/p4c/ -b fruffy/core_refactoring $GITHUB_WORKSPACE/../p4c
         ln -sf $GITHUB_WORKSPACE $GITHUB_WORKSPACE/../p4c/backends/p4tools/modules/
 
     - name: Build (Ubuntu 20.04)
       run: |
         tools/ci-build.sh
       working-directory: ../p4c
+
+    - name: Test
+      run: |
+        ctest -R flay- --output-on-failure --schedule-random
+      working-directory: ../p4c/build

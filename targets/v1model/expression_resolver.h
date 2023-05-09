@@ -1,16 +1,14 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_EXPRESSION_RESOLVER_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_EXPRESSION_RESOLVER_H_
 
-#include <functional>
-#include <vector>
-
+#include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
-#include "backends/p4tools/modules/flay/targets/v1model/table_executor.h"
+#include "backends/p4tools/modules/flay/core/program_info.h"
+#include "ir/id.h"
 #include "ir/ir.h"
-#include "ir/visitor.h"
-#include "lib/cstring.h"
+#include "ir/vector.h"
 
-namespace P4Tools::Flay {
+namespace P4Tools::Flay::V1Model {
 
 /// Simplifies an expression, executes method calls, and resolves state references.
 class V1ModelExpressionResolver : public ExpressionResolver {
@@ -26,6 +24,6 @@ class V1ModelExpressionResolver : public ExpressionResolver {
                                         const IR::Vector<IR::Argument> *args) override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4Tools::Flay::V1Model
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_EXPRESSION_RESOLVER_H_ */

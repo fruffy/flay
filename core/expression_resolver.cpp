@@ -1,11 +1,19 @@
 
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 
+#include <optional>
+#include <string>
+#include <vector>
+
+#include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/core/state_utils.h"
-#include "backends/p4tools/modules/flay/core/table_executor.h"
+#include "ir/indexed_vector.h"
 #include "ir/irutils.h"
+#include "lib/cstring.h"
+#include "lib/exceptions.h"
+#include "lib/null.h"
 
 namespace P4Tools::Flay {
 
@@ -160,7 +168,9 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     if (call->method->type->is<IR::Type_Method>()) {
         // Assume that all cases of path expressions are extern calls.
         if (const auto *path = call->method->to<IR::PathExpression>()) {
-            processExtern(IR::ID("*method"), path->path->name, call->arguments);
+            static auto METHOD_DUMMY =
+                IR::PathExpression(new IR::Type_Extern("*method"), new IR::Path("*method"));
+            processExtern(METHOD_DUMMY, path->path->name, call->arguments);
             return false;
         }
 
@@ -197,7 +207,11 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
                     executionState.set(headerRefValidity, IR::getBoolLiteral(false));
                     return false;
                 }
-
+                if (method->member == "isValid") {
+                    const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
+                    result = executionState.get(headerRefValidity);
+                    return false;
+                }
                 P4C_UNIMPLEMENTED("Unknown method call on header instance: %1%", call);
             }
 
@@ -207,6 +221,12 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
 
         P4C_UNIMPLEMENTED("Unknown method call: %1% of type %2%", call->method,
                           call->method->node_type_name());
+    } else if (call->method->type->is<IR::Type_Action>()) {
+        // Handle action calls. Actions are called by tables and are not inlined, unlike
+        // functions.
+        const auto *actionType = StateUtils::getP4Action(executionState, call);
+        TableExecutor::callAction(programInfo, executionState, actionType, *call->arguments);
+        return false;
     }
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
 }
@@ -218,7 +238,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
 const IR::Expression *ExpressionResolver::processExtern(const IR::PathExpression &externObjectRef,
                                                         const IR::ID &methodName,
                                                         const IR::Vector<IR::Argument> *args) {
-    // Provides implementations of BMv2 externs.
+    // Provides implementations of P4 core externs.
     static const ExternMethodImpls EXTERN_METHOD_IMPLS({
         {"packet_in.extract",
          {"hdr"},
