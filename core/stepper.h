@@ -26,6 +26,7 @@ class FlayStepper : public Inspector {
     bool preorder(const IR::P4Parser *parser) override;
     bool preorder(const IR::ParserState *parserState) override;
     bool preorder(const IR::AssignmentStatement *assign) override;
+    bool preorder(const IR::EmptyStatement *emptyStmt) override;
     bool preorder(const IR::BlockStatement *block) override;
     bool preorder(const IR::IfStatement *ifStmt) override;
     bool preorder(const IR::MethodCallStatement *stmt) override;

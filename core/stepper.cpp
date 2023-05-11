@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "backends/p4tools/common/compiler/convert_hs_index.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/state_utils.h"
@@ -69,6 +70,12 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
         StateUtils::copyIn(executionState, getProgramInfo(), internalParam, externalParamName);
     }
+    for (const auto *decl : control->controlLocals) {
+        if (const auto *declVar = decl->to<IR::Declaration_Variable>()) {
+            StateUtils::declareVariable(getProgramInfo(), getExecutionState(), *declVar);
+        }
+    }
+
     control->body->apply_visitor_preorder(*this);
 
     for (size_t paramIdx = 0; paramIdx < controlParams->size(); ++paramIdx) {
@@ -92,12 +99,7 @@ bool FlayStepper::preorder(const IR::ParserState *parserState) {
 }
 
 bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
-    // Resolve the rval of the assignment statement.
     const auto *right = assign->right;
-    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
-    right->apply(resolver);
-    right = resolver.getResult();
-
     const auto *left = assign->left;
     auto &executionState = getExecutionState();
 
@@ -122,14 +124,28 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
             }
         } else if (right->is<IR::PathExpression>() || right->is<IR::Member>()) {
             StateUtils::setStructLike(executionState, left, right);
+        } else {
+            P4C_UNIMPLEMENTED("Unsupported assignment rval %1%", right->node_type_name());
         }
-    } else if (assignType->is<IR::Type_Base>()) {
+        return false;
+    }
+    // Resolve the rval of the assignment statement.
+    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
+    right->apply(resolver);
+    right = resolver.getResult();
+
+    if (assignType->is<IR::Type_Base>()) {
         auto leftRef = StateUtils::convertReference(left);
         executionState.set(leftRef, right);
     } else {
-        P4C_UNIMPLEMENTED("Unsupported assign type %1%", assignType->node_type_name());
+        P4C_UNIMPLEMENTED("Unsupported assignment type %1%", assignType->node_type_name());
     }
 
+    return false;
+}
+
+bool FlayStepper::preorder(const IR::EmptyStatement * /*emptyStmt*/) {
+    // This is a no-op
     return false;
 }
 

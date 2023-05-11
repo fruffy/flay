@@ -49,7 +49,34 @@ bool ExpressionResolver::preorder(const IR::PathExpression *path) {
     return false;
 }
 
+const IR::Expression *checkStructLike(const IR::Member *member) {
+    std::vector<const IR::ID *> ids;
+    const IR::Expression *expr = member;
+    while (const auto *member = expr->to<IR::Member>()) {
+        ids.emplace_back(&member->member);
+        expr = member->expr;
+    }
+    if (const auto *structExpr = expr->to<IR::StructExpression>()) {
+        while (!ids.empty()) {
+            const auto *ref = ids.back();
+            ids.pop_back();
+            const auto *expr = structExpr->getField(*ref)->expression;
+            if (const auto *se = expr->to<IR::StructExpression>()) {
+                structExpr = se;
+            } else {
+                return expr;
+            }
+        }
+    }
+    return nullptr;
+}
+
 bool ExpressionResolver::preorder(const IR::Member *member) {
+    // const auto *structExpr = checkStructLike(member);
+    // if (structExpr != nullptr) {
+    //     result = structExpr;
+    //     return false;
+    // }
     result = getExecutionState().get(member);
     return false;
 }

@@ -2,6 +2,9 @@
 
 #include <string>
 
+#include "backends/p4tools/common/compiler/convert_varbits.h"
+#include "frontends/common/constantFolding.h"
+#include "frontends/p4/simplify.h"
 #include "frontends/p4/typeChecking/typeChecker.h"
 #include "ir/ir.h"
 #include "midend/convertEnums.h"
@@ -42,6 +45,8 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
     auto *refMap = midEnd.getRefMap();
     auto *typeMap = midEnd.getTypeMap();
     midEnd.addPasses({
+        // Compress member access to struct expressions.
+        new P4::ConstantFolding(refMap, typeMap),
         // Remove exit statements from the program.
         // TODO: We should not depend on this pass. It has bugs.
         new P4::RemoveExits(refMap, typeMap),
@@ -61,6 +66,8 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
         new P4::SimplifySelectList(refMap, typeMap),
         // A final type checking pass to make sure everything is well-typed.
         new P4::TypeChecking(refMap, typeMap, true),
+        // Convert Type_Varbits into a type that contains information about the assigned width.
+        new ConvertVarbits(),
     });
     return midEnd;
 }
