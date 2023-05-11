@@ -144,7 +144,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     return false;
 }
 
-bool FlayStepper::preorder(const IR::EmptyStatement * /*emptyStmt*/) {
+bool FlayStepper::preorder(const IR::EmptyStatement * /*emptyStatement*/) {
     // This is a no-op
     return false;
 }
@@ -161,28 +161,97 @@ bool FlayStepper::preorder(const IR::BlockStatement *block) {
     return false;
 }
 
-bool FlayStepper::preorder(const IR::IfStatement *ifStmt) {
+bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
     auto &executionState = getExecutionState();
 
-    const auto *cond = ifStmt->condition;
+    const auto *cond = ifStatement->condition;
     auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
     cond->apply(resolver);
     cond = resolver.getResult();
 
     auto &trueState = executionState.clone();
     auto &trueStepper = FlayTarget::getStepper(programInfo, trueState);
-    ifStmt->ifTrue->apply(trueStepper);
+    ifStatement->ifTrue->apply(trueStepper);
 
-    if (ifStmt->ifFalse != nullptr) {
-        ifStmt->ifFalse->apply_visitor_preorder(*this);
+    if (ifStatement->ifFalse != nullptr) {
+        ifStatement->ifFalse->apply_visitor_preorder(*this);
     }
-    executionState.merge(trueState.getSymbolicEnv(), cond);
     return false;
 }
 
-bool FlayStepper::preorder(const IR::MethodCallStatement *stmt) {
+bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
+    // Check whether this is a table switch-case first.
+    auto tableMode = false;
+    if (const auto *member = switchStatement->expression->to<IR::Member>()) {
+        if (member->expr->is<IR::MethodCallExpression>() &&
+            member->member.name == IR::Type_Table::action_run) {
+            tableMode = true;
+        }
+    }
+
     auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
-    stmt->methodCall->apply(resolver);
+    switchStatement->expression->apply(resolver);
+    const auto *switchExpr = resolver.getResult();
+
+    auto &executionState = getExecutionState();
+
+    const IR::Expression *cond = IR::getBoolLiteral(false);
+    std::vector<const IR::Statement *> accumulatedStatements;
+    std::vector<const IR::Expression *> notConds;
+    std::vector<std::pair<const IR::Expression *, const ExecutionState *>> accumulatedStates;
+    for (const auto *switchCase : switchStatement->cases) {
+        // The default label must be last. Always break here.
+        if (switchCase->label->is<IR::DefaultExpression>()) {
+            break;
+        }
+        const auto *switchCaseLabel = switchCase->label;
+        // In table mode, we are actually comparing string expressions.
+        if (tableMode) {
+            const auto *path = switchCaseLabel->checkedTo<IR::PathExpression>();
+            switchCaseLabel = new IR::StringLiteral(path->path->name);
+        }
+        cond = new IR::LOr(cond, new IR::Equ(switchExpr, switchCaseLabel));
+        // Nothing to do with this statement. Fall through to the next case.
+        if (switchCase->statement == nullptr) {
+            continue;
+        }
+        accumulatedStatements.push_back(switchCase->statement);
+
+        // If the statement is a block, we do not fall through and terminate execution.
+        if (switchCase->statement->is<IR::BlockStatement>()) {
+            // If any of the values in the match list hits, execute the switch case block.
+            auto &caseState = executionState.clone();
+            auto &switchStepper = FlayTarget::getStepper(programInfo, caseState);
+            for (const auto *statement : accumulatedStatements) {
+                statement->apply(switchStepper);
+            }
+            const auto *finalCond = cond;
+            for (const auto *notCond : notConds) {
+                finalCond = new IR::LAnd(notCond, finalCond);
+            }
+            accumulatedStates.emplace_back(finalCond, &caseState);
+            notConds.push_back(new IR::LNot(cond));
+            cond = IR::getBoolLiteral(false);
+            accumulatedStatements.clear();
+        }
+    }
+
+    for (const auto *switchCase : switchStatement->cases) {
+        if (switchCase->label->is<IR::DefaultExpression>()) {
+            switchCase->statement->apply_visitor_preorder(*this);
+            break;
+        }
+    }
+    for (auto accumulatedState : accumulatedStates) {
+        executionState.merge(accumulatedState.second->getSymbolicEnv(), accumulatedState.first);
+    }
+
+    return false;
+}
+
+bool FlayStepper::preorder(const IR::MethodCallStatement *callStatement) {
+    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
+    callStatement->methodCall->apply(resolver);
     return false;
 }
 

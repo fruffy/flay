@@ -72,6 +72,21 @@ const IR::Expression *checkStructLike(const IR::Member *member) {
 }
 
 bool ExpressionResolver::preorder(const IR::Member *member) {
+    // Handle some P4 language quirks, where tables implicitly may return some state.
+    if (member->expr->is<IR::MethodCallExpression>() &&
+        (member->member.name == IR::Type_Table::hit ||
+         member->member.name == IR::Type_Table::miss ||
+         member->member.name == IR::Type_Table::action_run)) {
+        // Handle table calls.
+        const auto *tableCall = member->expr->checkedTo<IR::MethodCallExpression>();
+        const auto *table =
+            StateUtils::findTable(executionState, tableCall->method->checkedTo<IR::Member>());
+        BUG_CHECK(table != nullptr, "Hit/miss/action_run member has unexpected parent %1%.",
+                  member);
+        const auto *tableExecutionResult = processTable(table)->checkedTo<IR::StructExpression>();
+        result = tableExecutionResult->getField(member->member.name)->expression;
+        return false;
+    }
     // const auto *structExpr = checkStructLike(member);
     // if (structExpr != nullptr) {
     //     result = structExpr;

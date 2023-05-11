@@ -29,12 +29,17 @@ class TableExecutor {
 
     const IR::Expression *computeKey(const IR::Key *key) const;
 
+    struct ReturnProperties {
+        const IR::Expression *totalHitCondition;
+        const IR::Expression *actionRun;
+    };
+
     /// Handle the default action.
     void processDefaultAction() const;
 
     /// Process all the possible actions in the table for which we could insert an entry.
-    void processTableActionOptions(const IR::SymbolicVariable *tableActionID,
-                                   const IR::Key *key) const;
+    ReturnProperties processTableActionOptions(const IR::SymbolicVariable *tableActionID,
+                                               const IR::Key *key) const;
 
  protected:
     /// @returns the table associated with this executor.
