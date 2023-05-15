@@ -43,8 +43,7 @@ const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
         const auto *expr = keyField->expression;
         bool keyFieldHasChanged = false;
         if (!SymbolicEnv::isSymbolicValue(expr)) {
-            expr->apply(resolver);
-            expr = resolver.get().getResult();
+            expr = resolver.get().computeResult(expr);
             keyFieldHasChanged = true;
         }
         if (keyFieldHasChanged) {

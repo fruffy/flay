@@ -131,8 +131,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     }
     // Resolve the rval of the assignment statement.
     auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
-    right->apply(resolver);
-    right = resolver.getResult();
+    right = resolver.computeResult(right);
 
     if (assignType->is<IR::Type_Base>()) {
         auto leftRef = StateUtils::convertReference(left);
@@ -166,8 +165,7 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
 
     const auto *cond = ifStatement->condition;
     auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
-    cond->apply(resolver);
-    cond = resolver.getResult();
+    cond = resolver.computeResult(cond);
 
     auto &trueState = executionState.clone();
     auto &trueStepper = FlayTarget::getStepper(programInfo, trueState);
@@ -189,9 +187,9 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
         }
     }
 
+    // Resolve the switch match expression.
     auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
-    switchStatement->expression->apply(resolver);
-    const auto *switchExpr = resolver.getResult();
+    const auto *switchExpr = resolver.computeResult(switchStatement->expression);
 
     auto &executionState = getExecutionState();
 
@@ -201,6 +199,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
     std::vector<std::pair<const IR::Expression *, const ExecutionState *>> accumulatedStates;
     for (const auto *switchCase : switchStatement->cases) {
         // The default label must be last. Always break here.
+        // We handle the default case separately.
         if (switchCase->label->is<IR::DefaultExpression>()) {
             break;
         }
@@ -215,6 +214,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
         if (switchCase->statement == nullptr) {
             continue;
         }
+        // We fall through, so add the statements to execute to a list.
         accumulatedStatements.push_back(switchCase->statement);
 
         // If the statement is a block, we do not fall through and terminate execution.
@@ -225,6 +225,8 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             for (const auto *statement : accumulatedStatements) {
                 statement->apply(switchStepper);
             }
+            // The final condition is the accumulated label condition and NOT other conditions that
+            // have previously matched.
             const auto *finalCond = cond;
             for (const auto *notCond : notConds) {
                 finalCond = new IR::LAnd(notCond, finalCond);
@@ -236,12 +238,14 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
         }
     }
 
+    // First, run the default label and get the state that would be covered in this case.
     for (const auto *switchCase : switchStatement->cases) {
         if (switchCase->label->is<IR::DefaultExpression>()) {
             switchCase->statement->apply_visitor_preorder(*this);
             break;
         }
     }
+    // After, merge all the accumulated state.
     for (auto accumulatedState : accumulatedStates) {
         executionState.merge(accumulatedState.second->getSymbolicEnv(), accumulatedState.first);
     }

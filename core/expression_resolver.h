@@ -55,12 +55,17 @@ class ExpressionResolver : public Inspector {
                                                 const IR::ID &methodName,
                                                 const IR::Vector<IR::Argument> *args);
 
- public:
-    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);
-
     /// @returns the result of the execution of this visitor.
     /// Throws BUG if the result is a nullptr.
     const IR::Expression *getResult();
+
+ public:
+    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);
+
+    /// Apply the resolver to the supplied @param node.
+    /// @returns the result of the execution of this visitor.
+    /// Throws BUG if the result is a nullptr.
+    const IR::Expression *computeResult(const IR::Node *node);
 };
 
 }  // namespace P4Tools::Flay
