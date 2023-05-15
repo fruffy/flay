@@ -261,8 +261,8 @@ void initializeBlockParams(const ProgramInfo &programInfo, ExecutionState &state
     }
 }
 
-const IR::P4Action *getP4Action(ExecutionState &state, const IR::Expression *actionExpr) {
-    const auto *tableAction = actionExpr->checkedTo<IR::MethodCallExpression>();
+const IR::P4Action *getP4Action(ExecutionState &state,
+                                const IR::MethodCallExpression *tableAction) {
     const auto *actionPath = tableAction->method->checkedTo<IR::PathExpression>();
     const auto *declaration = state.findDecl(actionPath);
     return declaration->checkedTo<IR::P4Action>();

@@ -178,7 +178,8 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     ReturnProperties retProperties{hitCondition, new IR::StringLiteral(actionPath->toString())};
     for (size_t actionIdx = 0; actionIdx < tableActionList.size(); ++actionIdx) {
         const auto *action = tableActionList.at(actionIdx);
-        const auto *actionType = StateUtils::getP4Action(state, action->expression);
+        const auto *actionType = StateUtils::getP4Action(
+            state, action->expression->checkedTo<IR::MethodCallExpression>());
         auto *actionChoice =
             new IR::Equ(tableActionID, IR::getConstant(&ACTION_BIT_TYPE, actionIdx));
         const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);

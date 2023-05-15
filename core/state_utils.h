@@ -61,8 +61,10 @@ void initializeBlockParams(const ProgramInfo &programInfo, ExecutionState &state
                            const IR::Type_Declaration *typeDecl,
                            const std::vector<cstring> *blockParams);
 
+/// Try to extract and @return the IR::P4Action from the action call. This is done by looking up the
+/// reference in the execution state. Throws a BUG, if the action does not exist.
 [[nodiscard]] const IR::P4Action *getP4Action(ExecutionState &state,
-                                              const IR::Expression *actionExpr);
+                                              const IR::MethodCallExpression *actionExpr);
 
 }  // namespace P4Tools::Flay::StateUtils
 
