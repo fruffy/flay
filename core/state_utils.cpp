@@ -1,7 +1,6 @@
 #include "backends/p4tools/modules/flay/core/state_utils.h"
 
-#include <stddef.h>
-
+#include <cstddef>
 #include <string>
 
 #include "backends/p4tools/common/compiler/convert_hs_index.h"
@@ -12,15 +11,15 @@
 #include "ir/irutils.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay {
+namespace P4Tools::Flay::StateUtils {
 
 /* =========================================================================================
  *  General utilities involving ExecutionState.
  * ========================================================================================= */
 
-std::vector<IR::StateVariable> StateUtils::getFlatFields(
-    ExecutionState &state, const IR::Expression *parent, const IR::Type_StructLike *ts,
-    std::vector<IR::StateVariable> *validVector) {
+std::vector<IR::StateVariable> getFlatFields(ExecutionState &state, const IR::Expression *parent,
+                                             const IR::Type_StructLike *ts,
+                                             std::vector<IR::StateVariable> *validVector) {
     std::vector<IR::StateVariable> flatFields;
     for (const auto *field : ts->fields) {
         const auto *fieldType = state.resolveType(field->type);
@@ -52,8 +51,8 @@ std::vector<IR::StateVariable> StateUtils::getFlatFields(
     return flatFields;
 }
 
-void StateUtils::initializeStructLike(const ProgramInfo &programInfo, ExecutionState &state,
-                                      const IR::Expression *target, bool forceTaint) {
+void initializeStructLike(const ProgramInfo &programInfo, ExecutionState &state,
+                          const IR::Expression *target, bool forceTaint) {
     const auto *typeTarget = target->type->checkedTo<IR::Type_StructLike>();
     std::vector<IR::StateVariable> flatTargetValids;
     auto flatTargetFields = getFlatFields(state, target, typeTarget, &flatTargetValids);
@@ -66,7 +65,7 @@ void StateUtils::initializeStructLike(const ProgramInfo &programInfo, ExecutionS
     }
 }
 
-IR::StateVariable StateUtils::convertReference(const IR::Expression *ref) {
+IR::StateVariable convertReference(const IR::Expression *ref) {
     if (const auto *member = ref->to<IR::Member>()) {
         return member;
     }
@@ -76,7 +75,7 @@ IR::StateVariable StateUtils::convertReference(const IR::Expression *ref) {
     return path;
 }
 
-const IR::P4Table *StateUtils::findTable(const ExecutionState &state, const IR::Member *member) {
+const IR::P4Table *findTable(const ExecutionState &state, const IR::Member *member) {
     if (member->member != IR::IApply::applyMethodName) {
         return nullptr;
     }
@@ -91,8 +90,8 @@ const IR::P4Table *StateUtils::findTable(const ExecutionState &state, const IR::
     return nullptr;
 }
 
-void StateUtils::setStructLike(ExecutionState &state, const IR::Expression *target,
-                               const IR::Expression *source) {
+void setStructLike(ExecutionState &state, const IR::Expression *target,
+                   const IR::Expression *source) {
     const auto *typeTarget = target->type->checkedTo<IR::Type_StructLike>();
     const auto *typeSource = target->type->checkedTo<IR::Type_StructLike>();
     std::vector<IR::StateVariable> flatTargetValids;
@@ -115,8 +114,45 @@ void StateUtils::setStructLike(ExecutionState &state, const IR::Expression *targ
     }
 }
 
-void StateUtils::copyIn(ExecutionState &executionState, const ProgramInfo &programInfo,
-                        const IR::Parameter *internalParam, cstring externalParamName) {
+void declareVariable(const ProgramInfo &programInfo, ExecutionState &state,
+                     const IR::Declaration_Variable &declVar) {
+    if (declVar.initializer != nullptr) {
+        P4C_UNIMPLEMENTED("Unsupported initializer %s for declaration variable.",
+                          declVar.initializer);
+    }
+    const auto *declType = state.resolveType(declVar.type);
+
+    if (const auto *structType = declType->to<IR::Type_StructLike>()) {
+        const auto *parentExpr =
+            new IR::PathExpression(structType, new IR::Path(declVar.name.name));
+        initializeStructLike(programInfo, state, parentExpr, false);
+    } else if (const auto *stackType = declType->to<IR::Type_Stack>()) {
+        const auto *stackSizeExpr = stackType->size;
+        auto stackSize = stackSizeExpr->checkedTo<IR::Constant>()->asInt();
+        const auto *stackElemType = stackType->elementType;
+        if (stackElemType->is<IR::Type_Name>()) {
+            stackElemType = state.resolveType(stackElemType->to<IR::Type_Name>());
+        }
+        const auto *structType = stackElemType->checkedTo<IR::Type_StructLike>();
+        for (auto idx = 0; idx < stackSize; idx++) {
+            const auto *parentExpr = HSIndexToMember::produceStackIndex(
+                structType, new IR::PathExpression(stackType, new IR::Path(declVar.name.name)),
+                idx);
+            initializeStructLike(programInfo, state, parentExpr, false);
+        }
+    } else if (declType->is<IR::Type_Base>()) {
+        // If the variable does not have an initializer we need to create a new value for it. For
+        // now we just use the name directly.
+        const auto *left = new IR::PathExpression(declType, new IR::Path(declVar.name.name));
+        state.set(left, programInfo.createTargetUninitialized(declType, false));
+    } else {
+        P4C_UNIMPLEMENTED("Unsupported declaration type %1% node: %2%", declType,
+                          declType->node_type_name());
+    }
+}
+
+void copyIn(ExecutionState &executionState, const ProgramInfo &programInfo,
+            const IR::Parameter *internalParam, cstring externalParamName) {
     const auto *paramType = executionState.resolveType(internalParam->type);
     // We can not copy externs.
     if (paramType->is<IR::Type_Extern>()) {
@@ -148,8 +184,8 @@ void StateUtils::copyIn(ExecutionState &executionState, const ProgramInfo &progr
     }
 }
 
-void StateUtils::copyOut(ExecutionState &executionState, const IR::Parameter *internalParam,
-                         cstring externalParamName) {
+void copyOut(ExecutionState &executionState, const IR::Parameter *internalParam,
+             cstring externalParamName) {
     const auto *paramType = executionState.resolveType(internalParam->type);
     // We can not copy externs.
     if (paramType->is<IR::Type_Extern>()) {
@@ -178,8 +214,7 @@ void StateUtils::copyOut(ExecutionState &executionState, const IR::Parameter *in
     }
 }
 
-std::vector<const IR::Expression *> StateUtils::getFlatStructFields(
-    const IR::StructExpression *se) {
+std::vector<const IR::Expression *> getFlatStructFields(const IR::StructExpression *se) {
     std::vector<const IR::Expression *> flatStructFields;
     for (const auto *field : se->components) {
         if (const auto *structExpr = field->expression->to<IR::StructExpression>()) {
@@ -192,9 +227,9 @@ std::vector<const IR::Expression *> StateUtils::getFlatStructFields(
     return flatStructFields;
 }
 
-void StateUtils::initializeBlockParams(const ProgramInfo &programInfo, ExecutionState &state,
-                                       const IR::Type_Declaration *typeDecl,
-                                       const std::vector<cstring> *blockParams) {
+void initializeBlockParams(const ProgramInfo &programInfo, ExecutionState &state,
+                           const IR::Type_Declaration *typeDecl,
+                           const std::vector<cstring> *blockParams) {
     // Collect parameters.
     const auto *iApply = typeDecl->to<IR::IApply>();
     BUG_CHECK(iApply != nullptr, "Constructed type %s of type %s not supported.", typeDecl,
@@ -226,12 +261,11 @@ void StateUtils::initializeBlockParams(const ProgramInfo &programInfo, Execution
     }
 }
 
-const IR::P4Action *StateUtils::getP4Action(ExecutionState &state,
-                                            const IR::Expression *actionExpr) {
-    const auto *tableAction = actionExpr->checkedTo<IR::MethodCallExpression>();
+const IR::P4Action *getP4Action(ExecutionState &state,
+                                const IR::MethodCallExpression *tableAction) {
     const auto *actionPath = tableAction->method->checkedTo<IR::PathExpression>();
     const auto *declaration = state.findDecl(actionPath);
     return declaration->checkedTo<IR::P4Action>();
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4Tools::Flay::StateUtils

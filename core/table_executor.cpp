@@ -43,8 +43,7 @@ const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
         const auto *expr = keyField->expression;
         bool keyFieldHasChanged = false;
         if (!SymbolicEnv::isSymbolicValue(expr)) {
-            expr->apply(resolver);
-            expr = resolver.get().getResult();
+            expr = resolver.get().computeResult(expr);
             keyFieldHasChanged = true;
         }
         if (keyFieldHasChanged) {
@@ -164,20 +163,30 @@ void TableExecutor::processDefaultAction() const {
     callAction(getProgramInfo(), state, actionType, *arguments);
 }
 
-void TableExecutor::processTableActionOptions(const IR::SymbolicVariable *tableActionID,
-                                              const IR::Key *key) const {
+TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
+    const IR::SymbolicVariable *tableActionID, const IR::Key *key) const {
     auto table = getP4Table();
     auto tableActionList = TableUtils::buildTableActionList(table);
     auto &state = getExecutionState();
 
+    // First, we compute the hit condition to trigger this particular action call.
+    const auto *hitCondition = computeKey(key);
+    const auto *defaultAction = getP4Table().getDefaultAction();
+    const auto *tableAction = defaultAction->checkedTo<IR::MethodCallExpression>();
+    const auto *actionPath = tableAction->method->checkedTo<IR::PathExpression>();
+    ReturnProperties retProperties{hitCondition, new IR::StringLiteral(actionPath->toString())};
     for (size_t actionIdx = 0; actionIdx < tableActionList.size(); ++actionIdx) {
         const auto *action = tableActionList.at(actionIdx);
-        const auto *actionType = StateUtils::getP4Action(state, action->expression);
-
-        // First, we compute the hit condition to trigger this particular action call.
-        const auto *hitCondition = computeKey(key);
-        hitCondition = new IR::LAnd(
-            hitCondition, new IR::Equ(tableActionID, IR::getConstant(&ACTION_BIT_TYPE, actionIdx)));
+        const auto *actionType = StateUtils::getP4Action(
+            state, action->expression->checkedTo<IR::MethodCallExpression>());
+        auto *actionChoice =
+            new IR::Equ(tableActionID, IR::getConstant(&ACTION_BIT_TYPE, actionIdx));
+        const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);
+        retProperties.totalHitCondition =
+            new IR::LOr(retProperties.totalHitCondition, actionChoice);
+        retProperties.actionRun =
+            new IR::Mux(IR::Type_String::get(), actionHitCondition,
+                        new IR::StringLiteral(action->controlPlaneName()), retProperties.actionRun);
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();
         // Synthesize arguments for the call based on the action parameters.
@@ -197,8 +206,9 @@ void TableExecutor::processTableActionOptions(const IR::SymbolicVariable *tableA
         }
         callAction(getProgramInfo(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
-        state.merge(actionState.getSymbolicEnv(), hitCondition);
+        state.merge(actionState.getSymbolicEnv(), actionHitCondition);
     }
+    return retProperties;
 }
 
 const IR::Expression *TableExecutor::processTable() {
@@ -216,9 +226,13 @@ const IR::Expression *TableExecutor::processTable() {
     // Execute the default action.
     processDefaultAction();
 
-    // Execute all other possible action options.
-    processTableActionOptions(tableActionID, key);
-    return new IR::BoolLiteral(false);
+    // Execute all other possible action options. Get the combination of all possible hits.
+    const auto &retProperties = processTableActionOptions(tableActionID, key);
+    return new IR::StructExpression(
+        nullptr, {new IR::NamedExpression("hit", retProperties.totalHitCondition),
+                  new IR::NamedExpression("miss", new IR::LNot(retProperties.totalHitCondition)),
+                  new IR::NamedExpression("action_run", retProperties.actionRun),
+                  new IR::NamedExpression("table_name", new IR::StringLiteral(tableName))});
 }
 
 }  // namespace P4Tools::Flay

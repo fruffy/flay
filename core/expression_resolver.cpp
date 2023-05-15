@@ -49,7 +49,49 @@ bool ExpressionResolver::preorder(const IR::PathExpression *path) {
     return false;
 }
 
+const IR::Expression *checkStructLike(const IR::Member *member) {
+    std::vector<const IR::ID *> ids;
+    const IR::Expression *expr = member;
+    while (const auto *member = expr->to<IR::Member>()) {
+        ids.emplace_back(&member->member);
+        expr = member->expr;
+    }
+    if (const auto *structExpr = expr->to<IR::StructExpression>()) {
+        while (!ids.empty()) {
+            const auto *ref = ids.back();
+            ids.pop_back();
+            const auto *expr = structExpr->getField(*ref)->expression;
+            if (const auto *se = expr->to<IR::StructExpression>()) {
+                structExpr = se;
+            } else {
+                return expr;
+            }
+        }
+    }
+    return nullptr;
+}
+
 bool ExpressionResolver::preorder(const IR::Member *member) {
+    // Handle some P4 language quirks, where tables implicitly may return some state.
+    if (member->expr->is<IR::MethodCallExpression>() &&
+        (member->member.name == IR::Type_Table::hit ||
+         member->member.name == IR::Type_Table::miss ||
+         member->member.name == IR::Type_Table::action_run)) {
+        // Handle table calls.
+        const auto *tableCall = member->expr->checkedTo<IR::MethodCallExpression>();
+        const auto *table =
+            StateUtils::findTable(executionState, tableCall->method->checkedTo<IR::Member>());
+        BUG_CHECK(table != nullptr, "Hit/miss/action_run member has unexpected parent %1%.",
+                  member);
+        const auto *tableExecutionResult = processTable(table)->checkedTo<IR::StructExpression>();
+        result = tableExecutionResult->getField(member->member.name)->expression;
+        return false;
+    }
+    // const auto *structExpr = checkStructLike(member);
+    // if (structExpr != nullptr) {
+    //     result = structExpr;
+    //     return false;
+    // }
     result = getExecutionState().get(member);
     return false;
 }
@@ -58,8 +100,7 @@ bool ExpressionResolver::preorder(const IR::Operation_Unary *op) {
     const auto *expr = op->expr;
     bool hasChanged = false;
     if (!SymbolicEnv::isSymbolicValue(expr)) {
-        expr->apply_visitor_preorder(*this);
-        expr = getResult();
+        expr = computeResult(expr);
         hasChanged = true;
     }
 
@@ -78,14 +119,12 @@ bool ExpressionResolver::preorder(const IR::Operation_Binary *op) {
     const auto *right = op->right;
     bool hasChanged = false;
     if (!SymbolicEnv::isSymbolicValue(left)) {
-        left->apply_visitor_preorder(*this);
-        left = getResult();
+        left = computeResult(left);
         hasChanged = true;
     }
 
     if (!SymbolicEnv::isSymbolicValue(right)) {
-        right->apply_visitor_preorder(*this);
-        right = getResult();
+        right = computeResult(right);
         hasChanged = true;
     }
     if (hasChanged) {
@@ -105,20 +144,17 @@ bool ExpressionResolver::preorder(const IR::Operation_Ternary *op) {
     const auto *e2 = op->e2;
     bool hasChanged = false;
     if (!SymbolicEnv::isSymbolicValue(e0)) {
-        e0->apply_visitor_preorder(*this);
-        e0 = getResult();
+        e0 = computeResult(e0);
         hasChanged = true;
     }
 
     if (!SymbolicEnv::isSymbolicValue(e1)) {
-        e1->apply_visitor_preorder(*this);
-        e1 = getResult();
+        e1 = computeResult(e1);
         hasChanged = true;
     }
 
     if (!SymbolicEnv::isSymbolicValue(e2)) {
-        e2->apply_visitor_preorder(*this);
-        e2 = getResult();
+        e2 = computeResult(e2);
         hasChanged = true;
     }
     if (hasChanged) {
@@ -140,8 +176,7 @@ bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
         const auto *expr = field->expression;
         bool fieldHasChanged = false;
         if (!SymbolicEnv::isSymbolicValue(expr)) {
-            expr->apply_visitor_preorder(*this);
-            expr = getResult();
+            expr = computeResult(expr);
             fieldHasChanged = true;
         }
         if (fieldHasChanged) {
@@ -276,6 +311,11 @@ const IR::Expression *ExpressionResolver::processExtern(const IR::PathExpression
     }
     P4C_UNIMPLEMENTED("Unknown or unimplemented extern method: %1%.%2%", externObjectRef.toString(),
                       methodName);
+}
+
+const IR::Expression *ExpressionResolver::computeResult(const IR::Node *node) {
+    node->apply_visitor_preorder(*this);
+    return getResult();
 }
 
 }  // namespace P4Tools::Flay

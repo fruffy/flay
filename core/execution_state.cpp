@@ -37,9 +37,10 @@ const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
                 if (validBool->value) {
                     return expr;
                 }
-                return IR::getDefaultValue(expr->type);
+                return IR::getDefaultValue(expr->type, expr->getSourceInfo(), true);
             }
-            return new IR::Mux(expr->type, validVar, expr, IR::getDefaultValue(expr->type));
+            return new IR::Mux(expr->type, validVar, expr,
+                               IR::getDefaultValue(expr->type, {}, true));
         }
     }
     return expr;
