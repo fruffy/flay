@@ -211,10 +211,89 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     return retProperties;
 }
 
+TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
+    const IR::Key *key) const {
+    auto table = getP4Table();
+    auto tableActionList = TableUtils::buildTableActionList(table);
+    auto &state = getExecutionState();
+
+    // First, we compute the hit condition to trigger this particular action call.
+    const auto *defaultAction = getP4Table().getDefaultAction();
+    const auto *tableAction = defaultAction->checkedTo<IR::MethodCallExpression>();
+    const auto *actionPath = tableAction->method->checkedTo<IR::PathExpression>();
+    ReturnProperties retProperties{IR::getBoolLiteral(false),
+                                   new IR::StringLiteral(actionPath->toString())};
+
+    const auto *entries = table.getEntries();
+
+    // Sometimes, there are no entries. Just return.
+    if (entries == nullptr) {
+        return retProperties;
+    }
+
+    auto entryVector = entries->entries;
+
+    // Sort entries if one of the keys contains an LPM match.
+    for (size_t idx = 0; idx < key->keyElements.size(); ++idx) {
+        const auto *keyElement = key->keyElements.at(idx);
+        if (keyElement->matchType->path->toString() == P4Constants::MATCH_KIND_LPM) {
+            std::sort(entryVector.begin(), entryVector.end(), [idx](auto &&PH1, auto &&PH2) {
+                return TableUtils::compareLPMEntries(std::forward<decltype(PH1)>(PH1),
+                                                     std::forward<decltype(PH2)>(PH2), idx);
+            });
+            break;
+        }
+    }
+    for (const auto *entry : entryVector) {
+        const IR::Expression *hitCondition = IR::getBoolLiteral(true);
+        for (size_t idx = 0; idx < key->keyElements.size(); ++idx) {
+            const auto *keyElement = key->keyElements.at(idx);
+            const auto *entryKey = entry->keys->components.at(idx);
+            BUG_CHECK(keyElement->expression, "Null expression %1% for matching in the table %2%",
+                      entry, table);
+            // These always match, so do not even consider them in the equation.
+            if (entryKey->is<IR::DefaultExpression>()) {
+                continue;
+            }
+            const IR::Expression *keyExpr = keyElement->expression;
+            if (const auto *rangeExpr = entryKey->to<IR::Range>()) {
+                const auto *minKey = rangeExpr->left;
+                const auto *maxKey = rangeExpr->right;
+                hitCondition = new IR::LAnd(
+                    hitCondition,
+                    new IR::LAnd(new IR::Leq(minKey, keyExpr), new IR::Leq(keyExpr, maxKey)));
+            } else if (const auto *maskExpr = entryKey->to<IR::Mask>()) {
+                hitCondition = new IR::LAnd(
+                    hitCondition, new IR::Equ(new IR::BAnd(keyExpr, maskExpr->right),
+                                              new IR::BAnd(maskExpr->left, maskExpr->right)));
+            } else {
+                hitCondition = new IR::LAnd(hitCondition, new IR::Equ(keyExpr, entryKey));
+            }
+        }
+
+        const auto *action = entry->getAction();
+        const auto *actionCall = action->checkedTo<IR::MethodCallExpression>();
+        const auto *actionType = StateUtils::getP4Action(state, actionCall);
+        auto &actionState = state.clone();
+        callAction(getProgramInfo(), actionState, actionType, *actionCall->arguments);
+        // Finally, merge in the state of the action call.
+        const auto *entryHitCondition =
+            new IR::LAnd(hitCondition, new IR::LNot(retProperties.totalHitCondition));
+        state.merge(actionState.getSymbolicEnv(), entryHitCondition);
+        retProperties.totalHitCondition =
+            new IR::LOr(retProperties.totalHitCondition, entryHitCondition);
+        retProperties.actionRun = new IR::Mux(IR::Type_String::get(), entryHitCondition,
+                                              new IR::StringLiteral(actionType->controlPlaneName()),
+                                              retProperties.actionRun);
+    }
+
+    return retProperties;
+}
+
 const IR::Expression *TableExecutor::processTable() {
     const auto tableName = getP4Table().controlPlaneName();
-    const auto actionVar = tableName + "_action";
-    const auto *tableActionID = ToolsVariables::getSymbolicVariable(&ACTION_BIT_TYPE, 0, actionVar);
+    TableUtils::TableProperties properties;
+    TableUtils::checkTableImmutability(table, properties);
 
     // First, resolve the key.
     const auto *key = getP4Table().getKey();
@@ -225,7 +304,18 @@ const IR::Expression *TableExecutor::processTable() {
 
     // Execute the default action.
     processDefaultAction();
+    if (properties.tableIsImmutable) {
+        const auto &retProperties = processConstantTableEntries(key);
+        return new IR::StructExpression(
+            nullptr,
+            {new IR::NamedExpression("hit", retProperties.totalHitCondition),
+             new IR::NamedExpression("miss", new IR::LNot(retProperties.totalHitCondition)),
+             new IR::NamedExpression("action_run", retProperties.actionRun),
+             new IR::NamedExpression("table_name", new IR::StringLiteral(tableName))});
+    }
 
+    const auto actionVar = tableName + "_action";
+    const auto *tableActionID = ToolsVariables::getSymbolicVariable(&ACTION_BIT_TYPE, 0, actionVar);
     // Execute all other possible action options. Get the combination of all possible hits.
     const auto &retProperties = processTableActionOptions(tableActionID, key);
     return new IR::StructExpression(

@@ -41,6 +41,10 @@ class TableExecutor {
     ReturnProperties processTableActionOptions(const IR::SymbolicVariable *tableActionID,
                                                const IR::Key *key) const;
 
+    /// If the table has constant table entries and is immutable, process all the entries we could
+    /// match.
+    ReturnProperties processConstantTableEntries(const IR::Key *key) const;
+
  protected:
     /// @returns the table associated with this executor.
     [[nodiscard]] const IR::P4Table &getP4Table() const;
