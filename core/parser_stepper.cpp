@@ -53,6 +53,7 @@ bool ParserStepper::preorder(const IR::P4Parser *parser) {
 
     // Step into the start state.
     const auto *startState = parser->states.getDeclaration<IR::ParserState>("start");
+    executionState.addParserId(startState->clone_id);
     startState->apply_visitor_preorder(*this);
 
     // Copy-out.
@@ -79,8 +80,19 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
         if (selectCase->keyset->is<IR::DefaultExpression>()) {
             break;
         }
+        // Actually execute the select expression.
+        const auto *decl =
+            getExecutionState().findDecl(selectCase->state)->checkedTo<IR::ParserState>();
+        int declId = decl->clone_id;
+        if (executionState.hasVisitedParserId(declId)) {
+            P4C_UNIMPLEMENTED(
+                "Parser state %1% was already visited. We currently do not support parser loops.",
+                selectCase->state);
+            continue;
+        }
         const auto *selectCaseMatchExpr = resolver.computeResult(selectCase->keyset);
         auto &selectState = executionState.clone();
+        selectState.addParserId(declId);
         const auto *matchCond = GenEq::equate(selectKeyExpr, selectCaseMatchExpr);
         cond = new IR::LOr(cond, matchCond);
         const auto *finalCond = cond;
@@ -89,8 +101,6 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
         }
         notConds.push_back(new IR::LNot(cond));
         selectState.pushExecutionCondition(finalCond);
-        // Actually execute the select expression.
-        const auto *decl = getExecutionState().findDecl(selectCase->state)->getNode();
         auto subParserStepper =
             ParserStepper(FlayTarget::getStepper(getProgramInfo(), selectState));
         decl->apply(subParserStepper);
@@ -101,7 +111,8 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
     // First, run the default label and get the state that would be covered in this case.
     for (const auto *selectCase : selectExpr->selectCases) {
         if (selectCase->keyset->is<IR::DefaultExpression>()) {
-            const auto *decl = getExecutionState().findDecl(selectCase->state)->getNode();
+            const auto *decl =
+                getExecutionState().findDecl(selectCase->state)->checkedTo<IR::ParserState>();
             decl->apply_visitor_preorder(*this);
             break;
         }
@@ -135,8 +146,16 @@ bool ParserStepper::preorder(const IR::ParserState *parserState) {
     } else if (const auto *pathExpression = select->to<IR::PathExpression>()) {
         executionState.popNamespace();
         // If we are referencing a parser state, step into the executionState.
-        const auto *decl = executionState.findDecl(pathExpression)->getNode();
-        decl->apply_visitor_preorder(*this);
+        const auto *decl = executionState.findDecl(pathExpression)->checkedTo<IR::ParserState>();
+        int declId = decl->clone_id;
+        if (executionState.hasVisitedParserId(declId)) {
+            P4C_UNIMPLEMENTED(
+                "Parser state %1% was already visited. We currently do not support parser loops.",
+                pathExpression);
+        } else {
+            executionState.addParserId(declId);
+            decl->apply_visitor_preorder(*this);
+        }
     } else {
         P4C_UNIMPLEMENTED("Select expression %1% not implemented for parser states.", select);
     }

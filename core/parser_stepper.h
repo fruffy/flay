@@ -25,9 +25,14 @@ class ParserStepper : public Inspector {
     /// The list of parser exit states associated with this parser.
     std::vector<ParserExitState> parserExitStates;
 
+    /// Keep track of the parserStates we have visited to avoid infinite loops.
+    std::set<int> visitedParserIds;
+
     /// Add an exit state to the parser.
     void addParserExitState(const ExecutionState &state);
 
+    /// Compute the match for each parser select state and visit them.
+    /// Merge all states under the appropriate condition.
     void processSelectExpression(const IR::SelectExpression *selectExpr);
 
     /// Visitor methods.

@@ -275,7 +275,13 @@ const IR::Expression *TableExecutor::processTable() {
     // First, resolve the key.
     const auto *key = getP4Table().getKey();
     if (key == nullptr) {
-        return new IR::BoolLiteral(false);
+        const auto *actionPath = TableUtils::getDefaultActionName(getP4Table());
+        return new IR::StructExpression(
+            nullptr,
+            {new IR::NamedExpression("hit", new IR::BoolLiteral(false)),
+             new IR::NamedExpression("miss", new IR::BoolLiteral(true)),
+             new IR::NamedExpression("action_run", new IR::StringLiteral(actionPath->toString())),
+             new IR::NamedExpression("table_name", new IR::StringLiteral(tableName))});
     }
     key = resolveKey(key);
 

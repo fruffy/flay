@@ -103,7 +103,8 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
         } else if (right->is<IR::PathExpression>() || right->is<IR::Member>()) {
             StateUtils::setStructLike(executionState, left, right);
         } else {
-            P4C_UNIMPLEMENTED("Unsupported assignment rval %1%", right->node_type_name());
+            P4C_UNIMPLEMENTED("Unsupported assignment rval %1% of type %2%", right,
+                              right->node_type_name());
         }
         return false;
     }
@@ -115,7 +116,8 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
         auto leftRef = StateUtils::convertReference(left);
         executionState.set(leftRef, right);
     } else {
-        P4C_UNIMPLEMENTED("Unsupported assignment type %1%", assignType->node_type_name());
+        P4C_UNIMPLEMENTED("Unsupported assignment type %1% of type %2%", assignType,
+                          assignType->node_type_name());
     }
 
     return false;

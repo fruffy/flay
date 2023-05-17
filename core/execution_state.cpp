@@ -69,6 +69,13 @@ void ExecutionState::printSymbolicEnv(std::ostream &out) const {
     }
     out << "##### Symbolic Environment End #####" << std::endl;
 }
+
+void ExecutionState::addParserId(int parserId) { visitedParserIds.emplace(parserId); }
+
+bool ExecutionState::hasVisitedParserId(int parserId) const {
+    return visitedParserIds.find(parserId) != visitedParserIds.end();
+}
+
 /* =============================================================================================
  *  Namespaces and declarations
  * ============================================================================================= */

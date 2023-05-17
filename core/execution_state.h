@@ -24,6 +24,9 @@ class ExecutionState {
     /// The condition necessary to reach this particular execution state. Defaults to true.
     const IR::Expression *executionCondition;
 
+    /// Keeps track of the parserStates which were visited to avoid infinite loops.
+    std::set<int> visitedParserIds;
+
     /* =========================================================================================
      *  Accessors
      * ========================================================================================= */
@@ -46,6 +49,12 @@ class ExecutionState {
 
     /// @returns whether the property with @arg propertyName exists.
     [[nodiscard]] bool hasProperty(cstring propertyName) const;
+
+    /// Add a parser ID to the list of visited parser IDs.
+    void addParserId(int parserId);
+
+    /// @returns true if the parserID is already in the list of visited IDs.
+    [[nodiscard]] bool hasVisitedParserId(int parserId) const;
 
  public:
     /// Looks up a declaration from a path. A BUG occurs if no declaration is found.
