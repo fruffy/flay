@@ -21,6 +21,12 @@ class ExecutionState {
     /// The symbolic environment. Maps program variables to their symbolic values.
     SymbolicEnv env;
 
+    /// The condition necessary to reach this particular execution state. Defaults to true.
+    const IR::Expression *executionCondition;
+
+    /// Keeps track of the parserStates which were visited to avoid infinite loops.
+    std::set<int> visitedParserIds;
+
     /* =========================================================================================
      *  Accessors
      * ========================================================================================= */
@@ -44,6 +50,12 @@ class ExecutionState {
     /// @returns whether the property with @arg propertyName exists.
     [[nodiscard]] bool hasProperty(cstring propertyName) const;
 
+    /// Add a parser ID to the list of visited parser IDs.
+    void addParserId(int parserId);
+
+    /// @returns true if the parserID is already in the list of visited IDs.
+    [[nodiscard]] bool hasVisitedParserId(int parserId) const;
+
  public:
     /// Looks up a declaration from a path. A BUG occurs if no declaration is found.
     [[nodiscard]] const IR::IDeclaration *findDecl(const IR::Path *path) const;
@@ -66,12 +78,18 @@ class ExecutionState {
     /// Exists a namespace of declarations.
     void popNamespace();
 
+    /// Push an execution condition into this particular state.
+    void pushExecutionCondition(const IR::Expression *cond);
+
+    /// @returns the execution condition associated with this state.
+    [[nodiscard]] const IR::Expression *getExecutionCondition() const;
+
     /* =========================================================================================
      *  General utilities involving ExecutionState.
      * ========================================================================================= */
  public:
-    /// Merge another symbolic environment into this state under @param cond.
-    void merge(const SymbolicEnv &mergeEnv, const IR::Expression *cond);
+    /// Merge another execution state into this state.
+    void merge(const ExecutionState &mergeState);
 
     /* =========================================================================================
      *  Constructors

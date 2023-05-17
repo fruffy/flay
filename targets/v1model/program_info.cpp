@@ -35,10 +35,10 @@ V1ModelProgramInfo::V1ModelProgramInfo(
     for (const auto &declTuple : programmableBlocks) {
         blockMap.emplace(declTuple.second->controlPlaneName(), declTuple.first);
         // Iterate through the (ordered) pipes of the target architecture.
-        if (declTuple.first == "Ingress") {
-            auto subResult = processDeclaration(declTuple.second, pipeIdx);
-            pipelineSequence.insert(pipelineSequence.end(), subResult.begin(), subResult.end());
-        }
+        // if (declTuple.first == "Ingress") {
+        auto subResult = processDeclaration(declTuple.second, pipeIdx);
+        pipelineSequence.insert(pipelineSequence.end(), subResult.begin(), subResult.end());
+        // }
         ++pipeIdx;
     }
 }

@@ -15,7 +15,8 @@
 namespace P4Tools::Flay {
 
 ExecutionState::ExecutionState(const IR::P4Program *program)
-    : namespaces(NamespaceContext::Empty->push(program)) {}
+    : namespaces(NamespaceContext::Empty->push(program)),
+      executionCondition(IR::getBoolLiteral(true)) {}
 
 /* =============================================================================================
  *  Accessors
@@ -68,6 +69,13 @@ void ExecutionState::printSymbolicEnv(std::ostream &out) const {
     }
     out << "##### Symbolic Environment End #####" << std::endl;
 }
+
+void ExecutionState::addParserId(int parserId) { visitedParserIds.emplace(parserId); }
+
+bool ExecutionState::hasVisitedParserId(int parserId) const {
+    return visitedParserIds.find(parserId) != visitedParserIds.end();
+}
+
 /* =============================================================================================
  *  Namespaces and declarations
  * ============================================================================================= */
@@ -102,8 +110,16 @@ void ExecutionState::pushNamespace(const IR::INamespace *ns) { namespaces = name
 
 void ExecutionState::popNamespace() { namespaces = namespaces->pop(); }
 
-void ExecutionState::merge(const SymbolicEnv &mergeEnv, const IR::Expression *cond) {
-    cond = P4::optimizeExpression(cond);
+const IR::Expression *ExecutionState::getExecutionCondition() const { return executionCondition; }
+
+void ExecutionState::pushExecutionCondition(const IR::Expression *cond) {
+    // cond = P4::optimizeExpression(new IR::LAnd(executionCondition, cond));
+    executionCondition = P4::optimizeExpression(new IR::LAnd(executionCondition, cond));
+}
+
+void ExecutionState::merge(const ExecutionState &mergeState) {
+    const auto *cond = mergeState.getExecutionCondition();
+    const auto &mergeEnv = mergeState.getSymbolicEnv();
     if (const auto *boolExpr = cond->to<IR::BoolLiteral>()) {
         // If the condition is false, do nothing. If it is true, set all the values.
         if (boolExpr->value) {

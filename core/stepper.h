@@ -12,7 +12,12 @@
 
 namespace P4Tools::Flay {
 
+class ParserStepper;
+
 class FlayStepper : public Inspector {
+    /// The parser stepper should be able to access functions internal to the core stepper.
+    friend ParserStepper;
+
  private:
     /// The program info of the target.
     std::reference_wrapper<const ProgramInfo> programInfo;
@@ -24,7 +29,6 @@ class FlayStepper : public Inspector {
     bool preorder(const IR::Node *node) override;
     bool preorder(const IR::P4Control *control) override;
     bool preorder(const IR::P4Parser *parser) override;
-    bool preorder(const IR::ParserState *parserState) override;
     bool preorder(const IR::AssignmentStatement *assign) override;
     bool preorder(const IR::EmptyStatement *emptyStatement) override;
     bool preorder(const IR::BlockStatement *block) override;

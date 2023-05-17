@@ -9,6 +9,7 @@
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/core/state_utils.h"
+#include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/indexed_vector.h"
 #include "ir/irutils.h"
 #include "lib/cstring.h"
@@ -166,6 +167,70 @@ bool ExpressionResolver::preorder(const IR::Operation_Ternary *op) {
         return false;
     }
     result = op;
+    return false;
+}
+
+bool ExpressionResolver::preorder(const IR::Mux *mux) {
+    const auto *cond = mux->e0;
+    const auto *ifExpr = mux->e1;
+    const auto *elseExpr = mux->e2;
+    bool hasChanged = false;
+    if (!SymbolicEnv::isSymbolicValue(cond)) {
+        cond = computeResult(cond);
+        hasChanged = true;
+    }
+
+    if (!SymbolicEnv::isSymbolicValue(elseExpr)) {
+        elseExpr = computeResult(elseExpr);
+        hasChanged = true;
+    }
+
+    if (!SymbolicEnv::isSymbolicValue(ifExpr)) {
+        // Execute the case where the condition is true.
+        // TODO: This whole sequence is quite bug-prone. We should clean this up.
+        auto &oldState = getExecutionState();
+        auto &trueState = oldState.clone();
+        trueState.pushExecutionCondition(cond);
+        executionState = trueState;
+        ifExpr = computeResult(ifExpr);
+        oldState.merge(trueState);
+        executionState = oldState;
+        hasChanged = true;
+    }
+
+    if (hasChanged) {
+        auto *newOp = mux->clone();
+        newOp->e0 = cond;
+        newOp->e1 = ifExpr;
+        newOp->e2 = elseExpr;
+        result = newOp;
+        return false;
+    }
+    result = mux;
+    return false;
+}
+
+bool ExpressionResolver::preorder(const IR::ListExpression *listExpr) {
+    IR::Vector<IR::Expression> components;
+    bool hasChanged = false;
+    for (const auto *expr : listExpr->components) {
+        bool fieldHasChanged = false;
+        if (!SymbolicEnv::isSymbolicValue(expr)) {
+            expr = computeResult(expr);
+            fieldHasChanged = true;
+        }
+        if (fieldHasChanged) {
+            components.push_back(expr);
+            hasChanged = true;
+        }
+    }
+    if (hasChanged) {
+        auto *newListExpr = listExpr->clone();
+        newListExpr->components = components;
+        result = newListExpr;
+        return false;
+    }
+    result = listExpr;
     return false;
 }
 
