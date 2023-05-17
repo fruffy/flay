@@ -21,6 +21,9 @@ class ExecutionState {
     /// The symbolic environment. Maps program variables to their symbolic values.
     SymbolicEnv env;
 
+    /// The condition necessary to reach this particular execution state. Defaults to true.
+    const IR::Expression *executionCondition;
+
     /* =========================================================================================
      *  Accessors
      * ========================================================================================= */
@@ -66,12 +69,18 @@ class ExecutionState {
     /// Exists a namespace of declarations.
     void popNamespace();
 
+    /// Push an execution condition into this particular state.
+    void pushExecutionCondition(const IR::Expression *cond);
+
+    /// @returns the execution condition associated with this state.
+    [[nodiscard]] const IR::Expression *getExecutionCondition() const;
+
     /* =========================================================================================
      *  General utilities involving ExecutionState.
      * ========================================================================================= */
  public:
-    /// Merge another symbolic environment into this state under @param cond.
-    void merge(const SymbolicEnv &mergeEnv, const IR::Expression *cond);
+    /// Merge another execution state into this state.
+    void merge(const ExecutionState &mergeState);
 
     /* =========================================================================================
      *  Constructors

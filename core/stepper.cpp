@@ -7,6 +7,7 @@
 #include "backends/p4tools/common/compiler/convert_hs_index.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
+#include "backends/p4tools/modules/flay/core/parser_stepper.h"
 #include "backends/p4tools/modules/flay/core/state_utils.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
@@ -33,27 +34,9 @@ bool FlayStepper::preorder(const IR::Node *node) {
  * ============================================================================================= */
 
 bool FlayStepper::preorder(const IR::P4Parser *parser) {
-    auto &executionState = getExecutionState();
-    // Enter the parser's namespace.
-    executionState.pushNamespace(parser);
-    auto blockName = parser->getName().name;
-    auto canonicalName = getProgramInfo().getCanonicalBlockName(blockName);
-    const auto *parserParams = parser->getApplyParameters();
-    const auto *archSpec = FlayTarget::getArchSpec();
-    for (size_t paramIdx = 0; paramIdx < parserParams->size(); ++paramIdx) {
-        const auto *internalParam = parserParams->getParameter(paramIdx);
-        auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
-        StateUtils::copyIn(executionState, getProgramInfo(), internalParam, externalParamName);
-    }
-    const auto *startState = parser->states.getDeclaration<IR::ParserState>("start");
-    startState->apply_visitor_preorder(*this);
-
-    for (size_t paramIdx = 0; paramIdx < parserParams->size(); ++paramIdx) {
-        const auto *internalParam = parserParams->getParameter(paramIdx);
-        auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
-        StateUtils::copyOut(executionState, internalParam, externalParamName);
-    }
-    executionState.popNamespace();
+    // Delegate execution to the parser stepper.
+    ParserStepper parserStepper(*this);
+    parser->apply(parserStepper);
     return false;
 }
 
@@ -65,34 +48,29 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
     auto canonicalName = getProgramInfo().getCanonicalBlockName(blockName);
     const auto *controlParams = control->getApplyParameters();
     const auto *archSpec = FlayTarget::getArchSpec();
+
+    // Copy-in.
     for (size_t paramIdx = 0; paramIdx < controlParams->size(); ++paramIdx) {
         const auto *internalParam = controlParams->getParameter(paramIdx);
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
         StateUtils::copyIn(executionState, getProgramInfo(), internalParam, externalParamName);
     }
+
+    // Declare local variables.
     for (const auto *decl : control->controlLocals) {
         if (const auto *declVar = decl->to<IR::Declaration_Variable>()) {
             StateUtils::declareVariable(getProgramInfo(), getExecutionState(), *declVar);
         }
     }
 
+    // Step into the actual control body.
     control->body->apply_visitor_preorder(*this);
 
+    // Copy-out.
     for (size_t paramIdx = 0; paramIdx < controlParams->size(); ++paramIdx) {
         const auto *internalParam = controlParams->getParameter(paramIdx);
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
         StateUtils::copyOut(executionState, internalParam, externalParamName);
-    }
-    executionState.popNamespace();
-    return false;
-}
-
-bool FlayStepper::preorder(const IR::ParserState *parserState) {
-    auto &executionState = getExecutionState();
-    // Enter the parser state's namespace.
-    executionState.pushNamespace(parserState);
-    for (const auto *declOrStmt : parserState->components) {
-        declOrStmt->apply_visitor_preorder(*this);
     }
     executionState.popNamespace();
     return false;
@@ -167,13 +145,18 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
     auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
     cond = resolver.computeResult(cond);
 
+    // Execute the case where the condition is true.
     auto &trueState = executionState.clone();
+    trueState.pushExecutionCondition(cond);
     auto &trueStepper = FlayTarget::getStepper(programInfo, trueState);
     ifStatement->ifTrue->apply(trueStepper);
 
+    // Execute the alternative.
     if (ifStatement->ifFalse != nullptr) {
         ifStatement->ifFalse->apply_visitor_preorder(*this);
     }
+    // Merge.
+    executionState.merge(trueState);
     return false;
 }
 
@@ -196,7 +179,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
     const IR::Expression *cond = IR::getBoolLiteral(false);
     std::vector<const IR::Statement *> accumulatedStatements;
     std::vector<const IR::Expression *> notConds;
-    std::vector<std::pair<const IR::Expression *, const ExecutionState *>> accumulatedStates;
+    std::vector<std::reference_wrapper<const ExecutionState>> accumulatedStates;
     for (const auto *switchCase : switchStatement->cases) {
         // The default label must be last. Always break here.
         // We handle the default case separately.
@@ -221,20 +204,23 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
         if (switchCase->statement->is<IR::BlockStatement>()) {
             // If any of the values in the match list hits, execute the switch case block.
             auto &caseState = executionState.clone();
-            auto &switchStepper = FlayTarget::getStepper(programInfo, caseState);
-            for (const auto *statement : accumulatedStatements) {
-                statement->apply(switchStepper);
-            }
             // The final condition is the accumulated label condition and NOT other conditions that
             // have previously matched.
             const auto *finalCond = cond;
             for (const auto *notCond : notConds) {
                 finalCond = new IR::LAnd(notCond, finalCond);
             }
-            accumulatedStates.emplace_back(finalCond, &caseState);
             notConds.push_back(new IR::LNot(cond));
             cond = IR::getBoolLiteral(false);
+            caseState.pushExecutionCondition(finalCond);
+            // Execute the state with the accumulated statements.
+            auto &switchStepper = FlayTarget::getStepper(programInfo, caseState);
+            for (const auto *statement : accumulatedStatements) {
+                statement->apply(switchStepper);
+            }
             accumulatedStatements.clear();
+            // Save the state for  later merging.
+            accumulatedStates.emplace_back(caseState);
         }
     }
 
@@ -247,7 +233,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
     }
     // After, merge all the accumulated state.
     for (auto accumulatedState : accumulatedStates) {
-        executionState.merge(accumulatedState.second->getSymbolicEnv(), accumulatedState.first);
+        executionState.merge(accumulatedState);
     }
 
     return false;

@@ -190,6 +190,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
         // Synthesize arguments for the call based on the action parameters.
         const auto &parameters = actionType->parameters;
         auto &actionState = state.clone();
+        actionState.pushExecutionCondition(actionHitCondition);
         IR::Vector<IR::Argument> arguments;
         for (size_t argIdx = 0; argIdx < parameters->size(); ++argIdx) {
             const auto *parameter = parameters->getParameter(argIdx);
@@ -204,7 +205,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
         }
         callAction(getProgramInfo(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
-        state.merge(actionState.getSymbolicEnv(), actionHitCondition);
+        state.merge(actionState);
     }
     return retProperties;
 }
@@ -249,12 +250,13 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
         const auto *actionCall = action->checkedTo<IR::MethodCallExpression>();
         const auto *actionType = StateUtils::getP4Action(state, actionCall);
         auto &actionState = state.clone();
+        actionState.pushExecutionCondition(hitCondition);
         callAction(getProgramInfo(), actionState, actionType, *actionCall->arguments);
         // Finally, merge in the state of the action call.
         // We can only match if other entries have not previously matched!
         const auto *entryHitCondition =
             new IR::LAnd(hitCondition, new IR::LNot(retProperties.totalHitCondition));
-        state.merge(actionState.getSymbolicEnv(), entryHitCondition);
+        state.merge(actionState);
         retProperties.totalHitCondition =
             new IR::LOr(retProperties.totalHitCondition, entryHitCondition);
         retProperties.actionRun = new IR::Mux(IR::Type_String::get(), entryHitCondition,

@@ -17,8 +17,8 @@ void SymbolicExecutor::run() {
     stepper.initializeState();
     for (const auto *node : *pipelineSequence) {
         node->apply(stepper);
-        executionState.printSymbolicEnv();
     }
+    executionState.printSymbolicEnv();
 }
 
 }  // namespace P4Tools::Flay
