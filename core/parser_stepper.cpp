@@ -2,7 +2,6 @@
 
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/common/lib/gen_eq.h"
-#include "backends/p4tools/modules/flay/core/state_utils.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
@@ -41,13 +40,13 @@ bool ParserStepper::preorder(const IR::P4Parser *parser) {
     for (size_t paramIdx = 0; paramIdx < parserParams->size(); ++paramIdx) {
         const auto *internalParam = parserParams->getParameter(paramIdx);
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
-        StateUtils::copyIn(executionState, getProgramInfo(), internalParam, externalParamName);
+        executionState.copyIn(FlayTarget::get(), internalParam, externalParamName);
     }
 
     // Declare local variables.
     for (const auto *decl : parser->parserLocals) {
         if (const auto *declVar = decl->to<IR::Declaration_Variable>()) {
-            StateUtils::declareVariable(getProgramInfo(), getExecutionState(), *declVar);
+            executionState.declareVariable(FlayTarget::get(), *declVar);
         }
     }
 
@@ -60,7 +59,7 @@ bool ParserStepper::preorder(const IR::P4Parser *parser) {
     for (size_t paramIdx = 0; paramIdx < parserParams->size(); ++paramIdx) {
         const auto *internalParam = parserParams->getParameter(paramIdx);
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
-        StateUtils::copyOut(executionState, internalParam, externalParamName);
+        executionState.copyOut(internalParam, externalParamName);
     }
     executionState.popNamespace();
     return false;

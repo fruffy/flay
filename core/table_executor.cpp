@@ -12,7 +12,6 @@
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
-#include "backends/p4tools/modules/flay/core/state_utils.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/indexed_vector.h"
@@ -156,7 +155,7 @@ void TableExecutor::processDefaultAction() const {
     auto &state = getExecutionState();
     const auto *defaultAction = getP4Table().getDefaultAction();
     const auto *tableAction = defaultAction->checkedTo<IR::MethodCallExpression>();
-    const auto *actionType = StateUtils::getP4Action(state, tableAction);
+    const auto *actionType = state.getP4Action(tableAction);
 
     // Synthesize arguments for the call based on the action parameters.
     const auto *arguments = tableAction->arguments;
@@ -175,8 +174,8 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     ReturnProperties retProperties{hitCondition, new IR::StringLiteral(actionPath->toString())};
     for (size_t actionIdx = 0; actionIdx < tableActionList.size(); ++actionIdx) {
         const auto *action = tableActionList.at(actionIdx);
-        const auto *actionType = StateUtils::getP4Action(
-            state, action->expression->checkedTo<IR::MethodCallExpression>());
+        const auto *actionType =
+            state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
         auto *actionChoice =
             new IR::Equ(tableActionID, IR::getConstant(&ACTION_BIT_TYPE, actionIdx));
         const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);
@@ -248,7 +247,7 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
         // Once we have computed the match, execution the action with its arguments.
         const auto *action = entry->getAction();
         const auto *actionCall = action->checkedTo<IR::MethodCallExpression>();
-        const auto *actionType = StateUtils::getP4Action(state, actionCall);
+        const auto *actionType = state.getP4Action(actionCall);
         auto &actionState = state.clone();
         actionState.pushExecutionCondition(hitCondition);
         callAction(getProgramInfo(), actionState, actionType, *actionCall->arguments);

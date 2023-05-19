@@ -8,7 +8,6 @@
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
-#include "backends/p4tools/modules/flay/core/state_utils.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/indexed_vector.h"
 #include "ir/irutils.h"
@@ -46,7 +45,7 @@ bool ExpressionResolver::preorder(const IR::Literal *lit) {
 }
 
 bool ExpressionResolver::preorder(const IR::PathExpression *path) {
-    result = getExecutionState().get(StateUtils::convertReference(path));
+    result = getExecutionState().get(AbstractExecutionState::convertReference(path));
     return false;
 }
 
@@ -81,7 +80,7 @@ bool ExpressionResolver::preorder(const IR::Member *member) {
         // Handle table calls.
         const auto *tableCall = member->expr->checkedTo<IR::MethodCallExpression>();
         const auto *table =
-            StateUtils::findTable(executionState, tableCall->method->checkedTo<IR::Member>());
+            executionState.get().findTable(tableCall->method->checkedTo<IR::Member>());
         BUG_CHECK(table != nullptr, "Hit/miss/action_run member has unexpected parent %1%.",
                   member);
         const auto *tableExecutionResult = processTable(table)->checkedTo<IR::StructExpression>();
@@ -289,7 +288,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
             }
 
             // Handle table calls.
-            if (const auto *table = StateUtils::findTable(executionState, method)) {
+            if (const auto *table = executionState.findTable(method)) {
                 result = processTable(table);
                 return false;
             }
@@ -324,7 +323,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     } else if (call->method->type->is<IR::Type_Action>()) {
         // Handle action calls. Actions are called by tables and are not inlined, unlike
         // functions.
-        const auto *actionType = StateUtils::getP4Action(executionState, call);
+        const auto *actionType = executionState.getP4Action(call);
         TableExecutor::callAction(programInfo, executionState, actionType, *call->arguments);
         return false;
     }
@@ -345,7 +344,8 @@ const IR::Expression *ExpressionResolver::processExtern(const IR::PathExpression
          [](const IR::PathExpression &externObjectRef, const IR::ID &methodName,
             const IR::Vector<IR::Argument> *args, ExecutionState &state) {
              // This argument is the structure being written by the extract.
-             const auto &extractRef = StateUtils::convertReference(args->at(0)->expression);
+             const auto &extractRef =
+                 AbstractExecutionState::convertReference(args->at(0)->expression);
              const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
              const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
              // First, set the validity.
@@ -354,7 +354,7 @@ const IR::Expression *ExpressionResolver::processExtern(const IR::PathExpression
              state.set(headerRefValidity, ToolsVariables::getSymbolicVariable(
                                               IR::Type_Boolean::get(), 0, extractLabel));
              // Then, set the fields.
-             const auto flatFields = StateUtils::getFlatFields(state, extractRef, headerType);
+             const auto flatFields = state.getFlatFields(extractRef, headerType);
              for (const auto &field : flatFields) {
                  auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName +
                                           "_" + extractRef->toString() + "_" + field.toString();

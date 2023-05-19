@@ -15,8 +15,7 @@
 namespace P4Tools::Flay {
 
 ExecutionState::ExecutionState(const IR::P4Program *program)
-    : namespaces(NamespaceContext::Empty->push(program)),
-      executionCondition(IR::getBoolLiteral(true)) {}
+    : AbstractExecutionState(program), executionCondition(IR::getBoolLiteral(true)) {}
 
 /* =============================================================================================
  *  Accessors
@@ -47,27 +46,12 @@ const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
     return expr;
 }
 
-bool ExecutionState::exists(const IR::StateVariable &var) const { return env.exists(var); }
-
 void ExecutionState::set(const IR::StateVariable &var, const IR::Expression *value) {
     // Small optimization. Do not nest Mux that are the same.
     if (value->is<IR::Mux>()) {
         value = value->apply(CollapseMux());
     }
     env.set(var, value);
-}
-
-const SymbolicEnv &ExecutionState::getSymbolicEnv() const { return env; }
-
-void ExecutionState::printSymbolicEnv(std::ostream &out) const {
-    // TODO(fruffy): How do we do logging here?
-    out << "##### Symbolic Environment Begin #####" << std::endl;
-    for (const auto &envVar : env.getInternalMap()) {
-        const auto var = envVar.first;
-        const auto *val = envVar.second;
-        out << "Variable: " << var->toString() << " Value: " << val << std::endl;
-    }
-    out << "##### Symbolic Environment End #####" << std::endl;
 }
 
 void ExecutionState::addParserId(int parserId) { visitedParserIds.emplace(parserId); }
@@ -77,38 +61,8 @@ bool ExecutionState::hasVisitedParserId(int parserId) const {
 }
 
 /* =============================================================================================
- *  Namespaces and declarations
+ *  State merging and execution conditions.
  * ============================================================================================= */
-
-const IR::IDeclaration *ExecutionState::findDecl(const IR::Path *path) const {
-    return namespaces->findDecl(path);
-}
-
-const IR::IDeclaration *ExecutionState::findDecl(const IR::PathExpression *pathExpr) const {
-    return findDecl(pathExpr->path);
-}
-
-const IR::Type *ExecutionState::resolveType(const IR::Type *type) const {
-    const auto *typeName = type->to<IR::Type_Name>();
-    // Nothing to resolve here. Just return.
-    if (typeName == nullptr) {
-        return type;
-    }
-    const auto *path = typeName->path;
-    const auto *decl = findDecl(path)->to<IR::Type_Declaration>();
-    BUG_CHECK(decl, "Not a type: %1%", path);
-    return decl;
-}
-
-const NamespaceContext *ExecutionState::getNamespaceContext() const { return namespaces; }
-
-void ExecutionState::setNamespaceContext(const NamespaceContext *namespaces) {
-    this->namespaces = namespaces;
-}
-
-void ExecutionState::pushNamespace(const IR::INamespace *ns) { namespaces = namespaces->push(ns); }
-
-void ExecutionState::popNamespace() { namespaces = namespaces->pop(); }
 
 const IR::Expression *ExecutionState::getExecutionCondition() const { return executionCondition; }
 

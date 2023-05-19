@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "backends/p4tools/common/core/abstract_execution_state.h"
 #include "backends/p4tools/common/lib/namespace_context.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "ir/declaration.h"
@@ -12,15 +13,8 @@
 namespace P4Tools::Flay {
 
 /// Represents state of execution after having reached a program point.
-class ExecutionState {
+class ExecutionState : public AbstractExecutionState {
  private:
-    /// The namespace context in the IR for the current state. The innermost element is the P4
-    /// program, representing the top-level namespace.
-    const NamespaceContext *namespaces;
-
-    /// The symbolic environment. Maps program variables to their symbolic values.
-    SymbolicEnv env;
-
     /// The condition necessary to reach this particular execution state. Defaults to true.
     const IR::Expression *executionCondition;
 
@@ -32,23 +26,11 @@ class ExecutionState {
      * ========================================================================================= */
  public:
     /// @returns the value associated with the given state variable.
-    [[nodiscard]] const IR::Expression *get(const IR::StateVariable &var) const;
+    [[nodiscard]] const IR::Expression *get(const IR::StateVariable &var) const override;
 
     /// Sets the symbolic value of the given state variable to the given value. Constant folding
     /// is done on the given value before updating the symbolic state.
-    void set(const IR::StateVariable &var, const IR::Expression *value);
-
-    /// Checks whether the given variable exists in the symbolic environment of this state.
-    [[nodiscard]] bool exists(const IR::StateVariable &var) const;
-
-    /// @returns the current symbolic environment.
-    [[nodiscard]] const SymbolicEnv &getSymbolicEnv() const;
-
-    /// Produce a formatted output of the current symbolic environment.
-    void printSymbolicEnv(std::ostream &out = std::cout) const;
-
-    /// @returns whether the property with @arg propertyName exists.
-    [[nodiscard]] bool hasProperty(cstring propertyName) const;
+    void set(const IR::StateVariable &var, const IR::Expression *value) override;
 
     /// Add a parser ID to the list of visited parser IDs.
     void addParserId(int parserId);
@@ -56,41 +38,19 @@ class ExecutionState {
     /// @returns true if the parserID is already in the list of visited IDs.
     [[nodiscard]] bool hasVisitedParserId(int parserId) const;
 
- public:
-    /// Looks up a declaration from a path. A BUG occurs if no declaration is found.
-    [[nodiscard]] const IR::IDeclaration *findDecl(const IR::Path *path) const;
-
-    /// Looks up a declaration from a path expression. A BUG occurs if no declaration is found.
-    [[nodiscard]] const IR::IDeclaration *findDecl(const IR::PathExpression *pathExpr) const;
-
-    /// Resolves a Type in the current environment.
-    [[nodiscard]] const IR::Type *resolveType(const IR::Type *type) const;
-
-    /// @returns the current namespace context.
-    [[nodiscard]] const NamespaceContext *getNamespaceContext() const;
-
-    /// Replaces the namespace context in the current state with the given context.
-    void setNamespaceContext(const NamespaceContext *namespaces);
-
-    /// Enters a namespace of declarations.
-    void pushNamespace(const IR::INamespace *ns);
-
-    /// Exists a namespace of declarations.
-    void popNamespace();
-
+    /* =========================================================================================
+     *  State merging and execution conditions.
+     * ========================================================================================= */
     /// Push an execution condition into this particular state.
     void pushExecutionCondition(const IR::Expression *cond);
 
     /// @returns the execution condition associated with this state.
     [[nodiscard]] const IR::Expression *getExecutionCondition() const;
 
-    /* =========================================================================================
-     *  General utilities involving ExecutionState.
-     * ========================================================================================= */
- public:
     /// Merge another execution state into this state.
     void merge(const ExecutionState &mergeState);
 
+    ExecutionState &operator=(ExecutionState &&) = delete;
     /* =========================================================================================
      *  Constructors
      * ========================================================================================= */
@@ -99,7 +59,7 @@ class ExecutionState {
 
     /// Allocate a new execution state object with the same state as this object.
     /// Returns a reference, not a pointer.
-    [[nodiscard]] ExecutionState &clone() const;
+    [[nodiscard]] ExecutionState &clone() const override;
 
     /// Create a new execution state object from the input program.
     /// Returns a reference not a pointer.
@@ -109,6 +69,8 @@ class ExecutionState {
     ExecutionState &operator=(const ExecutionState &) = delete;
 
     ExecutionState(ExecutionState &&) = default;
+
+    ~ExecutionState() override = default;
 
  private:
     /// Execution state needs to be explicitly copied using the @ref clone call..

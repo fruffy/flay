@@ -6,7 +6,6 @@
 
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
-#include "backends/p4tools/modules/flay/core/state_utils.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "lib/cstring.h"
 #include "lib/ordered_map.h"
@@ -18,8 +17,8 @@ const V1ModelProgramInfo &V1ModelFlayStepper::getProgramInfo() const {
 }
 
 void V1ModelFlayStepper::initializeState() {
+    const auto &target = FlayTarget::get();
     const auto *archSpec = FlayTarget::getArchSpec();
-    const auto &programInfo = getProgramInfo();
     const auto *programmableBlocks = getProgramInfo().getProgrammableBlocks();
     auto &executionState = getExecutionState();
     // BMv2 initializes all metadata to zero. To avoid unnecessary taint, we retrieve the type and
@@ -28,8 +27,7 @@ void V1ModelFlayStepper::initializeState() {
     for (const auto &blockTuple : *programmableBlocks) {
         const auto *typeDecl = blockTuple.second;
         const auto *archMember = archSpec->getArchMember(blockIdx);
-        StateUtils::initializeBlockParams(programInfo, executionState, typeDecl,
-                                          &archMember->blockParams);
+        executionState.initializeBlockParams(target, typeDecl, &archMember->blockParams);
         blockIdx++;
     }
 }
