@@ -6,6 +6,7 @@
 
 #include "backends/p4tools/common/compiler/convert_hs_index.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
+#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/parser_stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
@@ -85,7 +86,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
         if (const auto *structExpr = right->to<IR::StructExpression>()) {
             std::vector<IR::StateVariable> flatTargetValids;
             auto flatTargetFields = executionState.getFlatFields(left, ts, &flatTargetValids);
-            auto flatStructFields = AbstractExecutionState::getFlatStructFields(structExpr);
+            auto flatStructFields = IR::flattenStructExpression(structExpr);
             BUG_CHECK(
                 flatTargetFields.size() == flatStructFields.size(),
                 "The list of target fields and the list of source fields have different sizes.");
@@ -111,7 +112,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     right = resolver.computeResult(right);
 
     if (assignType->is<IR::Type_Base>()) {
-        auto leftRef = AbstractExecutionState::convertReference(left);
+        auto leftRef = ToolsVariables::convertReference(left);
         executionState.set(leftRef, right);
     } else {
         P4C_UNIMPLEMENTED("Unsupported assignment type %1% of type %2%", assignType,

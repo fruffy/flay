@@ -63,6 +63,7 @@ endforeach()
 configure_file(register.h.in register.h)
 
 add_p4tools_library(libflay ${FLAY_SOURCES})
+add_dependencies(libflay p4tools-common)
 
 add_p4tools_executable(p4flay main.cpp)
 

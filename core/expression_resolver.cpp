@@ -45,7 +45,7 @@ bool ExpressionResolver::preorder(const IR::Literal *lit) {
 }
 
 bool ExpressionResolver::preorder(const IR::PathExpression *path) {
-    result = getExecutionState().get(AbstractExecutionState::convertReference(path));
+    result = getExecutionState().get(ToolsVariables::convertReference(path));
     return false;
 }
 
@@ -344,8 +344,7 @@ const IR::Expression *ExpressionResolver::processExtern(const IR::PathExpression
          [](const IR::PathExpression &externObjectRef, const IR::ID &methodName,
             const IR::Vector<IR::Argument> *args, ExecutionState &state) {
              // This argument is the structure being written by the extract.
-             const auto &extractRef =
-                 AbstractExecutionState::convertReference(args->at(0)->expression);
+             const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
              const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
              const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
              // First, set the validity.
