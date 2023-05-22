@@ -33,7 +33,7 @@ V1ModelProgramInfo::V1ModelProgramInfo(
     /// individual component instantiations.
     int pipeIdx = 0;
     for (const auto &declTuple : programmableBlocks) {
-        blockMap.emplace(declTuple.second->controlPlaneName(), declTuple.first);
+        blockMap.emplace(declTuple.second->getName(), declTuple.first);
         // Iterate through the (ordered) pipes of the target architecture.
         // if (declTuple.first == "Ingress") {
         auto subResult = processDeclaration(declTuple.second, pipeIdx);

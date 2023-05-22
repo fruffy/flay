@@ -6,9 +6,9 @@
 
 #include "backends/p4tools/common/compiler/convert_hs_index.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
+#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/parser_stepper.h"
-#include "backends/p4tools/modules/flay/core/state_utils.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
@@ -53,13 +53,13 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
     for (size_t paramIdx = 0; paramIdx < controlParams->size(); ++paramIdx) {
         const auto *internalParam = controlParams->getParameter(paramIdx);
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
-        StateUtils::copyIn(executionState, getProgramInfo(), internalParam, externalParamName);
+        executionState.copyIn(FlayTarget::get(), internalParam, externalParamName);
     }
 
     // Declare local variables.
     for (const auto *decl : control->controlLocals) {
         if (const auto *declVar = decl->to<IR::Declaration_Variable>()) {
-            StateUtils::declareVariable(getProgramInfo(), getExecutionState(), *declVar);
+            executionState.declareVariable(FlayTarget::get(), *declVar);
         }
     }
 
@@ -70,7 +70,7 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
     for (size_t paramIdx = 0; paramIdx < controlParams->size(); ++paramIdx) {
         const auto *internalParam = controlParams->getParameter(paramIdx);
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
-        StateUtils::copyOut(executionState, internalParam, externalParamName);
+        executionState.copyOut(internalParam, externalParamName);
     }
     executionState.popNamespace();
     return false;
@@ -85,9 +85,8 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     if (const auto *ts = assignType->to<IR::Type_StructLike>()) {
         if (const auto *structExpr = right->to<IR::StructExpression>()) {
             std::vector<IR::StateVariable> flatTargetValids;
-            auto flatTargetFields =
-                StateUtils::getFlatFields(executionState, left, ts, &flatTargetValids);
-            auto flatStructFields = StateUtils::getFlatStructFields(structExpr);
+            auto flatTargetFields = executionState.getFlatFields(left, ts, &flatTargetValids);
+            auto flatStructFields = IR::flattenStructExpression(structExpr);
             BUG_CHECK(
                 flatTargetFields.size() == flatStructFields.size(),
                 "The list of target fields and the list of source fields have different sizes.");
@@ -101,7 +100,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
                 executionState.set(flatTargetRef, flatStructField);
             }
         } else if (right->is<IR::PathExpression>() || right->is<IR::Member>()) {
-            StateUtils::setStructLike(executionState, left, right);
+            executionState.setStructLike(left, right);
         } else {
             P4C_UNIMPLEMENTED("Unsupported assignment rval %1% of type %2%", right,
                               right->node_type_name());
@@ -113,7 +112,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     right = resolver.computeResult(right);
 
     if (assignType->is<IR::Type_Base>()) {
-        auto leftRef = StateUtils::convertReference(left);
+        auto leftRef = ToolsVariables::convertReference(left);
         executionState.set(leftRef, right);
     } else {
         P4C_UNIMPLEMENTED("Unsupported assignment type %1% of type %2%", assignType,

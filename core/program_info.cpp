@@ -42,14 +42,6 @@ const IR::Type_Declaration *ProgramInfo::resolveProgramType(const IR::IGeneralNa
     return decl;
 }
 
-const IR::Expression *ProgramInfo::createTargetUninitialized(const IR::Type *type,
-                                                             bool forceTaint) const {
-    if (forceTaint) {
-        return ToolsVariables::getTaintExpression(type);
-    }
-    return IR::getDefaultValue(type);
-}
-
 /* =============================================================================================
  *  Getters
  * ============================================================================================= */

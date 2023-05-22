@@ -172,12 +172,6 @@ p4tools_add_xfail_reason(
 
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
-  "Unable to find var .* in the canonical block map"
-  annotation-inline-propagate.p4
-)
-
-p4tools_add_xfail_reason(
-  "flay-p4c-bmv2-v1model"
   "The list of target fields and the list of source fields have different sizes."
   issue2488-bmv2.p4
 )

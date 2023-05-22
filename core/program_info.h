@@ -56,12 +56,8 @@ class ProgramInfo : public ICastable {
     static const IR::Type_Declaration *resolveProgramType(const IR::IGeneralNamespace *ns,
                                                           const IR::Type_Name *type);
 
-    /// @returns the default value for uninitialized variables for this particular target. This can
-    /// be a taint variable or simply 0 (bits) or false (booleans).
-    /// If @param forceTaint is active, this function always returns a taint variable.
-    virtual const IR::Expression *createTargetUninitialized(const IR::Type *type,
-                                                            bool forceTaint) const;
-
+    /// @returns the canonical name of the program block that is passed in.
+    /// Throws a BUG, if the name can not be found.
     [[nodiscard]] cstring getCanonicalBlockName(cstring programBlockName) const;
 };
 
