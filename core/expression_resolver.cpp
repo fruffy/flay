@@ -49,13 +49,19 @@ bool ExpressionResolver::preorder(const IR::PathExpression *path) {
     return false;
 }
 
-const IR::Expression *checkStructLike(const IR::Member *member) {
+const IR::Expression *ExpressionResolver::checkStructLike(const IR::Member *member) {
     std::vector<const IR::ID *> ids;
     const IR::Expression *expr = member;
     while (const auto *member = expr->to<IR::Member>()) {
         ids.emplace_back(&member->member);
         expr = member->expr;
     }
+    // If the member is a method call, resolve it. The result MUST be a struct expression.
+    if (const auto *methodCallExpr = expr->to<IR::MethodCallExpression>()) {
+        expr = computeResult(methodCallExpr)->checkedTo<IR::StructExpression>();
+    }
+    // If the expression is a struct expression, try to resolve the member contained in it
+    // iteratively.
     if (const auto *structExpr = expr->to<IR::StructExpression>()) {
         while (!ids.empty()) {
             const auto *ref = ids.back();
@@ -72,26 +78,12 @@ const IR::Expression *checkStructLike(const IR::Member *member) {
 }
 
 bool ExpressionResolver::preorder(const IR::Member *member) {
-    // Handle some P4 language quirks, where tables implicitly may return some state.
-    if (member->expr->is<IR::MethodCallExpression>() &&
-        (member->member.name == IR::Type_Table::hit ||
-         member->member.name == IR::Type_Table::miss ||
-         member->member.name == IR::Type_Table::action_run)) {
-        // Handle table calls.
-        const auto *tableCall = member->expr->checkedTo<IR::MethodCallExpression>();
-        const auto *table =
-            executionState.get().findTable(tableCall->method->checkedTo<IR::Member>());
-        BUG_CHECK(table != nullptr, "Hit/miss/action_run member has unexpected parent %1%.",
-                  member);
-        const auto *tableExecutionResult = processTable(table)->checkedTo<IR::StructExpression>();
-        result = tableExecutionResult->getField(member->member.name)->expression;
+    // Some members may access struct expression, not actual state. Resolve these first.
+    const auto *structExpr = checkStructLike(member);
+    if (structExpr != nullptr) {
+        result = structExpr;
         return false;
     }
-    // const auto *structExpr = checkStructLike(member);
-    // if (structExpr != nullptr) {
-    //     result = structExpr;
-    //     return false;
-    // }
     result = getExecutionState().get(member);
     return false;
 }
@@ -269,7 +261,9 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
         if (const auto *path = call->method->to<IR::PathExpression>()) {
             static auto METHOD_DUMMY =
                 IR::PathExpression(new IR::Type_Extern("*method"), new IR::Path("*method"));
-            processExtern(METHOD_DUMMY, path->path->name, call->arguments);
+            ExternMethodImpls::ExternInfo externInfo(
+                {*call, METHOD_DUMMY, path->path->name, call->arguments, executionState});
+            result = processExtern(externInfo);
             return false;
         }
 
@@ -283,7 +277,9 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
             if (method->expr->type->is<IR::Type_Extern>() ||
                 method->expr->type->is<IR::Type_SpecializedCanonical>()) {
                 const auto *path = method->expr->checkedTo<IR::PathExpression>();
-                processExtern(*path, method->member, call->arguments);
+                ExternMethodImpls::ExternInfo externInfo(
+                    {*call, *path, method->member, call->arguments, executionState});
+                result = processExtern(externInfo);
                 return false;
             }
 
@@ -330,19 +326,49 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
 }
 
+const IR::Expression *createSymbolicExpression(const ExecutionState &state,
+                                               const IR::Type *inputType, cstring label,
+                                               size_t id) {
+    const auto *resolvedType = state.resolveType(inputType);
+    if (const auto *structType = resolvedType->to<IR::Type_StructLike>()) {
+        IR::IndexedVector<IR::NamedExpression> fields;
+        for (size_t idx = 0; idx < structType->fields.size(); ++idx) {
+            const auto *field = structType->fields.at(idx);
+            fields.push_back(new IR::NamedExpression(
+                field->name, createSymbolicExpression(state, field->type, label, idx + id)));
+        }
+        return new IR::StructExpression(inputType, fields);
+    }
+    if (const auto *stackType = resolvedType->to<IR::Type_Stack>()) {
+        IR::Vector<IR::Expression> fields;
+        for (size_t idx = 0; idx < stackType->getSize(); ++idx) {
+            fields.push_back(
+                createSymbolicExpression(state, stackType->elementType, label, idx + id));
+        }
+        return new IR::HeaderStackExpression(inputType, fields, inputType);
+    }
+    if (resolvedType->is<IR::Type_Base>()) {
+        return ToolsVariables::getSymbolicVariable(resolvedType, id, label);
+    }
+    P4C_UNIMPLEMENTED("Requesting a symbolic expression for %1% of type %2%", inputType,
+                      inputType->node_type_name());
+}
+
 /* =============================================================================================
  *  Extern implementations
  * ============================================================================================= */
 
-const IR::Expression *ExpressionResolver::processExtern(const IR::PathExpression &externObjectRef,
-                                                        const IR::ID &methodName,
-                                                        const IR::Vector<IR::Argument> *args) {
+const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::ExternInfo &externInfo) {
     // Provides implementations of P4 core externs.
     static const ExternMethodImpls EXTERN_METHOD_IMPLS({
         {"packet_in.extract",
          {"hdr"},
-         [](const IR::PathExpression &externObjectRef, const IR::ID &methodName,
-            const IR::Vector<IR::Argument> *args, ExecutionState &state) {
+         [](ExternMethodImpls::ExternInfo &externInfo) {
+             const auto *args = externInfo.externArgs;
+             const auto &externObjectRef = externInfo.externObjectRef;
+             const auto &methodName = externInfo.methodName;
+             auto &state = externInfo.state;
+
              // This argument is the structure being written by the extract.
              const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
              const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
@@ -362,19 +388,41 @@ const IR::Expression *ExpressionResolver::processExtern(const IR::PathExpression
              }
              return nullptr;
          }},
+        {"packet_in.lookahead",
+         {},
+         [](ExternMethodImpls::ExternInfo &externInfo) {
+             const auto *typeArgs = externInfo.originalCall.typeArguments;
+             BUG_CHECK(typeArgs->size() == 1, "Lookahead should have exactly one type argument.");
+             // TODO: We currently just create a dummy variable, but this is not correct.
+             // Since we look ahead, subsequent extracts and advance calls are influenced by the
+             // decision.
+             const auto *lookaheadType = externInfo.originalCall.typeArguments->at(0);
+             const auto &externObjectRef = externInfo.externObjectRef;
+             const auto &methodName = externInfo.methodName;
+             auto lookaheadLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
+                                   std::to_string(externInfo.originalCall.clone_id);
+             return createSymbolicExpression(externInfo.state, lookaheadType, lookaheadLabel, 0);
+         }},
+        {"packet_in.advance",
+         {"sizeInBits"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+             // Advance is a no-op for now.
+             return nullptr;
+         }},
         {"packet_out.emit",
          {"hdr"},
-         [](const IR::PathExpression & /*externObjectRef*/, const IR::ID & /*methodName*/,
-            const IR::Vector<IR::Argument> * /*args*/,
-            ExecutionState & /*state*/) { return nullptr; }},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+             // Emit is a no-op for now.
+             return nullptr;
+         }},
     });
-
-    auto method = EXTERN_METHOD_IMPLS.find(externObjectRef, methodName, args);
+    auto method = EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
+                                           externInfo.externArgs);
     if (method.has_value()) {
-        return method.value()(externObjectRef, methodName, args, getExecutionState());
+        return method.value()(externInfo);
     }
-    P4C_UNIMPLEMENTED("Unknown or unimplemented extern method: %1%.%2%", externObjectRef.toString(),
-                      methodName);
+    P4C_UNIMPLEMENTED("Unknown or unimplemented extern method: %1%.%2%",
+                      externInfo.externObjectRef.toString(), externInfo.methodName);
 }
 
 const IR::Expression *ExpressionResolver::computeResult(const IR::Node *node) {

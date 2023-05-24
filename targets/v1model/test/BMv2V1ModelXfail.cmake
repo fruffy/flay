@@ -16,18 +16,8 @@ p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "Unsupported assignment"
   control-hs-index-test5.p4  # Unsupported assignment rval h.h[tmp]; of type ArrayIndex
-  checksum1-bmv2.p4  # Unsupported assignment rval pkt.lookahead<IPv4_up_to_ihl_only_h>(); of type MethodCallExpression
-  checksum-l4-bmv2.p4  # Unsupported assignment rval pkt.lookahead<IPv4_up_to_ihl_only_h>(); of type MethodCallExpression
-  issue1025-bmv2.p4  # Unsupported assignment rval pkt.lookahead<IPv4_up_to_ihl_only_h>(); of type MethodCallExpression
-  invalid-hdr-warnings6.p4  # Unsupported assignment rval u_0/u[i_0/i]; of type ArrayIndex
-  crc32-bmv2.p4  # Unsupported assignment rval packet.lookahead<p4calc_t>(); of type MethodCallExpression
-  issue1560-bmv2.p4  # Unsupported assignment rval pkt.lookahead<IPv4_up_to_ihl_only_h>(); of type MethodCallExpression
-  issue1765-bmv2.p4  # Unsupported assignment rval pkt.lookahead<IPv4_up_to_ihl_only_h>(); of type MethodCallExpression
   issue1989-bmv2.p4  # Unsupported assignment rval hdr.ethernet_stack[meta.color]; of type ArrayIndex
-  issue2465-bmv2.p4  # Unsupported assignment rval b.lookahead<h>(); of type MethodCallExpression
-  issue355-bmv2.p4  # Unsupported assignment rval pkt.lookahead<ethernet_t>(); of type MethodCallExpression
-  issue3702-bmv2.p4  # Unsupported assignment rval pkt.lookahead<ipv4_t>(); of type MethodCallExpression
-    up4.p4  # Unsupported assignment rval packet.lookahead<gtpu_t>(); of type MethodCallExpression
+  invalid-hdr-warnings6.p4  # Unsupported assignment rval u_0/u[i_0/i]; of type ArrayIndex
 )
 
 p4tools_add_xfail_reason(
@@ -53,6 +43,13 @@ p4tools_add_xfail_reason(
   issue447-5-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
   test-parserinvalidargument-error-bmv2.p4  # Unknown or unimplemented extern method: packet.extract
   issue447-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
+  checksum-l4-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
+  checksum1-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
+  crc32-bmv2.p4  # Unknown or unimplemented extern method: *method.hash
+  issue1025-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
+  issue1560-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
+  issue1765-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
+  issue3702-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
   hash-bmv2.p4  # Unknown or unimplemented extern method: *method.hash
   hashing-non-tuple-bmv2.p4  # Unknown or unimplemented extern method: *method.hash
   issue1049-bmv2.p4  # Unknown or unimplemented extern method: *method.hash
@@ -63,12 +60,6 @@ p4tools_add_xfail_reason(
   issue1566-bmv2.p4  # Unknown or unimplemented extern method: stats.count
   issue1566.p4  # Unknown or unimplemented extern method: stats.count
   issue2844-enum.p4  # Unknown or unimplemented extern method: stats.count
-  issue1755-1-bmv2.p4  # Unknown or unimplemented extern method: packet.advance
-  issue1755-bmv2.p4  # Unknown or unimplemented extern method: packet.advance
-  parser-unroll-issue3537-1.p4  # Unknown or unimplemented extern method: packet.advance
-  issue1768-bmv2.p4  # Unknown or unimplemented extern method: packet.lookahead
-  issue356-bmv2.p4  # Unknown or unimplemented extern method: pkt.lookahead
-  fabric.p4  # Unknown or unimplemented extern method: packet.lookahead
   issue1882-bmv2.p4  # Unknown or unimplemented extern method: extr.increment
   issue1882-1-bmv2.p4  # Unknown or unimplemented extern method: extr.increment
   issue2201-bmv2.p4  # Unknown or unimplemented extern method: *method.log_msg
@@ -121,6 +112,7 @@ p4tools_add_xfail_reason(
   pins_fabric.p4  # Unknown or unimplemented extern method: *method.verify_checksum
   pins_wbb.p4  # Unknown or unimplemented extern method: *method.verify_checksum
   pins_middleblock.p4  # Unknown or unimplemented extern method: *method.verify_checksum
+  up4.p4  # Unknown or unimplemented extern method: *method.verify_checksum
 )
 
 p4tools_add_xfail_reason(
@@ -172,7 +164,7 @@ p4tools_add_xfail_reason(
 
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
-  "The list of target fields and the list of source fields have different sizes."
+  "The size of target fields (.*) and the size of source fields (.*) are different."
   issue2488-bmv2.p4
 )
 
@@ -184,7 +176,9 @@ p4tools_add_xfail_reason(
   invalid-hdr-warnings4.p4
   issue692-bmv2.p4
   parser-unroll-issue3537.p4
+  parser-unroll-issue3537-1.p4
   issue1897-bmv2.p4
   issue1937-2-bmv2.p4
   issue281.p4
+  fabric.p4
 )
