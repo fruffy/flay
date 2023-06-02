@@ -84,7 +84,7 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
     }
     // Create a new variable constant that corresponds to the key expression.
     cstring keyName = tableName + "_key_" + fieldName;
-    const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, 0, keyName);
+    const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
 
     if (matchType == P4Constants::MATCH_KIND_EXACT) {
         return new IR::Equ(keyExpr, ctrlPlaneKey);
@@ -97,7 +97,7 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
             ternaryMask = IR::getConstant(keyExpr->type, 0);
             keyExpr = ternaryMask;
         } else {
-            ternaryMask = ToolsVariables::getSymbolicVariable(keyExpr->type, 0, maskName);
+            ternaryMask = ToolsVariables::getSymbolicVariable(keyExpr->type, maskName);
         }
         return new IR::Equ(new IR::BAnd(keyExpr, ternaryMask),
                            new IR::BAnd(ctrlPlaneKey, ternaryMask));
@@ -107,7 +107,7 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
         auto keyWidth = keyType->width_bits();
         cstring maskName = tableName + "_lpm_prefix_" + fieldName;
         const IR::Expression *maskVar =
-            ToolsVariables::getSymbolicVariable(keyExpr->type, 0, maskName);
+            ToolsVariables::getSymbolicVariable(keyExpr->type, maskName);
         // The maxReturn is the maximum vale for the given bit width. This value is shifted by
         // the mask variable to create a mask (and with that, a prefix).
         auto maxReturn = IR::getMaxBvVal(keyWidth);
@@ -198,8 +198,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
             // Getting the unique name is needed to avoid generating duplicate arguments.
             cstring paramName = getP4Table().controlPlaneName() + "_" + actionName + "_" +
                                 parameter->controlPlaneName();
-            const auto &actionArg =
-                ToolsVariables::getSymbolicVariable(parameter->type, 0, paramName);
+            const auto &actionArg = ToolsVariables::getSymbolicVariable(parameter->type, paramName);
             arguments.push_back(new IR::Argument(actionArg));
         }
         callAction(getProgramInfo(), actionState, actionType, arguments);
@@ -297,7 +296,7 @@ const IR::Expression *TableExecutor::processTable() {
     }
 
     const auto actionVar = tableName + "_action";
-    const auto *tableActionID = ToolsVariables::getSymbolicVariable(&ACTION_BIT_TYPE, 0, actionVar);
+    const auto *tableActionID = ToolsVariables::getSymbolicVariable(&ACTION_BIT_TYPE, actionVar);
     // Execute all other possible action options. Get the combination of all possible hits.
     const auto &retProperties = processTableActionOptions(tableActionID, key);
     return new IR::StructExpression(

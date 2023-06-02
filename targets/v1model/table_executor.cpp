@@ -32,7 +32,7 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
         // We can recover from taint by simply not adding the optional match.
         // Create a new symbolic variable that corresponds to the key expression.
         cstring keyName = tableName + "_key_" + fieldName;
-        const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, 0, keyName);
+        const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
         if (isTainted) {
             return IR::getBoolLiteral(true);
         }
@@ -53,8 +53,8 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
             maxKey = IR::getConstant(keyExpr->type, IR::getMaxBvVal(keyExpr->type));
             keyExpr = minKey;
         } else {
-            minKey = ToolsVariables::getSymbolicVariable(keyExpr->type, 0, minName);
-            maxKey = ToolsVariables::getSymbolicVariable(keyExpr->type, 0, maxName);
+            minKey = ToolsVariables::getSymbolicVariable(keyExpr->type, minName);
+            maxKey = ToolsVariables::getSymbolicVariable(keyExpr->type, maxName);
         }
         return new IR::LAnd(new IR::LAnd(new IR::Lss(minKey, maxKey), new IR::Leq(minKey, keyExpr)),
                             new IR::Leq(keyExpr, maxKey));

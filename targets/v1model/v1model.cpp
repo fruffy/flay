@@ -12,7 +12,9 @@
 #include "midend/eliminateNewtype.h"
 #include "midend/eliminateSerEnums.h"
 #include "midend/eliminateTypedefs.h"
+#include "midend/hsIndexSimplify.h"
 #include "midend/orderArguments.h"
+#include "midend/parserUnroll.h"
 #include "midend/removeExits.h"
 #include "midend/removeLeftSlices.h"
 #include "midend/simplifySelectList.h"
@@ -59,13 +61,24 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
         // Sort call arguments according to the order of the function's parameters.
         new P4::OrderArguments(refMap, typeMap),
         new P4::ConvertEnums(refMap, typeMap, new EnumOn32Bits()),
-        new P4::ConvertErrors(refMap, typeMap, new ErrorOn32Bits()),
         // Replace any slices in the left side of assignments and convert them to casts.
         new P4::RemoveLeftSlices(refMap, typeMap),
         // Flatten nested list expressions.
         new P4::SimplifySelectList(refMap, typeMap),
         // A final type checking pass to make sure everything is well-typed.
         new P4::TypeChecking(refMap, typeMap, true),
+        // Remove loops from parsers by unrolling them as far as the stack indices allow.
+        // TODO: Get rid of this pass.
+        new P4::ParsersUnroll(true, refMap, typeMap),
+        new P4::TypeChecking(refMap, typeMap, true),
+        new P4::ConvertErrors(refMap, typeMap, new ErrorOn32Bits()),
+        // Convert tuples into structs.
+        new P4::EliminateTypedef(refMap, typeMap),
+        new P4::ConstantFolding(refMap, typeMap),
+        new P4::SimplifyControlFlow(refMap, typeMap),
+        // Simplify header stack assignments with runtime indices into conditional statements.
+        // TODO: Get rid of this pass.
+        new P4::HSIndexSimplifier(refMap, typeMap),
         // Convert Type_Varbits into a type that contains information about the assigned width.
         new ConvertVarbits(),
     });

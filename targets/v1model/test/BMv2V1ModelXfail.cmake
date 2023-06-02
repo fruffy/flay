@@ -5,7 +5,6 @@
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "Compiler Bug|Unimplemented compiler support"
-  parser-unroll-test1.p4  # Cast failed: hdr.srcRoutes[tmp/index]; with type ArrayIndex is not a PathExpression.
   issue-2123-3-bmv2.p4  # Cannot match {(|packet_extract_hdr.ethernet_0(bool)| ? |packet_extract_hdr.ethernet_hdr.ethernet.srcAddr_0(bit<48>)| : 0)[7:0], |packet_extract_hdr.ethernet_0(bool)| ? |packet_extract_hdr.ethernet_hdr.ethernet.etherType_0(bit<16>)| : 0}; with 2560 .. 2730;
   issue-2123.p4  # Cannot match {|packet_extract_hdr.ethernet_0(bool)| ? |packet_extract_hdr.ethernet_hdr.ethernet.etherType_0(bit<16>)| : 0, (|packet_extract_hdr.ethernet_0(bool)| ? |packet_extract_hdr.ethernet_hdr.ethernet.srcAddr_0(bit<48>)| : 0)[7:0], (|packet_extract_hdr.ethernet_0(bool)| ? |packet_extract_hdr.ethernet_hdr.ethernet.dstAddr_0(bit<48>)| : 0)[7:0]}; with 8 .. 16;
   issue1304.p4  # Cast failed: Pipeline<my_packet, my_metadata> with type Type_Specialized is not a Type_Declaration.
@@ -15,9 +14,6 @@ p4tools_add_xfail_reason(
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "Unsupported assignment"
-  control-hs-index-test5.p4  # Unsupported assignment rval h.h[tmp]; of type ArrayIndex
-  issue1989-bmv2.p4  # Unsupported assignment rval hdr.ethernet_stack[meta.color]; of type ArrayIndex
-  invalid-hdr-warnings6.p4  # Unsupported assignment rval u_0/u[i_0/i]; of type ArrayIndex
 )
 
 p4tools_add_xfail_reason(
@@ -80,6 +76,7 @@ p4tools_add_xfail_reason(
   issue696-bmv2.p4  # Unknown or unimplemented extern method: debug.write
   simplify_slice.p4  # Unknown or unimplemented extern method: debug.write
   slice-def-use.p4  # Unknown or unimplemented extern method: debug.write
+  control-hs-index-test5.p4  # Unknown or unimplemented extern method: *stats.count
   issue1352-bmv2.p4  # Unknown or unimplemented extern method: *method.digest
   issue430-1-bmv2.p4  # Unknown or unimplemented extern method: *method.digest
   v1model-digest-custom-type.p4  # Unknown or unimplemented extern method: *method.digest
@@ -96,6 +93,17 @@ p4tools_add_xfail_reason(
   checksum2-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   checksum3-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   header-stack-ops-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
+  invalid-hdr-warnings4.p4  # Unknown or unimplemented extern method: *method.verify
+  issue1897-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
+  issue1937-2-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
+  issue3374.p4  # Unknown or unimplemented extern method: *method.verify
+  issue692-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
+  parser-unroll-test1.p4  # Unknown or unimplemented extern method: *method.verify
+  parser-unroll-test2.p4  # Unknown or unimplemented extern method: *method.verify
+  parser-unroll-test3.p4  # Unknown or unimplemented extern method: *method.verify
+  parser-unroll-test9.p4  # Unknown or unimplemented extern method: *method.verify
+  stack_complex-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
+  ternary2-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   issue1079-bmv2.p4  # Unknown or unimplemented extern method: *method.verify_checksum
   issue1739-bmv2.p4  # Unknown or unimplemented extern method: *method.verify_checksum
   issue249.p4  # Unknown or unimplemented extern method: *method.verify_checksum
@@ -121,17 +129,8 @@ p4tools_add_xfail_reason(
   array-copy-bmv2.p4  # Unable to find var h.h1; in the symbolic environment.
   gauntlet_hdr_set_valid-bmv2.p4  # Unable to find var local_h_0/local_h; in the symbolic environment.
   issue1210.p4  # Unable to find var meta.foo; in the symbolic environment.
-  issue1409-bmv2.p4  # Unable to find var headers.test.lastIndex; in the symbolic environment.
   issue1955.p4  # Unable to find var p1_ipv4_ethertypes/ipv4_ethertypes; in the symbolic environment.
   issue232-bmv2.p4  # Unable to find var inKey_0/inKey; in the symbolic environment.
-  issue1607-bmv2.p4  # Unable to find var hdr.stack.last.*valid; in the symbolic environment.
-  issue3374.p4  # Unable to find var hdrs.vlan_tag.last.ether_type; in the symbolic environment.
-  parser-unroll-test2.p4  # Unable to find var hdr.srcRoutes.last.bos; in the symbolic environment.
-  parser-unroll-test3.p4  # Unable to find var hdr.srcRoutes.last.bos; in the symbolic environment.
-  parser-unroll-test9.p4  # Unable to find var hdr.h.last.i2; in the symbolic environment.
-  stack_complex-bmv2.p4  # Unable to find var h.hs.last.f2; in the symbolic environment.
-  ternary2-bmv2.p4  # Unable to find var hdrs.extra.last.b2; in the symbolic environment.
-  parser-unroll-test6.p4  # Unable to find var headers.test.lastIndex; in the symbolic environment.
   pvs-bitstring-bmv2.p4  # Unable to find var pvs_0/pvs; in the symbolic environment.
   pvs-nested-struct.p4  # Unable to find var pvs_0/pvs; in the symbolic environment.
   pvs-struct-1-bmv2.p4  # Unable to find var pvs_0/pvs; in the symbolic environment.
@@ -145,21 +144,6 @@ p4tools_add_xfail_reason(
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "of type ArrayIndex is not a valid StateVariable."
-  control-hs-index-test1.p4
-  control-hs-index-test2.p4
-  control-hs-index-test3.p4
-  control-hs-index-test4.p4
-  control-hs-index-test6.p4
-  gauntlet_index_1-bmv2.p4
-  gauntlet_index_5-bmv2.p4
-  gauntlet_index_7-bmv2.p4
-  gauntlet_index_8-bmv2.p4
-  predication_issue_2.p4
-  predication_issue_3.p4
-  predication_issue_4.p4
-  issue2726-bmv2.p4
-  runtime-index-bmv2.p4
-  runtime-index-2-bmv2.p4
 )
 
 p4tools_add_xfail_reason(
@@ -173,12 +157,8 @@ p4tools_add_xfail_reason(
   "Parser state .* was already visited. We currently do not support parser loops."
   issue2314.p4
   invalid-hdr-warnings1.p4
-  invalid-hdr-warnings4.p4
-  issue692-bmv2.p4
   parser-unroll-issue3537.p4
   parser-unroll-issue3537-1.p4
-  issue1897-bmv2.p4
-  issue1937-2-bmv2.p4
   issue281.p4
   fabric.p4
 )

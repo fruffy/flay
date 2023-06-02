@@ -348,7 +348,8 @@ const IR::Expression *createSymbolicExpression(const ExecutionState &state,
         return new IR::HeaderStackExpression(inputType, fields, inputType);
     }
     if (resolvedType->is<IR::Type_Base>()) {
-        return ToolsVariables::getSymbolicVariable(resolvedType, id, label);
+        cstring labelId = label + " " + std::to_string(id);
+        return ToolsVariables::getSymbolicVariable(resolvedType, labelId);
     }
     P4C_UNIMPLEMENTED("Requesting a symbolic expression for %1% of type %2%", inputType,
                       inputType->node_type_name());
@@ -376,15 +377,15 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
              // First, set the validity.
              auto extractLabel =
                  externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
-             state.set(headerRefValidity, ToolsVariables::getSymbolicVariable(
-                                              IR::Type_Boolean::get(), 0, extractLabel));
+             state.set(headerRefValidity,
+                       ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
              // Then, set the fields.
              const auto flatFields = state.getFlatFields(extractRef, headerType);
              for (const auto &field : flatFields) {
                  auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName +
                                           "_" + extractRef->toString() + "_" + field.toString();
                  state.set(field,
-                           ToolsVariables::getSymbolicVariable(field->type, 0, extractFieldLabel));
+                           ToolsVariables::getSymbolicVariable(field->type, extractFieldLabel));
              }
              return nullptr;
          }},

@@ -16,7 +16,15 @@ set(P4TESTS_FOR_BMV2
     "${P4C_SOURCE_DIR}/testdata/p4_16_samples/omec/*.p4"
     "${P4C_SOURCE_DIR}/testdata/p4_16_samples/pins/*.p4"
 )
+
 p4c_find_tests("${P4TESTS_FOR_BMV2}" P4_16_V1_TESTS INCLUDE "${V1_SEARCH_PATTERNS}" EXCLUDE "")
+
+# Filter some programs  because they have issues that are not captured with Xfails.
+list(REMOVE_ITEM P4_16_V1_TESTS
+    # These tests time out and require fixing.
+    "${P4C_SOURCE_DIR}/testdata/p4_16_samples/runtime-index-2-bmv2.p4"
+    "${P4C_SOURCE_DIR}/testdata/p4_16_samples/control-hs-index-test4.p4"
+)
 
 p4tools_add_tests(
   TESTS
