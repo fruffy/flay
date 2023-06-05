@@ -15,6 +15,8 @@ set(P4TESTS_FOR_BMV2
     "${P4C_SOURCE_DIR}/testdata/p4_16_samples/fabric_*/fabric.p4"
     "${P4C_SOURCE_DIR}/testdata/p4_16_samples/omec/*.p4"
     "${P4C_SOURCE_DIR}/testdata/p4_16_samples/pins/*.p4"
+    # Custom tests
+    "${CMAKE_CURRENT_LIST_DIR}/programs/*.p4"
 )
 
 p4c_find_tests("${P4TESTS_FOR_BMV2}" P4_16_V1_TESTS INCLUDE "${V1_SEARCH_PATTERNS}" EXCLUDE "")
