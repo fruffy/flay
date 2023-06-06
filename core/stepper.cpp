@@ -154,6 +154,9 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
     auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
     cond = resolver.computeResult(cond);
 
+    // Add the node to the reachability map.
+    executionState.addReachabilityMapping(ifStatement, cond);
+
     // Execute the case where the condition is true.
     auto &trueState = executionState.clone();
     trueState.pushExecutionCondition(cond);

@@ -21,4 +21,6 @@ void SymbolicExecutor::run() {
     executionState.printSymbolicEnv();
 }
 
+const ExecutionState &SymbolicExecutor::getExecutionState() { return executionState; }
+
 }  // namespace P4Tools::Flay

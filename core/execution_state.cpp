@@ -97,6 +97,18 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
     }
 }
 
+const IR ::Expression *ExecutionState::getReachabilityCondition(const IR::Node *node) const {
+    auto it = reachabilityMap.find(node);
+    if (it != reachabilityMap.end()) {
+        return it->second;
+    }
+    BUG("Unable to find node %s in the reachability map.", node);
+}
+
+void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expression *cond) {
+    reachabilityMap[node] = new IR::LAnd(getExecutionCondition(), cond);
+}
+
 /* =========================================================================================
  *  Constructors
  * ========================================================================================= */

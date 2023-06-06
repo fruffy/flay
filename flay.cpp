@@ -4,7 +4,9 @@
 
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
+#include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "backends/p4tools/modules/flay/register.h"
+#include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
@@ -32,6 +34,13 @@ int Flay::mainImpl(const IR::P4Program *program) {
 
     SymbolicExecutor symbex(*programInfo);
     symbex.run();
+    const auto &executionState = symbex.getExecutionState();
+
+    ElimDeadCode elim(executionState);
+    program = program->apply(elim);
+
+    P4::ToP4 toP4;
+    program->apply(toP4);
 
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
