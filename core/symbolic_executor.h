@@ -14,7 +14,6 @@ class SymbolicExecutor {
     /// The current execution state.
     ExecutionState executionState;
 
- protected:
  public:
     virtual ~SymbolicExecutor() = default;
 

@@ -39,8 +39,8 @@ int Flay::mainImpl(const IR::P4Program *program) {
     ElimDeadCode elim(executionState);
     program = program->apply(elim);
 
-    P4::ToP4 toP4;
-    program->apply(toP4);
+    // P4::ToP4 toP4;
+    // program->apply(toP4);
 
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

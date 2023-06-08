@@ -16,12 +16,16 @@ class ElimDeadCode : public Transform {
 
     Z3Solver solver;
 
+    bool deletedCode = false;
+
  public:
     ElimDeadCode() = delete;
 
-    explicit ElimDeadCode(const ExecutionState &executionState) : executionState(executionState) {}
+    explicit ElimDeadCode(const ExecutionState &executionState);
 
     const IR::Node *preorder(IR::IfStatement *stmt) override;
+
+    void end_apply() override;
 };
 
 }  // namespace P4Tools::Flay

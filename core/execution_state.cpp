@@ -95,7 +95,13 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
             set(envTuple.first, mergedExpr);
         }
     }
+
+    for (const auto &rechabilityTuple : mergeState.getReachabilityMap()) {
+        reachabilityMap.insert(rechabilityTuple);
+    }
 }
+
+const ReachabilityMap &ExecutionState::getReachabilityMap() const { return reachabilityMap; }
 
 const IR ::Expression *ExecutionState::getReachabilityCondition(const IR::Node *node) const {
     auto it = reachabilityMap.find(node);

@@ -62,6 +62,8 @@ class ExecutionState : public AbstractExecutionState {
     /// Merge another execution state into this state.
     void merge(const ExecutionState &mergeState);
 
+    [[nodiscard]] const ReachabilityMap &getReachabilityMap() const;
+
     void addReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
 
     const IR ::Expression *getReachabilityCondition(const IR::Node *node) const;
