@@ -14,7 +14,6 @@ class SymbolicExecutor {
     /// The current execution state.
     ExecutionState executionState;
 
- protected:
  public:
     virtual ~SymbolicExecutor() = default;
 
@@ -26,7 +25,11 @@ class SymbolicExecutor {
 
     SymbolicExecutor &operator=(SymbolicExecutor &&) = delete;
 
+    /// Start running the symbolic executor on the program.
     void run();
+
+    /// Return the execution state associated with this symbolic executor.
+    const ExecutionState &getExecutionState();
 
     explicit SymbolicExecutor(const ProgramInfo &programInfo);
 };

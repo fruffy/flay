@@ -14,6 +14,10 @@
 
 namespace P4Tools::Flay {
 
+bool SourceIdCmp::operator()(const IR::Node *s1, const IR::Node *s2) const {
+    return s1->srcInfo < s2->srcInfo;
+}
+
 ExecutionState::ExecutionState(const IR::P4Program *program)
     : AbstractExecutionState(program), executionCondition(IR::getBoolLiteral(true)) {}
 
@@ -95,6 +99,27 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
             set(envTuple.first, mergedExpr);
         }
     }
+
+    for (const auto &rechabilityTuple : mergeState.getReachabilityMap()) {
+        reachabilityMap.insert(rechabilityTuple);
+    }
+}
+
+const ReachabilityMap &ExecutionState::getReachabilityMap() const { return reachabilityMap; }
+
+const IR ::Expression *ExecutionState::getReachabilityCondition(const IR::Node *node,
+                                                                bool checked) const {
+    auto it = reachabilityMap.find(node);
+    if (it != reachabilityMap.end()) {
+        return it->second;
+    }
+    BUG_CHECK(!checked, "Unable to find node %1% with source info %2% in the reachability map.",
+              node, node->srcInfo.toPositionString());
+    return nullptr;
+}
+
+void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expression *cond) {
+    reachabilityMap[node] = new IR::LAnd(getExecutionCondition(), cond);
 }
 
 /* =========================================================================================

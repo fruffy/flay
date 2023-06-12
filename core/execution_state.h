@@ -12,6 +12,13 @@
 
 namespace P4Tools::Flay {
 
+/// Utility function to compare IR nodes in a set. We use their source info.
+struct SourceIdCmp {
+    bool operator()(const IR::Node *s1, const IR::Node *s2) const;
+};
+
+using ReachabilityMap = std::map<const IR::Node *, const IR::Expression *, SourceIdCmp>;
+
 /// Represents state of execution after having reached a program point.
 class ExecutionState : public AbstractExecutionState {
  private:
@@ -20,6 +27,9 @@ class ExecutionState : public AbstractExecutionState {
 
     /// Keeps track of the parserStates which were visited to avoid infinite loops.
     std::set<int> visitedParserIds;
+
+    /// Keeps track of the reachability of individual nodes in the program.
+    ReachabilityMap reachabilityMap;
 
     /* =========================================================================================
      *  Accessors
@@ -50,7 +60,12 @@ class ExecutionState : public AbstractExecutionState {
     /// Merge another execution state into this state.
     void merge(const ExecutionState &mergeState);
 
-    ExecutionState &operator=(ExecutionState &&) = delete;
+    [[nodiscard]] const ReachabilityMap &getReachabilityMap() const;
+
+    void addReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
+
+    const IR ::Expression *getReachabilityCondition(const IR::Node *node, bool checked) const;
+
     /* =========================================================================================
      *  Constructors
      * ========================================================================================= */
@@ -67,6 +82,8 @@ class ExecutionState : public AbstractExecutionState {
 
     /// Do not accidentally copy-assign the execution state.
     ExecutionState &operator=(const ExecutionState &) = delete;
+
+    ExecutionState &operator=(ExecutionState &&) = delete;
 
     ExecutionState(ExecutionState &&) = default;
 

@@ -83,13 +83,21 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
 
     const auto *assignType = executionState.resolveType(left->type);
     if (const auto *ts = assignType->to<IR::Type_StructLike>()) {
+        if (right->is<IR::MethodCallExpression>()) {
+            // Resolve the rval of the assignment statement.
+            auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
+            right = resolver.computeResult(right);
+        }
         if (const auto *structExpr = right->to<IR::StructExpression>()) {
             std::vector<IR::StateVariable> flatTargetValids;
             auto flatTargetFields = executionState.getFlatFields(left, ts, &flatTargetValids);
             auto flatStructFields = IR::flattenStructExpression(structExpr);
-            BUG_CHECK(
-                flatTargetFields.size() == flatStructFields.size(),
-                "The list of target fields and the list of source fields have different sizes.");
+            auto flatTargetSize = flatTargetFields.size();
+            auto flatStructSize = flatStructFields.size();
+            BUG_CHECK(flatTargetSize == flatStructSize,
+                      "The size of target fields (%1%) and the size of source fields (%2%) are "
+                      "different.",
+                      flatTargetSize, flatStructSize);
             for (const auto &fieldTargetValid : flatTargetValids) {
                 executionState.set(fieldTargetValid, IR::getBoolLiteral(true));
             }
@@ -145,6 +153,9 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
     const auto *cond = ifStatement->condition;
     auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
     cond = resolver.computeResult(cond);
+
+    // Add the node to the reachability map.
+    executionState.addReachabilityMapping(ifStatement, cond);
 
     // Execute the case where the condition is true.
     auto &trueState = executionState.clone();

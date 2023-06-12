@@ -12,7 +12,10 @@
 #include "midend/eliminateNewtype.h"
 #include "midend/eliminateSerEnums.h"
 #include "midend/eliminateTypedefs.h"
+#include "midend/hsIndexSimplify.h"
+#include "midend/local_copyprop.h"
 #include "midend/orderArguments.h"
+#include "midend/parserUnroll.h"
 #include "midend/removeExits.h"
 #include "midend/removeLeftSlices.h"
 #include "midend/simplifySelectList.h"
@@ -45,8 +48,6 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
     auto *refMap = midEnd.getRefMap();
     auto *typeMap = midEnd.getTypeMap();
     midEnd.addPasses({
-        // Compress member access to struct expressions.
-        new P4::ConstantFolding(refMap, typeMap),
         // Remove exit statements from the program.
         // TODO: We should not depend on this pass. It has bugs.
         new P4::RemoveExits(refMap, typeMap),
@@ -59,13 +60,30 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
         // Sort call arguments according to the order of the function's parameters.
         new P4::OrderArguments(refMap, typeMap),
         new P4::ConvertEnums(refMap, typeMap, new EnumOn32Bits()),
-        new P4::ConvertErrors(refMap, typeMap, new ErrorOn32Bits()),
         // Replace any slices in the left side of assignments and convert them to casts.
         new P4::RemoveLeftSlices(refMap, typeMap),
         // Flatten nested list expressions.
         new P4::SimplifySelectList(refMap, typeMap),
+        // Convert tuples into structs.
+        new P4::EliminateTypedef(refMap, typeMap),
+        new PassRepeated(
+            {new P4::SimplifyControlFlow(refMap, typeMap),
+             // Compress member access to struct expressions.
+             new P4::ConstantFolding(refMap, typeMap),
+             // Local copy propagation and dead-code elimination.
+             new P4::LocalCopyPropagation(refMap, typeMap, nullptr,
+                                          [](const Visitor::Context * /*context*/,
+                                             const IR::Expression * /*expr*/) { return true; })}),
         // A final type checking pass to make sure everything is well-typed.
         new P4::TypeChecking(refMap, typeMap, true),
+        // Remove loops from parsers by unrolling them as far as the stack indices allow.
+        // TODO: Get rid of this pass.
+        new P4::ParsersUnroll(true, refMap, typeMap),
+        new P4::TypeChecking(refMap, typeMap, true),
+        new P4::ConvertErrors(refMap, typeMap, new ErrorOn32Bits()),
+        // Simplify header stack assignments with runtime indices into conditional statements.
+        // TODO: Get rid of this pass.
+        new P4::HSIndexSimplifier(refMap, typeMap),
         // Convert Type_Varbits into a type that contains information about the assigned width.
         new ConvertVarbits(),
     });

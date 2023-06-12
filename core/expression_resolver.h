@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "backends/p4tools/modules/flay/core/execution_state.h"
+#include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/table_executor.h"
 #include "ir/id.h"
@@ -27,6 +28,9 @@ class ExpressionResolver : public Inspector {
 
     /// The current execution state.
     std::reference_wrapper<ExecutionState> executionState;
+
+    ///
+    const IR::Expression *checkStructLike(const IR::Member *);
 
     /// Visitor methods.
     bool preorder(const IR::Node *node) override;
@@ -54,9 +58,7 @@ class ExpressionResolver : public Inspector {
 
     /// Tries to look up the implementation of the extern in the list of available extern functions
     /// for the expression resolver of the target. Returns the result of the execution.
-    virtual const IR::Expression *processExtern(const IR::PathExpression &externObjectRef,
-                                                const IR::ID &methodName,
-                                                const IR::Vector<IR::Argument> *args);
+    virtual const IR::Expression *processExtern(ExternMethodImpls::ExternInfo &externInfo);
 
     /// @returns the result of the execution of this visitor.
     /// Throws BUG if the result is a nullptr.
