@@ -88,9 +88,6 @@ p4tools_add_xfail_reason(
   checksum2-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   checksum3-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   header-stack-ops-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
-  invalid-hdr-warnings4.p4  # Unknown or unimplemented extern method: *method.verify
-  issue1897-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
-  issue1937-2-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   issue3374.p4  # Unknown or unimplemented extern method: *method.verify
   issue692-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   parser-unroll-test1.p4  # Unknown or unimplemented extern method: *method.verify
