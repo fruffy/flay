@@ -127,7 +127,6 @@ p4tools_add_xfail_reason(
   gauntlet_hdr_set_valid-bmv2.p4  # Unable to find var local_h_0/local_h; in the symbolic environment.
   issue1210.p4  # Unable to find var meta.foo; in the symbolic environment.
   issue1955.p4  # Unable to find var p1_ipv4_ethertypes/ipv4_ethertypes; in the symbolic environment.
-  issue232-bmv2.p4  # Unable to find var inKey_0/inKey; in the symbolic environment.
   pvs-bitstring-bmv2.p4  # Unable to find var pvs_0/pvs; in the symbolic environment.
   pvs-nested-struct.p4  # Unable to find var pvs_0/pvs; in the symbolic environment.
   pvs-struct-1-bmv2.p4  # Unable to find var pvs_0/pvs; in the symbolic environment.
@@ -146,7 +145,6 @@ p4tools_add_xfail_reason(
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "The size of target fields (.*) and the size of source fields (.*) are different."
-  issue2488-bmv2.p4
 )
 
 p4tools_add_xfail_reason(
