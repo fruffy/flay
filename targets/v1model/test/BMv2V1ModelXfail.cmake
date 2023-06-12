@@ -41,11 +41,11 @@ p4tools_add_xfail_reason(
   issue447-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
   checksum-l4-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
   checksum1-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  crc32-bmv2.p4  # Unknown or unimplemented extern method: *method.hash
   issue1025-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
   issue1560-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
   issue1765-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
   issue3702-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
+  crc32-bmv2.p4  # Unknown or unimplemented extern method: *method.hash
   hash-bmv2.p4  # Unknown or unimplemented extern method: *method.hash
   hashing-non-tuple-bmv2.p4  # Unknown or unimplemented extern method: *method.hash
   issue1049-bmv2.p4  # Unknown or unimplemented extern method: *method.hash
@@ -56,13 +56,20 @@ p4tools_add_xfail_reason(
   issue1566-bmv2.p4  # Unknown or unimplemented extern method: stats.count
   issue1566.p4  # Unknown or unimplemented extern method: stats.count
   issue2844-enum.p4  # Unknown or unimplemented extern method: stats.count
+  control-hs-index-test5.p4  # Unknown or unimplemented extern method: *stats.count
+  issue1352-bmv2.p4  # Unknown or unimplemented extern method: *method.digest
+  issue430-1-bmv2.p4  # Unknown or unimplemented extern method: *method.digest
+  v1model-digest-custom-type.p4  # Unknown or unimplemented extern method: *method.digest
+  v1model-digest-containing-ser-enum.p4  # Unknown or unimplemented extern method: *method.digest
   issue1882-bmv2.p4  # Unknown or unimplemented extern method: extr.increment
   issue1882-1-bmv2.p4  # Unknown or unimplemented extern method: extr.increment
   issue2201-bmv2.p4  # Unknown or unimplemented extern method: *method.log_msg
   issue3001-1.p4  # Unknown or unimplemented extern method: *method.log_msg
-  issue2664-bmv2.p4  # Unknown or unimplemented extern method: ipv4_checksum.update
+  issue242.p4  # Unknown or unimplemented extern method: debug.write
+  issue696-bmv2.p4  # Unknown or unimplemented extern method: debug.write
+  simplify_slice.p4  # Unknown or unimplemented extern method: debug.write
+  slice-def-use.p4  # Unknown or unimplemented extern method: debug.write
   issue3091.p4  # Unknown or unimplemented extern method: *method.fn_foo
-  issue841.p4  # Unknown or unimplemented extern method: checksum.get
   issue1520-bmv2.p4  # Unknown or unimplemented extern method: r.read
   issue1814-1-bmv2.p4  # Unknown or unimplemented extern method: testRegister.read
   issue1814-bmv2.p4  # Unknown or unimplemented extern method: testRegister.read
@@ -72,18 +79,6 @@ p4tools_add_xfail_reason(
   issue1097-2-bmv2.p4  # Unknown or unimplemented extern method: r.write
   issue907-bmv2.p4  # Unknown or unimplemented extern method: r.write
   register-serenum-bmv2.p4  # Unknown or unimplemented extern method: reg.write
-  issue242.p4  # Unknown or unimplemented extern method: debug.write
-  issue696-bmv2.p4  # Unknown or unimplemented extern method: debug.write
-  simplify_slice.p4  # Unknown or unimplemented extern method: debug.write
-  slice-def-use.p4  # Unknown or unimplemented extern method: debug.write
-  control-hs-index-test5.p4  # Unknown or unimplemented extern method: *stats.count
-  issue1352-bmv2.p4  # Unknown or unimplemented extern method: *method.digest
-  issue430-1-bmv2.p4  # Unknown or unimplemented extern method: *method.digest
-  v1model-digest-custom-type.p4  # Unknown or unimplemented extern method: *method.digest
-  v1model-digest-containing-ser-enum.p4  # Unknown or unimplemented extern method: *method.digest
-  basic2-bmv2.p4  # Unknown or unimplemented extern method: *method.update_checksum
-  issue134-bmv2.p4  # Unknown or unimplemented extern method: *method.update_checksum
-  xor_test.p4  # Unknown or unimplemented extern method: *method.update_checksum
   subparser-with-header-stack-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   issue1824-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   issue561-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
@@ -103,6 +98,9 @@ p4tools_add_xfail_reason(
   parser-unroll-test3.p4  # Unknown or unimplemented extern method: *method.verify
   parser-unroll-test9.p4  # Unknown or unimplemented extern method: *method.verify
   stack_complex-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
+  basic2-bmv2.p4  # Unknown or unimplemented extern method: *method.update_checksum
+  issue134-bmv2.p4  # Unknown or unimplemented extern method: *method.update_checksum
+  xor_test.p4  # Unknown or unimplemented extern method: *method.update_checksum
   ternary2-bmv2.p4  # Unknown or unimplemented extern method: *method.verify
   issue1079-bmv2.p4  # Unknown or unimplemented extern method: *method.verify_checksum
   issue1739-bmv2.p4  # Unknown or unimplemented extern method: *method.verify_checksum
@@ -121,6 +119,8 @@ p4tools_add_xfail_reason(
   pins_wbb.p4  # Unknown or unimplemented extern method: *method.verify_checksum
   pins_middleblock.p4  # Unknown or unimplemented extern method: *method.verify_checksum
   up4.p4  # Unknown or unimplemented extern method: *method.verify_checksum
+  issue841.p4  # Unknown or unimplemented extern method: checksum.get
+  issue2664-bmv2.p4  # Unknown or unimplemented extern method: ipv4_checksum.update
 )
 
 p4tools_add_xfail_reason(
