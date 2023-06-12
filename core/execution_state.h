@@ -14,9 +14,7 @@ namespace P4Tools::Flay {
 
 /// Utility function to compare IR nodes in a set. We use their source info.
 struct SourceIdCmp {
-    bool operator()(const IR::Node *s1, const IR::Node *s2) const {
-        return s1->srcInfo < s2->srcInfo;
-    };
+    bool operator()(const IR::Node *s1, const IR::Node *s2) const;
 };
 
 using ReachabilityMap = std::map<const IR::Node *, const IR::Expression *, SourceIdCmp>;
@@ -66,7 +64,7 @@ class ExecutionState : public AbstractExecutionState {
 
     void addReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
 
-    const IR ::Expression *getReachabilityCondition(const IR::Node *node) const;
+    const IR ::Expression *getReachabilityCondition(const IR::Node *node, bool checked) const;
 
     /* =========================================================================================
      *  Constructors

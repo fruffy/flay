@@ -23,7 +23,7 @@ class ElimDeadCode : public Transform {
 
     explicit ElimDeadCode(const ExecutionState &executionState);
 
-    const IR::Node *preorder(IR::IfStatement *stmt) override;
+    const IR::Node *postorder(IR::IfStatement *stmt) override;
 
     void end_apply() override;
 };

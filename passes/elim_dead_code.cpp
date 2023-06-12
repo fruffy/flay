@@ -4,8 +4,16 @@ namespace P4Tools::Flay {
 
 ElimDeadCode::ElimDeadCode(const ExecutionState &executionState) : executionState(executionState) {}
 
-const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
-    const auto *condition = executionState.get().getReachabilityCondition(stmt);
+const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
+    const auto *condition = executionState.get().getReachabilityCondition(stmt, false);
+    if (condition == nullptr) {
+        ::warning(
+            "Unable to find node %1% in the reachability map of this execution state. There might "
+            "be "
+            "issues with the source information.",
+            stmt);
+        return stmt;
+    }
 
     auto solverResult = solver.checkSat({condition});
     if (solverResult == std::nullopt) {

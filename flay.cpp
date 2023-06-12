@@ -6,6 +6,7 @@
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "backends/p4tools/modules/flay/register.h"
+#include "frontends/common/parseInput.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 
@@ -36,9 +37,14 @@ int Flay::mainImpl(const IR::P4Program *program) {
     symbex.run();
     const auto &executionState = symbex.getExecutionState();
 
-    ElimDeadCode elim(executionState);
-    program = program->apply(elim);
+    auto &options = P4CContext::get().options();
+    const auto *freshProgram = P4::parseP4File(options);
+    if (::errorCount() > 0) {
+        return EXIT_FAILURE;
+    }
 
+    ElimDeadCode elim(executionState);
+    freshProgram = freshProgram->apply(elim);
     // P4::ToP4 toP4;
     // program->apply(toP4);
 
