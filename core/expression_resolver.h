@@ -37,6 +37,7 @@ class ExpressionResolver : public Inspector {
     bool preorder(const IR::Literal *lit) override;
     bool preorder(const IR::PathExpression *path) override;
     bool preorder(const IR::Member *member) override;
+    bool preorder(const IR::ArrayIndex *arrIndex) override;
     bool preorder(const IR::Operation_Unary *op) override;
     bool preorder(const IR::Operation_Binary *op) override;
     bool preorder(const IR::Operation_Ternary *op) override;

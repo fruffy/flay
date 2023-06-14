@@ -107,7 +107,8 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
                 const auto *flatStructField = flatStructFields[idx];
                 executionState.set(flatTargetRef, flatStructField);
             }
-        } else if (right->is<IR::PathExpression>() || right->is<IR::Member>()) {
+        } else if (right->is<IR::PathExpression>() || right->is<IR::Member>() ||
+                   right->is<IR::ArrayIndex>()) {
             executionState.setStructLike(left, right);
         } else {
             P4C_UNIMPLEMENTED("Unsupported assignment rval %1% of type %2%", right,
