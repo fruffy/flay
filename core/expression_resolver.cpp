@@ -88,6 +88,11 @@ bool ExpressionResolver::preorder(const IR::Member *member) {
     return false;
 }
 
+bool ExpressionResolver::preorder(const IR::ArrayIndex *arrIndex) {
+    result = getExecutionState().get(ToolsVariables::convertReference(arrIndex));
+    return false;
+}
+
 bool ExpressionResolver::preorder(const IR::Operation_Unary *op) {
     const auto *expr = op->expr;
     bool hasChanged = false;
@@ -414,6 +419,22 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
          {"hdr"},
          [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
              // Emit is a no-op for now.
+             return nullptr;
+         }},
+        /* ======================================================================================
+         *  verify
+         *  The verify statement provides a simple form of error handling.
+         *  If the first argument is true, then executing the statement has no side-effect.
+         *  However, if the first argument is false, it causes an immediate transition to
+         *  reject, which causes immediate parsing termination; at the same time, the
+         *  parserError associated with the parser is set to the value of the second
+         *  argument.
+         * ======================================================================================
+         */
+        {"*method.verify",
+         {"bool", "error"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+             // TODO: Implement the error case.
              return nullptr;
          }},
     });
