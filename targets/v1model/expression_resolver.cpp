@@ -425,7 +425,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"data"},
          [this](ExternMethodImpls::ExternInfo &externInfo) {
              // Just resolve the data by calling it.
-             computeResult(externInfo.externArgs->at(1)->expression);
+             computeResult(externInfo.externArgs->at(0)->expression);
              auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
                                   externInfo.methodName + "_" +
                                   std::to_string(externInfo.originalCall.clone_id);

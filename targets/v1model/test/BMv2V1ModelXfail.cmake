@@ -80,16 +80,12 @@ p4tools_add_xfail_reason(
   v1model-p4runtime-most-types1.p4  # Unable to find var valueset1_0/valueset1; in the symbolic environment.
   flowlet_switching-bmv2.p4  # Unable to find var ecmp_base; in the symbolic environment.
   issue2201-bmv2.p4  # Unable to find var hdr.ethernet; in the symbolic environment.
+  issue3001-1.p4  # Unable to find var s_0/s; in the symbolic environment.
 )
-
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
-  "of type ArrayIndex is not a valid StateVariable."
-)
-
-p4tools_add_xfail_reason(
-  "flay-p4c-bmv2-v1model"
-  "The size of target fields (.*) and the size of source fields (.*) are different."
+  "expected a header or header union stack"
+  issue4057.p4
 )
 
 p4tools_add_xfail_reason(
@@ -97,6 +93,7 @@ p4tools_add_xfail_reason(
   "Parser state .* was already visited. We currently do not support parser loops."
   issue2314.p4
   invalid-hdr-warnings1.p4
+  parser-unroll-test9.p4
   parser-unroll-issue3537.p4
   parser-unroll-issue3537-1.p4
   issue281.p4
