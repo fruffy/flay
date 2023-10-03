@@ -2,6 +2,8 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_PARSER_STEPPER_H_
 
 #include <functional>
+#include <set>
+#include <vector>
 
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"

@@ -1,14 +1,12 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXECUTION_STATE_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXECUTION_STATE_H_
 
-#include <iostream>
+#include <map>
+#include <set>
 
 #include "backends/p4tools/common/core/abstract_execution_state.h"
-#include "backends/p4tools/common/lib/namespace_context.h"
-#include "backends/p4tools/common/lib/symbolic_env.h"
-#include "ir/declaration.h"
 #include "ir/ir.h"
-#include "lib/cstring.h"
+#include "ir/node.h"
 
 namespace P4Tools::Flay {
 

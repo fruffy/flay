@@ -2,12 +2,19 @@
 
 #include <functional>
 #include <optional>
+#include <string>
+
+#include <boost/multiprecision/cpp_int.hpp>
 
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/targets/v1model/constants.h"
 #include "backends/p4tools/modules/flay/targets/v1model/table_executor.h"
+#include "ir/id.h"
 #include "ir/irutils.h"
+#include "ir/vector.h"
+#include "lib/cstring.h"
+#include "lib/exceptions.h"
 
 namespace P4Tools::Flay::V1Model {
 

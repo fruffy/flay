@@ -7,7 +7,7 @@
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "frontends/common/parseInput.h"
-#include "frontends/p4/toP4/toP4.h"
+#include "frontends/common/parser_options.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {

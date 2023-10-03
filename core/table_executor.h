@@ -6,6 +6,7 @@
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "ir/ir.h"
+#include "ir/vector.h"
 
 namespace P4Tools::Flay {
 
