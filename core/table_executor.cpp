@@ -1,8 +1,10 @@
 
 #include "backends/p4tools/modules/flay/core/table_executor.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <boost/multiprecision/cpp_int.hpp>
@@ -14,6 +16,7 @@
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
+#include "ir/id.h"
 #include "ir/indexed_vector.h"
 #include "ir/irutils.h"
 #include "ir/vector.h"

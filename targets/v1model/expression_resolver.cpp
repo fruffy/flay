@@ -2,11 +2,19 @@
 
 #include <functional>
 #include <optional>
+#include <string>
 
+#include <boost/multiprecision/cpp_int.hpp>
+
+#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/targets/v1model/constants.h"
 #include "backends/p4tools/modules/flay/targets/v1model/table_executor.h"
+#include "ir/id.h"
 #include "ir/irutils.h"
+#include "ir/vector.h"
+#include "lib/cstring.h"
+#include "lib/exceptions.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -23,23 +31,554 @@ const IR::Expression *V1ModelExpressionResolver::processTable(const IR::P4Table 
 const IR::Expression *V1ModelExpressionResolver::processExtern(
     ExternMethodImpls::ExternInfo &externInfo) {
     // Provides implementations of BMv2 externs.
-    static const ExternMethodImpls EXTERN_METHOD_IMPLS(
-        {{"*method.mark_to_drop",
-          {"standard_metadata"},
-          [](ExternMethodImpls::ExternInfo &externInfo) {
-              const auto *nineBitType = IR::getBitType(9);
-              const auto *metadataLabel = externInfo.externArgs->at(0)->expression;
-              if (!(metadataLabel->is<IR::Member>() || metadataLabel->is<IR::PathExpression>())) {
-                  P4C_UNIMPLEMENTED("Drop input %1% of type %2% not supported", metadataLabel,
-                                    metadataLabel->type);
-              }
-              // Use an assignment to set egress_spec to true.
-              // This variable will be processed in the deparser.
-              const auto *portVar = new IR::Member(nineBitType, metadataLabel, "egress_spec");
-              externInfo.state.set(portVar,
-                                   IR::getConstant(nineBitType, V1ModelConstants::DROP_PORT));
-              return nullptr;
-          }}});
+    static const ExternMethodImpls EXTERN_METHOD_IMPLS({
+        {"*method.mark_to_drop",
+         {"standard_metadata"},
+         [](ExternMethodImpls::ExternInfo &externInfo) {
+             const auto *nineBitType = IR::getBitType(9);
+             const auto *metadataLabel = externInfo.externArgs->at(0)->expression;
+             if (!(metadataLabel->is<IR::Member>() || metadataLabel->is<IR::PathExpression>())) {
+                 P4C_UNIMPLEMENTED("Drop input %1% of type %2% not supported", metadataLabel,
+                                   metadataLabel->type);
+             }
+             // Use an assignment to set egress_spec to true.
+             // This variable will be processed in the deparser.
+             const auto *portVar = new IR::Member(nineBitType, metadataLabel, "egress_spec");
+             externInfo.state.set(portVar,
+                                  IR::getConstant(nineBitType, V1ModelConstants::DROP_PORT));
+             return nullptr;
+         }},
+        /* ======================================================================================
+         *  random
+         *  Generate a random number in the range lo..hi, inclusive, and write
+         *  it to the result parameter.
+         * ======================================================================================
+         */
+        {"*method.random",
+         {"result", "lo", "hi"},
+         [](ExternMethodImpls::ExternInfo &externInfo) {
+             const auto *resultField = externInfo.externArgs->at(0)->expression;
+             const auto &fieldRef = ToolsVariables::convertReference(resultField);
+             auto randomLabel = externInfo.externObjectRef.path->toString() + "_" +
+                                externInfo.methodName + "_" +
+                                std::to_string(externInfo.originalCall.clone_id);
+             externInfo.state.set(
+                 fieldRef, ToolsVariables::getSymbolicVariable(resultField->type, randomLabel));
+             return nullptr;
+         }},
+        /* ======================================================================================
+         *  log_msg
+         *  Log user defined messages
+         *  Example: log_msg("User defined message");
+         *  or log_msg("Value1 = {}, Value2 = {}",{value1, value2});
+         * ======================================================================================
+         */
+        {"*method.log_msg",
+         {"msg", "args"},
+         [this](ExternMethodImpls::ExternInfo &externInfo) {
+             // Log msg is a no-op, but we still evaluate the arguments.
+             computeResult(externInfo.externArgs->at(1)->expression);
+             return nullptr;
+         }},
+        /* ======================================================================================
+         *  log_msg
+         *  Log user defined messages
+         *  Example: log_msg("User defined message");
+         *  or log_msg("Value1 = {}, Value2 = {}",{value1, value2});
+         * ======================================================================================
+         */
+        {"*method.log_msg",
+         {"msg"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+             // Log msg is a no-op.
+             return nullptr;
+         }},
+        /* ======================================================================================
+         *  assume
+         *  For the purposes of compiling and executing P4 programs on a target
+         *  device, assert and assume are identical, including the use of the
+         *  --ndebug p4c option to elide them.  See documentation for assert.
+         *  The reason that assume exists as a separate function from assert is
+         *  because they are expected to be used differently by formal
+         *  verification tools.  For some formal tools, the goal is to try to
+         *  find example packets and sets of installed table entries that cause
+         *  an assert statement condition to be false.
+         *  Suppose you run such a tool on your program, and the example packet
+         *  given is an MPLS packet, i.e. hdr.ethernet.etherType == 0x8847.
+         *  You look at the example, and indeed it does cause an assert
+         *  condition to be false.  However, your plan is to deploy your P4
+         *  program in a network in places where no MPLS packets can occur.
+         *  You could add extra conditions to your P4 program to handle the
+         *  processing of such a packet cleanly, without assertions failing,
+         *  but you would prefer to tell the tool "such example packets are not
+         *  applicable in my scenario -- never show them to me".  By adding a
+         *  statement:
+         *      assume(hdr.ethernet.etherType != 0x8847);
+         *  at an appropriate place in your program, the formal tool should
+         *  never show you such examples -- only ones that make all such assume
+         *  conditions true.
+         *  The reason that assume statements behave the same as assert
+         *  statements when compiled to a target device is that if the
+         *  condition ever evaluates to false when operating in a network, it
+         *  is likely that your assumption was wrong, and should be reexamined.
+         * ======================================================================================
+         */
+        {"*method.assume",
+         {"check"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+             // TODO: Consider the exit case?
+             return nullptr;
+         }},
+        /* ======================================================================================
+         *  assert
+         *  Calling assert when the argument is true has no effect, except any
+         *  effect that might occur due to evaluation of the argument (but see
+         *  below).  If the argument is false, the precise behavior is
+         *  target-specific, but the intent is to record or log which assert
+         *  statement failed, and optionally other information about the
+         *  failure.
+         *  For example, on the simple_switch target, executing an assert
+         *  statement with a false argument causes a log message with the file
+         *  name and line number of the assert statement to be printed, and
+         *  then the simple_switch process exits.
+         *  If you provide the --ndebug command line option to p4c when
+         *  compiling, the compiled program behaves as if all assert statements
+         *  were not present in the source code.
+         *  We strongly recommend that you avoid using expressions as an
+         *  argument to an assert call that can have side effects, e.g. an
+         *  extern method or function call that has side effects.  p4c will
+         *  allow you to do this with no warning given.  We recommend this
+         *  because, if you follow this advice, your program will behave the
+         *  same way when assert statements are removed.
+         * ======================================================================================
+         */
+        {"*method.assert",
+         {"check"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+             // TODO: Consider the exit case?
+             return nullptr;
+         }},
+        /* ======================================================================================
+         *  register.write
+         *
+         *  write() writes the state of the register array at the specified
+         *  index, with the value provided by the value parameter.
+         *
+         *  If you wish to perform a read() followed later by a write() to
+         *  the same register array element, and you wish the
+         *  read-modify-write sequence to be atomic relative to other
+         *  processed packets, then there may be parallel implementations
+         *  of the v1model architecture for which you must execute them in
+         *  a P4_16 block annotated with an @atomic annotation.  See the
+         *  P4_16 language specification description of the @atomic
+         *  annotation for more details.
+         *
+         *  @param index The index of the register array element to be
+         *               written, normally a value in the range [0,
+         *               size-1].  If index >= size, no register state will
+         *               be updated.
+         *  @param value Only types T that are bit<W> are currently
+         *               supported.  When index is in range, this
+         *               parameter's value is written into the register
+         *               array element specified by index.
+         *
+         * ======================================================================================
+         */
+        {"register.write",
+         {"index", "value"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+             // TODO: Implement and actually keep track of the writes.
+             return nullptr;
+         }},
+        /* ======================================================================================
+         *  register.read
+         *
+         *  read() reads the state of the register array stored at the
+         *  specified index, and returns it as the value written to the
+         *  result parameter.
+         *
+         *  @param index The index of the register array element to be
+         *               read, normally a value in the range [0, size-1].
+         *  @param result Only types T that are bit<W> are currently
+         *               supported.  When index is in range, the value of
+         *               result becomes the value read from the register
+         *               array element.  When index >= size, the final
+         *               value of result is not specified, and should be
+         *               ignored by the caller.
+         *
+         * ======================================================================================
+         */
+        {"register.read",
+         {"result", "index"},
+         [this](ExternMethodImpls::ExternInfo &externInfo) {
+             // TODO: Implement and actually keep track of the writes.
+             const auto &resultVar =
+                 ToolsVariables::convertReference(externInfo.externArgs->at(0)->expression);
+             // Just resolve the data by calling it.
+             computeResult(externInfo.externArgs->at(1)->expression);
+
+             auto registerLabel = externInfo.externObjectRef.path->toString() + "_" +
+                                  externInfo.methodName + "_" +
+                                  std::to_string(externInfo.originalCall.clone_id);
+             const auto *hashCalc =
+                 ToolsVariables::getSymbolicVariable(resultVar->type, registerLabel);
+             externInfo.state.set(resultVar, hashCalc);
+             return nullptr;
+         }},
+        /* ======================================================================================
+         *  counter.count
+         *  A counter object is created by calling its constructor.  This
+         *  creates an array of counter states, with the number of counter
+         *  states specified by the size parameter.  The array indices are
+         *  in the range [0, size-1].
+         *
+         *  You must provide a choice of whether to maintain only a packet
+         *  count (CounterType.packets), only a byte count
+         *  (CounterType.bytes), or both (CounterType.packets_and_bytes).
+         *
+         *  Counters can be updated from your P4 program, but can only be
+         *  read from the control plane.  If you need something that can be
+         *  both read and written from the P4 program, consider using a
+         *  register.
+         *  count() causes the counter state with the specified index to be
+         *  read, modified, and written back, atomically relative to the
+         *  processing of other packets, updating the packet count, byte
+         *  count, or both, depending upon the CounterType of the counter
+         *  instance used when it was constructed.
+         *
+         *  @param index The index of the counter state in the array to be
+         *               updated, normally a value in the range [0,
+         *               size-1].  If index >= size, no counter state will be
+         *               updated.
+         * ======================================================================================
+         */
+        {"counter.count",
+         {"index"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+        /* ======================================================================================
+         *  direct_counter.count
+         *  A direct_counter object is created by calling its constructor.
+         *  You must provide a choice of whether to maintain only a packet
+         *  count (CounterType.packets), only a byte count
+         *  (CounterType.bytes), or both (CounterType.packets_and_bytes).
+         *  After constructing the object, you can associate it with at
+         *  most one table, by adding the following table property to the
+         *  definition of that table:
+         *
+         *      counters = <object_name>;
+         *
+         *  Counters can be updated from your P4 program, but can only be
+         *  read from the control plane.  If you need something that can be
+         *  both read and written from the P4 program, consider using a
+         *  register.
+         *  The count() method is actually unnecessary in the v1model
+         *  architecture.  This is because after a direct_counter object
+         *  has been associated with a table as described in the
+         *  documentation for the direct_counter constructor, every time
+         *  the table is applied and a table entry is matched, the counter
+         *  state associated with the matching entry is read, modified, and
+         *  written back, atomically relative to the processing of other
+         *  packets, regardless of whether the count() method is called in
+         *  the body of that action.
+         * ======================================================================================
+         */
+        // TODO: Count currently has no effect in the symbolic interpreter.
+        {"direct_counter.count",
+         {},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+        /* ======================================================================================
+         *  meter.execute_meter
+         *  A meter object is created by calling its constructor.  This
+         *  creates an array of meter states, with the number of meter
+         *  states specified by the size parameter.  The array indices are
+         *  in the range [0, size-1].  For example, if in your system you
+         *  have 128 different "flows" numbered from 0 up to 127, and you
+         *  want to meter each of those flows independently of each other,
+         *  you could do so by creating a meter object with size=128.
+         *
+         *  You must provide a choice of whether to meter based on the
+         *  number of packets, regardless of their size
+         *  (MeterType.packets), or based upon the number of bytes the
+         *  packets contain (MeterType.bytes).
+         *  execute_meter() causes the meter state with the specified index
+         *  to be read, modified, and written back, atomically relative to
+         *  the processing of other packets, and an integer encoding of one
+         *  of the colors green, yellow, or red to be written to the result
+         *  out parameter.
+         *  @param index The index of the meter state in the array to be
+         *               updated, normally a value in the range [0,
+         *               size-1].  If index >= size, no meter state will be
+         *               updated.
+         *  @param result Type T must be bit<W> with W >= 2.  When index is
+         *               in range, the value of result will be assigned 0
+         *               for color GREEN, 1 for color YELLOW, and 2 for
+         *               color RED (see RFC 2697 and RFC 2698 for the
+         *               meaning of these colors).  When index is out of
+         *               range, the final value of result is not specified,
+         *  and should be ignored by the caller.
+         * ======================================================================================
+         */
+        {"meter.execute_meter",
+         {"index", "result"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+        /* ======================================================================================
+         *  direct_meter.read
+         *  A direct_meter object is created by calling its constructor.
+         *  You must provide a choice of whether to meter based on the
+         *  number of packets, regardless of their size
+         *  (MeterType.packets), or based upon the number of bytes the
+         *  packets contain (MeterType.bytes).  After constructing the
+         *  object, you can associate it with at most one table, by adding
+         *  the following table property to the definition of that table:
+         *
+         *      meters = <object_name>;
+         *  After a direct_meter object has been associated with a table as
+         *  described in the documentation for the direct_meter
+         *  constructor, every time the table is applied and a table entry
+         *  is matched, the meter state associated with the matching entry
+         *  is read, modified, and written back, atomically relative to the
+         *  processing of other packets, regardless of whether the read()
+         *  method is called in the body of that action.
+         *
+         *  read() may only be called within an action executed as a result
+         *  of matching a table entry, of a table that has a direct_meter
+         *  associated with it.  Calling read() causes an integer encoding
+         *  of one of the colors green, yellow, or red to be written to the
+         *  result out parameter.
+         *
+         *  @param result Type T must be bit<W> with W >= 2.  The value of
+         *               result will be assigned 0 for color GREEN, 1 for
+         *               color YELLOW, and 2 for color RED (see RFC 2697
+         *               and RFC 2698 for the meaning of these colors).
+         * ======================================================================================
+         */
+        {"direct_meter.read",
+         {"result"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+        /* ======================================================================================
+         *  digest
+         *  Calling digest causes a message containing the values specified in
+         *  the data parameter to be sent to the control plane software.  It is
+         *  similar to sending a clone of the packet to the control plane
+         *  software, except that it can be more efficient because the messages
+         *  are typically smaller than packets, and many such small digest
+         *  messages are typically coalesced together into a larger "batch"
+         *  which the control plane software processes all at once.
+         *
+         *  The value of the fields that are sent in the message to the control
+         *  plane is the value they have at the time the digest call occurs,
+         *  even if those field values are changed by later ingress control
+         *  code.  See Note 3.
+         *
+         *  Calling digest is only supported in the ingress control.  There is
+         *  no way to undo its effects once it has been called.
+         *
+         *  If the type T is a named struct, the name is used to generate the
+         *  control plane API.
+         *
+         *  The BMv2 implementation of the v1model architecture ignores the
+         *  value of the receiver parameter.
+         * ======================================================================================
+         */
+        {"*method.digest",
+         {"receiver", "data"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+        /* ======================================================================================
+         *  hash
+         *  Calculate a hash function of the value specified by the data
+         *  parameter.  The value written to the out parameter named result
+         *  will always be in the range [base, base+max-1] inclusive, if max >=
+         *  1.  If max=0, the value written to result will always be base.
+         *  Note that the types of all of the parameters may be the same as, or
+         *  different from, each other, and thus their bit widths are allowed
+         *  to be different.
+         *  @param O          Must be a type bit<W>
+         *  @param D          Must be a tuple type where all the fields are bit-fields (type
+         * bit<W> or int<W>) or varbits.
+         *  @param T          Must be a type bit<W>
+         *  @param M          Must be a type bit<W>
+         * ======================================================================================
+         */
+        {"*method.hash",
+         {"result", "algo", "base", "data", "max"},
+         [this](ExternMethodImpls::ExternInfo &externInfo) {
+             // TODO: We can actually make this more complex.
+             const auto &resultVar =
+                 ToolsVariables::convertReference(externInfo.externArgs->at(0)->expression);
+             // Just resolve the data by calling it.
+             computeResult(externInfo.externArgs->at(2)->expression);
+             computeResult(externInfo.externArgs->at(3)->expression);
+             computeResult(externInfo.externArgs->at(4)->expression);
+
+             auto hashLabel = externInfo.externObjectRef.path->toString() + "_" +
+                              externInfo.methodName + "_" +
+                              std::to_string(externInfo.originalCall.clone_id);
+             const auto *hashCalc = ToolsVariables::getSymbolicVariable(resultVar->type, hashLabel);
+             externInfo.state.set(resultVar, hashCalc);
+             return nullptr;
+         }},
+        /* ======================================================================================
+         * Checksum16.get
+         * ======================================================================================
+         */
+        {"Checksum16.get",
+         {"data"},
+         [this](ExternMethodImpls::ExternInfo &externInfo) {
+             // Just resolve the data by calling it.
+             computeResult(externInfo.externArgs->at(0)->expression);
+             auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                                  externInfo.methodName + "_" +
+                                  std::to_string(externInfo.originalCall.clone_id);
+             const auto *hashCalc =
+                 ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
+             return hashCalc;
+         }},
+        /* ======================================================================================
+         * verify_checksum
+         *  Verifies the checksum of the supplied data.  If this method detects
+         *  that a checksum of the data is not correct, then the value of the
+         *  standard_metadata checksum_error field will be equal to 1 when the
+         *  packet begins ingress processing.
+         *
+         *  Calling verify_checksum is only supported in the VerifyChecksum
+         *  control.
+         *
+         *  @param T          Must be a tuple type where all the tuple elements
+         *                    are of type bit<W>, int<W>, or varbit<W>.  The
+         *                    total length of the fields must be a multiple of
+         *                    the output size.
+         *  @param O          Checksum type; must be bit<X> type.
+         *  @param condition  If 'false' the verification always succeeds.
+         *  @param data       Data whose checksum is verified.
+         *  @param checksum   Expected checksum of the data; note that it must
+         *                    be a left-value.
+         *  @param algo       Algorithm to use for checksum (not all algorithms
+         *                    may be supported).  Must be a compile-time
+         *                    constant.
+         * ======================================================================================
+         */
+        {"*method.verify_checksum",
+         {"condition", "data", "checksum", "algo"},
+         [this](ExternMethodImpls::ExternInfo &externInfo) {
+             // We do not calculate the checksum for now and instead use a dummy.
+             const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
+             // Just resolve the data by calling it.
+             computeResult(externInfo.externArgs->at(1)->expression);
+
+             const auto *oneBitType = IR::getBitType(1);
+             const auto *checksumErr = new IR::Member(
+                 oneBitType, new IR::PathExpression("*standard_metadata"), "checksum_error");
+             auto verifyChecksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                                        externInfo.methodName + "_" +
+                                        std::to_string(externInfo.originalCall.clone_id);
+             const auto *hashCalc =
+                 ToolsVariables::getSymbolicVariable(oneBitType, verifyChecksumLabel);
+             externInfo.state.set(checksumErr, new IR::Mux(oneBitType, cond, hashCalc,
+                                                           IR::getConstant(oneBitType, 0)));
+             return nullptr;
+         }},
+        /* ======================================================================================
+         * verify_checksum_with_payload
+         *  verify_checksum_with_payload is identical in all ways to
+         *  verify_checksum, except that it includes the payload of the packet
+         *  in the checksum calculation.  The payload is defined as "all bytes
+         *  of the packet which were not parsed by the parser".
+         *  Calling verify_checksum_with_payload is only supported in the
+         *  VerifyChecksum control.
+         * ======================================================================================
+         */
+        {"*method.verify_checksum_with_payload",
+         {"condition", "data", "checksum", "algo"},
+         [this](ExternMethodImpls::ExternInfo &externInfo) {
+             // We do not calculate the checksum for now and instead use a dummy.
+             const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
+             // Just resolve the data by calling it.
+             computeResult(externInfo.externArgs->at(1)->expression);
+
+             const auto *oneBitType = IR::getBitType(1);
+             const auto *checksumErr = new IR::Member(
+                 oneBitType, new IR::PathExpression("*standard_metadata"), "checksum_error");
+             auto verifyChecksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                                        externInfo.methodName + "_" +
+                                        std::to_string(externInfo.originalCall.clone_id);
+             const auto *hashCalc =
+                 ToolsVariables::getSymbolicVariable(oneBitType, verifyChecksumLabel);
+             externInfo.state.set(checksumErr, new IR::Mux(oneBitType, cond, hashCalc,
+                                                           IR::getConstant(oneBitType, 0)));
+             return nullptr;
+         }},
+        /* ======================================================================================
+         * update_checksum
+         *  Computes the checksum of the supplied data and writes it to the
+         *  checksum parameter.
+         *  Calling update_checksum is only supported in the ComputeChecksum
+         *  control.
+         *  @param T          Must be a tuple type where all the tuple elements
+         *                    are of type bit<W>, int<W>, or varbit<W>.  The
+         *                    total length of the fields must be a multiple of
+         *                    the output size.
+         *  @param O          Output type; must be bit<X> type.
+         *  @param condition  If 'false' the checksum parameter is not changed
+         *  @param data       Data whose checksum is computed.
+         *  @param checksum   Checksum of the data.
+         *  @param algo       Algorithm to use for checksum (not all algorithms
+         *                    may be supported).  Must be a compile-time
+         *                    constant.
+         * ======================================================================================
+         */
+        {"*method.update_checksum",
+         {"condition", "data", "checksum", "algo"},
+         [this](ExternMethodImpls::ExternInfo &externInfo) {
+             // We do not calculate the checksum
+             // for now and instead use a dummy.
+             const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
+             // Just resolve the data by calling it.
+             computeResult(externInfo.externArgs->at(1)->expression);
+
+             const auto &checksumVar =
+                 ToolsVariables::convertReference(externInfo.externArgs->at(2)->expression);
+             auto verifyChecksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                                        externInfo.methodName + "_" +
+                                        std::to_string(externInfo.originalCall.clone_id);
+             const auto *hashCalc =
+                 ToolsVariables::getSymbolicVariable(checksumVar.type, verifyChecksumLabel);
+             const auto *checksumCurrentVal = externInfo.state.get(checksumVar);
+             externInfo.state.set(
+                 checksumVar, new IR::Mux(checksumVar.type, cond, hashCalc, checksumCurrentVal));
+             return nullptr;
+         }},
+        /* ======================================================================================
+         * update_checksum_with_payload
+         *  update_checksum_with_payload is identical in all ways to
+         *  update_checksum, except that it includes the payload of the packet
+         *  in the checksum calculation.  The payload is defined as "all bytes
+         *  of the packet which were not parsed by the parser".
+         *  Calling update_checksum_with_payload is only supported in the
+         *  ComputeChecksum control.
+         * ======================================================================================
+         */
+        {"*method.update_checksum_with_payload",
+         {"condition", "data", "checksum", "algo"},
+         [this](ExternMethodImpls::ExternInfo &externInfo) {
+             // We do not calculate the checksum
+             // for now and instead use a dummy.
+             const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
+             // Just resolve the data by calling it.
+             computeResult(externInfo.externArgs->at(1)->expression);
+
+             const auto &checksumVar =
+                 ToolsVariables::convertReference(externInfo.externArgs->at(2)->expression);
+             auto verifyChecksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                                        externInfo.methodName + "_" +
+                                        std::to_string(externInfo.originalCall.clone_id);
+             const auto *hashCalc =
+                 ToolsVariables::getSymbolicVariable(checksumVar.type, verifyChecksumLabel);
+             const auto *checksumCurrentVal = externInfo.state.get(checksumVar);
+             externInfo.state.set(
+                 checksumVar, new IR::Mux(checksumVar.type, cond, hashCalc, checksumCurrentVal));
+             return nullptr;
+         }},
+    });
 
     auto method = EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
                                            externInfo.externArgs);

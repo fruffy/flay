@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "backends/p4tools/common/compiler/convert_hs_index.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
@@ -13,6 +12,8 @@
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
 #include "ir/irutils.h"
+#include "ir/vector.h"
+#include "lib/cstring.h"
 #include "lib/exceptions.h"
 
 namespace P4Tools::Flay {
@@ -107,7 +108,8 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
                 const auto *flatStructField = flatStructFields[idx];
                 executionState.set(flatTargetRef, flatStructField);
             }
-        } else if (right->is<IR::PathExpression>() || right->is<IR::Member>()) {
+        } else if (right->is<IR::PathExpression>() || right->is<IR::Member>() ||
+                   right->is<IR::ArrayIndex>()) {
             executionState.setStructLike(left, right);
         } else {
             P4C_UNIMPLEMENTED("Unsupported assignment rval %1% of type %2%", right,

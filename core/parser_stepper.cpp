@@ -1,11 +1,19 @@
 #include "backends/p4tools/modules/flay/core/parser_stepper.h"
 
+#include <stddef.h>
+
+#include <string>
+
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/common/lib/gen_eq.h"
+#include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/target.h"
+#include "ir/declaration.h"
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
 #include "ir/irutils.h"
+#include "ir/vector.h"
+#include "lib/cstring.h"
 #include "lib/exceptions.h"
 
 namespace P4Tools::Flay {

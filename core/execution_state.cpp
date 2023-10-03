@@ -4,13 +4,14 @@
 
 #include <boost/container/vector.hpp>
 
+#include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/collapse_mux.h"
 #include "frontends/p4/optimizeExpressions.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
 #include "lib/exceptions.h"
-#include "lib/log.h"
+#include "lib/source_file.h"
 
 namespace P4Tools::Flay {
 

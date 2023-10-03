@@ -7,10 +7,8 @@
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/table_executor.h"
-#include "ir/id.h"
 #include "ir/ir.h"
 #include "ir/node.h"
-#include "ir/vector.h"
 #include "ir/visitor.h"
 
 namespace P4Tools::Flay {
@@ -37,6 +35,7 @@ class ExpressionResolver : public Inspector {
     bool preorder(const IR::Literal *lit) override;
     bool preorder(const IR::PathExpression *path) override;
     bool preorder(const IR::Member *member) override;
+    bool preorder(const IR::ArrayIndex *arrIndex) override;
     bool preorder(const IR::Operation_Unary *op) override;
     bool preorder(const IR::Operation_Binary *op) override;
     bool preorder(const IR::Operation_Ternary *op) override;

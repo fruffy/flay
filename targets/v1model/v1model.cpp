@@ -7,6 +7,8 @@
 #include "frontends/p4/simplify.h"
 #include "frontends/p4/typeChecking/typeChecker.h"
 #include "ir/ir.h"
+#include "ir/pass_manager.h"
+#include "ir/visitor.h"
 #include "midend/convertEnums.h"
 #include "midend/convertErrors.h"
 #include "midend/eliminateNewtype.h"

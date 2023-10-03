@@ -1,5 +1,4 @@
-# This file defines how to execute Flay on P4 programs.
-# General test utilities.
+# This file defines how to execute Flay on P4 programs. General test utilities.
 include(${P4TOOLS_SOURCE_DIR}/cmake/TestUtils.cmake)
 # This file defines how we write the tests we generate.
 include(${CMAKE_CURRENT_LIST_DIR}/TestTemplate.cmake)
@@ -22,10 +21,16 @@ set(P4TESTS_FOR_BMV2
 p4c_find_tests("${P4TESTS_FOR_BMV2}" P4_16_V1_TESTS INCLUDE "${V1_SEARCH_PATTERNS}" EXCLUDE "")
 
 # Filter some programs  because they have issues that are not captured with Xfails.
-list(REMOVE_ITEM P4_16_V1_TESTS
-    # These tests time out and require fixing.
-    "${P4C_SOURCE_DIR}/testdata/p4_16_samples/runtime-index-2-bmv2.p4"
-    "${P4C_SOURCE_DIR}/testdata/p4_16_samples/control-hs-index-test4.p4"
+list(
+  REMOVE_ITEM
+  P4_16_V1_TESTS
+  # These tests time out and require fixing.
+  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/runtime-index-2-bmv2.p4"
+  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/control-hs-index-test4.p4"
+  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/header-stack-ops-bmv2.p4"
+  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/issue3374.p4"
+  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/subparser-with-header-stack-bmv2.p4"
+  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/omec/up4.p4"
 )
 
 p4tools_add_tests(

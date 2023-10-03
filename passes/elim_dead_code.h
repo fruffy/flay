@@ -1,7 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_PASSES_ELIM_DEAD_CODE_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_PASSES_ELIM_DEAD_CODE_H_
 
-#include <map>
+#include <functional>
 
 #include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"

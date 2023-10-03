@@ -3,6 +3,7 @@
 
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/table_executor.h"
+#include "ir/ir.h"
 
 namespace P4Tools::Flay::V1Model {
 

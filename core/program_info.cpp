@@ -2,9 +2,7 @@
 
 #include <utility>
 
-#include "backends/p4tools/common/lib/variables.h"
 #include "ir/id.h"
-#include "ir/irutils.h"
 #include "lib/enumerator.h"
 #include "lib/exceptions.h"
 
