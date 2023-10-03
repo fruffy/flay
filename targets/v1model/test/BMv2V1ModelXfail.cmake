@@ -50,7 +50,7 @@ p4tools_add_xfail_reason(
   issue1765-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
   issue3702-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
   issue561-bmv2.p4  # Unknown or unimplemented extern method: packet.extract
-  dash-pipeline.p4  # Unknown or unimplemented extern method: packet.extract
+  dash-pipeline-v1model-bmv2.p4  # Unknown or unimplemented extern method: packet.extract
 )
 
 # These are custom externs we do not implement.
