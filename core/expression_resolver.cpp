@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "backends/p4tools/common/lib/gen_eq.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
@@ -92,7 +93,18 @@ bool ExpressionResolver::preorder(const IR::Member *member) {
 }
 
 bool ExpressionResolver::preorder(const IR::ArrayIndex *arrIndex) {
-    result = getExecutionState().get(ToolsVariables::convertReference(arrIndex));
+    const auto *right = arrIndex->right;
+    bool hasChanged = false;
+    if (!SymbolicEnv::isSymbolicValue(right)) {
+        right = computeResult(right);
+        hasChanged = true;
+    }
+    if (hasChanged) {
+        auto *newIndex = arrIndex->clone();
+        newIndex->right = right;
+        arrIndex = newIndex;
+    }
+    result = getExecutionState().get(arrIndex);
     return false;
 }
 
@@ -127,6 +139,12 @@ bool ExpressionResolver::preorder(const IR::Operation_Binary *op) {
         right = computeResult(right);
         hasChanged = true;
     }
+
+    if (op->is<IR::Equ>()) {
+        result = GenEq::equate(left, right);
+        return false;
+    }
+
     if (hasChanged) {
         auto *newOp = op->clone();
         newOp->left = left;

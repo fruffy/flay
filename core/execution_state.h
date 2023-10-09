@@ -29,6 +29,9 @@ class ExecutionState : public AbstractExecutionState {
     /// Keeps track of the reachability of individual nodes in the program.
     ReachabilityMap reachabilityMap;
 
+    ///
+    const IR::Expression *convertToStructLikeExpression(const IR::Expression *parent) const;
+
     /* =========================================================================================
      *  Accessors
      * ========================================================================================= */
