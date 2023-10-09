@@ -49,6 +49,7 @@ p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "Unable to find var .* in the symbolic environment"
   array-copy-bmv2.p4  # Unable to find var h.h1; in the symbolic environment.
+  equality-bmv2.p4  # Unable to find var hdr.h; in the symbolic environment.
   gauntlet_hdr_set_valid-bmv2.p4  # Unable to find var local_h_0/local_h; in the symbolic environment.
   issue1210.p4  # Unable to find var meta.foo; in the symbolic environment.
   issue1955.p4  # Unable to find var p1_ipv4_ethertypes/ipv4_ethertypes; in the symbolic environment.
