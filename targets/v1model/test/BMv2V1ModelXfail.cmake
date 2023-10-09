@@ -33,24 +33,6 @@ p4tools_add_xfail_reason(
   issue1653-complex-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
   issue1043-bmv2.p4  # Unknown or unimplemented extern method: *method.resubmit_preserving_field_list
   v1model-special-ops-bmv2.p4  # Unknown or unimplemented extern method: *method.resubmit_preserving_field_list
-  equality-bmv2.p4  # Unknown or unimplemented extern method: b.extract
-  equality-varbit-bmv2.p4  # Unknown or unimplemented extern method: b.extract
-  issue1879-bmv2.p4  # Unknown or unimplemented extern method: packet.extract
-  issue447-1-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  issue447-2-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  issue447-3-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  issue447-4-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  issue447-5-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  test-parserinvalidargument-error-bmv2.p4  # Unknown or unimplemented extern method: packet.extract
-  issue447-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  checksum-l4-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  checksum1-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  issue1025-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  issue1560-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  issue1765-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  issue3702-bmv2.p4  # Unknown or unimplemented extern method: pkt.extract
-  issue561-bmv2.p4  # Unknown or unimplemented extern method: packet.extract
-  dash-pipeline-v1model-bmv2.p4  # Unknown or unimplemented extern method: packet.extract
 )
 
 # These are custom externs we do not implement.

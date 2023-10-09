@@ -397,6 +397,42 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
              }
              return nullptr;
          }},
+        {"packet_in.extract",
+         {"hdr", "sizeInBits"},
+         [](ExternMethodImpls::ExternInfo &externInfo) {
+             const auto *args = externInfo.externArgs;
+             const auto &externObjectRef = externInfo.externObjectRef;
+             const auto &methodName = externInfo.methodName;
+             auto &state = externInfo.state;
+
+             // This argument is the structure being written by the extract.
+             const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
+             const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
+             const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
+             // First, set the validity.
+             auto extractLabel =
+                 externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
+             state.set(headerRefValidity,
+                       ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
+             // Then, set the fields.
+             const auto flatFields = state.getFlatFields(extractRef, headerType);
+             for (const auto &field : flatFields) {
+                 auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName +
+                                          "_" + extractRef->toString() + "_" + field.toString();
+                 // For now, we ignore the assigned size in our calculations and always use the
+                 // maximum size.
+                 // TODO: Figure out a way to exploit sizeInBits?
+                 if (auto varbitType = field->type->to<IR::Extracted_Varbits>()) {
+                     auto assignedType = varbitType->clone();
+                     assignedType->assignedSize = assignedType->size;
+                     auto typedField = field.clone();
+                     typedField->type = assignedType;
+                     state.set(*typedField, ToolsVariables::getSymbolicVariable(typedField->type,
+                                                                                extractFieldLabel));
+                 }
+             }
+             return nullptr;
+         }},
         {"packet_in.lookahead",
          {},
          [](ExternMethodImpls::ExternInfo &externInfo) {
