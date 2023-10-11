@@ -140,8 +140,28 @@ bool ExpressionResolver::preorder(const IR::Operation_Binary *op) {
         hasChanged = true;
     }
 
-    if (op->is<IR::Equ>()) {
+    // Equals operations are a little special since they may involve complex objects such as lists.
+    if (op->is<IR::Equ>() || op->is<IR::Neq>()) {
+        // TODO: This is a workaround to support comparison between list and struct expressions.
+        // Ideally, we should have proper support for this expression.
+        if (auto leftStructExpr = left->to<IR::StructExpression>()) {
+            IR::Vector<IR::Expression> components;
+            for (auto structExpr : leftStructExpr->components) {
+                components.push_back(structExpr->expression);
+            }
+            left = new IR::ListExpression(leftStructExpr->type, components);
+        }
+        if (auto rightStructExpr = right->to<IR::StructExpression>()) {
+            IR::Vector<IR::Expression> components;
+            for (auto structExpr : rightStructExpr->components) {
+                components.push_back(structExpr->expression);
+            }
+            right = new IR::ListExpression(rightStructExpr->type, components);
+        }
         result = GenEq::equate(left, right);
+        if (op->is<IR::Neq>()) {
+            result = new IR::LNot(result);
+        }
         return false;
     }
 

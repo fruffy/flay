@@ -31,6 +31,7 @@ list(
   "${P4C_SOURCE_DIR}/testdata/p4_16_samples/issue3374.p4"
   "${P4C_SOURCE_DIR}/testdata/p4_16_samples/subparser-with-header-stack-bmv2.p4"
   "${P4C_SOURCE_DIR}/testdata/p4_16_samples/omec/up4.p4"
+  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/dash/dash-pipeline-bmv2.p4"
 )
 
 p4tools_add_tests(

@@ -28,6 +28,7 @@ ExecutionState::ExecutionState(const IR::P4Program *program)
 
 const IR::Expression *ExecutionState::convertToStructLikeExpression(
     const IR::Expression *parent) const {
+    // TODO: We are losing information about validity here. How do we also record the validity?
     if (auto ts = parent->type->to<IR::Type_StructLike>()) {
         IR::Vector<IR::Expression> components;
         for (auto structField : ts->fields) {
