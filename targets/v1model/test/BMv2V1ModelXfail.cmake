@@ -48,8 +48,6 @@ p4tools_add_xfail_reason(
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "Unable to find var .* in the symbolic environment"
-  array-copy-bmv2.p4  # Unable to find var h.h1; in the symbolic environment.
-  gauntlet_hdr_set_valid-bmv2.p4  # Unable to find var local_h_0/local_h; in the symbolic environment.
   issue1955.p4  # Unable to find var p1_ipv4_ethertypes/ipv4_ethertypes; in the symbolic environment.
   pvs-bitstring-bmv2.p4  # Unable to find var pvs_0/pvs; in the symbolic environment.
   pvs-nested-struct.p4  # Unable to find var pvs_0/pvs; in the symbolic environment.
@@ -60,7 +58,6 @@ p4tools_add_xfail_reason(
   v1model-p4runtime-enumint-types1.p4  # Unable to find var valueset1_0/valueset1; in the symbolic environment.
   v1model-p4runtime-most-types1.p4  # Unable to find var valueset1_0/valueset1; in the symbolic environment.
   flowlet_switching-bmv2.p4  # Unable to find var ecmp_base; in the symbolic environment.
-  issue3001-1.p4  # Unable to find var s_0/s; in the symbolic environment.
 )
 
 p4tools_add_xfail_reason(
