@@ -21,7 +21,11 @@ const IR::Node *CollapseMux::preorder(IR::Mux *mux) {
     conditionMapE2.emplace(cond, false);
     const auto *e2 = mux->e2->apply(CollapseMux(conditionMapE2));
     mux->e2 = e2;
+    prune();
     return mux;
 }
+
+CollapseMux::CollapseMux(const std::map<const IR::Expression *, bool, MuxCondComp> &conditionMap)
+    : conditionMap(conditionMap) {}
 
 }  // namespace P4Tools

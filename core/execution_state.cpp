@@ -26,7 +26,44 @@ ExecutionState::ExecutionState(const IR::P4Program *program)
  *  Accessors
  * ============================================================================================= */
 
+const IR::Expression *ExecutionState::convertToStructLikeExpression(
+    const IR::Expression *parent) const {
+    // TODO: We are losing information about validity here. How do we also record the validity?
+    if (auto ts = parent->type->to<IR::Type_StructLike>()) {
+        IR::Vector<IR::Expression> components;
+        for (auto structField : ts->fields) {
+            auto fieldName = structField->name;
+            auto fieldType = structField->type;
+            auto ref = new IR::Member(fieldType, parent, fieldName);
+            if (fieldType->is<IR::Type_StructLike>() || fieldType->to<IR::Type_Stack>()) {
+                components.push_back(convertToStructLikeExpression(ref));
+            } else {
+                components.push_back(get(ref));
+            }
+        }
+        return new IR::ListExpression(parent->type, components);
+    } else if (auto ts = parent->type->to<IR::Type_Stack>()) {
+        IR::Vector<IR::Expression> components;
+        for (size_t idx = 0; idx < ts->getSize(); idx++) {
+            auto ref = new IR::ArrayIndex(ts->elementType, parent, new IR::Constant(idx));
+            if (ts->elementType->is<IR::Type_StructLike>() ||
+                ts->elementType->to<IR::Type_Stack>()) {
+                components.push_back(convertToStructLikeExpression(ref));
+            } else {
+                components.push_back(get(ref));
+            }
+        }
+        return new IR::ListExpression(parent->type, components);
+    }
+    P4C_UNIMPLEMENTED("Unsupported struct-like type %1% for member %2%",
+                      parent->type->node_type_name(), parent);
+}
+
 const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
+    // In some cases, we may reference a complex expression. Convert it to a struct expression.
+    if (var->type->is<IR::Type_StructLike>() || var->type->to<IR::Type_Stack>()) {
+        return convertToStructLikeExpression(var);
+    }
     // TODO: This is a convoluted (and expensive?) check because struct members are not directly
     // associated with a header. We should be using runtime objects instead of flat assignments.
     const auto *expr = env.get(var);

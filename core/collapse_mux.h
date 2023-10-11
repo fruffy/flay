@@ -21,8 +21,7 @@ class CollapseMux : public Transform {
  public:
     CollapseMux() = default;
 
-    explicit CollapseMux(const std::map<const IR::Expression *, bool, MuxCondComp> &conditionMap)
-        : conditionMap(conditionMap) {}
+    explicit CollapseMux(const std::map<const IR::Expression *, bool, MuxCondComp> &conditionMap);
 
     const IR::Node *preorder(IR::Mux *mux) override;
 };

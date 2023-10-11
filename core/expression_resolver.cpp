@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "backends/p4tools/common/lib/gen_eq.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
@@ -92,7 +93,18 @@ bool ExpressionResolver::preorder(const IR::Member *member) {
 }
 
 bool ExpressionResolver::preorder(const IR::ArrayIndex *arrIndex) {
-    result = getExecutionState().get(ToolsVariables::convertReference(arrIndex));
+    const auto *right = arrIndex->right;
+    bool hasChanged = false;
+    if (!SymbolicEnv::isSymbolicValue(right)) {
+        right = computeResult(right);
+        hasChanged = true;
+    }
+    if (hasChanged) {
+        auto *newIndex = arrIndex->clone();
+        newIndex->right = right;
+        arrIndex = newIndex;
+    }
+    result = getExecutionState().get(arrIndex);
     return false;
 }
 
@@ -127,6 +139,32 @@ bool ExpressionResolver::preorder(const IR::Operation_Binary *op) {
         right = computeResult(right);
         hasChanged = true;
     }
+
+    // Equals operations are a little special since they may involve complex objects such as lists.
+    if (op->is<IR::Equ>() || op->is<IR::Neq>()) {
+        // TODO: This is a workaround to support comparison between list and struct expressions.
+        // Ideally, we should have proper support for this expression.
+        if (auto leftStructExpr = left->to<IR::StructExpression>()) {
+            IR::Vector<IR::Expression> components;
+            for (auto structExpr : leftStructExpr->components) {
+                components.push_back(structExpr->expression);
+            }
+            left = new IR::ListExpression(leftStructExpr->type, components);
+        }
+        if (auto rightStructExpr = right->to<IR::StructExpression>()) {
+            IR::Vector<IR::Expression> components;
+            for (auto structExpr : rightStructExpr->components) {
+                components.push_back(structExpr->expression);
+            }
+            right = new IR::ListExpression(rightStructExpr->type, components);
+        }
+        result = GenEq::equate(left, right);
+        if (op->is<IR::Neq>()) {
+            result = new IR::LNot(result);
+        }
+        return false;
+    }
+
     if (hasChanged) {
         auto *newOp = op->clone();
         newOp->left = left;
@@ -394,6 +432,42 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
                                           "_" + extractRef->toString() + "_" + field.toString();
                  state.set(field,
                            ToolsVariables::getSymbolicVariable(field->type, extractFieldLabel));
+             }
+             return nullptr;
+         }},
+        {"packet_in.extract",
+         {"hdr", "sizeInBits"},
+         [](ExternMethodImpls::ExternInfo &externInfo) {
+             const auto *args = externInfo.externArgs;
+             const auto &externObjectRef = externInfo.externObjectRef;
+             const auto &methodName = externInfo.methodName;
+             auto &state = externInfo.state;
+
+             // This argument is the structure being written by the extract.
+             const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
+             const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
+             const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
+             // First, set the validity.
+             auto extractLabel =
+                 externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
+             state.set(headerRefValidity,
+                       ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
+             // Then, set the fields.
+             const auto flatFields = state.getFlatFields(extractRef, headerType);
+             for (const auto &field : flatFields) {
+                 auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName +
+                                          "_" + extractRef->toString() + "_" + field.toString();
+                 // For now, we ignore the assigned size in our calculations and always use the
+                 // maximum size.
+                 // TODO: Figure out a way to exploit sizeInBits?
+                 if (auto varbitType = field->type->to<IR::Extracted_Varbits>()) {
+                     auto assignedType = varbitType->clone();
+                     assignedType->assignedSize = assignedType->size;
+                     auto typedField = field.clone();
+                     typedField->type = assignedType;
+                     state.set(*typedField, ToolsVariables::getSymbolicVariable(typedField->type,
+                                                                                extractFieldLabel));
+                 }
              }
              return nullptr;
          }},
