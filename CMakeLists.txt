@@ -8,10 +8,48 @@ project(flay)
 set(FLAY_DIR ${P4C_BINARY_DIR}/flay)
 set(FLAY_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4flay")
 
+# ############### Protobuf generation
+set(FLAY_P4RUNTIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf)
+set(FLAY_P4RUNTIME_INFO_PROTO ${FLAY_P4RUNTIME_DIR}/flaytests.proto)
+set(FLAY_P4RUNTIME_INFO_GEN_SRCS ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf/flaytests.pb.cc)
+set(FLAY_P4RUNTIME_INFO_GEN_HDRS ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf/flaytests.pb.h)
+
+add_custom_target(
+  flay_runtime_dir ${CMAKE_COMMAND} -E make_directory
+                   ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
+)
+# Generate source code from .proto using protoc. The output is placed in the build directory inside
+# `control_plane` directory
+add_custom_command(
+  OUTPUT ${FLAY_P4RUNTIME_INFO_GEN_SRCS} ${FLAY_P4RUNTIME_INFO_GEN_HDRS}
+  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+    --proto_path ${FLAY_P4RUNTIME_DIR}
+    --proto_path ${P4RUNTIME_STD_DIR}
+    --proto_path ${P4C_SOURCE_DIR}/control-plane
+    --cpp_out ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
+    --python_out ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
+    ${FLAY_P4RUNTIME_INFO_PROTO}
+  DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO} flay_runtime_dir
+  COMMENT "Generating protobuf files for p4info on target FLAY."
+)
+add_dependencies(flay_runtime_dir controlplane)
+
+add_library(flay_runtime STATIC ${FLAY_P4RUNTIME_INFO_GEN_SRCS})
+target_include_directories(flay_runtime SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIR})
+
+# Silence various warnings as the root issue is out of our control, example
+# https://github.com/protocolbuffers/protobuf/issues/7140
+set_source_files_properties(
+  ${FLAY_P4RUNTIME_INFO_GEN_SRCS} {$FLAY_P4RUNTIME_INFO_GEN_HDRS}
+  PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-array-bounds -Wno-error"
+)
+
 # Source files for flay.
 set(FLAY_SOURCES
+    ${FLAY_P4RUNTIME_INFO_GEN_SRCS}
     ${CMAKE_CURRENT_SOURCE_DIR}/options.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/flay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf/protobuf.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/collapse_mux.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/execution_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/expression_resolver.cpp
@@ -64,7 +102,8 @@ endforeach()
 configure_file(register.h.in register.h)
 
 add_p4tools_library(libflay ${FLAY_SOURCES})
-add_dependencies(libflay p4tools-common)
+add_dependencies(libflay p4tools-common controlplane)
+target_include_directories(libflay SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIR})
 
 add_p4tools_executable(p4flay main.cpp)
 

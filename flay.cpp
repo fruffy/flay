@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 
+#include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
@@ -31,6 +32,14 @@ int Flay::mainImpl(const IR::P4Program *program) {
     if (::errorCount() > 0) {
         ::error("Flay: Encountered errors during preprocessing. Exiting");
         return EXIT_FAILURE;
+    }
+
+    const auto &flayOptions = FlayOptions::get();
+    if (flayOptions.hasControlPlaneConfig()) {
+        auto confPath = flayOptions.getControlPlaneConfig();
+        if (confPath.extension() == ".proto") {
+            ProtobufDeserializer::deserializeProtobufConfig(confPath);
+        }
     }
 
     SymbolicExecutor symbex(*programInfo);
