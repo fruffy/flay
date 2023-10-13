@@ -3,18 +3,22 @@
 
 #include <filesystem>
 
+#include "ir/ir.h"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/flaytests.pb.h"
 #pragma GCC diagnostic pop
 
-#include "ir/ir.h"
 namespace P4Tools::Flay {
 
 class ProtobufDeserializer {
  public:
     static flaytests::Config deserializeProtobufConfig(std::filesystem::path inputFile);
+
+    static std::vector<const IR::Expression *> convertToIRExpressions(
+        const flaytests::Config &protoControlPlaneConfig);
 };
 
 }  // namespace P4Tools::Flay

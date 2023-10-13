@@ -38,7 +38,13 @@ int Flay::mainImpl(const IR::P4Program *program) {
     if (flayOptions.hasControlPlaneConfig()) {
         auto confPath = flayOptions.getControlPlaneConfig();
         if (confPath.extension() == ".proto") {
-            ProtobufDeserializer::deserializeProtobufConfig(confPath);
+            auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
+            auto constraints = ProtobufDeserializer::convertToIRExpressions(deserializedConfig);
+            for (auto constraint : constraints) {
+                printf("CONSTRAINT ");
+                constraint->dbprint(std::cout);
+                printf("\n");
+            }
         }
     }
 

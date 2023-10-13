@@ -2,7 +2,10 @@
 
 #include <string>
 
+#include "backends/bmv2/common/annotations.h"
 #include "backends/p4tools/common/compiler/convert_varbits.h"
+#include "control-plane/addMissingIds.h"
+#include "control-plane/p4RuntimeArchStandard.h"
 #include "frontends/common/constantFolding.h"
 #include "frontends/p4/simplify.h"
 #include "frontends/p4/typeChecking/typeChecker.h"
@@ -88,6 +91,12 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
         new P4::HSIndexSimplifier(refMap, typeMap),
         // Convert Type_Varbits into a type that contains information about the assigned width.
         new ConvertVarbits(),
+        // Parse BMv2-specific annotations.
+        new BMV2::ParseAnnotations(),
+        // Parse P4Runtime-specific annotations and insert missing IDs.
+        // Only do this for the protobuf back end.
+        new P4::AddMissingIdAnnotations(
+            refMap, typeMap, new P4::ControlPlaneAPI::Standard::V1ModelArchHandlerBuilder()),
     });
     return midEnd;
 }

@@ -16,6 +16,7 @@
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
+#include "control-plane/p4RuntimeArchHandler.h"
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
 #include "ir/irutils.h"
@@ -265,7 +266,78 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
     return retProperties;
 }
 
+std::optional<P4::ControlPlaneAPI::p4rt_id_t> getIdAnnotation(const IR::IAnnotated *node) {
+    const auto *idAnnotation = node->getAnnotation("id");
+    if (idAnnotation == nullptr) {
+        return std::nullopt;
+    }
+    const auto *idConstant = idAnnotation->expr[0]->to<IR::Constant>();
+    CHECK_NULL(idConstant);
+    if (!idConstant->fitsUint()) {
+        ::error(ErrorType::ERR_INVALID, "%1%: @id should be an unsigned integer", node);
+        return std::nullopt;
+    }
+    return static_cast<P4::ControlPlaneAPI::p4rt_id_t>(idConstant->value);
+}
+
+uint32_t jenkinsOneAtATimeHash(const char *key, size_t length) {
+    size_t i = 0;
+    uint32_t hash = 0;
+    while (i != length) {
+        hash += uint8_t(key[i++]);
+        hash += hash << 10;
+        hash ^= hash >> 6;
+    }
+    hash += hash << 3;
+    hash ^= hash >> 11;
+    hash += hash << 15;
+    return hash;
+}
+
+/// @return the value of any P4 '@id' annotation @declaration may have, and
+/// ensure that the value is correct with respect to the P4Runtime
+/// specification. The name 'externalId' is in analogy with externalName().
+static std::optional<P4::ControlPlaneAPI::p4rt_id_t> externalId(
+    const P4::ControlPlaneAPI::P4RuntimeSymbolType &type, const IR::IDeclaration *declaration) {
+    CHECK_NULL(declaration);
+    if (!declaration->is<IR::IAnnotated>()) {
+        return std::nullopt;  // Assign an id later; see below.
+    }
+
+    // If the user specified an @id annotation, use that.
+    auto idOrNone = getIdAnnotation(declaration->to<IR::IAnnotated>());
+    P4::ControlPlaneAPI::p4rt_id_t id = 0;
+    if (!idOrNone) {
+        auto name = declaration->controlPlaneName();
+        id = jenkinsOneAtATimeHash(name, name.size());
+        auto resourceType = static_cast<P4::ControlPlaneAPI::p4rt_id_t>(type);
+        id = (resourceType << 24) | (id & 0xffffff);
+    } else {
+        id = *idOrNone;
+    }
+
+    // If the id already has an 8-bit type prefix, make sure it is correct for
+    // the resource type; otherwise assign the correct prefix.
+    const auto typePrefix = static_cast<P4::ControlPlaneAPI::p4rt_id_t>(type) << 24;
+    const auto prefixMask = static_cast<P4::ControlPlaneAPI::p4rt_id_t>(0xff) << 24;
+    if ((id & prefixMask) != 0 && (id & prefixMask) != typePrefix) {
+        ::error(ErrorType::ERR_INVALID, "%1%: @id has the wrong 8-bit prefix", declaration);
+        return std::nullopt;
+    }
+    id |= typePrefix;
+
+    return id;
+}
+
 const IR::Expression *TableExecutor::processTable() {
+    auto tableID =
+        externalId(P4::ControlPlaneAPI::P4RuntimeSymbolType::P4RT_TABLE(), &getP4Table());
+    if (tableID.has_value()) {
+        printf("TABLE ID %s %s\n", getP4Table().controlPlaneName().c_str(),
+               std::to_string(tableID.value()).c_str());
+    } else {
+        printf("NO VALUE\n");
+    }
     const auto tableName = getP4Table().controlPlaneName();
     TableUtils::TableProperties properties;
     TableUtils::checkTableImmutability(table, properties);
