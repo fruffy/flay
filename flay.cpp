@@ -43,6 +43,7 @@ int Flay::mainImpl(const IR::P4Program *program) {
         return EXIT_FAILURE;
     }
 
+    printf("Checking whether dead code can be removed...\n");
     ElimDeadCode elim(executionState);
     freshProgram = freshProgram->apply(elim);
     // P4::ToP4 toP4;

@@ -25,8 +25,6 @@
 
 namespace P4Tools::Flay {
 
-const IR::Type_Bits TableExecutor::ACTION_BIT_TYPE = IR::Type_Bits(8, false);
-
 TableExecutor::TableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver)
     : table(table), resolver(callingResolver) {}
 
@@ -175,12 +173,11 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     const auto *hitCondition = computeKey(key);
     const auto *actionPath = TableUtils::getDefaultActionName(table);
     ReturnProperties retProperties{hitCondition, new IR::StringLiteral(actionPath->toString())};
-    for (size_t actionIdx = 0; actionIdx < tableActionList.size(); ++actionIdx) {
-        const auto *action = tableActionList.at(actionIdx);
+    for (auto action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
         auto *actionChoice =
-            new IR::Equ(tableActionID, IR::getConstant(&ACTION_BIT_TYPE, actionIdx));
+            new IR::Equ(tableActionID, new IR::StringLiteral(action->controlPlaneName()));
         const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);
         retProperties.totalHitCondition =
             new IR::LOr(retProperties.totalHitCondition, actionChoice);
@@ -299,7 +296,7 @@ const IR::Expression *TableExecutor::processTable() {
     }
 
     const auto actionVar = tableName + "_action";
-    const auto *tableActionID = ToolsVariables::getSymbolicVariable(&ACTION_BIT_TYPE, actionVar);
+    const auto *tableActionID = ToolsVariables::getSymbolicVariable(new IR::Type_String, actionVar);
     // Execute all other possible action options. Get the combination of all possible hits.
     const auto &retProperties = processTableActionOptions(tableActionID, key);
     return new IR::StructExpression(

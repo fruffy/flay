@@ -25,12 +25,6 @@ list(
   REMOVE_ITEM
   P4_16_V1_TESTS
   # These tests time out and require fixing.
-  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/runtime-index-2-bmv2.p4"
-  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/control-hs-index-test4.p4"
-  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/header-stack-ops-bmv2.p4"
-  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/issue3374.p4"
-  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/subparser-with-header-stack-bmv2.p4"
-  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/omec/up4.p4"
   "${P4C_SOURCE_DIR}/testdata/p4_16_samples/dash/dash-pipeline-v1model-bmv2.p4"
 )
 
