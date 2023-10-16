@@ -89,14 +89,14 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
         // Simplify header stack assignments with runtime indices into conditional statements.
         // TODO: Get rid of this pass.
         new P4::HSIndexSimplifier(refMap, typeMap),
-        // Convert Type_Varbits into a type that contains information about the assigned width.
-        new ConvertVarbits(),
         // Parse BMv2-specific annotations.
         new BMV2::ParseAnnotations(),
         // Parse P4Runtime-specific annotations and insert missing IDs.
         // Only do this for the protobuf back end.
         new P4::AddMissingIdAnnotations(
             refMap, typeMap, new P4::ControlPlaneAPI::Standard::V1ModelArchHandlerBuilder()),
+        // Convert Type_Varbits into a type that contains information about the assigned width.
+        new ConvertVarbits(),
     });
     return midEnd;
 }

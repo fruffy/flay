@@ -467,6 +467,9 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
                      typedField->type = assignedType;
                      state.set(*typedField, ToolsVariables::getSymbolicVariable(typedField->type,
                                                                                 extractFieldLabel));
+                 } else {
+                     state.set(field,
+                               ToolsVariables::getSymbolicVariable(field->type, extractFieldLabel));
                  }
              }
              return nullptr;
