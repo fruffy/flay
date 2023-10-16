@@ -9,6 +9,12 @@
 
 namespace P4Tools::Flay {
 
+big_int ProtobufDeserializer::protoValueToBigInt(const std::string &valueString) {
+    big_int value;
+    boost::multiprecision::import_bits(value, valueString.begin(), valueString.end());
+    return value;
+}
+
 flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(std::filesystem::path inputFile) {
     flaytests::Config protoControlPlaneConfig;
 
@@ -31,14 +37,30 @@ flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(std::filesyste
 void ProtobufDeserializer::convertTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
                                              cstring keyFieldName, const IR::Expression &keyExpr,
                                              ControlPlaneConstraints &controlPlaneConstraints) {
+    cstring keyName = tableName + "_key_" + keyFieldName;
+    auto keySymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, keyName);
     if (field.has_exact()) {
-        cstring keyName = tableName + "_key_" + keyFieldName;
-        auto keySymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, keyName);
-        big_int value;
-        auto fieldString = field.exact().value();
-        boost::multiprecision::import_bits(value, fieldString.begin(), fieldString.end());
-        auto assign = new IR::Equ(keySymbol, new IR::Constant(keyExpr.type, value));
-        controlPlaneConstraints.emplace_back(assign);
+        auto value = protoValueToBigInt(field.exact().value());
+        controlPlaneConstraints.emplace_back(
+            new IR::Equ(keySymbol, new IR::Constant(keyExpr.type, value)));
+    } else if (field.has_lpm()) {
+        cstring prefixName = tableName + "_lpm_prefix_" + keyFieldName;
+        auto maskSymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, prefixName);
+        auto value = protoValueToBigInt(field.lpm().value());
+        int prefix = field.lpm().prefix_len();
+        controlPlaneConstraints.emplace_back(
+            new IR::Equ(keySymbol, new IR::Constant(keyExpr.type, value)));
+        controlPlaneConstraints.emplace_back(
+            new IR::Equ(maskSymbol, new IR::Constant(keyExpr.type, prefix)));
+    } else if (field.has_ternary()) {
+        cstring maskName = tableName + "_mask_" + keyFieldName;
+        auto maskSymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, maskName);
+        auto value = protoValueToBigInt(field.ternary().value());
+        auto mask = protoValueToBigInt(field.ternary().mask());
+        controlPlaneConstraints.emplace_back(
+            new IR::Equ(keySymbol, new IR::Constant(keyExpr.type, value)));
+        controlPlaneConstraints.emplace_back(
+            new IR::Equ(maskSymbol, new IR::Constant(keyExpr.type, mask)));
     } else {
         P4C_UNIMPLEMENTED("Unsupported table match type %1%.", field.DebugString().c_str());
     }

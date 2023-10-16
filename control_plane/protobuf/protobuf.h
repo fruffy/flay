@@ -20,6 +20,9 @@ namespace P4Tools::Flay {
 /// semantic data-plane representation of the program.
 class ProtobufDeserializer {
  private:
+    /// Helper function, which converts a Protobuf byte string into a big integer (boost cpp_int).
+    static big_int protoValueToBigInt(const std::string &valueString);
+
     /// Convert a P4Runtime TableAction into the appropriate symbolic constraint assignments.
     static void convertTableAction(const p4::v1::Action &tblAction, cstring tableName,
                                    const IR::P4Action &p4Action,
