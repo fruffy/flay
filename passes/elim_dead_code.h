@@ -18,6 +18,8 @@ class ElimDeadCode : public Transform {
 
     bool deletedCode = false;
 
+    std::vector<const IR::Expression *> controlPlaneConstraints;
+
  public:
     ElimDeadCode() = delete;
 
@@ -26,6 +28,13 @@ class ElimDeadCode : public Transform {
     const IR::Node *postorder(IR::IfStatement *stmt) override;
 
     void end_apply() override;
+
+    void addControlPlaneConstraints(
+        const std::vector<const IR::Expression *> &newControlPlaneConstraints) {
+        controlPlaneConstraints.insert(controlPlaneConstraints.end(),
+                                       newControlPlaneConstraints.begin(),
+                                       newControlPlaneConstraints.end());
+    }
 };
 
 }  // namespace P4Tools::Flay

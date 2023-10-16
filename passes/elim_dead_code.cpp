@@ -21,7 +21,11 @@ const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
         return stmt;
     }
 
-    auto solverResult = solver.checkSat({condition});
+    /// Merge the execution condition with the overall constraints.
+    std::vector<const Constraint *> mergedConstraints(controlPlaneConstraints);
+    mergedConstraints.push_back(condition);
+
+    auto solverResult = solver.checkSat(mergedConstraints);
     if (solverResult == std::nullopt) {
         return stmt;
     }

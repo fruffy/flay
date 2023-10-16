@@ -28,29 +28,64 @@ flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(std::filesyste
     return protoControlPlaneConfig;
 }
 
-std::vector<const IR::Expression *> ProtobufDeserializer::convertToIRExpressions(
-    const flaytests::Config &protoControlPlaneConfig) {
-    std::vector<const IR::Expression *> irExpressions;
+ControlPlaneConstraints ProtobufDeserializer::convertToControlPlaneConstraints(
+    const flaytests::Config &protoControlPlaneConfig, const P4RuntimeIDtoIRObjectMap &irToIdMap) {
+    ControlPlaneConstraints controlPlaneConstraints;
     for (auto entity : protoControlPlaneConfig.entities()) {
         if (entity.has_table_entry()) {
             auto tblEntry = entity.table_entry();
-            auto tblName = tblEntry.table_id();
+            auto tblId = tblEntry.table_id();
+            auto tbl = irToIdMap.at(tblId)->checkedTo<IR::P4Table>();
+            auto tableName = tbl->controlPlaneName();
+
+            auto key = tbl->getKey();
+            CHECK_NULL(key);
+            for (auto field : tblEntry.match()) {
+                auto fieldId = field.field_id();
+                auto keyField = key->keyElements.at(fieldId - 1);
+                const auto *keyExpr = keyField->expression;
+                const auto *nameAnnot = keyField->getAnnotation("name");
+                // Some hidden tables do not have any key name annotations.
+                BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
+                          "Non-constant table key without an annotation");
+                cstring keyFieldName;
+                if (nameAnnot != nullptr) {
+                    keyFieldName = nameAnnot->getName();
+                }
+                if (field.has_exact()) {
+                    cstring keyName = tableName + "_key_" + keyFieldName;
+                    auto keySymbol = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
+                    big_int value;
+                    auto fieldString = field.exact().value();
+                    boost::multiprecision::import_bits(value, fieldString.begin(),
+                                                       fieldString.end());
+                    auto assign = new IR::Equ(keySymbol, new IR::Constant(keyExpr->type, value));
+                    controlPlaneConstraints.emplace_back(assign);
+                }
+            }
 
             if (tblEntry.action().has_action()) {
-                auto actionVarName = std::to_string(tblName) + "_action";
+                auto actionVarName = tableName + "_action";
                 const auto *tableActionID =
                     ToolsVariables::getSymbolicVariable(new IR::Type_String, actionVarName);
                 auto tblAction = tblEntry.action().action();
-                auto actionName = std::to_string(tblAction.action_id());
+                auto actionId = tblAction.action_id();
+                auto action = irToIdMap.at(actionId)->checkedTo<IR::P4Action>();
+                auto actionName = action->controlPlaneName();
                 const auto *actionAssignment = new IR::StringLiteral(actionName);
-                irExpressions.push_back(new IR::Equ(tableActionID, actionAssignment));
-                for (auto param : tblAction.params()) {
-                    cstring paramName = std::to_string(tblName) + "_" + actionName + "_" +
-                                        std::to_string(param.param_id());
-                    const auto *argType = IR::getBitType(12, 0);
-                    const auto &actionArg = ToolsVariables::getSymbolicVariable(argType, paramName);
-                    const auto *actionVal = new IR::Constant(argType, big_int(param.value()));
-                    irExpressions.push_back(new IR::Equ(actionArg, actionVal));
+                controlPlaneConstraints.emplace_back(new IR::Equ(tableActionID, actionAssignment));
+                for (auto paramConfig : tblAction.params()) {
+                    auto param = action->parameters->getParameter(paramConfig.param_id() - 1);
+                    auto paramName = param->controlPlaneName();
+                    cstring paramLabel = tableName + "_" + actionName + "_" + paramName;
+                    const auto &actionArg =
+                        ToolsVariables::getSymbolicVariable(param->type, paramLabel);
+                    big_int value;
+                    auto fieldString = paramConfig.value();
+                    boost::multiprecision::import_bits(value, fieldString.begin(),
+                                                       fieldString.end());
+                    const auto *actionVal = new IR::Constant(param->type, value);
+                    controlPlaneConstraints.emplace_back(new IR::Equ(actionArg, actionVal));
                 }
             } else {
                 P4C_UNIMPLEMENTED("Unsupported control plane entry %1%.",
@@ -58,7 +93,7 @@ std::vector<const IR::Expression *> ProtobufDeserializer::convertToIRExpressions
             }
         }
     }
-    return irExpressions;
+    return controlPlaneConstraints;
 }
 
 }  // namespace P4Tools::Flay

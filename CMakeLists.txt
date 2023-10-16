@@ -22,13 +22,10 @@ add_custom_target(
 # `control_plane` directory
 add_custom_command(
   OUTPUT ${FLAY_P4RUNTIME_INFO_GEN_SRCS} ${FLAY_P4RUNTIME_INFO_GEN_HDRS}
-  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-    --proto_path ${FLAY_P4RUNTIME_DIR}
-    --proto_path ${P4RUNTIME_STD_DIR}
-    --proto_path ${P4C_SOURCE_DIR}/control-plane
-    --cpp_out ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
-    --python_out ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
-    ${FLAY_P4RUNTIME_INFO_PROTO}
+  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} --proto_path ${FLAY_P4RUNTIME_DIR} --proto_path
+          ${P4RUNTIME_STD_DIR} --proto_path ${P4C_SOURCE_DIR}/control-plane --cpp_out
+          ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf --python_out
+          ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf ${FLAY_P4RUNTIME_INFO_PROTO}
   DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO} flay_runtime_dir
   COMMENT "Generating protobuf files for p4info on target FLAY."
 )
@@ -50,6 +47,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/options.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/flay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf/protobuf.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/id_to_ir_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/collapse_mux.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/execution_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/expression_resolver.cpp

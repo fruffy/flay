@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 
+#include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
@@ -35,18 +36,6 @@ int Flay::mainImpl(const IR::P4Program *program) {
     }
 
     const auto &flayOptions = FlayOptions::get();
-    if (flayOptions.hasControlPlaneConfig()) {
-        auto confPath = flayOptions.getControlPlaneConfig();
-        if (confPath.extension() == ".proto") {
-            auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
-            auto constraints = ProtobufDeserializer::convertToIRExpressions(deserializedConfig);
-            for (auto constraint : constraints) {
-                printf("CONSTRAINT ");
-                constraint->dbprint(std::cout);
-                printf("\n");
-            }
-        }
-    }
 
     SymbolicExecutor symbex(*programInfo);
     symbex.run();
@@ -58,8 +47,27 @@ int Flay::mainImpl(const IR::P4Program *program) {
         return EXIT_FAILURE;
     }
 
-    printf("Checking whether dead code can be removed...\n");
     ElimDeadCode elim(executionState);
+
+    auto &target = FlayTarget::get();
+
+    if (flayOptions.hasControlPlaneConfig()) {
+        auto confPath = flayOptions.getControlPlaneConfig();
+        if (confPath.extension() == ".proto") {
+            MapP4RuntimeIdtoIR idMapper;
+            program->apply(idMapper);
+            if (::errorCount() > 0) {
+                return EXIT_FAILURE;
+            }
+            auto idToIrMap = idMapper.getP4RuntimeIDtoIRObjectMap();
+            auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
+            auto constraints = ProtobufDeserializer::convertToControlPlaneConstraints(
+                deserializedConfig, idToIrMap);
+            elim.addControlPlaneConstraints(constraints);
+        }
+    }
+
+    printf("Checking whether dead code can be removed...\n");
     freshProgram = freshProgram->apply(elim);
     // P4::ToP4 toP4;
     // program->apply(toP4);

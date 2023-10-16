@@ -11,14 +11,17 @@
 #include "backends/p4tools/modules/flay/control_plane/protobuf/flaytests.pb.h"
 #pragma GCC diagnostic pop
 
+#include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
+
 namespace P4Tools::Flay {
 
 class ProtobufDeserializer {
  public:
     static flaytests::Config deserializeProtobufConfig(std::filesystem::path inputFile);
 
-    static std::vector<const IR::Expression *> convertToIRExpressions(
-        const flaytests::Config &protoControlPlaneConfig);
+    static ControlPlaneConstraints convertToControlPlaneConstraints(
+        const flaytests::Config &protoControlPlaneConfig,
+        const P4RuntimeIDtoIRObjectMap &irToIdMap);
 };
 
 }  // namespace P4Tools::Flay
