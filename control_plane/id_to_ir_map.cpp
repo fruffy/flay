@@ -4,9 +4,7 @@
 
 namespace P4Tools::Flay {
 
-P4RuntimeIDtoIRObjectMap MapP4RuntimeIdtoIR::getP4RuntimeIDtoIRObjectMap() const {
-    return idToIrMap;
-}
+P4RuntimeIdtoIrNodeMap MapP4RuntimeIdtoIR::getP4RuntimeIdtoIrNodeMap() const { return idToIrMap; }
 
 bool MapP4RuntimeIdtoIR::preorder(const IR::P4Table *table) {
     if (P4::ControlPlaneAPI::isHidden(table)) {

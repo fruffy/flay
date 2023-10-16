@@ -9,11 +9,17 @@
 
 namespace P4Tools::Flay {
 
-using P4RuntimeIDtoIRObjectMap = std::map<P4::ControlPlaneAPI::p4rt_id_t, const IR::IDeclaration *>;
+/// The mapping from P4Runtime IDs to IR nodes. Currently a simple std::map.
+using P4RuntimeIdtoIrNodeMap = std::map<P4::ControlPlaneAPI::p4rt_id_t, const IR::IDeclaration *>;
 
+/// Maps P4Runtime IDs (https://p4.org/p4-spec/p4runtime/main/P4Runtime-Spec.html#sec-id-allocation)
+/// to their respective IR node. This is useful when parsing control plane configuration messages
+/// that use the P4Runtime protocol. These message do only specify the P4Runtime ID and do not
+/// contain typing or naming information on the related IR node.
 class MapP4RuntimeIdtoIR : public Inspector {
  private:
-    P4RuntimeIDtoIRObjectMap idToIrMap;
+    /// The mapping from P4Runtime IDs to IR nodes.
+    P4RuntimeIdtoIrNodeMap idToIrMap;
 
     bool preorder(const IR::P4Table *table) override;
     bool preorder(const IR::Type_Header *hdr) override;
@@ -21,9 +27,8 @@ class MapP4RuntimeIdtoIR : public Inspector {
     bool preorder(const IR::P4Action *action) override;
 
  public:
-    P4RuntimeIDtoIRObjectMap getP4RuntimeIDtoIRObjectMap() const;
-
-    MapP4RuntimeIdtoIR() = default;
+    /// @returns the mapping from P4Runtime IDs to IR nodes.
+    P4RuntimeIdtoIrNodeMap getP4RuntimeIdtoIrNodeMap() const;
 };
 
 }  // namespace P4Tools::Flay

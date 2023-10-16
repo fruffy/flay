@@ -15,13 +15,34 @@
 
 namespace P4Tools::Flay {
 
+/// Parses a Protobuf text message file and converts the instructions contained within into P4C-IR
+/// nodes. These IR-nodes are structure to represent a control-plane configuration that maps to the
+/// semantic data-plane representation of the program.
 class ProtobufDeserializer {
+ private:
+    /// Convert a P4Runtime TableAction into the appropriate symbolic constraint assignments.
+    static void convertTableAction(const p4::v1::Action &tblAction, cstring tableName,
+                                   const IR::P4Action &p4Action,
+                                   ControlPlaneConstraints &controlPlaneConstraints);
+
+    /// Convert a P4Runtime FieldMatch into the appropriate symbolic constraint assignments.
+    static void convertTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
+                                  cstring keyFieldName, const IR::Expression &keyExpr,
+                                  ControlPlaneConstraints &controlPlaneConstraints);
+
+    /// Convert a P4Runtime TableEntry into the appropriate symbolic constraint assignments.
+    static void convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
+                                  const p4::v1::TableEntry &tableEntry,
+                                  ControlPlaneConstraints &controlPlaneConstraints);
+
  public:
+    /// Deserialize a .proto file into a P4Runtime-compliant Protobuf object.
     static flaytests::Config deserializeProtobufConfig(std::filesystem::path inputFile);
 
+    /// Convert a Protobuf Config object into a set of IR-based control-plane constraints. Use the
+    /// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
     static ControlPlaneConstraints convertToControlPlaneConstraints(
-        const flaytests::Config &protoControlPlaneConfig,
-        const P4RuntimeIDtoIRObjectMap &irToIdMap);
+        const flaytests::Config &protoControlPlaneConfig, const P4RuntimeIdtoIrNodeMap &irToIdMap);
 };
 
 }  // namespace P4Tools::Flay

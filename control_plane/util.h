@@ -8,6 +8,7 @@
 
 namespace P4Tools::Flay {
 
+/// The set of constraints imposed by the control plane on the program. Currently just a vector.
 using ControlPlaneConstraints = std::vector<const Constraint *>;
 
 }  // namespace P4Tools::Flay

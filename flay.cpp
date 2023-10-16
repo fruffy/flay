@@ -33,8 +33,6 @@ int Flay::mainImpl(const IR::P4Program *program) {
         return EXIT_FAILURE;
     }
 
-    const auto &flayOptions = FlayOptions::get();
-
     SymbolicExecutor symbex(*programInfo);
     symbex.run();
     const auto &executionState = symbex.getExecutionState();
@@ -45,8 +43,13 @@ int Flay::mainImpl(const IR::P4Program *program) {
         return EXIT_FAILURE;
     }
 
-    ElimDeadCode elim(executionState);
+    const auto &flayOptions = FlayOptions::get();
 
+    // Initialize the dead code eliminator. Use the Z3Solver for now.
+    Z3Solver solver;
+    ElimDeadCode elim(executionState, solver);
+
+    // Gather the initial control-plane configuration from a file input, if present.
     if (flayOptions.hasControlPlaneConfig()) {
         auto &target = FlayTarget::get();
         auto constraintsOpt = target.computeControlPlaneConstraints(*program, flayOptions);

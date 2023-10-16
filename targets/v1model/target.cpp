@@ -93,7 +93,7 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
         if (::errorCount() > 0) {
             return std::nullopt;
         }
-        auto idToIrMap = idMapper.getP4RuntimeIDtoIRObjectMap();
+        auto idToIrMap = idMapper.getP4RuntimeIdtoIrNodeMap();
         auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
         return ProtobufDeserializer::convertToControlPlaneConstraints(deserializedConfig,
                                                                       idToIrMap);

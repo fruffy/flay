@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "backends/p4tools/common/core/z3_solver.h"
+#include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "ir/ir.h"
 #include "ir/node.h"
@@ -12,29 +13,30 @@
 namespace P4Tools::Flay {
 
 class ElimDeadCode : public Transform {
+    /// The computed execution state.
     std::reference_wrapper<const ExecutionState> executionState;
 
-    Z3Solver solver;
+    /// The constraint solver associated with the tool. Currently specialized to Z3.
+    std::reference_wrapper<AbstractSolver> solver;
 
+    /// This flags records whether this class has eliminated dead code.
     bool deletedCode = false;
 
-    std::vector<const IR::Expression *> controlPlaneConstraints;
+    /// The set of active control plane constraints. These constraints are added to every solver
+    /// check to compute feasibility of a program node.
+    ControlPlaneConstraints controlPlaneConstraints;
 
  public:
     ElimDeadCode() = delete;
 
-    explicit ElimDeadCode(const ExecutionState &executionState);
+    explicit ElimDeadCode(const ExecutionState &executionState, AbstractSolver &solver);
 
     const IR::Node *postorder(IR::IfStatement *stmt) override;
-
     void end_apply() override;
 
-    void addControlPlaneConstraints(
-        const std::vector<const IR::Expression *> &newControlPlaneConstraints) {
-        controlPlaneConstraints.insert(controlPlaneConstraints.end(),
-                                       newControlPlaneConstraints.begin(),
-                                       newControlPlaneConstraints.end());
-    }
+    /// Add control plane constraints to the tool. These constraints are added to every
+    /// solver check.
+    void addControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);
 };
 
 }  // namespace P4Tools::Flay
