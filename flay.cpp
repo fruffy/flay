@@ -2,8 +2,6 @@
 
 #include <cstdlib>
 
-#include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
-#include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
@@ -49,21 +47,13 @@ int Flay::mainImpl(const IR::P4Program *program) {
 
     ElimDeadCode elim(executionState);
 
-    auto &target = FlayTarget::get();
-
     if (flayOptions.hasControlPlaneConfig()) {
-        auto confPath = flayOptions.getControlPlaneConfig();
-        if (confPath.extension() == ".proto") {
-            MapP4RuntimeIdtoIR idMapper;
-            program->apply(idMapper);
-            if (::errorCount() > 0) {
-                return EXIT_FAILURE;
-            }
-            auto idToIrMap = idMapper.getP4RuntimeIDtoIRObjectMap();
-            auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
-            auto constraints = ProtobufDeserializer::convertToControlPlaneConstraints(
-                deserializedConfig, idToIrMap);
-            elim.addControlPlaneConstraints(constraints);
+        auto &target = FlayTarget::get();
+        auto constraintsOpt = target.computeControlPlaneConstraints(*program, flayOptions);
+        if (constraintsOpt.has_value()) {
+            elim.addControlPlaneConstraints(constraintsOpt.value());
+        } else {
+            return EXIT_FAILURE;
         }
     }
 

@@ -43,6 +43,11 @@ FlayStepper &FlayTarget::getStepper(const ProgramInfo &programInfo,
     return get().getStepperImpl(programInfo, executionState);
 }
 
+std::optional<ControlPlaneConstraints> FlayTarget::computeControlPlaneConstraints(
+    const IR::P4Program &program, const FlayOptions &options) {
+    return get().computeControlPlaneConstraintsImpl(program, options);
+}
+
 void FlayTarget::argumentsToTypeDeclarations(
     const IR::IGeneralNamespace *ns, const IR::Vector<IR::Argument> *inputArgs,
     std::vector<const IR::Type_Declaration *> &resultDecls) {
