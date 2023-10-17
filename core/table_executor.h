@@ -16,8 +16,6 @@ class ExpressionResolver;
 /// Executes a table and synthesizes control plane action parameters.
 class TableExecutor {
  private:
-    static const IR::Type_Bits ACTION_BIT_TYPE;
-
     /// The table associated with this executor.
     std::reference_wrapper<const IR::P4Table> table;
 

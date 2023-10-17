@@ -6,9 +6,11 @@
 
 #include "backends/p4tools/common/core/target.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
+#include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"
+#include "backends/p4tools/modules/flay/options.h"
 #include "ir/ir.h"
 #include "ir/vector.h"
 
@@ -35,6 +37,10 @@ class FlayTarget : public Target {
     /// @returns a reference to the architecture map defined in this target
     static const ArchSpec *getArchSpec();
 
+    /// @returns the initial control plane constraints as computed by the target and the input file.
+    static std::optional<ControlPlaneConstraints> computeControlPlaneConstraints(
+        const IR::P4Program &program, const FlayOptions &options);
+
  protected:
     /// @see @initProgram.
     const ProgramInfo *initProgramImpl(const IR::P4Program *program) const;
@@ -46,6 +52,10 @@ class FlayTarget : public Target {
     /// @see @initProgram.
     virtual const ProgramInfo *initProgramImpl(const IR::P4Program *program,
                                                const IR::Declaration_Instance *mainDecl) const = 0;
+
+    /// @see @computeControlPlaneConstraints.
+    virtual std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
+        const IR::P4Program &program, const FlayOptions &options) const = 0;
 
     /// @see getArchSpec
     [[nodiscard]] virtual const ArchSpec *getArchSpecImpl() const = 0;

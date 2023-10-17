@@ -4,6 +4,8 @@
 #include <map>
 #include <vector>
 
+#include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
+#include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/targets/v1model/program_info.h"
 #include "backends/p4tools/modules/flay/targets/v1model/stepper.h"
 #include "ir/ir.h"
@@ -80,6 +82,25 @@ const ArchSpec *V1ModelFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; 
 FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
                                                ExecutionState &executionState) const {
     return *new V1ModelFlayStepper(*programInfo.checkedTo<V1ModelProgramInfo>(), executionState);
+}
+
+std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneConstraintsImpl(
+    const IR::P4Program &program, const FlayOptions &options) const {
+    auto confPath = options.getControlPlaneConfig();
+    if (confPath.extension() == ".proto") {
+        MapP4RuntimeIdtoIR idMapper;
+        program.apply(idMapper);
+        if (::errorCount() > 0) {
+            return std::nullopt;
+        }
+        auto idToIrMap = idMapper.getP4RuntimeIdtoIrNodeMap();
+        auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
+        return ProtobufDeserializer::convertToControlPlaneConstraints(deserializedConfig,
+                                                                      idToIrMap);
+    }
+    ::error("Control plane file format %1% not supported for this target.",
+            confPath.extension().c_str());
+    return std::nullopt;
 }
 
 }  // namespace P4Tools::Flay::V1Model

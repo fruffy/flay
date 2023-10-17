@@ -1,0 +1,146 @@
+# A P4TestGen-generated test case for basic_routing-bmv2.p4
+metadata: "p4testgen seed: none"
+metadata: "Date generated: 2023-10-13-11:26:50.623"
+metadata: "Current node coverage: nan"
+
+entities : [
+  # Table ingress.port_mapping
+  {
+    table_entry {
+      table_id: 39645634
+      # Match field standard_metadata.ingress_port
+      match {
+        field_id: 1
+        exact {
+          value: "\x00\x00"
+        }
+      }
+      # Action ingress.set_bd
+      action {
+        action {
+          action_id: 27500220
+          # Param bd
+          params {
+            param_id: 1
+            value: "\x00\x00"
+          }
+        }
+      }
+    }
+  },
+  # Table ingress.bd
+  {
+    table_entry {
+      table_id: 48392551
+      # Match field meta.ingress_metadata.bd
+      match {
+        field_id: 1
+        exact {
+          value: "\x00\x00"
+        }
+      }
+      # Action ingress.set_vrf
+      action {
+        action {
+          action_id: 33505590
+          # Param vrf
+          params {
+            param_id: 1
+            value: "\x00\x00"
+          }
+        }
+      }
+    }
+  },
+  # Table ingress.ipv4_fib
+  {
+    table_entry {
+      table_id: 41084491
+      # Match field hdr.ipv4.dstAddr
+      match {
+        field_id: 2
+        exact {
+          value: "\xFF\xFF\xFF\xFF"
+        }
+      }
+      # Match field meta.ingress_metadata.vrf
+      match {
+        field_id: 1
+        exact {
+          value: "\x00\x00"
+        }
+      }
+      # Action ingress.on_miss
+      action {
+        action {
+          action_id: 22594144
+        }
+      }
+    }
+  },
+  # Table ingress.ipv4_fib_lpm
+  {
+    table_entry {
+      table_id: 42875950
+      # Match field meta.ingress_metadata.vrf
+      match {
+        field_id: 1
+        exact {
+          value: "\x00\x00"
+        }
+      }
+      # Match field hdr.ipv4.dstAddr
+      match {
+        field_id: 2
+        lpm {
+          value: "\xFF\xFF\xFF\xFF"
+          prefix_len: 32
+        }
+      }
+      # Action ingress.on_miss
+      action {
+        action {
+          action_id: 22594144
+        }
+      }
+    }
+  },
+  # Table ingress.nexthop
+  {
+    table_entry {
+      table_id: 43581057
+      # Match field meta.ingress_metadata.nexthop_index
+      match {
+        field_id: 1
+        exact {
+          value: "\x00\x00"
+        }
+      }
+      # Action ingress.on_miss
+      action {
+        action {
+          action_id: 22594144
+        }
+      }
+    }
+  },
+  # Table egress.rewrite_mac
+  {
+    table_entry {
+      table_id: 40309161
+      # Match field meta.ingress_metadata.nexthop_index
+      match {
+        field_id: 1
+        exact {
+          value: "\x00\x00"
+        }
+      }
+      # Action egress.on_miss
+      action {
+        action {
+          action_id: 28864280
+        }
+      }
+    }
+  }
+]

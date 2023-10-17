@@ -43,7 +43,24 @@ int Flay::mainImpl(const IR::P4Program *program) {
         return EXIT_FAILURE;
     }
 
-    ElimDeadCode elim(executionState);
+    const auto &flayOptions = FlayOptions::get();
+
+    // Initialize the dead code eliminator. Use the Z3Solver for now.
+    Z3Solver solver;
+    ElimDeadCode elim(executionState, solver);
+
+    // Gather the initial control-plane configuration from a file input, if present.
+    if (flayOptions.hasControlPlaneConfig()) {
+        auto &target = FlayTarget::get();
+        auto constraintsOpt = target.computeControlPlaneConstraints(*program, flayOptions);
+        if (constraintsOpt.has_value()) {
+            elim.addControlPlaneConstraints(constraintsOpt.value());
+        } else {
+            return EXIT_FAILURE;
+        }
+    }
+
+    printf("Checking whether dead code can be removed...\n");
     freshProgram = freshProgram->apply(elim);
     // P4::ToP4 toP4;
     // program->apply(toP4);

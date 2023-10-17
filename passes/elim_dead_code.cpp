@@ -8,7 +8,8 @@
 
 namespace P4Tools::Flay {
 
-ElimDeadCode::ElimDeadCode(const ExecutionState &executionState) : executionState(executionState) {}
+ElimDeadCode::ElimDeadCode(const ExecutionState &executionState, AbstractSolver &solver)
+    : executionState(executionState), solver(solver) {}
 
 const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
     const auto *condition = executionState.get().getReachabilityCondition(stmt, false);
@@ -21,7 +22,11 @@ const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
         return stmt;
     }
 
-    auto solverResult = solver.checkSat({condition});
+    /// Merge the execution condition with the overall constraints.
+    std::vector<const Constraint *> mergedConstraints(controlPlaneConstraints);
+    mergedConstraints.push_back(condition);
+
+    auto solverResult = solver.get().checkSat(mergedConstraints);
     if (solverResult == std::nullopt) {
         return stmt;
     }
@@ -44,6 +49,13 @@ void ElimDeadCode::end_apply() {
     } else {
         printf("No dead code found.\n");
     }
+}
+
+void ElimDeadCode::addControlPlaneConstraints(
+    const ControlPlaneConstraints &newControlPlaneConstraints) {
+    controlPlaneConstraints.insert(controlPlaneConstraints.end(),
+                                   newControlPlaneConstraints.begin(),
+                                   newControlPlaneConstraints.end());
 }
 
 }  // namespace P4Tools::Flay
