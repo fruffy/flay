@@ -12,6 +12,7 @@
 #include "ir/ir.h"
 #include "ir/pass_manager.h"
 #include "ir/visitor.h"
+#include "midend/booleanKeys.h"
 #include "midend/convertEnums.h"
 #include "midend/convertErrors.h"
 #include "midend/eliminateNewtype.h"
@@ -97,6 +98,8 @@ MidEnd V1ModelCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
             refMap, typeMap, new P4::ControlPlaneAPI::Standard::V1ModelArchHandlerBuilder()),
         // Convert Type_Varbits into a type that contains information about the assigned width.
         new ConvertVarbits(),
+        // Cast all boolean table keys with a bit<1>.
+        new P4::CastBooleanTableKeys(),
     });
     return midEnd;
 }

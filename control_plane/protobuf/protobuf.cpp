@@ -41,26 +41,31 @@ void ProtobufDeserializer::convertTableMatch(const p4::v1::FieldMatch &field, cs
     auto keySymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, keyName);
     if (field.has_exact()) {
         auto value = protoValueToBigInt(field.exact().value());
-        controlPlaneConstraints.emplace_back(
-            new IR::Equ(keySymbol, new IR::Constant(keyExpr.type, value)));
+        if (keyExpr.type->is<IR::Type_Boolean>()) {
+            controlPlaneConstraints.emplace_back(
+                new IR::Equ(keySymbol, new IR::BoolLiteral(value == 1)));
+        } else {
+            controlPlaneConstraints.emplace_back(
+                new IR::Equ(keySymbol, IR::getConstant(keyExpr.type, value)));
+        }
     } else if (field.has_lpm()) {
         cstring prefixName = tableName + "_lpm_prefix_" + keyFieldName;
         auto maskSymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, prefixName);
         auto value = protoValueToBigInt(field.lpm().value());
         int prefix = field.lpm().prefix_len();
         controlPlaneConstraints.emplace_back(
-            new IR::Equ(keySymbol, new IR::Constant(keyExpr.type, value)));
+            new IR::Equ(keySymbol, IR::getConstant(keyExpr.type, value)));
         controlPlaneConstraints.emplace_back(
-            new IR::Equ(maskSymbol, new IR::Constant(keyExpr.type, prefix)));
+            new IR::Equ(maskSymbol, IR::getConstant(keyExpr.type, prefix)));
     } else if (field.has_ternary()) {
         cstring maskName = tableName + "_mask_" + keyFieldName;
         auto maskSymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, maskName);
         auto value = protoValueToBigInt(field.ternary().value());
         auto mask = protoValueToBigInt(field.ternary().mask());
         controlPlaneConstraints.emplace_back(
-            new IR::Equ(keySymbol, new IR::Constant(keyExpr.type, value)));
+            new IR::Equ(keySymbol, IR::getConstant(keyExpr.type, value)));
         controlPlaneConstraints.emplace_back(
-            new IR::Equ(maskSymbol, new IR::Constant(keyExpr.type, mask)));
+            new IR::Equ(maskSymbol, IR::getConstant(keyExpr.type, mask)));
     } else {
         P4C_UNIMPLEMENTED("Unsupported table match type %1%.", field.DebugString().c_str());
     }
@@ -84,7 +89,7 @@ void ProtobufDeserializer::convertTableAction(const p4::v1::Action &tblAction, c
         big_int value;
         auto fieldString = paramConfig.value();
         boost::multiprecision::import_bits(value, fieldString.begin(), fieldString.end());
-        const auto *actionVal = new IR::Constant(param->type, value);
+        const auto *actionVal = IR::getConstant(param->type, value);
         controlPlaneConstraints.emplace_back(new IR::Equ(actionArg, actionVal));
     }
 }
@@ -97,10 +102,17 @@ void ProtobufDeserializer::convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToI
     auto tableName = tbl->controlPlaneName();
 
     auto key = tbl->getKey();
-    CHECK_NULL(key);
+    std::map<uint32_t, const IR::KeyElement *> idMap;
+    for (auto keyElement : key->keyElements) {
+        const auto *idAnno = keyElement->getAnnotation("id");
+        CHECK_NULL(idAnno);
+        uint32_t idx = idAnno->expr.at(0)->checkedTo<IR::Constant>()->asUnsigned();
+        idMap.emplace(idx, keyElement);
+    }
+
     for (auto field : tableEntry.match()) {
         auto fieldId = field.field_id();
-        auto keyField = key->keyElements.at(fieldId - 1);
+        auto keyField = idMap.at(fieldId);
         const auto *keyExpr = keyField->expression;
         const auto *nameAnnot = keyField->getAnnotation("name");
         // Some hidden tables do not have any key name annotations.

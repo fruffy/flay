@@ -384,6 +384,122 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"receiver", "data"},
          [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
         /* ======================================================================================
+         *  clone_preserving_field_list
+         *  Calling clone_preserving_field_list during execution of the ingress
+         *  or egress control will cause the packet to be cloned, sometimes
+         *  also called mirroring, i.e. zero or more copies of the packet are
+         *  made, and each will later begin egress processing as an independent
+         *  packet from the original packet.  The original packet continues
+         *  with its normal next steps independent of the clone(s).
+         *
+         *  The session parameter is an integer identifying a clone session id
+         *  (sometimes called a mirror session id).  The control plane software
+         *  must configure each session you wish to use, or else no clones will
+         *  be made using that session.  Typically this will involve the
+         *  control plane software specifying one output port to which the
+         *  cloned packet should be sent, or a list of (port, egress_rid) pairs
+         *  to which a separate clone should be created for each, similar to
+         *  multicast packets.
+         *
+         *  Cloned packets can be distinguished from others by the value of the
+         *  standard_metadata instance_type field.
+         *
+         *  The user metadata fields that are tagged with @field_list(index) will be
+         *  sent to the parser together with a clone of the packet.
+         *
+         *  If clone_preserving_field_list is called during ingress processing,
+         *  the first parameter must be CloneType.I2E.  If
+         *  clone_preserving_field_list is called during egress processing, the
+         *  first parameter must be CloneType.E2E.
+         *
+         *  There is no way to undo its effects once it has been called.  If
+         *  there are multiple calls to clone_preserving_field_list and/or
+         *  clone during a single execution of the same ingress (or egress)
+         *  control, only the last clone session and index are used.  See the
+         *  v1model architecture documentation (Note 1) for more details.
+         * ======================================================================================
+         */
+        {"*method.clone_preserving_field_list",
+         {"type", "session", "data"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+        /* ======================================================================================
+         *  resubmit_preserving_field_list
+         *  Calling resubmit_preserving_field_list during execution of the
+         *  ingress control will cause the packet to be resubmitted, i.e. it
+         *  will begin processing again with the parser, with the contents of
+         *  the packet exactly as they were when it last began parsing.  The
+         *  only difference is in the value of the standard_metadata
+         *  instance_type field, and any user-defined metadata fields that the
+         *  resubmit_preserving_field_list operation causes to be preserved.
+         *
+         *  The user metadata fields that are tagged with @field_list(index) will
+         *  be sent to the parser together with the packet.
+         *
+         *  Calling resubmit_preserving_field_list is only supported in the
+         *  ingress control.  There is no way to undo its effects once it has
+         *  been called.  If resubmit_preserving_field_list is called multiple
+         *  times during a single execution of the ingress control, only one
+         *  packet is resubmitted, and only the user-defined metadata fields
+         *  specified by the field list index from the last such call are
+         *  preserved.  See the v1model architecture documentation (Note 1) for
+         *  more details.
+         *
+         *  For example, the user metadata fields can be annotated as follows:
+         *  struct UM {
+         *     @field_list(1)
+         *     bit<32> x;
+         *     @field_list(1, 2)
+         *     bit<32> y;
+         *     bit<32> z;
+         *  }
+         *
+         *  Calling resubmit_preserving_field_list(1) will resubmit the packet
+         *  and preserve fields x and y of the user metadata.  Calling
+         *  resubmit_preserving_field_list(2) will only preserve field y.
+         * ======================================================================================
+         */
+        {"*method.resubmit_preserving_field_list",
+         {"data"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+        /* ======================================================================================
+         *  recirculate_preserving_field_list
+         * Calling recirculate_preserving_field_list during execution of the
+         * egress control will cause the packet to be recirculated, i.e. it
+         * will begin processing again with the parser, with the contents of
+         * the packet as they are created by the deparser.  Recirculated
+         * packets can be distinguished from new packets in ingress processing
+         * by the value of the standard_metadata instance_type field.  The
+         * caller may request that some user-defined metadata fields be
+         * preserved with the recirculated packet.
+         * The user metadata fields that are tagged with @field_list(index) will be
+         * sent to the parser together with the packet.
+         * Calling recirculate_preserving_field_list is only supported in the
+         * egress control.  There is no way to undo its effects once it has
+         * been called.  If recirculate_preserving_field_list is called
+         * multiple times during a single execution of the egress control,
+         * only one packet is recirculated, and only the user-defined metadata
+         * fields specified by the field list index from the last such call
+         * are preserved.  See the v1model architecture documentation (Note 1)
+         * for more details.
+         * ======================================================================================
+         */
+        {"*method.recirculate_preserving_field_list",
+         {"index"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+        /* ======================================================================================
+         *  clone
+         *  clone is in most ways identical to the clone_preserving_field_list
+         *  operation, with the only difference being that it never preserves
+         *  any user-defined metadata fields with the cloned packet.  It is
+         *  equivalent to calling clone_preserving_field_list with the same
+         *  type and session parameter values, with empty data.
+         * ======================================================================================
+         */
+        {"*method.clone",
+         {"type", "session"},
+         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+
+        /* ======================================================================================
          *  hash
          *  Calculate a hash function of the value specified by the data
          *  parameter.  The value written to the out parameter named result

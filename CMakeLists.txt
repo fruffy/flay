@@ -89,7 +89,7 @@ foreach(ext ${flay_targets})
 endforeach(ext)
 
 # Propagate def files set by target extensions upwards.
-set(IR_DEF_FILES ${IR_DEF_FILES} PARENT_SCOPE)
+set(IR_DEF_FILES ${IR_DEF_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/flay.def PARENT_SCOPE)
 
 # Convert the list of files into #includes
 foreach(include_file ${include_files})

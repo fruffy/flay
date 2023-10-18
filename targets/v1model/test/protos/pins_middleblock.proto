@@ -1,0 +1,325 @@
+# A P4TestGen-generated test case for pins_middleblock.p4
+metadata: "p4testgen seed: none"
+metadata: "Date generated: 2023-10-18-14:03:20.477"
+metadata: "Current node coverage: nan"
+
+
+input_packet {
+  packet: "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x08\x00\x00\xFF\x00\x00\x00\x00\x00\x00\x01\x01\xFD\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE\x00\x00\x00"
+  port: 511
+}
+
+
+entities : [
+  # Table ingress.acl_pre_ingress.acl_pre_ingress_table
+  {
+    table_entry {
+      table_id: 33554689
+      priority: 1
+      # Match field dscp
+      match {
+        field_id: 7
+        ternary {
+          value: "\x3F"
+          mask: "\x00"
+        }
+      }
+      # Match field dst_ip
+      match {
+        field_id: 5
+        ternary {
+          value: "\x00\x00\x00\x00"
+          mask: "\x00\x00\x00\x00"
+        }
+      }
+      # Match field dst_ipv6
+      match {
+        field_id: 6
+        ternary {
+          value: "\x00\x00\x00\x00\x00\x00\x00\x00"
+          mask: "\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+      }
+      # Match field in_port
+      match {
+        field_id: 8
+        ternary {
+          value: "\x01\xFF"
+          mask: "\x00\x00"
+        }
+      }
+      # Match field is_ip
+      match {
+        field_id: 1
+        ternary {
+          value: "\x01"
+          mask: "\x00"
+        }
+      }
+      # Match field is_ipv4
+      match {
+        field_id: 2
+        ternary {
+          value: "\x00"
+          mask: "\x00"
+        }
+      }
+      # Match field is_ipv6
+      match {
+        field_id: 3
+        ternary {
+          value: "\x00"
+          mask: "\x00"
+        }
+      }
+      # Match field src_mac
+      match {
+        field_id: 4
+        ternary {
+          value: "\xFF\xFF\xFF\xFF\xFF\xFF"
+          mask: "\x00\x00\x00\x00\x00\x00"
+        }
+      }
+      # Action ingress.acl_pre_ingress.set_vrf
+      action {
+        action {
+          action_id: 16777472
+          # Param vrf_id
+          params {
+            param_id: 1
+            value: "\x00\x01"
+          }
+        }
+      }
+    }
+  },
+  # Table ingress.l3_admit.l3_admit_table
+  {
+    table_entry {
+      table_id: 33554503
+      priority: 1
+      # Match field dst_mac
+      match {
+        field_id: 1
+        ternary {
+          value: "\xFF\xFF\xFF\xFF\xFF\xFF"
+          mask: "\x00\x00\x00\x00\x00\x00"
+        }
+      }
+      # Match field in_port
+      match {
+        field_id: 2
+        ternary {
+          value: "\x01\xFF"
+          mask: "\x00\x00"
+        }
+      }
+      # Action ingress.l3_admit.admit_to_l3
+      action {
+        action {
+          action_id: 16777224
+        }
+      }
+    }
+  },
+  # Table ingress.routing.vrf_table
+  {
+    table_entry {
+      table_id: 33554506
+      # Match field vrf_id
+      match {
+        field_id: 1
+        exact {
+          value: "\x00\x01"
+        }
+      }
+      # Action ingress.routing.no_action
+      action {
+        action {
+          action_id: 24742814
+        }
+      }
+    }
+  },
+  # Table ingress.routing.ipv4_table
+  {
+    table_entry {
+      table_id: 33554500
+      # Match field vrf_id
+      match {
+        field_id: 1
+        exact {
+          value: "\x00\x01"
+        }
+      }
+      # Match field ipv4_dst
+      match {
+        field_id: 2
+        lpm {
+          value: "\xFF\xFF\xFF\xFF"
+          prefix_len: 32
+        }
+      }
+      # Action ingress.routing.drop
+      action {
+        action {
+          action_id: 16777222
+        }
+      }
+    }
+  },
+  # Table ingress.acl_ingress.acl_ingress_table
+  {
+    table_entry {
+      table_id: 33554688
+      priority: 1
+      # Match field arp_tpa
+      match {
+        field_id: 16
+        ternary {
+          value: "\x00\x00\x00\x00"
+          mask: "\x00\x00\x00\x00"
+        }
+      }
+      # Match field dscp
+      match {
+        field_id: 11
+        ternary {
+          value: "\x3F"
+          mask: "\x00"
+        }
+      }
+      # Match field dst_ip
+      match {
+        field_id: 7
+        ternary {
+          value: "\x00\x00\x00\x00"
+          mask: "\x00\x00\x00\x00"
+        }
+      }
+      # Match field dst_ipv6
+      match {
+        field_id: 9
+        ternary {
+          value: "\x00\x00\x00\x00\x00\x00\x00\x00"
+          mask: "\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+      }
+      # Match field dst_mac
+      match {
+        field_id: 5
+        ternary {
+          value: "\xFF\xFF\xFF\xFF\xFF\xFF"
+          mask: "\x00\x00\x00\x00\x00\x00"
+        }
+      }
+      # Match field ecn
+      match {
+        field_id: 12
+        ternary {
+          value: "\x03"
+          mask: "\x00"
+        }
+      }
+      # Match field ether_type
+      match {
+        field_id: 4
+        ternary {
+          value: "\x00\x00"
+          mask: "\x00\x00"
+        }
+      }
+      # Match field icmpv6_type
+      match {
+        field_id: 14
+        ternary {
+          value: "\x00"
+          mask: "\x00"
+        }
+      }
+      # Match field ip_protocol
+      match {
+        field_id: 13
+        ternary {
+          value: "\x01"
+          mask: "\x00"
+        }
+      }
+      # Match field is_ip
+      match {
+        field_id: 1
+        ternary {
+          value: "\x01"
+          mask: "\x00"
+        }
+      }
+      # Match field is_ipv4
+      match {
+        field_id: 2
+        ternary {
+          value: "\x00"
+          mask: "\x00"
+        }
+      }
+      # Match field is_ipv6
+      match {
+        field_id: 3
+        ternary {
+          value: "\x00"
+          mask: "\x00"
+        }
+      }
+      # Match field l4_dst_port
+      match {
+        field_id: 15
+        ternary {
+          value: "\x00\x00"
+          mask: "\x00\x00"
+        }
+      }
+      # Match field l4_src_port
+      match {
+        field_id: 20
+        ternary {
+          value: "\x00\x00"
+          mask: "\x00\x00"
+        }
+      }
+      # Match field src_ip
+      match {
+        field_id: 6
+        ternary {
+          value: "\xFF\xFF\xFF\xFF"
+          mask: "\x00\x00\x00\x00"
+        }
+      }
+      # Match field src_ipv6
+      match {
+        field_id: 8
+        ternary {
+          value: "\x00\x00\x00\x00\x00\x00\x00\x00"
+          mask: "\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+      }
+      # Match field ttl
+      match {
+        field_id: 10
+        ternary {
+          value: "\x01"
+          mask: "\x00"
+        }
+      }
+      # Action ingress.acl_ingress.acl_copy
+      action {
+        action {
+          action_id: 16777473
+          # Param qos_queue
+          params {
+            param_id: 1
+            value: "\x00"
+          }
+        }
+      }
+    }
+  }
+]

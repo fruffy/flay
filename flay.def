@@ -1,0 +1,24 @@
+/// Signifies a placeholder variable which is later converted into an actual value.
+/// These placeholders are necessary to handle constructs such as recirculation or cloning.
+class PlaceHolder : Expression {
+#noconstructor
+
+    /// The label of the placeholder.
+    cstring label;
+
+    /// The default value of the placeholder.
+    IR::Expression defaultValue;
+
+    /// A symbolic variable always has a default value, and no source info.
+    PlaceHolder(cstring label, Expression defaultValue) : Expression(defaultValue->type), label(label), defaultValue(defaultValue) {}
+
+    /// Implements comparisons so that PlaceHolders can be used as map keys.
+    /// The default value is ignored.
+    bool operator<(const PlaceHolder &other) const {
+        return label < other.label;
+    }
+
+    toString { return "@" + label +"(" + type->toString() + ")@"; }
+
+    dbprint { out << "@" + label +"(" << type << ")@"; }
+}
