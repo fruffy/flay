@@ -20,21 +20,6 @@ p4tools_add_xfail_reason(
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "Unknown or unimplemented extern method: .*"
-  pins_fabric.p4  # Unknown or unimplemented extern method: *method.clone
-  pins_middleblock.p4  # Unknown or unimplemented extern method: *method.clone
-  pins_wbb.p4  # Unknown or unimplemented extern method: *method.clone
-  issue1001-1-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
-  issue1001-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
-  issue1642-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
-  issue1653-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
-  issue1660-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
-  issue1765-1-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
-  issue383-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
-  issue562-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
-  issue1653-complex-bmv2.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
-  issue1043-bmv2.p4  # Unknown or unimplemented extern method: *method.resubmit_preserving_field_list
-  v1model-special-ops-bmv2.p4  # Unknown or unimplemented extern method: *method.resubmit_preserving_field_list
-  up4.p4  # Unknown or unimplemented extern method: *method.clone_preserving_field_list
 )
 
 # These are custom externs we do not implement.

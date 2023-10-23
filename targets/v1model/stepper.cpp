@@ -31,13 +31,14 @@ void V1ModelFlayStepper::initializeState() {
         executionState.initializeBlockParams(target, typeDecl, &archMember->blockParams);
         blockIdx++;
     }
-    const auto *thirtyTwoBitType = IR::getBitType(32);
 
+    // const auto *thirtyTwoBitType = IR::getBitType(32);
     // // Initialize instance_type with a place holder.
     // const auto *instanceTypeVar = new IR::Member(
     //     thirtyTwoBitType, new IR::PathExpression("*standard_metadata"), "instance_type");
     // executionState.set(instanceTypeVar,
-    //                    new IR::PlaceHolder("instance_type", IR::getConstant(thirtyTwoBitType, 0)));
+    //                    new IR::PlaceHolder("instance_type", IR::getConstant(thirtyTwoBitType,
+    //                    0)));
 }
 
 V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::V1ModelProgramInfo &programInfo,
