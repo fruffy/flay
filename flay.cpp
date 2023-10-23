@@ -46,9 +46,11 @@ int Flay::mainImpl(const IR::P4Program *program) {
 
     const auto &flayOptions = FlayOptions::get();
 
+    printf("Substituting placeholder variables...\n");
+    auto &substitutedExecutionState = executionState.substitutePlaceHolders();
     // Initialize the dead code eliminator. Use the Z3Solver for now.
     Z3Solver solver;
-    ElimDeadCode elim(executionState, solver);
+    ElimDeadCode elim(substitutedExecutionState, solver);
 
     // Gather the initial control-plane configuration from a file input, if present.
     if (flayOptions.hasControlPlaneConfig()) {

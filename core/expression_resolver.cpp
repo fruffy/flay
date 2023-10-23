@@ -299,7 +299,7 @@ bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
 }
 
 bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
-    auto &executionState = getExecutionState();
+    auto &state = getExecutionState();
 
     // Handle method calls. These are either table invocations or extern calls.
     if (call->method->type->is<IR::Type_Method>()) {
@@ -307,9 +307,8 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
         if (const auto *path = call->method->to<IR::PathExpression>()) {
             static auto METHOD_DUMMY =
                 IR::PathExpression(new IR::Type_Extern("*method"), new IR::Path("*method"));
-            ExternMethodImpls::ExternInfo externInfo(
+            result = processExtern(
                 {*call, METHOD_DUMMY, path->path->name, call->arguments, executionState});
-            result = processExtern(externInfo);
             return false;
         }
 
@@ -323,14 +322,13 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
             if (method->expr->type->is<IR::Type_Extern>() ||
                 method->expr->type->is<IR::Type_SpecializedCanonical>()) {
                 const auto *path = method->expr->checkedTo<IR::PathExpression>();
-                ExternMethodImpls::ExternInfo externInfo(
-                    {*call, *path, method->member, call->arguments, executionState});
-                result = processExtern(externInfo);
+                result =
+                    processExtern({*call, *path, method->member, call->arguments, executionState});
                 return false;
             }
 
             // Handle table calls.
-            if (const auto *table = executionState.findTable(method)) {
+            if (const auto *table = state.findTable(method)) {
                 result = processTable(table);
                 return false;
             }
@@ -340,17 +338,17 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
                 method->expr->type->is<IR::Type_HeaderUnion>()) {
                 if (method->member == "setValid") {
                     const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
-                    executionState.set(headerRefValidity, IR::getBoolLiteral(true));
+                    state.set(headerRefValidity, IR::getBoolLiteral(true));
                     return false;
                 }
                 if (method->member == "setInvalid") {
                     const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
-                    executionState.set(headerRefValidity, IR::getBoolLiteral(false));
+                    state.set(headerRefValidity, IR::getBoolLiteral(false));
                     return false;
                 }
                 if (method->member == "isValid") {
                     const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
-                    result = executionState.get(headerRefValidity);
+                    result = state.get(headerRefValidity);
                     return false;
                 }
                 P4C_UNIMPLEMENTED("Unknown method call on header instance: %1%", call);
@@ -365,7 +363,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     } else if (call->method->type->is<IR::Type_Action>()) {
         // Handle action calls. Actions are called by tables and are not inlined, unlike
         // functions.
-        const auto *actionType = executionState.getP4Action(call);
+        const auto *actionType = state.getP4Action(call);
         TableExecutor::callAction(programInfo, executionState, actionType, *call->arguments);
         return false;
     }
@@ -405,16 +403,17 @@ const IR::Expression *createSymbolicExpression(const ExecutionState &state,
  *  Extern implementations
  * ============================================================================================= */
 
-const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::ExternInfo &externInfo) {
+const IR::Expression *ExpressionResolver::processExtern(
+    const ExternMethodImpls::ExternInfo &externInfo) {
     // Provides implementations of P4 core externs.
     static const ExternMethodImpls EXTERN_METHOD_IMPLS({
         {"packet_in.extract",
          {"hdr"},
-         [](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
              const auto *args = externInfo.externArgs;
              const auto &externObjectRef = externInfo.externObjectRef;
              const auto &methodName = externInfo.methodName;
-             auto &state = externInfo.state;
+             auto &state = getExecutionState();
 
              // This argument is the structure being written by the extract.
              const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
@@ -437,11 +436,11 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
          }},
         {"packet_in.extract",
          {"hdr", "sizeInBits"},
-         [](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
              const auto *args = externInfo.externArgs;
              const auto &externObjectRef = externInfo.externObjectRef;
              const auto &methodName = externInfo.methodName;
-             auto &state = externInfo.state;
+             auto &state = getExecutionState();
 
              // This argument is the structure being written by the extract.
              const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
@@ -476,7 +475,8 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
          }},
         {"packet_in.lookahead",
          {},
-         [](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = getExecutionState();
              const auto *typeArgs = externInfo.originalCall.typeArguments;
              BUG_CHECK(typeArgs->size() == 1, "Lookahead should have exactly one type argument.");
              // TODO: We currently just create a dummy variable, but this is not correct.
@@ -487,17 +487,17 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
              const auto &methodName = externInfo.methodName;
              auto lookaheadLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
                                    std::to_string(externInfo.originalCall.clone_id);
-             return createSymbolicExpression(externInfo.state, lookaheadType, lookaheadLabel, 0);
+             return createSymbolicExpression(state, lookaheadType, lookaheadLabel, 0);
          }},
         {"packet_in.advance",
          {"sizeInBits"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
              // Advance is a no-op for now.
              return nullptr;
          }},
         {"packet_out.emit",
          {"hdr"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
              // Emit is a no-op for now.
              return nullptr;
          }},
@@ -513,7 +513,7 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
          */
         {"*method.verify",
          {"bool", "error"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
              // TODO: Implement the error case.
              return nullptr;
          }},
@@ -521,7 +521,7 @@ const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::Exter
     auto method = EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
                                            externInfo.externArgs);
     if (method.has_value()) {
-        return method.value()(externInfo);
+        return std::bind(method.value(), std::ref(externInfo))();
     }
     P4C_UNIMPLEMENTED("Unknown or unimplemented extern method: %1%.%2%",
                       externInfo.externObjectRef.toString(), externInfo.methodName);

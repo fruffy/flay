@@ -29,12 +29,13 @@ const IR::Expression *V1ModelExpressionResolver::processTable(const IR::P4Table 
 }
 
 const IR::Expression *V1ModelExpressionResolver::processExtern(
-    ExternMethodImpls::ExternInfo &externInfo) {
+    const ExternMethodImpls::ExternInfo &externInfo) {
     // Provides implementations of BMv2 externs.
     static const ExternMethodImpls EXTERN_METHOD_IMPLS({
         {"*method.mark_to_drop",
          {"standard_metadata"},
-         [](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = getExecutionState();
              const auto *nineBitType = IR::getBitType(9);
              const auto *metadataLabel = externInfo.externArgs->at(0)->expression;
              if (!(metadataLabel->is<IR::Member>() || metadataLabel->is<IR::PathExpression>())) {
@@ -44,8 +45,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
              // Use an assignment to set egress_spec to true.
              // This variable will be processed in the deparser.
              const auto *portVar = new IR::Member(nineBitType, metadataLabel, "egress_spec");
-             externInfo.state.set(portVar,
-                                  IR::getConstant(nineBitType, V1ModelConstants::DROP_PORT));
+             state.set(portVar, IR::getConstant(nineBitType, V1ModelConstants::DROP_PORT));
              return nullptr;
          }},
         /* ======================================================================================
@@ -56,14 +56,15 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.random",
          {"result", "lo", "hi"},
-         [](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = getExecutionState();
              const auto *resultField = externInfo.externArgs->at(0)->expression;
              const auto &fieldRef = ToolsVariables::convertReference(resultField);
              auto randomLabel = externInfo.externObjectRef.path->toString() + "_" +
                                 externInfo.methodName + "_" +
                                 std::to_string(externInfo.originalCall.clone_id);
-             externInfo.state.set(
-                 fieldRef, ToolsVariables::getSymbolicVariable(resultField->type, randomLabel));
+             state.set(fieldRef,
+                       ToolsVariables::getSymbolicVariable(resultField->type, randomLabel));
              return nullptr;
          }},
         /* ======================================================================================
@@ -75,7 +76,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.log_msg",
          {"msg", "args"},
-         [this](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
              // Log msg is a no-op, but we still evaluate the arguments.
              computeResult(externInfo.externArgs->at(1)->expression);
              return nullptr;
@@ -89,7 +90,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.log_msg",
          {"msg"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
              // Log msg is a no-op.
              return nullptr;
          }},
@@ -125,7 +126,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.assume",
          {"check"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
              // TODO: Consider the exit case?
              return nullptr;
          }},
@@ -154,7 +155,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.assert",
          {"check"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
              // TODO: Consider the exit case?
              return nullptr;
          }},
@@ -186,7 +187,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"register.write",
          {"index", "value"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
              // TODO: Implement and actually keep track of the writes.
              return nullptr;
          }},
@@ -210,7 +211,8 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"register.read",
          {"result", "index"},
-         [this](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = getExecutionState();
              // TODO: Implement and actually keep track of the writes.
              const auto &resultVar =
                  ToolsVariables::convertReference(externInfo.externArgs->at(0)->expression);
@@ -222,7 +224,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
                                   std::to_string(externInfo.originalCall.clone_id);
              const auto *hashCalc =
                  ToolsVariables::getSymbolicVariable(resultVar->type, registerLabel);
-             externInfo.state.set(resultVar, hashCalc);
+             state.set(resultVar, hashCalc);
              return nullptr;
          }},
         /* ======================================================================================
@@ -254,7 +256,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"counter.count",
          {"index"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
         /* ======================================================================================
          *  direct_counter.count
          *  A direct_counter object is created by calling its constructor.
@@ -285,7 +287,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
         // TODO: Count currently has no effect in the symbolic interpreter.
         {"direct_counter.count",
          {},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
         /* ======================================================================================
          *  meter.execute_meter
          *  A meter object is created by calling its constructor.  This
@@ -320,7 +322,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"meter.execute_meter",
          {"index", "result"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
         /* ======================================================================================
          *  direct_meter.read
          *  A direct_meter object is created by calling its constructor.
@@ -354,7 +356,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"direct_meter.read",
          {"result"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
         /* ======================================================================================
          *  digest
          *  Calling digest causes a message containing the values specified in
@@ -382,7 +384,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.digest",
          {"receiver", "data"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
         /* ======================================================================================
          *  clone_preserving_field_list
          *  Calling clone_preserving_field_list during execution of the ingress
@@ -421,7 +423,18 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.clone_preserving_field_list",
          {"type", "session", "data"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+         [&](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
+             auto &state = getExecutionState();
+
+             const auto *thirtyTwoBitType = IR::getBitType(32);
+             // Initialize instance_type with a place holder.
+             const auto *instanceTypeVar =
+                 new IR::Member(thirtyTwoBitType, new IR::PathExpression("*placeholder"),
+                                "standard_metadata.instance_type");
+             state.set(instanceTypeVar,
+                       ToolsVariables::getSymbolicVariable(thirtyTwoBitType, "is_recirculated"));
+             return nullptr;
+         }},
         /* ======================================================================================
          *  resubmit_preserving_field_list
          *  Calling resubmit_preserving_field_list during execution of the
@@ -460,7 +473,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.resubmit_preserving_field_list",
          {"data"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+         [&](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
         /* ======================================================================================
          *  recirculate_preserving_field_list
          * Calling recirculate_preserving_field_list during execution of the
@@ -485,7 +498,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.recirculate_preserving_field_list",
          {"index"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+         [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
         /* ======================================================================================
          *  clone
          *  clone is in most ways identical to the clone_preserving_field_list
@@ -497,7 +510,17 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.clone",
          {"type", "session"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
+         [this](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
+             auto &state = getExecutionState();
+             const auto *thirtyTwoBitType = IR::getBitType(32);
+             // Initialize instance_type with a place holder.
+             const auto *instanceTypeVar =
+                 new IR::Member(thirtyTwoBitType, new IR::PathExpression("*placeholder"),
+                                "standard_metadata.instance_type");
+             state.set(instanceTypeVar,
+                       ToolsVariables::getSymbolicVariable(thirtyTwoBitType, "is_recirculated"));
+             return nullptr;
+         }},
 
         /* ======================================================================================
          *  hash
@@ -517,7 +540,8 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.hash",
          {"result", "algo", "base", "data", "max"},
-         [this](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = getExecutionState();
              // TODO: We can actually make this more complex.
              const auto &resultVar =
                  ToolsVariables::convertReference(externInfo.externArgs->at(0)->expression);
@@ -530,7 +554,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
                               externInfo.methodName + "_" +
                               std::to_string(externInfo.originalCall.clone_id);
              const auto *hashCalc = ToolsVariables::getSymbolicVariable(resultVar->type, hashLabel);
-             externInfo.state.set(resultVar, hashCalc);
+             state.set(resultVar, hashCalc);
              return nullptr;
          }},
         /* ======================================================================================
@@ -539,7 +563,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"Checksum16.get",
          {"data"},
-         [this](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
              // Just resolve the data by calling it.
              computeResult(externInfo.externArgs->at(0)->expression);
              auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
@@ -575,7 +599,8 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.verify_checksum",
          {"condition", "data", "checksum", "algo"},
-         [this](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = getExecutionState();
              // We do not calculate the checksum for now and instead use a dummy.
              const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
              // Just resolve the data by calling it.
@@ -589,8 +614,8 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
                                         std::to_string(externInfo.originalCall.clone_id);
              const auto *hashCalc =
                  ToolsVariables::getSymbolicVariable(oneBitType, verifyChecksumLabel);
-             externInfo.state.set(checksumErr, new IR::Mux(oneBitType, cond, hashCalc,
-                                                           IR::getConstant(oneBitType, 0)));
+             state.set(checksumErr,
+                       new IR::Mux(oneBitType, cond, hashCalc, IR::getConstant(oneBitType, 0)));
              return nullptr;
          }},
         /* ======================================================================================
@@ -605,7 +630,8 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.verify_checksum_with_payload",
          {"condition", "data", "checksum", "algo"},
-         [this](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = getExecutionState();
              // We do not calculate the checksum for now and instead use a dummy.
              const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
              // Just resolve the data by calling it.
@@ -619,8 +645,8 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
                                         std::to_string(externInfo.originalCall.clone_id);
              const auto *hashCalc =
                  ToolsVariables::getSymbolicVariable(oneBitType, verifyChecksumLabel);
-             externInfo.state.set(checksumErr, new IR::Mux(oneBitType, cond, hashCalc,
-                                                           IR::getConstant(oneBitType, 0)));
+             state.set(checksumErr,
+                       new IR::Mux(oneBitType, cond, hashCalc, IR::getConstant(oneBitType, 0)));
              return nullptr;
          }},
         /* ======================================================================================
@@ -644,7 +670,8 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.update_checksum",
          {"condition", "data", "checksum", "algo"},
-         [this](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = getExecutionState();
              // We do not calculate the checksum
              // for now and instead use a dummy.
              const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
@@ -658,9 +685,9 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
                                         std::to_string(externInfo.originalCall.clone_id);
              const auto *hashCalc =
                  ToolsVariables::getSymbolicVariable(checksumVar.type, verifyChecksumLabel);
-             const auto *checksumCurrentVal = externInfo.state.get(checksumVar);
-             externInfo.state.set(
-                 checksumVar, new IR::Mux(checksumVar.type, cond, hashCalc, checksumCurrentVal));
+             const auto *checksumCurrentVal = state.get(checksumVar);
+             state.set(checksumVar,
+                       new IR::Mux(checksumVar.type, cond, hashCalc, checksumCurrentVal));
              return nullptr;
          }},
         /* ======================================================================================
@@ -675,7 +702,8 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.update_checksum_with_payload",
          {"condition", "data", "checksum", "algo"},
-         [this](ExternMethodImpls::ExternInfo &externInfo) {
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = getExecutionState();
              // We do not calculate the checksum
              // for now and instead use a dummy.
              const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
@@ -689,9 +717,9 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
                                         std::to_string(externInfo.originalCall.clone_id);
              const auto *hashCalc =
                  ToolsVariables::getSymbolicVariable(checksumVar.type, verifyChecksumLabel);
-             const auto *checksumCurrentVal = externInfo.state.get(checksumVar);
-             externInfo.state.set(
-                 checksumVar, new IR::Mux(checksumVar.type, cond, hashCalc, checksumCurrentVal));
+             const auto *checksumCurrentVal = state.get(checksumVar);
+             state.set(checksumVar,
+                       new IR::Mux(checksumVar.type, cond, hashCalc, checksumCurrentVal));
              return nullptr;
          }},
     });
@@ -699,7 +727,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
     auto method = EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
                                            externInfo.externArgs);
     if (method.has_value()) {
-        return method.value()(externInfo);
+        return std::bind(method.value(), std::ref(externInfo))();
     }
     return ExpressionResolver::processExtern(externInfo);
 }

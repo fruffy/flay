@@ -29,6 +29,9 @@ class ExecutionState : public AbstractExecutionState {
     /// Keeps track of the reachability of individual nodes in the program.
     ReachabilityMap reachabilityMap;
 
+    /// The set of assigned placeholders during program execution.
+    std::map<cstring, const IR::Expression *> assignedPlaceHolders;
+
     ///
     const IR::Expression *convertToStructLikeExpression(const IR::Expression *parent) const;
 
@@ -63,9 +66,19 @@ class ExecutionState : public AbstractExecutionState {
 
     [[nodiscard]] const ReachabilityMap &getReachabilityMap() const;
 
+    ///
     void addReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
 
+    ///
     const IR ::Expression *getReachabilityCondition(const IR::Node *node, bool checked) const;
+
+    ///
+    void setPlaceHolder(cstring identifier, const IR::Expression *value);
+
+    std::map<cstring, const IR::Expression *> getAssignedPlaceHolders() const;
+
+    ///
+    const ExecutionState &substitutePlaceHolders() const;
 
     /* =========================================================================================
      *  Constructors

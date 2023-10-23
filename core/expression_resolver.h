@@ -57,7 +57,7 @@ class ExpressionResolver : public Inspector {
 
     /// Tries to look up the implementation of the extern in the list of available extern functions
     /// for the expression resolver of the target. Returns the result of the execution.
-    virtual const IR::Expression *processExtern(ExternMethodImpls::ExternInfo &externInfo);
+    virtual const IR::Expression *processExtern(const ExternMethodImpls::ExternInfo &externInfo);
 
     /// @returns the result of the execution of this visitor.
     /// Throws BUG if the result is a nullptr.

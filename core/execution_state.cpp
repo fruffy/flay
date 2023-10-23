@@ -7,6 +7,7 @@
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/collapse_mux.h"
+#include "backends/p4tools/modules/flay/core/substitute_placeholders.h"
 #include "frontends/p4/optimizeExpressions.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
@@ -158,6 +159,25 @@ const IR ::Expression *ExecutionState::getReachabilityCondition(const IR::Node *
 
 void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expression *cond) {
     reachabilityMap[node] = new IR::LAnd(getExecutionCondition(), cond);
+}
+
+void ExecutionState::setPlaceHolder(cstring identifier, const IR::Expression *value) {
+    assignedPlaceHolders[identifier] = value;
+}
+
+std::map<cstring, const IR::Expression *> ExecutionState::getAssignedPlaceHolders() const {
+    return assignedPlaceHolders;
+}
+
+const ExecutionState &ExecutionState::substitutePlaceHolders() const {
+    auto &substitutionState = clone();
+    auto substitute = SubstitutePlaceHolders(*this);
+    for (const auto &rechabilityTuple : substitutionState.reachabilityMap) {
+        auto substitutedExpression = rechabilityTuple.second;
+        substitutionState.reachabilityMap[rechabilityTuple.first] =
+            substitutedExpression->apply(substitute);
+    }
+    return substitutionState;
 }
 
 /* =========================================================================================

@@ -22,16 +22,32 @@ namespace P4Tools::Flay {
 /// Encapsulates a set of extern method implementations.
 class ExternMethodImpls {
  public:
-    struct ExternInfo {
+    class ExternInfo {
+     public:
         const IR::MethodCallExpression &originalCall;
         const IR::PathExpression &externObjectRef;
         const IR::ID &methodName;
         const IR::Vector<IR::Argument> *externArgs;
         ExecutionState &state;
+
+      ExternInfo(const IR::MethodCallExpression &originalCall,
+                            const IR::PathExpression &externObjectRef, const IR::ID &methodName,
+                            const IR::Vector<IR::Argument> *externArgs, ExecutionState &state)
+            : originalCall(originalCall),
+              externObjectRef(externObjectRef),
+              methodName(methodName),
+              externArgs(externArgs),
+              state(state) {}
+
+     private:
+        /// Do not accidentally copy-assign the extern info.
+        ExternInfo &operator=(const ExternInfo &) = delete;
+
+        ExternInfo &operator=(ExternInfo &&) = delete;
     };
     /// The type of an extern-method implementation. See @ref exec for an
     /// explanation of the arguments.
-    using MethodImpl = std::function<const IR::Expression *(ExternInfo &)>;
+    using MethodImpl = std::function<const IR::Expression *(ExternInfo const &)>;
     /// Evaluates a call to an extern method. Upon return, the given result will
     /// be augmented with the successor states resulting from evaluating the call.
     ///
