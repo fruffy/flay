@@ -2,15 +2,13 @@
 
 namespace P4Tools::Flay {
 
-const IR::Expression *SubstitutePlaceHolders::preorder(IR::PlaceHolder *placeHolder) {
-    const auto *placeHolderVar = new IR::Member(
-        placeHolder->type, new IR::PathExpression("*placeholder"), placeHolder->label);
+const IR::Expression *SubstitutePlaceHolders::preorder(IR::Placeholder *placeholder) {
     auto &executionState = state.get();
-    if (executionState.exists(placeHolderVar)) {
-        auto *expr = executionState.get(placeHolderVar);
-        return expr;
+    auto optValue = executionState.getPlaceholderValue(*placeholder);
+    if (optValue.has_value()) {
+        return optValue.value();
     }
-    return placeHolder->defaultValue;
+    return placeholder->defaultValue;
 }
 
 SubstitutePlaceHolders::SubstitutePlaceHolders(const ExecutionState &state) : state(state) {}

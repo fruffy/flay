@@ -30,9 +30,9 @@ class ExternMethodImpls {
         const IR::Vector<IR::Argument> *externArgs;
         ExecutionState &state;
 
-      ExternInfo(const IR::MethodCallExpression &originalCall,
-                            const IR::PathExpression &externObjectRef, const IR::ID &methodName,
-                            const IR::Vector<IR::Argument> *externArgs, ExecutionState &state)
+        ExternInfo(const IR::MethodCallExpression &originalCall,
+                   const IR::PathExpression &externObjectRef, const IR::ID &methodName,
+                   const IR::Vector<IR::Argument> *externArgs, ExecutionState &state)
             : originalCall(originalCall),
               externObjectRef(externObjectRef),
               methodName(methodName),

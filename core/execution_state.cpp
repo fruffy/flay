@@ -23,11 +23,13 @@ bool SourceIdCmp::operator()(const IR::Node *s1, const IR::Node *s2) const {
 ExecutionState::ExecutionState(const IR::P4Program *program)
     : AbstractExecutionState(program), executionCondition(IR::getBoolLiteral(true)) {}
 
+const IR::PathExpression ExecutionState::PLACEHOLDER_LABEL = IR::PathExpression("*placeholder");
+
 /* =============================================================================================
  *  Accessors
  * ============================================================================================= */
 
-const IR::Expression *ExecutionState::convertToStructLikeExpression(
+const IR::ListExpression *ExecutionState::convertToListExpression(
     const IR::Expression *parent) const {
     // TODO: We are losing information about validity here. How do we also record the validity?
     if (auto ts = parent->type->to<IR::Type_StructLike>()) {
@@ -37,7 +39,7 @@ const IR::Expression *ExecutionState::convertToStructLikeExpression(
             auto fieldType = structField->type;
             auto ref = new IR::Member(fieldType, parent, fieldName);
             if (fieldType->is<IR::Type_StructLike>() || fieldType->to<IR::Type_Stack>()) {
-                components.push_back(convertToStructLikeExpression(ref));
+                components.push_back(convertToListExpression(ref));
             } else {
                 components.push_back(get(ref));
             }
@@ -49,7 +51,7 @@ const IR::Expression *ExecutionState::convertToStructLikeExpression(
             auto ref = new IR::ArrayIndex(ts->elementType, parent, new IR::Constant(idx));
             if (ts->elementType->is<IR::Type_StructLike>() ||
                 ts->elementType->to<IR::Type_Stack>()) {
-                components.push_back(convertToStructLikeExpression(ref));
+                components.push_back(convertToListExpression(ref));
             } else {
                 components.push_back(get(ref));
             }
@@ -63,7 +65,7 @@ const IR::Expression *ExecutionState::convertToStructLikeExpression(
 const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
     // In some cases, we may reference a complex expression. Convert it to a struct expression.
     if (var->type->is<IR::Type_StructLike>() || var->type->to<IR::Type_Stack>()) {
-        return convertToStructLikeExpression(var);
+        return convertToListExpression(var);
     }
     // TODO: This is a convoluted (and expensive?) check because struct members are not directly
     // associated with a header. We should be using runtime objects instead of flat assignments.
@@ -161,15 +163,22 @@ void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expr
     reachabilityMap[node] = new IR::LAnd(getExecutionCondition(), cond);
 }
 
-void ExecutionState::setPlaceHolder(cstring identifier, const IR::Expression *value) {
-    assignedPlaceHolders[identifier] = value;
+void ExecutionState::setPlaceholderValue(cstring label, const IR::Expression *value) {
+    const auto *placeholderVar = new IR::Member(value->type, &PLACEHOLDER_LABEL, label);
+    set(placeholderVar, value);
 }
 
-std::map<cstring, const IR::Expression *> ExecutionState::getAssignedPlaceHolders() const {
-    return assignedPlaceHolders;
+std::optional<const IR::Expression *> ExecutionState::getPlaceholderValue(
+    const IR::Placeholder &placeholder) const {
+    const auto *placeholderVar =
+        new IR::Member(placeholder.type, &PLACEHOLDER_LABEL, placeholder.label);
+    if (exists(placeholderVar)) {
+        return get(placeholderVar);
+    }
+    return std::nullopt;
 }
 
-const ExecutionState &ExecutionState::substitutePlaceHolders() const {
+const ExecutionState &ExecutionState::substitutePlaceholders() const {
     auto &substitutionState = clone();
     auto substitute = SubstitutePlaceHolders(*this);
     for (const auto &rechabilityTuple : substitutionState.reachabilityMap) {

@@ -1,7 +1,6 @@
 #include "backends/p4tools/modules/flay/targets/v1model/stepper.h"
 
 #include <cstddef>
-#include <list>
 #include <utility>
 
 #include "backends/p4tools/common/lib/arch_spec.h"
@@ -9,7 +8,6 @@
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/irutils.h"
 #include "lib/cstring.h"
-#include "lib/ordered_map.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -36,7 +34,7 @@ void V1ModelFlayStepper::initializeState() {
     // Initialize instance_type with a place holder.
     const auto *instanceTypeVar = new IR::Member(
         thirtyTwoBitType, new IR::PathExpression("*standard_metadata"), "instance_type");
-    executionState.set(instanceTypeVar, new IR::PlaceHolder("standard_metadata.instance_type",
+    executionState.set(instanceTypeVar, new IR::Placeholder("standard_metadata.instance_type",
                                                             IR::getConstant(thirtyTwoBitType, 0)));
 }
 

@@ -425,14 +425,11 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"type", "session", "data"},
          [&](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
              auto &state = getExecutionState();
-
              const auto *thirtyTwoBitType = IR::getBitType(32);
              // Initialize instance_type with a place holder.
-             const auto *instanceTypeVar =
-                 new IR::Member(thirtyTwoBitType, new IR::PathExpression("*placeholder"),
-                                "standard_metadata.instance_type");
-             state.set(instanceTypeVar,
-                       ToolsVariables::getSymbolicVariable(thirtyTwoBitType, "is_recirculated"));
+             state.setPlaceholderValue(
+                 "standard_metadata.instance_type",
+                 ToolsVariables::getSymbolicVariable(thirtyTwoBitType, "is_recirculated"));
              return nullptr;
          }},
         /* ======================================================================================
@@ -514,11 +511,9 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
              auto &state = getExecutionState();
              const auto *thirtyTwoBitType = IR::getBitType(32);
              // Initialize instance_type with a place holder.
-             const auto *instanceTypeVar =
-                 new IR::Member(thirtyTwoBitType, new IR::PathExpression("*placeholder"),
-                                "standard_metadata.instance_type");
-             state.set(instanceTypeVar,
-                       ToolsVariables::getSymbolicVariable(thirtyTwoBitType, "is_recirculated"));
+             state.setPlaceholderValue(
+                 "standard_metadata.instance_type",
+                 ToolsVariables::getSymbolicVariable(thirtyTwoBitType, "is_recirculated"));
              return nullptr;
          }},
 

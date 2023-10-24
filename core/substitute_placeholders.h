@@ -14,7 +14,7 @@ class SubstitutePlaceHolders : public Transform {
  public:
     explicit SubstitutePlaceHolders(const ExecutionState &state);
 
-    const IR::Expression *preorder(IR::PlaceHolder *placeHolder) override;
+    const IR::Expression *preorder(IR::Placeholder *placeholder) override;
 };
 
 }  // namespace P4Tools::Flay

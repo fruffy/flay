@@ -1,6 +1,6 @@
 /// Signifies a placeholder variable which is later converted into an actual value.
 /// These placeholders are necessary to handle constructs such as recirculation or cloning.
-class PlaceHolder : Expression {
+class Placeholder : Expression {
 #noconstructor
 
     /// The label of the placeholder.
@@ -10,11 +10,11 @@ class PlaceHolder : Expression {
     IR::Expression defaultValue;
 
     /// A symbolic variable always has a default value, and no source info.
-    PlaceHolder(cstring label, Expression defaultValue) : Expression(defaultValue->type), label(label), defaultValue(defaultValue) {}
+    Placeholder(cstring label, Expression defaultValue) : Expression(defaultValue->type), label(label), defaultValue(defaultValue) {}
 
-    /// Implements comparisons so that PlaceHolders can be used as map keys.
+    /// Implements comparisons so that Placeholders can be used as map keys.
     /// The default value is ignored.
-    bool operator<(const PlaceHolder &other) const {
+    bool operator<(const Placeholder &other) const {
         return label < other.label;
     }
 
