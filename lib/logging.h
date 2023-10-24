@@ -1,0 +1,23 @@
+#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_LIB_LOGGING_H_
+#define BACKENDS_P4TOOLS_MODULES_FLAY_LIB_LOGGING_H_
+
+#include <string>
+#include <utility>
+
+#include "backends/p4tools/common/lib/util.h"
+
+namespace P4Tools::Flay {
+
+/// Helper functions that prints strings associated with basic test generation information., for
+/// example the covered nodes or tests number.
+template <typename... Arguments>
+void printInfo(const std::string &fmt, Arguments &&...args) {
+    printFeature("test_info", 4, fmt, std::forward<Arguments>(args)...);
+}
+
+/// Enable the printing of basic run information.
+void enableInformationLogging();
+
+}  // namespace P4Tools::Flay
+
+#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_LIB_LOGGING_H_ */

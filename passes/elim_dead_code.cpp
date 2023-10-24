@@ -4,6 +4,7 @@
 
 #include <optional>
 
+#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
@@ -45,9 +46,9 @@ const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
 
 void ElimDeadCode::end_apply() {
     if (deletedCode) {
-        printf("Dead code found.\n");
+        printInfo("Dead code found.\n");
     } else {
-        printf("No dead code found.\n");
+        printInfo("No dead code found.\n");
     }
 }
 

@@ -5,6 +5,7 @@
 #include <google/protobuf/text_format.h>
 
 #include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay {
@@ -24,7 +25,7 @@ flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(std::filesyste
         new google::protobuf::io::FileInputStream(fd);
 
     if (google::protobuf::TextFormat::Parse(input, &protoControlPlaneConfig)) {
-        std::cout << "Parse configuration: " << protoControlPlaneConfig.DebugString();
+        printInfo("Parsed configuration: %1%", protoControlPlaneConfig.DebugString());
     } else {
         std::cerr << "Message not valid (partial content: "
                   << protoControlPlaneConfig.ShortDebugString() << ")\n";

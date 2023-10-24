@@ -4,6 +4,7 @@
 
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
+#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "frontends/common/parseInput.h"
@@ -23,6 +24,8 @@ int Flay::mainImpl(const IR::P4Program *program) {
     // These are discovered by CMAKE, which fills out the register.h.in file.
     registerFlayTargets();
 
+    enableInformationLogging();
+
     const auto *programInfo = FlayTarget::initProgram(program);
     if (programInfo == nullptr) {
         ::error("Program not supported by target device and architecture.");
@@ -33,7 +36,7 @@ int Flay::mainImpl(const IR::P4Program *program) {
         return EXIT_FAILURE;
     }
 
-    printf("Running analysis...\n");
+    printInfo("Running analysis...\n");
     SymbolicExecutor symbex(*programInfo);
     symbex.run();
     const auto &executionState = symbex.getExecutionState();
@@ -48,7 +51,7 @@ int Flay::mainImpl(const IR::P4Program *program) {
     Z3Solver solver;
 
     /// Substitute any placeholder variables encountered in the execution state.
-    printf("Substituting placeholder variables...\n");
+    printInfo("Substituting placeholder variables...\n");
     auto &substitutedExecutionState = executionState.substitutePlaceholders();
 
     // Initialize the dead code eliminator. Use the Z3Solver for now.
@@ -56,7 +59,7 @@ int Flay::mainImpl(const IR::P4Program *program) {
 
     // Gather the initial control-plane configuration from a file input, if present.
     if (flayOptions.hasControlPlaneConfig()) {
-        printf("Parsing initial control plane configuration...\n");
+        printInfo("Parsing initial control plane configuration...\n");
         auto &target = FlayTarget::get();
         auto constraintsOpt = target.computeControlPlaneConstraints(*program, flayOptions);
         if (constraintsOpt.has_value()) {
@@ -66,7 +69,7 @@ int Flay::mainImpl(const IR::P4Program *program) {
         }
     }
 
-    printf("Checking whether dead code can be removed...\n");
+    printInfo("Checking whether dead code can be removed...\n");
     freshProgram = freshProgram->apply(elim);
     // P4::ToP4 toP4;
     // program->apply(toP4);
