@@ -1,7 +1,5 @@
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 
-#include <stdio.h>
-
 #include <optional>
 
 #include "backends/p4tools/modules/flay/lib/logging.h"

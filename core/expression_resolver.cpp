@@ -300,7 +300,6 @@ bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
 
 bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     auto &state = getExecutionState();
-
     // Handle method calls. These are either table invocations or extern calls.
     if (call->method->type->is<IR::Type_Method>()) {
         // Assume that all cases of path expressions are extern calls.
@@ -364,7 +363,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
         // Handle action calls. Actions are called by tables and are not inlined, unlike
         // functions.
         const auto *actionType = state.getP4Action(call);
-        TableExecutor::callAction(programInfo, executionState, actionType, *call->arguments);
+        TableExecutor::callAction(programInfo, state, actionType, *call->arguments);
         return false;
     }
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);

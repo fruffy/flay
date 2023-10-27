@@ -36,6 +36,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"standard_metadata"},
          [this](const ExternMethodImpls::ExternInfo &externInfo) {
              auto &state = getExecutionState();
+
              const auto *nineBitType = IR::getBitType(9);
              const auto *metadataLabel = externInfo.externArgs->at(0)->expression;
              if (!(metadataLabel->is<IR::Member>() || metadataLabel->is<IR::PathExpression>())) {
@@ -58,6 +59,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"result", "lo", "hi"},
          [this](const ExternMethodImpls::ExternInfo &externInfo) {
              auto &state = getExecutionState();
+
              const auto *resultField = externInfo.externArgs->at(0)->expression;
              const auto &fieldRef = ToolsVariables::convertReference(resultField);
              auto randomLabel = externInfo.externObjectRef.path->toString() + "_" +
@@ -213,6 +215,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"result", "index"},
          [this](const ExternMethodImpls::ExternInfo &externInfo) {
              auto &state = getExecutionState();
+
              // TODO: Implement and actually keep track of the writes.
              const auto &resultVar =
                  ToolsVariables::convertReference(externInfo.externArgs->at(0)->expression);
@@ -423,13 +426,34 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.clone_preserving_field_list",
          {"type", "session", "data"},
-         [&](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
-             auto &state = getExecutionState();
-             const auto *thirtyTwoBitType = IR::getBitType(32);
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = externInfo.state;
+             auto resolver = V1ModelExpressionResolver(getProgramInfo(), state);
+
+             auto cloneType =
+                 externInfo.externArgs->at(0)->expression->checkedTo<IR::Constant>()->asUint64();
+             auto sessionID = resolver.computeResult(externInfo.externArgs->at(1)->expression);
+             // Do not use data just yet. Just resolve it.
+             resolver.computeResult(externInfo.externArgs->at(2)->expression);
+
+             const auto *instanceBitType = IR::getBitType(32);
+             auto isCloned = new IR::Equ(sessionID, ToolsVariables::getSymbolicVariable(
+                                                        sessionID->type, "clone_session_id"));
+             const IR::Constant *instanceTypeConst = nullptr;
+             if (cloneType == V1ModelConstants::CloneType::I2E) {
+                 instanceTypeConst = IR::getConstant(
+                     instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_INGRESS_CLONE);
+             } else if (cloneType == V1ModelConstants::CloneType::E2E) {
+                 instanceTypeConst = IR::getConstant(
+                     instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_EGRESS_CLONE);
+             } else {
+                 P4C_UNIMPLEMENTED("Unsupported clone type %1%.", cloneType);
+             }
              // Initialize instance_type with a place holder.
-             state.setPlaceholderValue(
-                 "standard_metadata.instance_type",
-                 ToolsVariables::getSymbolicVariable(thirtyTwoBitType, "is_recirculated"));
+             auto mux = new IR::Mux(
+                 isCloned, instanceTypeConst,
+                 IR::getConstant(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
+             state.setPlaceholderValue("standard_metadata.instance_type", mux);
              return nullptr;
          }},
         /* ======================================================================================
@@ -507,13 +531,34 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          */
         {"*method.clone",
          {"type", "session"},
-         [this](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
-             auto &state = getExecutionState();
-             const auto *thirtyTwoBitType = IR::getBitType(32);
+         [this](const ExternMethodImpls::ExternInfo &externInfo) {
+             auto &state = externInfo.state;
+             auto resolver = V1ModelExpressionResolver(getProgramInfo(), state);
+
+             auto cloneType =
+                 externInfo.externArgs->at(0)->expression->checkedTo<IR::Constant>()->asUint64();
+             auto sessionID = resolver.computeResult(externInfo.externArgs->at(1)->expression);
+             // Do not use data just yet. Just resolve it.
+             resolver.computeResult(externInfo.externArgs->at(2)->expression);
+
+             const auto *instanceBitType = IR::getBitType(32);
+             auto isCloned = new IR::Equ(sessionID, ToolsVariables::getSymbolicVariable(
+                                                        sessionID->type, "clone_session_id"));
+             const IR::Constant *instanceTypeConst = nullptr;
+             if (cloneType == V1ModelConstants::CloneType::I2E) {
+                 instanceTypeConst = IR::getConstant(
+                     instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_INGRESS_CLONE);
+             } else if (cloneType == V1ModelConstants::CloneType::E2E) {
+                 instanceTypeConst = IR::getConstant(
+                     instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_EGRESS_CLONE);
+             } else {
+                 P4C_UNIMPLEMENTED("Unsupported clone type %1%.", cloneType);
+             }
              // Initialize instance_type with a place holder.
-             state.setPlaceholderValue(
-                 "standard_metadata.instance_type",
-                 ToolsVariables::getSymbolicVariable(thirtyTwoBitType, "is_recirculated"));
+             auto mux = new IR::Mux(
+                 isCloned, instanceTypeConst,
+                 IR::getConstant(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
+             state.setPlaceholderValue("standard_metadata.instance_type", mux);
              return nullptr;
          }},
 
@@ -537,6 +582,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"result", "algo", "base", "data", "max"},
          [this](const ExternMethodImpls::ExternInfo &externInfo) {
              auto &state = getExecutionState();
+
              // TODO: We can actually make this more complex.
              const auto &resultVar =
                  ToolsVariables::convertReference(externInfo.externArgs->at(0)->expression);
@@ -596,6 +642,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"condition", "data", "checksum", "algo"},
          [this](const ExternMethodImpls::ExternInfo &externInfo) {
              auto &state = getExecutionState();
+
              // We do not calculate the checksum for now and instead use a dummy.
              const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
              // Just resolve the data by calling it.
@@ -627,6 +674,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"condition", "data", "checksum", "algo"},
          [this](const ExternMethodImpls::ExternInfo &externInfo) {
              auto &state = getExecutionState();
+
              // We do not calculate the checksum for now and instead use a dummy.
              const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
              // Just resolve the data by calling it.
@@ -667,6 +715,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"condition", "data", "checksum", "algo"},
          [this](const ExternMethodImpls::ExternInfo &externInfo) {
              auto &state = getExecutionState();
+
              // We do not calculate the checksum
              // for now and instead use a dummy.
              const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
@@ -699,6 +748,7 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
          {"condition", "data", "checksum", "algo"},
          [this](const ExternMethodImpls::ExternInfo &externInfo) {
              auto &state = getExecutionState();
+
              // We do not calculate the checksum
              // for now and instead use a dummy.
              const auto *cond = computeResult(externInfo.externArgs->at(0)->expression);
