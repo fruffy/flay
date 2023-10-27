@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "backends/p4tools/modules/flay/core/execution_state.h"
+#include "backends/p4tools/modules/flay/core/program_info.h"
 #include "ir/id.h"
 #include "ir/ir.h"
 #include "ir/vector.h"
@@ -29,15 +30,18 @@ class ExternMethodImpls {
         const IR::ID &methodName;
         const IR::Vector<IR::Argument> *externArgs;
         ExecutionState &state;
+        std::reference_wrapper<const ProgramInfo> programInfo;
 
         ExternInfo(const IR::MethodCallExpression &originalCall,
                    const IR::PathExpression &externObjectRef, const IR::ID &methodName,
-                   const IR::Vector<IR::Argument> *externArgs, ExecutionState &state)
+                   const IR::Vector<IR::Argument> *externArgs, ExecutionState &state,
+                   const ProgramInfo &programInfo)
             : originalCall(originalCall),
               externObjectRef(externObjectRef),
               methodName(methodName),
               externArgs(externArgs),
-              state(state) {}
+              state(state),
+              programInfo(programInfo) {}
 
      private:
         /// Do not accidentally copy-assign the extern info.

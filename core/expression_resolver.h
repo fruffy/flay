@@ -27,6 +27,10 @@ class ExpressionResolver : public Inspector {
     /// The current execution state.
     std::reference_wrapper<ExecutionState> executionState;
 
+    static const IR::Expression *createSymbolicExpression(const ExecutionState &state,
+                                                          const IR::Type *inputType, cstring label,
+                                                          size_t id);
+
     ///
     const IR::Expression *checkStructLike(const IR::Member *);
 

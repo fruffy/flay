@@ -42,10 +42,6 @@ int Flay::mainImpl(const IR::P4Program *program) {
     const auto &executionState = symbex.getExecutionState();
 
     auto &options = P4CContext::get().options();
-    const auto *freshProgram = P4::parseP4File(options);
-    if (::errorCount() > 0) {
-        return EXIT_FAILURE;
-    }
 
     const auto &flayOptions = FlayOptions::get();
     Z3Solver solver;
@@ -69,6 +65,11 @@ int Flay::mainImpl(const IR::P4Program *program) {
         }
     }
 
+    printInfo("Reparsing original program...\n");
+    const auto *freshProgram = P4::parseP4File(options);
+    if (::errorCount() > 0) {
+        return EXIT_FAILURE;
+    }
     printInfo("Checking whether dead code can be removed...\n");
     freshProgram = freshProgram->apply(elim);
     // P4::ToP4 toP4;
