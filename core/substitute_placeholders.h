@@ -9,12 +9,18 @@
 namespace P4Tools::Flay {
 
 class SubstitutePlaceHolders : public Transform {
+    class SymbolizePlaceHolders : public Transform {
+     public:
+        const IR::Expression *postorder(IR::Placeholder *placeholder) override;
+    };
+
     std::reference_wrapper<const ExecutionState> state;
+    SymbolizePlaceHolders symbolizer;
 
  public:
     explicit SubstitutePlaceHolders(const ExecutionState &state);
 
-    const IR::Expression *preorder(IR::Placeholder *placeholder) override;
+    const IR::Expression *postorder(IR::Placeholder *placeholder) override;
 };
 
 }  // namespace P4Tools::Flay

@@ -50,7 +50,6 @@ p4tools_add_xfail_reason(
                                       # environment.
   v1model-p4runtime-most-types1.p4 # Unable to find var valueset1_0/valueset1; in the symbolic
                                    # environment.
-  flowlet_switching-bmv2.p4 # Unable to find var ecmp_base; in the symbolic environment.
 )
 
 p4tools_add_xfail_reason(
