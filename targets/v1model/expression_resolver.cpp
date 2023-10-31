@@ -436,8 +436,10 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
          resolver.computeResult(externInfo.externArgs->at(2)->expression);
 
          const auto *instanceBitType = IR::getBitType(32);
-         auto isCloned = new IR::Equ(
-             sessionID, ToolsVariables::getSymbolicVariable(sessionID->type, "clone_session_id"));
+         auto isCloned = new IR::LAnd(
+             ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "clone_session_active"),
+             new IR::Equ(sessionID,
+                         ToolsVariables::getSymbolicVariable(sessionID->type, "clone_session_id")));
          const IR::Constant *instanceTypeConst = nullptr;
          if (cloneType == V1ModelConstants::CloneType::I2E) {
              instanceTypeConst = IR::getConstant(instanceBitType,
@@ -539,8 +541,10 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
          auto sessionID = resolver.computeResult(externInfo.externArgs->at(1)->expression);
 
          const auto *instanceBitType = IR::getBitType(32);
-         auto isCloned = new IR::Equ(
-             sessionID, ToolsVariables::getSymbolicVariable(sessionID->type, "clone_session_id"));
+         auto isCloned = new IR::LAnd(
+             ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "clone_session_active"),
+             new IR::Equ(sessionID,
+                         ToolsVariables::getSymbolicVariable(sessionID->type, "clone_session_id")));
          const IR::Constant *instanceTypeConst = nullptr;
          if (cloneType == V1ModelConstants::CloneType::I2E) {
              instanceTypeConst = IR::getConstant(instanceBitType,

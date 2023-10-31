@@ -22,9 +22,8 @@ const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
     }
 
     /// Merge the execution condition with the overall constraints.
-    std::vector<const Constraint *> mergedConstraints(controlPlaneConstraints);
+    std::vector<const Constraint *> mergedConstraints(controlPlaneConstraintExprs);
     mergedConstraints.push_back(condition);
-
     auto solverResult = solver.get().checkSat(mergedConstraints);
     if (solverResult == std::nullopt) {
         return stmt;
@@ -52,9 +51,13 @@ void ElimDeadCode::end_apply() {
 
 void ElimDeadCode::addControlPlaneConstraints(
     const ControlPlaneConstraints &newControlPlaneConstraints) {
-    controlPlaneConstraints.insert(controlPlaneConstraints.end(),
-                                   newControlPlaneConstraints.begin(),
+    controlPlaneConstraints.insert(newControlPlaneConstraints.begin(),
                                    newControlPlaneConstraints.end());
+
+    for (auto controlPlaneConstraint : controlPlaneConstraints) {
+        controlPlaneConstraintExprs.push_back(
+            new IR::Equ(&controlPlaneConstraint.first.get(), controlPlaneConstraint.second));
+    }
 }
 
 }  // namespace P4Tools::Flay

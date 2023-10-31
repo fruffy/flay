@@ -4,11 +4,14 @@
 #include <map>
 #include <vector>
 
+#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
+#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "backends/p4tools/modules/flay/targets/v1model/program_info.h"
 #include "backends/p4tools/modules/flay/targets/v1model/stepper.h"
 #include "ir/ir.h"
+#include "ir/irutils.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 #include "lib/ordered_map.h"
@@ -86,7 +89,17 @@ FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
 
 std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneConstraintsImpl(
     const IR::P4Program &program, const FlayOptions &options) const {
+    // Initialize some constraints that are active regardless of the control-plane configuration.
+    // These constraints can be overridden by the respective control-plane configuration.
+    ControlPlaneConstraints constraints;
+    constraints.emplace(
+        *ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "clone_session_active"),
+        IR::getBoolLiteral(false));
+    if (!options.hasControlPlaneConfig()) {
+        return constraints;
+    }
     auto confPath = options.getControlPlaneConfig();
+    printInfo("Parsing initial control plane configuration...\n");
     if (confPath.extension() == ".proto") {
         MapP4RuntimeIdtoIR idMapper;
         program.apply(idMapper);
@@ -95,9 +108,12 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
         }
         auto idToIrMap = idMapper.getP4RuntimeIdtoIrNodeMap();
         auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
-        return ProtobufDeserializer::convertToControlPlaneConstraints(deserializedConfig,
-                                                                      idToIrMap);
+        auto protoConstraints =
+            ProtobufDeserializer::convertToControlPlaneConstraints(deserializedConfig, idToIrMap);
+        constraints.insert(protoConstraints.begin(), protoConstraints.end());
+        return constraints;
     }
+
     ::error("Control plane file format %1% not supported for this target.",
             confPath.extension().c_str());
     return std::nullopt;

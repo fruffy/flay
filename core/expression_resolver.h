@@ -27,12 +27,15 @@ class ExpressionResolver : public Inspector {
     /// The current execution state.
     std::reference_wrapper<ExecutionState> executionState;
 
+    /// @returns a symbolic expression, which could also be a header stack or struct expression.
+    /// TODO: Simplify.
     static const IR::Expression *createSymbolicExpression(const ExecutionState &state,
                                                           const IR::Type *inputType, cstring label,
                                                           size_t id);
 
-    ///
-    const IR::Expression *checkStructLike(const IR::Member *);
+    /// @returns a struct expression in case the member refers to a more complex expression.
+    /// @returns nullptr otherwise. TODO: Convert to std::nullopt.
+    const IR::Expression *checkStructLike(const IR::Member *member);
 
     /// Visitor methods.
     bool preorder(const IR::Node *node) override;
