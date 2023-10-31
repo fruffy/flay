@@ -142,22 +142,6 @@ bool ExpressionResolver::preorder(const IR::Operation_Binary *op) {
 
     // Equals operations are a little special since they may involve complex objects such as lists.
     if (op->is<IR::Equ>() || op->is<IR::Neq>()) {
-        // TODO: This is a workaround to support comparison between list and struct expressions.
-        // Ideally, we should have proper support for this expression.
-        if (auto leftStructExpr = left->to<IR::StructExpression>()) {
-            IR::Vector<IR::Expression> components;
-            for (auto structExpr : leftStructExpr->components) {
-                components.push_back(structExpr->expression);
-            }
-            left = new IR::ListExpression(leftStructExpr->type, components);
-        }
-        if (auto rightStructExpr = right->to<IR::StructExpression>()) {
-            IR::Vector<IR::Expression> components;
-            for (auto structExpr : rightStructExpr->components) {
-                components.push_back(structExpr->expression);
-            }
-            right = new IR::ListExpression(rightStructExpr->type, components);
-        }
         result = GenEq::equate(left, right);
         if (op->is<IR::Neq>()) {
             result = new IR::LNot(result);
@@ -251,15 +235,11 @@ bool ExpressionResolver::preorder(const IR::ListExpression *listExpr) {
     IR::Vector<IR::Expression> components;
     bool hasChanged = false;
     for (const auto *expr : listExpr->components) {
-        bool fieldHasChanged = false;
         if (!SymbolicEnv::isSymbolicValue(expr)) {
             expr = computeResult(expr);
-            fieldHasChanged = true;
-        }
-        if (fieldHasChanged) {
-            components.push_back(expr);
             hasChanged = true;
         }
+        components.push_back(expr);
     }
     if (hasChanged) {
         auto *newListExpr = listExpr->clone();
@@ -273,29 +253,27 @@ bool ExpressionResolver::preorder(const IR::ListExpression *listExpr) {
 
 bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
     IR::IndexedVector<IR::NamedExpression> components;
-    bool hasChanged = false;
+    // StructExpressions are a little different, in that we always replace them.
+    // This is because we need to account for nested headerExpressions.
+    // TODO: Maybe we should just replace this structures with a compiler pass?
     for (const auto *field : structExpr->components) {
         const auto *expr = field->expression;
-        bool fieldHasChanged = false;
-        if (!SymbolicEnv::isSymbolicValue(expr)) {
-            expr = computeResult(expr);
-            fieldHasChanged = true;
-        }
-        if (fieldHasChanged) {
-            auto *newField = field->clone();
-            newField->expression = expr;
-            components.push_back(newField);
-            hasChanged = true;
-        }
+        expr = computeResult(expr);
+        auto *newField = field->clone();
+        newField->expression = expr;
+        components.push_back(newField);
     }
-    if (hasChanged) {
+    // If the struct expression type is a header, then it is always valid.
+    auto resolvedType = getExecutionState().resolveType(structExpr->type);
+    if (resolvedType->is<IR::Type_Header>()) {
+        result = new IR::HeaderExpression(resolvedType, components, IR::getBoolLiteral(true));
+        return false;
+    } else {
         auto *newStructExpr = structExpr->clone();
         newStructExpr->components = components;
         result = newStructExpr;
         return false;
     }
-    result = structExpr;
-    return false;
 }
 
 bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
@@ -369,35 +347,6 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
 }
 
-const IR::Expression *createSymbolicExpression(const ExecutionState &state,
-                                               const IR::Type *inputType, cstring label,
-                                               size_t id) {
-    const auto *resolvedType = state.resolveType(inputType);
-    if (const auto *structType = resolvedType->to<IR::Type_StructLike>()) {
-        IR::IndexedVector<IR::NamedExpression> fields;
-        for (size_t idx = 0; idx < structType->fields.size(); ++idx) {
-            const auto *field = structType->fields.at(idx);
-            fields.push_back(new IR::NamedExpression(
-                field->name, createSymbolicExpression(state, field->type, label, idx + id)));
-        }
-        return new IR::StructExpression(inputType, fields);
-    }
-    if (const auto *stackType = resolvedType->to<IR::Type_Stack>()) {
-        IR::Vector<IR::Expression> fields;
-        for (size_t idx = 0; idx < stackType->getSize(); ++idx) {
-            fields.push_back(
-                createSymbolicExpression(state, stackType->elementType, label, idx + id));
-        }
-        return new IR::HeaderStackExpression(inputType, fields, inputType);
-    }
-    if (resolvedType->is<IR::Type_Base>()) {
-        cstring labelId = label + " " + std::to_string(id);
-        return ToolsVariables::getSymbolicVariable(resolvedType, labelId);
-    }
-    P4C_UNIMPLEMENTED("Requesting a symbolic expression for %1% of type %2%", inputType,
-                      inputType->node_type_name());
-}
-
 namespace core {
 
 /// Provides implementations of P4 core externs.
@@ -412,7 +361,6 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
 
           // This argument is the structure being written by the extract.
           const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
-          const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
           const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
           // First, set the validity.
           auto extractLabel =
@@ -420,7 +368,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           state.set(headerRefValidity,
                     ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
           // Then, set the fields.
-          const auto flatFields = state.getFlatFields(extractRef, headerType);
+          const auto flatFields = state.getFlatFields(extractRef);
           for (const auto &field : flatFields) {
               auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
                                        extractRef->toString() + "_" + field.toString();
@@ -438,7 +386,6 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
 
           // This argument is the structure being written by the extract.
           const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
-          const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
           const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
           // First, set the validity.
           auto extractLabel =
@@ -446,7 +393,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           state.set(headerRefValidity,
                     ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
           // Then, set the fields.
-          const auto flatFields = state.getFlatFields(extractRef, headerType);
+          const auto flatFields = state.getFlatFields(extractRef);
           for (const auto &field : flatFields) {
               auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
                                        extractRef->toString() + "_" + field.toString();
@@ -481,7 +428,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           const auto &methodName = externInfo.methodName;
           auto lookaheadLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
                                 std::to_string(externInfo.originalCall.clone_id);
-          return createSymbolicExpression(state, lookaheadType, lookaheadLabel, 0);
+          return state.createSymbolicExpression(lookaheadType, lookaheadLabel);
       }},
      {"packet_in.advance",
       {"sizeInBits"},
