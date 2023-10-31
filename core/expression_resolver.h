@@ -27,8 +27,15 @@ class ExpressionResolver : public Inspector {
     /// The current execution state.
     std::reference_wrapper<ExecutionState> executionState;
 
-    ///
-    const IR::Expression *checkStructLike(const IR::Member *);
+    /// @returns a symbolic expression, which could also be a header stack or struct expression.
+    /// TODO: Simplify.
+    static const IR::Expression *createSymbolicExpression(const ExecutionState &state,
+                                                          const IR::Type *inputType, cstring label,
+                                                          size_t id);
+
+    /// @returns a struct expression in case the member refers to a more complex expression.
+    /// @returns nullptr otherwise. TODO: Convert to std::nullopt.
+    const IR::Expression *checkStructLike(const IR::Member *member);
 
     /// Visitor methods.
     bool preorder(const IR::Node *node) override;
@@ -57,7 +64,7 @@ class ExpressionResolver : public Inspector {
 
     /// Tries to look up the implementation of the extern in the list of available extern functions
     /// for the expression resolver of the target. Returns the result of the execution.
-    virtual const IR::Expression *processExtern(ExternMethodImpls::ExternInfo &externInfo);
+    virtual const IR::Expression *processExtern(const ExternMethodImpls::ExternInfo &externInfo);
 
     /// @returns the result of the execution of this visitor.
     /// Throws BUG if the result is a nullptr.

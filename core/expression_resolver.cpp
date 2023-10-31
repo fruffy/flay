@@ -299,17 +299,15 @@ bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
 }
 
 bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
-    auto &executionState = getExecutionState();
-
+    auto &state = getExecutionState();
     // Handle method calls. These are either table invocations or extern calls.
     if (call->method->type->is<IR::Type_Method>()) {
         // Assume that all cases of path expressions are extern calls.
         if (const auto *path = call->method->to<IR::PathExpression>()) {
             static auto METHOD_DUMMY =
                 IR::PathExpression(new IR::Type_Extern("*method"), new IR::Path("*method"));
-            ExternMethodImpls::ExternInfo externInfo(
-                {*call, METHOD_DUMMY, path->path->name, call->arguments, executionState});
-            result = processExtern(externInfo);
+            result = processExtern(
+                {*call, METHOD_DUMMY, path->path->name, call->arguments, state, programInfo});
             return false;
         }
 
@@ -323,14 +321,13 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
             if (method->expr->type->is<IR::Type_Extern>() ||
                 method->expr->type->is<IR::Type_SpecializedCanonical>()) {
                 const auto *path = method->expr->checkedTo<IR::PathExpression>();
-                ExternMethodImpls::ExternInfo externInfo(
-                    {*call, *path, method->member, call->arguments, executionState});
-                result = processExtern(externInfo);
+                result = processExtern(
+                    {*call, *path, method->member, call->arguments, state, programInfo});
                 return false;
             }
 
             // Handle table calls.
-            if (const auto *table = executionState.findTable(method)) {
+            if (const auto *table = state.findTable(method)) {
                 result = processTable(table);
                 return false;
             }
@@ -340,17 +337,17 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
                 method->expr->type->is<IR::Type_HeaderUnion>()) {
                 if (method->member == "setValid") {
                     const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
-                    executionState.set(headerRefValidity, IR::getBoolLiteral(true));
+                    state.set(headerRefValidity, IR::getBoolLiteral(true));
                     return false;
                 }
                 if (method->member == "setInvalid") {
                     const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
-                    executionState.set(headerRefValidity, IR::getBoolLiteral(false));
+                    state.set(headerRefValidity, IR::getBoolLiteral(false));
                     return false;
                 }
                 if (method->member == "isValid") {
                     const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
-                    result = executionState.get(headerRefValidity);
+                    result = state.get(headerRefValidity);
                     return false;
                 }
                 P4C_UNIMPLEMENTED("Unknown method call on header instance: %1%", call);
@@ -365,8 +362,8 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     } else if (call->method->type->is<IR::Type_Action>()) {
         // Handle action calls. Actions are called by tables and are not inlined, unlike
         // functions.
-        const auto *actionType = executionState.getP4Action(call);
-        TableExecutor::callAction(programInfo, executionState, actionType, *call->arguments);
+        const auto *actionType = state.getP4Action(call);
+        TableExecutor::callAction(programInfo, state, actionType, *call->arguments);
         return false;
     }
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
@@ -401,125 +398,129 @@ const IR::Expression *createSymbolicExpression(const ExecutionState &state,
                       inputType->node_type_name());
 }
 
+namespace core {
+
+/// Provides implementations of P4 core externs.
+static const ExternMethodImpls EXTERN_METHOD_IMPLS(
+    {{"packet_in.extract",
+      {"hdr"},
+      [](const ExternMethodImpls::ExternInfo &externInfo) {
+          const auto *args = externInfo.externArgs;
+          const auto &externObjectRef = externInfo.externObjectRef;
+          const auto &methodName = externInfo.methodName;
+          auto &state = externInfo.state;
+
+          // This argument is the structure being written by the extract.
+          const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
+          const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
+          const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
+          // First, set the validity.
+          auto extractLabel =
+              externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
+          state.set(headerRefValidity,
+                    ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
+          // Then, set the fields.
+          const auto flatFields = state.getFlatFields(extractRef, headerType);
+          for (const auto &field : flatFields) {
+              auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
+                                       extractRef->toString() + "_" + field.toString();
+              state.set(field, ToolsVariables::getSymbolicVariable(field->type, extractFieldLabel));
+          }
+          return nullptr;
+      }},
+     {"packet_in.extract",
+      {"hdr", "sizeInBits"},
+      [](const ExternMethodImpls::ExternInfo &externInfo) {
+          const auto *args = externInfo.externArgs;
+          const auto &externObjectRef = externInfo.externObjectRef;
+          const auto &methodName = externInfo.methodName;
+          auto &state = externInfo.state;
+
+          // This argument is the structure being written by the extract.
+          const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
+          const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
+          const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
+          // First, set the validity.
+          auto extractLabel =
+              externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
+          state.set(headerRefValidity,
+                    ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
+          // Then, set the fields.
+          const auto flatFields = state.getFlatFields(extractRef, headerType);
+          for (const auto &field : flatFields) {
+              auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
+                                       extractRef->toString() + "_" + field.toString();
+              // For now, we ignore the assigned size in our calculations and always use the
+              // maximum size.
+              // TODO: Figure out a way to exploit sizeInBits?
+              if (auto varbitType = field->type->to<IR::Extracted_Varbits>()) {
+                  auto assignedType = varbitType->clone();
+                  assignedType->assignedSize = assignedType->size;
+                  auto typedField = field.clone();
+                  typedField->type = assignedType;
+                  state.set(*typedField, ToolsVariables::getSymbolicVariable(typedField->type,
+                                                                             extractFieldLabel));
+              } else {
+                  state.set(field,
+                            ToolsVariables::getSymbolicVariable(field->type, extractFieldLabel));
+              }
+          }
+          return nullptr;
+      }},
+     {"packet_in.lookahead",
+      {},
+      [](const ExternMethodImpls::ExternInfo &externInfo) {
+          auto &state = externInfo.state;
+          const auto *typeArgs = externInfo.originalCall.typeArguments;
+          BUG_CHECK(typeArgs->size() == 1, "Lookahead should have exactly one type argument.");
+          // TODO: We currently just create a dummy variable, but this is not correct.
+          // Since we look ahead, subsequent extracts and advance calls are influenced by the
+          // decision.
+          const auto *lookaheadType = externInfo.originalCall.typeArguments->at(0);
+          const auto &externObjectRef = externInfo.externObjectRef;
+          const auto &methodName = externInfo.methodName;
+          auto lookaheadLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
+                                std::to_string(externInfo.originalCall.clone_id);
+          return createSymbolicExpression(state, lookaheadType, lookaheadLabel, 0);
+      }},
+     {"packet_in.advance",
+      {"sizeInBits"},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
+          // Advance is a no-op for now.
+          return nullptr;
+      }},
+     {"packet_out.emit",
+      {"hdr"},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
+          // Emit is a no-op for now.
+          return nullptr;
+      }},
+     /* ======================================================================================
+      *  verify
+      *  The verify statement provides a simple form of error handling.
+      *  If the first argument is true, then executing the statement has no side-effect.
+      *  However, if the first argument is false, it causes an immediate transition to
+      *  reject, which causes immediate parsing termination; at the same time, the
+      *  parserError associated with the parser is set to the value of the second
+      *  argument.
+      * ======================================================================================
+      */
+     {"*method.verify",
+      {"bool", "error"},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
+          // TODO: Implement the error case.
+          return nullptr;
+      }}});
+}  // namespace core
+
 /* =============================================================================================
  *  Extern implementations
  * ============================================================================================= */
 
-const IR::Expression *ExpressionResolver::processExtern(ExternMethodImpls::ExternInfo &externInfo) {
-    // Provides implementations of P4 core externs.
-    static const ExternMethodImpls EXTERN_METHOD_IMPLS({
-        {"packet_in.extract",
-         {"hdr"},
-         [](ExternMethodImpls::ExternInfo &externInfo) {
-             const auto *args = externInfo.externArgs;
-             const auto &externObjectRef = externInfo.externObjectRef;
-             const auto &methodName = externInfo.methodName;
-             auto &state = externInfo.state;
-
-             // This argument is the structure being written by the extract.
-             const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
-             const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
-             const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
-             // First, set the validity.
-             auto extractLabel =
-                 externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
-             state.set(headerRefValidity,
-                       ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
-             // Then, set the fields.
-             const auto flatFields = state.getFlatFields(extractRef, headerType);
-             for (const auto &field : flatFields) {
-                 auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName +
-                                          "_" + extractRef->toString() + "_" + field.toString();
-                 state.set(field,
-                           ToolsVariables::getSymbolicVariable(field->type, extractFieldLabel));
-             }
-             return nullptr;
-         }},
-        {"packet_in.extract",
-         {"hdr", "sizeInBits"},
-         [](ExternMethodImpls::ExternInfo &externInfo) {
-             const auto *args = externInfo.externArgs;
-             const auto &externObjectRef = externInfo.externObjectRef;
-             const auto &methodName = externInfo.methodName;
-             auto &state = externInfo.state;
-
-             // This argument is the structure being written by the extract.
-             const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
-             const auto *headerType = extractRef->type->checkedTo<IR::Type_Header>();
-             const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
-             // First, set the validity.
-             auto extractLabel =
-                 externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
-             state.set(headerRefValidity,
-                       ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
-             // Then, set the fields.
-             const auto flatFields = state.getFlatFields(extractRef, headerType);
-             for (const auto &field : flatFields) {
-                 auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName +
-                                          "_" + extractRef->toString() + "_" + field.toString();
-                 // For now, we ignore the assigned size in our calculations and always use the
-                 // maximum size.
-                 // TODO: Figure out a way to exploit sizeInBits?
-                 if (auto varbitType = field->type->to<IR::Extracted_Varbits>()) {
-                     auto assignedType = varbitType->clone();
-                     assignedType->assignedSize = assignedType->size;
-                     auto typedField = field.clone();
-                     typedField->type = assignedType;
-                     state.set(*typedField, ToolsVariables::getSymbolicVariable(typedField->type,
-                                                                                extractFieldLabel));
-                 } else {
-                     state.set(field,
-                               ToolsVariables::getSymbolicVariable(field->type, extractFieldLabel));
-                 }
-             }
-             return nullptr;
-         }},
-        {"packet_in.lookahead",
-         {},
-         [](ExternMethodImpls::ExternInfo &externInfo) {
-             const auto *typeArgs = externInfo.originalCall.typeArguments;
-             BUG_CHECK(typeArgs->size() == 1, "Lookahead should have exactly one type argument.");
-             // TODO: We currently just create a dummy variable, but this is not correct.
-             // Since we look ahead, subsequent extracts and advance calls are influenced by the
-             // decision.
-             const auto *lookaheadType = externInfo.originalCall.typeArguments->at(0);
-             const auto &externObjectRef = externInfo.externObjectRef;
-             const auto &methodName = externInfo.methodName;
-             auto lookaheadLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
-                                   std::to_string(externInfo.originalCall.clone_id);
-             return createSymbolicExpression(externInfo.state, lookaheadType, lookaheadLabel, 0);
-         }},
-        {"packet_in.advance",
-         {"sizeInBits"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
-             // Advance is a no-op for now.
-             return nullptr;
-         }},
-        {"packet_out.emit",
-         {"hdr"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
-             // Emit is a no-op for now.
-             return nullptr;
-         }},
-        /* ======================================================================================
-         *  verify
-         *  The verify statement provides a simple form of error handling.
-         *  If the first argument is true, then executing the statement has no side-effect.
-         *  However, if the first argument is false, it causes an immediate transition to
-         *  reject, which causes immediate parsing termination; at the same time, the
-         *  parserError associated with the parser is set to the value of the second
-         *  argument.
-         * ======================================================================================
-         */
-        {"*method.verify",
-         {"bool", "error"},
-         [](ExternMethodImpls::ExternInfo & /*externInfo*/) {
-             // TODO: Implement the error case.
-             return nullptr;
-         }},
-    });
-    auto method = EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
-                                           externInfo.externArgs);
+const IR::Expression *ExpressionResolver::processExtern(
+    const ExternMethodImpls::ExternInfo &externInfo) {
+    auto method = core::EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
+                                                 externInfo.externArgs);
     if (method.has_value()) {
         return method.value()(externInfo);
     }

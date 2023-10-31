@@ -1,14 +1,13 @@
 #include "backends/p4tools/modules/flay/targets/v1model/stepper.h"
 
 #include <cstddef>
-#include <list>
 #include <utility>
 
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/target.h"
-#include "lib/cstring.h"
-#include "lib/ordered_map.h"
+#include "backends/p4tools/modules/flay/targets/v1model/constants.h"
+#include "ir/irutils.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -30,6 +29,20 @@ void V1ModelFlayStepper::initializeState() {
         executionState.initializeBlockParams(target, typeDecl, &archMember->blockParams);
         blockIdx++;
     }
+
+    const auto *thirtyTwoBitType = IR::getBitType(32);
+
+    // Initialize instance_type with a place holder.
+    const auto *instanceTypeVar = new IR::Member(
+        thirtyTwoBitType, new IR::PathExpression("*standard_metadata"), "instance_type");
+    executionState.set(
+        instanceTypeVar,
+        new IR::Placeholder(
+            "standard_metadata.instance_type",
+            IR::getConstant(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL)));
+    executionState.setPlaceholderValue(
+        "standard_metadata.instance_type",
+        IR::getConstant(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
 }
 
 V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::V1ModelProgramInfo &programInfo,

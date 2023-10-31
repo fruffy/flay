@@ -134,7 +134,6 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
 void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &state,
                                const IR::P4Action *actionType,
                                const IR::Vector<IR::Argument> &arguments) {
-    auto &actionStepper = FlayTarget::getStepper(programInfo, state);
     const auto *parameters = actionType->parameters;
     BUG_CHECK(
         arguments.size() == parameters->parameters.size(),
@@ -149,6 +148,7 @@ void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &s
         const auto *paramRef = new IR::PathExpression(paramType, new IR::Path(parameter->name));
         state.set(paramRef, actionArg);
     }
+    auto &actionStepper = FlayTarget::getStepper(programInfo, state);
     actionType->body->apply(actionStepper);
 }
 

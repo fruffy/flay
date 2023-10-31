@@ -111,13 +111,14 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     const auto *right = assign->right;
     const auto *left = assign->left;
     auto &executionState = getExecutionState();
+    auto &programInfo = getProgramInfo();
 
     const auto *assignType = executionState.resolveType(left->type);
     if (const auto *ts = assignType->to<IR::Type_StructLike>()) {
         // TODO: Support validity of header assignments and complex struct headers.
         if (right->is<IR::MethodCallExpression>()) {
             // Resolve the rval of the assignment statement.
-            auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
+            auto &resolver = createExpressionResolver(programInfo, executionState);
             right = resolver.computeResult(right);
         }
         assignStruct(executionState, left, right, ts);
@@ -125,7 +126,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     } else if (const auto *ts = assignType->to<IR::Type_Stack>()) {
         if (right->is<IR::MethodCallExpression>()) {
             // Resolve the rval of the assignment statement.
-            auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
+            auto &resolver = createExpressionResolver(programInfo, executionState);
             right = resolver.computeResult(right);
         }
         for (size_t idx = 0; idx < ts->getSize(); idx++) {
@@ -138,12 +139,11 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
         return false;
     }
     // Resolve the rval of the assignment statement.
-    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
+    auto &resolver = createExpressionResolver(programInfo, executionState);
     right = resolver.computeResult(right);
 
     if (assignType->is<IR::Type_Base>()) {
-        auto leftRef = ToolsVariables::convertReference(left);
-        executionState.set(leftRef, right);
+        executionState.set(ToolsVariables::convertReference(left), right);
     } else {
         P4C_UNIMPLEMENTED("Unsupported assignment type %1% of type %2% from %3%", assignType,
                           assignType->node_type_name(), right);
@@ -173,7 +173,7 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
     auto &executionState = getExecutionState();
 
     const auto *cond = ifStatement->condition;
-    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
+    auto &resolver = createExpressionResolver(getProgramInfo(), executionState);
     cond = resolver.computeResult(cond);
 
     // Add the node to the reachability map.
@@ -204,11 +204,10 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
         }
     }
 
-    // Resolve the switch match expression.
-    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
-    const auto *switchExpr = resolver.computeResult(switchStatement->expression);
-
     auto &executionState = getExecutionState();
+    // Resolve the switch match expression.
+    auto &resolver = createExpressionResolver(getProgramInfo(), executionState);
+    const auto *switchExpr = resolver.computeResult(switchStatement->expression);
 
     const IR::Expression *cond = IR::getBoolLiteral(false);
     std::vector<const IR::Statement *> accumulatedStatements;

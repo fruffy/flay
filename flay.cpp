@@ -4,6 +4,7 @@
 
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
+#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "frontends/common/parseInput.h"
@@ -23,6 +24,8 @@ int Flay::mainImpl(const IR::P4Program *program) {
     // These are discovered by CMAKE, which fills out the register.h.in file.
     registerFlayTargets();
 
+    enableInformationLogging();
+
     const auto *programInfo = FlayTarget::initProgram(program);
     if (programInfo == nullptr) {
         ::error("Program not supported by target device and architecture.");
@@ -33,34 +36,37 @@ int Flay::mainImpl(const IR::P4Program *program) {
         return EXIT_FAILURE;
     }
 
+    printInfo("Running analysis...\n");
     SymbolicExecutor symbex(*programInfo);
     symbex.run();
     const auto &executionState = symbex.getExecutionState();
 
     auto &options = P4CContext::get().options();
+
+    const auto &flayOptions = FlayOptions::get();
+    Z3Solver solver;
+
+    /// Substitute any placeholder variables encountered in the execution state.
+    printInfo("Substituting placeholder variables...\n");
+    auto &substitutedExecutionState = executionState.substitutePlaceholders();
+
+    // Initialize the dead code eliminator. Use the Z3Solver for now.
+    ElimDeadCode elim(substitutedExecutionState, solver);
+
+    // Gather the initial control-plane configuration. Also from a file input, if present.
+    auto &target = FlayTarget::get();
+    auto constraintsOpt = target.computeControlPlaneConstraints(*program, flayOptions);
+    if (!constraintsOpt.has_value()) {
+        return EXIT_FAILURE;
+    }
+    elim.addControlPlaneConstraints(constraintsOpt.value());
+
+    printInfo("Reparsing original program...\n");
     const auto *freshProgram = P4::parseP4File(options);
     if (::errorCount() > 0) {
         return EXIT_FAILURE;
     }
-
-    const auto &flayOptions = FlayOptions::get();
-
-    // Initialize the dead code eliminator. Use the Z3Solver for now.
-    Z3Solver solver;
-    ElimDeadCode elim(executionState, solver);
-
-    // Gather the initial control-plane configuration from a file input, if present.
-    if (flayOptions.hasControlPlaneConfig()) {
-        auto &target = FlayTarget::get();
-        auto constraintsOpt = target.computeControlPlaneConstraints(*program, flayOptions);
-        if (constraintsOpt.has_value()) {
-            elim.addControlPlaneConstraints(constraintsOpt.value());
-        } else {
-            return EXIT_FAILURE;
-        }
-    }
-
-    printf("Checking whether dead code can be removed...\n");
+    printInfo("Checking whether dead code can be removed...\n");
     freshProgram = freshProgram->apply(elim);
     // P4::ToP4 toP4;
     // program->apply(toP4);

@@ -55,9 +55,11 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/parser_stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/program_info.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/stepper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/substitute_placeholders.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/symbolic_executor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/table_executor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/target.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/logging.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/elim_dead_code.cpp
 )
 
@@ -89,7 +91,7 @@ foreach(ext ${flay_targets})
 endforeach(ext)
 
 # Propagate def files set by target extensions upwards.
-set(IR_DEF_FILES ${IR_DEF_FILES} PARENT_SCOPE)
+set(IR_DEF_FILES ${IR_DEF_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/flay.def PARENT_SCOPE)
 
 # Convert the list of files into #includes
 foreach(include_file ${include_files})

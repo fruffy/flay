@@ -29,9 +29,11 @@ class ExecutionState : public AbstractExecutionState {
     /// Keeps track of the reachability of individual nodes in the program.
     ReachabilityMap reachabilityMap;
 
-    ///
-    const IR::Expression *convertToStructLikeExpression(const IR::Expression *parent) const;
+    /// Convert the input expression into a list expression. Unrolls list- and struct expressions.
+    const IR::ListExpression *convertToListExpression(const IR::Expression *parent) const;
 
+    /// A static label for placeholder variables used in Flay.
+    static const IR::PathExpression PLACEHOLDER_LABEL;
     /* =========================================================================================
      *  Accessors
      * ========================================================================================= */
@@ -63,9 +65,27 @@ class ExecutionState : public AbstractExecutionState {
 
     [[nodiscard]] const ReachabilityMap &getReachabilityMap() const;
 
+    /// Map the conditions to be reachable to a particular program node.
     void addReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
 
+    /// @returns the set of conditions required to reach a particular node in the program.
+    /// Throws an error if the node is not present in the program.
     const IR ::Expression *getReachabilityCondition(const IR::Node *node, bool checked) const;
+
+    /// Convenience function to set the value of a placeholder variables in the symbolic
+    /// environment. An example where placeholder variables are necessary is recirculation. We can
+    /// not immediately know the conditions to cover a particular program node and need to assign a
+    /// placeholder.
+    void setPlaceholderValue(cstring label, const IR::Expression *value);
+
+    /// @returns the assigned value for a particular placeholder in this execution state.
+    /// Returns std::nullopt if no value was found.
+    std::optional<const IR::Expression *> getPlaceholderValue(
+        const IR::Placeholder &placeholder) const;
+
+    /// Substitute IR::Placeholder expression in all reachability conditions presents in this
+    /// execution state.
+    const ExecutionState &substitutePlaceholders() const;
 
     /* =========================================================================================
      *  Constructors

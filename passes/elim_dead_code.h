@@ -26,6 +26,9 @@ class ElimDeadCode : public Transform {
     /// check to compute feasibility of a program node.
     ControlPlaneConstraints controlPlaneConstraints;
 
+    /// The precomputed set of equalities. Computed for every apply.
+    std::vector<const Constraint *> controlPlaneConstraintExprs;
+
  public:
     ElimDeadCode() = delete;
 
