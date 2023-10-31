@@ -1,16 +1,15 @@
 #include "backends/p4tools/modules/flay/core/stepper.h"
 
 #include <cstddef>
-#include <string>
 #include <vector>
 
+#include "backends/p4tools/common/compiler/convert_hs_index.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/parser_stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
-#include "ir/indexed_vector.h"
 #include "ir/irutils.h"
 #include "ir/vector.h"
 #include "lib/cstring.h"
@@ -77,79 +76,106 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
     return false;
 }
 
-void assignStruct(ExecutionState &executionState, const IR::Expression *left,
-                  const IR::Expression *right, const IR::Type_StructLike *ts) {
+std::vector<const IR::Expression *> flattenComplexExpression(
+    const IR::Expression *inputExpression, std::vector<const IR::Expression *> &flatValids) {
+    std::vector<const IR::Expression *> exprList;
+    if (const auto *structExpr = inputExpression->to<IR::StructExpression>()) {
+        for (const auto *listElem : structExpr->components) {
+            auto subList = flattenComplexExpression(listElem->expression, flatValids);
+            exprList.insert(exprList.end(), subList.begin(), subList.end());
+        }
+        if (auto richStructExpr = structExpr->to<IR::HeaderExpression>()) {
+            flatValids.emplace_back(richStructExpr->validity);
+        }
+    } else if (const auto *headerStackExpr = inputExpression->to<IR::HeaderStackExpression>()) {
+        for (const auto *headerStackElem : headerStackExpr->components) {
+            auto subList = flattenComplexExpression(headerStackElem, flatValids);
+            exprList.insert(exprList.end(), subList.begin(), subList.end());
+        }
+    } else {
+        exprList.emplace_back(inputExpression);
+    }
+    return exprList;
+}
+
+void assignStruct(ExecutionState &executionState, const IR::StateVariable &left,
+                  const IR::Expression *right) {
     if (const auto *structExpr = right->to<IR::StructExpression>()) {
-        std::vector<IR::StateVariable> flatTargetValids;
-        auto flatTargetFields = executionState.getFlatFields(left, ts, &flatTargetValids);
-        auto flatStructFields = IR::flattenStructExpression(structExpr);
+        std::vector<IR::StateVariable> flatLeftValids;
+        std::vector<const IR::Expression *> flatRightValids;
+        auto flatTargetFields = executionState.getFlatFields(left, &flatLeftValids);
+        auto flatStructFields = flattenComplexExpression(structExpr, flatRightValids);
         auto flatTargetSize = flatTargetFields.size();
         auto flatStructSize = flatStructFields.size();
         BUG_CHECK(flatTargetSize == flatStructSize,
                   "The size of target fields (%1%) and the size of source fields (%2%) are "
                   "different.",
                   flatTargetSize, flatStructSize);
-        for (const auto &fieldTargetValid : flatTargetValids) {
-            executionState.set(fieldTargetValid, IR::getBoolLiteral(true));
+        auto flatLeftValidSize = flatLeftValids.size();
+        auto flatRightValidSize = flatRightValids.size();
+        BUG_CHECK(
+            flatLeftValidSize == flatRightValidSize,
+            "The size of target valid fields (%1%) and the size of source valid fields (%2%) are "
+            "different.",
+            flatLeftValidSize, flatRightValidSize);
+        // First, complete the validity assignments for the data structure.
+        for (size_t idx = 0; idx < flatLeftValids.size(); ++idx) {
+            const auto &flatLeftValidRef = flatLeftValids[idx];
+            const auto *flatRightValidExpr = flatRightValids[idx];
+            executionState.set(flatLeftValidRef, flatRightValidExpr);
         }
-        // First, complete the assignments for the data structure.
+
+        // Then, complete the assignments for the data structure.
         for (size_t idx = 0; idx < flatTargetFields.size(); ++idx) {
             const auto &flatTargetRef = flatTargetFields[idx];
             const auto *flatStructField = flatStructFields[idx];
             executionState.set(flatTargetRef, flatStructField);
         }
+    } else if (auto stackExpression = right->to<IR::HeaderStackExpression>()) {
+        auto stackType = stackExpression->headerStackType->checkedTo<IR::Type_Stack>();
+        auto stackSize = stackExpression->components.size();
+        for (size_t idx = 0; idx < stackSize; idx++) {
+            const auto *ref = HSIndexToMember::produceStackIndex(stackType->elementType, left, idx);
+            const auto *rightElem = stackExpression->components.at(idx);
+            assignStruct(executionState, ref, rightElem);
+        }
     } else if (right->is<IR::PathExpression>() || right->is<IR::Member>() ||
                right->is<IR::ArrayIndex>()) {
-        executionState.setStructLike(left, right);
+        executionState.setStructLike(left, ToolsVariables::convertReference(right));
     } else {
         P4C_UNIMPLEMENTED("Unsupported assignment rval %1% of type %2%", right,
                           right->node_type_name());
     }
 }
 
+#define CHECKED_ASSIGN(leftAssign, nodePtr, TargetType)                        \
+    const auto *result = nodePtr->to<TargetType>();                            \
+    BUG_CHECK(result, "Cast failed: %1% with type %2% is not a %3%.", nodePtr, \
+              nodePtr->node_type_name(), TargetType::static_type_name());      \
+    leftAssign = std::move(result);
+
 bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     const auto *right = assign->right;
-    const auto *left = assign->left;
+    const auto &left = ToolsVariables::convertReference(assign->left);
     auto &executionState = getExecutionState();
     auto &programInfo = getProgramInfo();
 
     const auto *assignType = executionState.resolveType(left->type);
-    if (const auto *ts = assignType->to<IR::Type_StructLike>()) {
-        // TODO: Support validity of header assignments and complex struct headers.
-        if (right->is<IR::MethodCallExpression>()) {
-            // Resolve the rval of the assignment statement.
-            auto &resolver = createExpressionResolver(programInfo, executionState);
-            right = resolver.computeResult(right);
-        }
-        assignStruct(executionState, left, right, ts);
-        return false;
-    } else if (const auto *ts = assignType->to<IR::Type_Stack>()) {
-        if (right->is<IR::MethodCallExpression>()) {
-            // Resolve the rval of the assignment statement.
-            auto &resolver = createExpressionResolver(programInfo, executionState);
-            right = resolver.computeResult(right);
-        }
-        for (size_t idx = 0; idx < ts->getSize(); idx++) {
-            auto ref = new IR::ArrayIndex(ts->elementType, left, new IR::Constant(idx));
-            auto structType = ts->elementType->to<IR::Type_StructLike>();
-            assignStruct(executionState, ref,
-                         new IR::ArrayIndex(ts->elementType, right, new IR::Constant(idx)),
-                         structType);
-        }
-        return false;
-    }
-    // Resolve the rval of the assignment statement.
+
     auto &resolver = createExpressionResolver(programInfo, executionState);
     right = resolver.computeResult(right);
 
+    if (right->is<IR::StructExpression>() || right->to<IR::HeaderStackExpression>()) {
+        assignStruct(executionState, left, right);
+        return false;
+    }
     if (assignType->is<IR::Type_Base>()) {
-        executionState.set(ToolsVariables::convertReference(left), right);
-    } else {
-        P4C_UNIMPLEMENTED("Unsupported assignment type %1% of type %2% from %3%", assignType,
-                          assignType->node_type_name(), right);
+        executionState.set(left, right);
+        return false;
     }
 
-    return false;
+    P4C_UNIMPLEMENTED("Unsupported assignment type %1% of type %2% from %3%", assignType,
+                      assignType->node_type_name(), right);
 }
 
 bool FlayStepper::preorder(const IR::EmptyStatement * /*emptyStatement*/) {
