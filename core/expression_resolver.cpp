@@ -279,6 +279,25 @@ bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
 
 bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     auto &state = getExecutionState();
+
+    // Resolve all arguments to the method call.
+    IR::Vector<IR::Argument> resolvedArgs;
+    auto method = call->method->type->checkedTo<IR::Type_MethodBase>();
+    auto &methodParams = method->parameters->parameters;
+    const auto *callArguments = call->arguments;
+    for (size_t idx = 0; idx < callArguments->size(); ++idx) {
+        auto arg = callArguments->at(idx);
+        auto param = methodParams.at(idx);
+        auto computedExpr = computeResult(arg->expression);
+        if (param->direction == IR::Direction::InOut || param->direction == IR::Direction::Out) {
+            auto stateVar = ToolsVariables::convertReference(arg->expression);
+            computedExpr = new IR::InOutReference(stateVar, computedExpr);
+        }
+        auto newArg = arg->clone();
+        newArg->expression = computedExpr;
+        resolvedArgs.push_back(newArg);
+    }
+
     // Handle method calls. These are either table invocations or extern calls.
     if (call->method->type->is<IR::Type_Method>()) {
         // Assume that all cases of path expressions are extern calls.
@@ -286,7 +305,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
             static auto METHOD_DUMMY =
                 IR::PathExpression(new IR::Type_Extern("*method"), new IR::Path("*method"));
             result = processExtern(
-                {*call, METHOD_DUMMY, path->path->name, call->arguments, state, programInfo});
+                {*call, METHOD_DUMMY, path->path->name, &resolvedArgs, state, programInfo});
             return false;
         }
 
@@ -301,7 +320,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
                 method->expr->type->is<IR::Type_SpecializedCanonical>()) {
                 const auto *path = method->expr->checkedTo<IR::PathExpression>();
                 result = processExtern(
-                    {*call, *path, method->member, call->arguments, state, programInfo});
+                    {*call, *path, method->member, &resolvedArgs, state, programInfo});
                 return false;
             }
 
@@ -342,7 +361,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
         // Handle action calls. Actions are called by tables and are not inlined, unlike
         // functions.
         const auto *actionType = state.getP4Action(call);
-        TableExecutor::callAction(programInfo, state, actionType, *call->arguments);
+        TableExecutor::callAction(programInfo, state, actionType, resolvedArgs);
         return false;
     }
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
@@ -361,7 +380,8 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           auto &state = externInfo.state;
 
           // This argument is the structure being written by the extract.
-          const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
+          const auto &extractRef = args->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
+          extractRef->type->checkedTo<IR::Type_Header>();
           const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
           // First, set the validity.
           auto extractLabel =
@@ -386,7 +406,8 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           auto &state = externInfo.state;
 
           // This argument is the structure being written by the extract.
-          const auto &extractRef = ToolsVariables::convertReference(args->at(0)->expression);
+          const auto &extractRef = args->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
+          extractRef->type->checkedTo<IR::Type_Header>();
           const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
           // First, set the validity.
           auto extractLabel =
