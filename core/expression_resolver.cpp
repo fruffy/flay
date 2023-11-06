@@ -266,7 +266,8 @@ bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
     // If the struct expression type is a header, then it is always valid.
     auto resolvedType = getExecutionState().resolveType(structExpr->type);
     if (resolvedType->is<IR::Type_Header>()) {
-        result = new IR::HeaderExpression(resolvedType, components, IR::getBoolLiteral(true));
+        // TODO: Do not use nullptr here and instead the real type.
+        result = new IR::HeaderExpression(nullptr, components, IR::getBoolLiteral(true));
         return false;
     } else {
         auto *newStructExpr = structExpr->clone();

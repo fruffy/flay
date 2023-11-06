@@ -43,9 +43,11 @@ const IR::Expression *ExecutionState::createSymbolicExpression(const IR::Type *i
         if (structType->is<IR::Type_Header>()) {
             cstring labelId = label + "_" + ToolsVariables::VALID;
             auto validity = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), labelId);
-            return new IR::HeaderExpression(structType, fields, validity);
+            // TODO: Do not use nullptr here and instead the real type.
+            return new IR::HeaderExpression(nullptr, fields, validity);
         } else {
-            return new IR::StructExpression(structType, fields);
+            // TODO: Do not use nullptr here and instead the real type.
+            return new IR::StructExpression(nullptr, fields);
         }
     }
     if (const auto *stackType = resolvedType->to<IR::Type_Stack>()) {
@@ -80,9 +82,11 @@ const IR::Expression *ExecutionState::convertToComplexExpression(
         }
         if (ts->is<IR::Type_Header>()) {
             auto validity = ToolsVariables::getHeaderValidity(parent);
-            return new IR::HeaderExpression(parent->type, components, get(validity));
+            // TODO: Do not use nullptr here and instead the real type.
+            return new IR::HeaderExpression(nullptr, components, get(validity));
         } else {
-            return new IR::StructExpression(parent->type, components);
+            // TODO: Do not use nullptr here and instead the real type.
+            return new IR::StructExpression(nullptr, components);
         }
     } else if (auto ts = parent->type->to<IR::Type_Stack>()) {
         IR::Vector<IR::Expression> components;
