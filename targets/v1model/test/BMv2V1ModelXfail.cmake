@@ -5,8 +5,21 @@
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "Compiler Bug|Unimplemented compiler support"
+  issue-2123-3-bmv2.p4 # Cannot match {(|packet_extract_hdr.ethernet_0(bool)| ?
+                       # |packet_extract_hdr.ethernet_hdr.ethernet.srcAddr_0(bit<48>)| : 0)[7:0],
+                       # |packet_extract_hdr.ethernet_0(bool)| ?
+                       # |packet_extract_hdr.ethernet_hdr.ethernet.etherType_0(bit<16>)| : 0}; with
+                       # 2560 .. 2730;
+  issue-2123.p4 # Cannot match {|packet_extract_hdr.ethernet_0(bool)| ?
+                # |packet_extract_hdr.ethernet_hdr.ethernet.etherType_0(bit<16>)| : 0,
+                # (|packet_extract_hdr.ethernet_0(bool)| ?
+                # |packet_extract_hdr.ethernet_hdr.ethernet.srcAddr_0(bit<48>)| : 0)[7:0],
+                # (|packet_extract_hdr.ethernet_0(bool)| ?
+                # |packet_extract_hdr.ethernet_hdr.ethernet.dstAddr_0(bit<48>)| : 0)[7:0]}; with 8
+                # .. 16;
   issue1304.p4 # Cast failed: Pipeline<my_packet, my_metadata> with type Type_Specialized is not a
                # Type_Declaration.
+  invalid-hdr-warnings2.p4 # : No default value for type <Type_Unknown>(2) (Type_Unknown).
   header-stack-ops-bmv2.p4 # Unknown method member expression: hdr_0.h2; of type header h2_t
 )
 

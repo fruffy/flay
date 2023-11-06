@@ -29,9 +29,8 @@ class ExecutionState : public AbstractExecutionState {
     /// Keeps track of the reachability of individual nodes in the program.
     ReachabilityMap reachabilityMap;
 
-    /// Convert the input expression into a complex expression. Unrolls list- and struct
-    /// expressions.
-    const IR::Expression *convertToComplexExpression(const IR::StateVariable &parent) const;
+    /// Convert the input expression into a list expression. Unrolls list- and struct expressions.
+    const IR::ListExpression *convertToListExpression(const IR::Expression *parent) const;
 
     /// A static label for placeholder variables used in Flay.
     static const IR::PathExpression PLACEHOLDER_LABEL;
@@ -51,10 +50,6 @@ class ExecutionState : public AbstractExecutionState {
 
     /// @returns true if the parserID is already in the list of visited IDs.
     [[nodiscard]] bool hasVisitedParserId(int parserId) const;
-
-    /// @returns a symbolic expression using the id and label provided.
-    /// Also handles complex expressions such as structs or headers.
-    const IR::Expression *createSymbolicExpression(const IR::Type *inputType, cstring label) const;
 
     /* =========================================================================================
      *  State merging and execution conditions.

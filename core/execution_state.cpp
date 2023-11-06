@@ -29,94 +29,49 @@ const IR::PathExpression ExecutionState::PLACEHOLDER_LABEL = IR::PathExpression(
  *  Accessors
  * ============================================================================================= */
 
-const IR::Expression *ExecutionState::createSymbolicExpression(const IR::Type *inputType,
-                                                               cstring label) const {
-    const auto *resolvedType = resolveType(inputType);
-    if (const auto *structType = resolvedType->to<IR::Type_StructLike>()) {
-        IR::IndexedVector<IR::NamedExpression> fields;
-        for (size_t idx = 0; idx < structType->fields.size(); ++idx) {
-            const auto *field = structType->fields.at(idx);
-            auto fieldLabel = label + "_" + field->name;
-            fields.push_back(new IR::NamedExpression(
-                field->name, createSymbolicExpression(field->type, fieldLabel)));
-        }
-        if (structType->is<IR::Type_Header>()) {
-            cstring labelId = label + "_" + ToolsVariables::VALID;
-            auto validity = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), labelId);
-            // TODO: Do not use nullptr here and instead the real type.
-            return new IR::HeaderExpression(nullptr, fields, validity);
-        } else {
-            // TODO: Do not use nullptr here and instead the real type.
-            return new IR::StructExpression(nullptr, fields);
-        }
-    }
-    if (const auto *stackType = resolvedType->to<IR::Type_Stack>()) {
-        IR::Vector<IR::Expression> fields;
-        for (size_t idx = 0; idx < stackType->getSize(); ++idx) {
-            auto fieldLabel = label + "[" + std::to_string(idx) + "]";
-            fields.push_back(createSymbolicExpression(stackType->elementType, fieldLabel));
-        }
-        return new IR::HeaderStackExpression(fields, inputType);
-    }
-    if (resolvedType->is<IR::Type_Base>()) {
-        return ToolsVariables::getSymbolicVariable(resolvedType, label);
-    }
-    P4C_UNIMPLEMENTED("Requesting a symbolic expression for %1% of type %2%", inputType,
-                      inputType->node_type_name());
-}
-
-const IR::Expression *ExecutionState::convertToComplexExpression(
-    const IR::StateVariable &parent) const {
+const IR::ListExpression *ExecutionState::convertToListExpression(
+    const IR::Expression *parent) const {
+    // TODO: We are losing information about validity here. How do we also record the validity?
     if (auto ts = parent->type->to<IR::Type_StructLike>()) {
-        IR::IndexedVector<IR::NamedExpression> components;
+        IR::Vector<IR::Expression> components;
         for (auto structField : ts->fields) {
             auto fieldName = structField->name;
-            const auto *fieldType = resolveType(structField->type);
+            auto fieldType = structField->type;
             auto ref = new IR::Member(fieldType, parent, fieldName);
             if (fieldType->is<IR::Type_StructLike>() || fieldType->to<IR::Type_Stack>()) {
-                components.push_back(
-                    new IR::NamedExpression(fieldName, convertToComplexExpression(ref)));
-            } else {
-                components.push_back(new IR::NamedExpression(fieldName, get(ref)));
-            }
-        }
-        if (ts->is<IR::Type_Header>()) {
-            auto validity = ToolsVariables::getHeaderValidity(parent);
-            // TODO: Do not use nullptr here and instead the real type.
-            return new IR::HeaderExpression(nullptr, components, get(validity));
-        } else {
-            // TODO: Do not use nullptr here and instead the real type.
-            return new IR::StructExpression(nullptr, components);
-        }
-    } else if (auto ts = parent->type->to<IR::Type_Stack>()) {
-        IR::Vector<IR::Expression> components;
-        const auto *elementType = resolveType(ts->elementType);
-        for (size_t idx = 0; idx < ts->getSize(); idx++) {
-            auto ref = new IR::ArrayIndex(elementType, parent, new IR::Constant(idx));
-            if (elementType->is<IR::Type_StructLike>() || elementType->to<IR::Type_Stack>()) {
-                components.push_back(convertToComplexExpression(ref));
+                components.push_back(convertToListExpression(ref));
             } else {
                 components.push_back(get(ref));
             }
         }
-        return new IR::HeaderStackExpression(components, parent->type);
+        return new IR::ListExpression(parent->type, components);
+    } else if (auto ts = parent->type->to<IR::Type_Stack>()) {
+        IR::Vector<IR::Expression> components;
+        for (size_t idx = 0; idx < ts->getSize(); idx++) {
+            auto ref = new IR::ArrayIndex(ts->elementType, parent, new IR::Constant(idx));
+            if (ts->elementType->is<IR::Type_StructLike>() ||
+                ts->elementType->to<IR::Type_Stack>()) {
+                components.push_back(convertToListExpression(ref));
+            } else {
+                components.push_back(get(ref));
+            }
+        }
+        return new IR::ListExpression(parent->type, components);
     }
     P4C_UNIMPLEMENTED("Unsupported struct-like type %1% for member %2%",
                       parent->type->node_type_name(), parent);
 }
 
 const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
-    auto varType = resolveType(var->type);
     // In some cases, we may reference a complex expression. Convert it to a struct expression.
-    if (varType->is<IR::Type_StructLike>() || varType->to<IR::Type_Stack>()) {
-        return convertToComplexExpression(var);
+    if (var->type->is<IR::Type_StructLike>() || var->type->to<IR::Type_Stack>()) {
+        return convertToListExpression(var);
     }
     // TODO: This is a convoluted (and expensive?) check because struct members are not directly
     // associated with a header. We should be using runtime objects instead of flat assignments.
     const auto *expr = env.get(var);
     if (const auto *member = var->to<IR::Member>()) {
-        auto memberType = resolveType(member->expr->type);
-        if (memberType->is<IR::Type_Header>() && member->member != ToolsVariables::VALID) {
+        if (member->expr->type->is<IR::Type_Header>() && member->member != ToolsVariables::VALID) {
             // If we are setting the member of a header, we need to check whether the
             // header is valid.
             // If the header is invalid, the get returns a tainted expression.
