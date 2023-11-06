@@ -34,14 +34,11 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"standard_metadata"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, state);
 
          const auto *nineBitType = IR::getBitType(9);
-         const auto *metadataLabel = externInfo.externArgs->at(0)->expression;
-         if (!(metadataLabel->is<IR::Member>() || metadataLabel->is<IR::PathExpression>())) {
-             P4C_UNIMPLEMENTED("Drop input %1% of type %2% not supported", metadataLabel,
-                               metadataLabel->type);
-         }
+         const auto &metadataLabel =
+             externInfo.externArgs->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
+
          // Use an assignment to set egress_spec to true.
          // This variable will be processed in the deparser.
          const auto *portVar = new IR::Member(nineBitType, metadataLabel, "egress_spec");
@@ -58,13 +55,12 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"result", "lo", "hi"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-
-         const auto *resultField = externInfo.externArgs->at(0)->expression;
-         const auto &fieldRef = ToolsVariables::convertReference(resultField);
+         const auto &fieldRef =
+             externInfo.externArgs->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
          auto randomLabel = externInfo.externObjectRef.path->toString() + "_" +
                             externInfo.methodName + "_" +
                             std::to_string(externInfo.originalCall.clone_id);
-         state.set(fieldRef, ToolsVariables::getSymbolicVariable(resultField->type, randomLabel));
+         state.set(fieldRef, ToolsVariables::getSymbolicVariable(fieldRef->type, randomLabel));
          return nullptr;
      }},
     /* ======================================================================================
@@ -76,12 +72,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      */
     {"*method.log_msg",
      {"msg", "args"},
-     [](const ExternMethodImpls::ExternInfo &externInfo) {
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, externInfo.state);
-         // Log msg is a no-op, but we still evaluate the arguments.
-         resolver.computeResult(externInfo.externArgs->at(1)->expression);
-         return nullptr;
-     }},
+     [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
     /* ======================================================================================
      *  log_msg
      *  Log user defined messages
@@ -214,13 +205,10 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"result", "index"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, state);
 
          // TODO: Implement and actually keep track of the writes.
          const auto &resultVar =
-             ToolsVariables::convertReference(externInfo.externArgs->at(0)->expression);
-         // Just resolve the data by calling it.
-         resolver.computeResult(externInfo.externArgs->at(1)->expression);
+             externInfo.externArgs->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
 
          auto registerLabel = externInfo.externObjectRef.path->toString() + "_" +
                               externInfo.methodName + "_" +
@@ -427,13 +415,10 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"type", "session", "data"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, state);
 
          auto cloneType =
              externInfo.externArgs->at(0)->expression->checkedTo<IR::Constant>()->asUint64();
-         auto sessionID = resolver.computeResult(externInfo.externArgs->at(1)->expression);
-         // Do not use data just yet. Just resolve it.
-         resolver.computeResult(externInfo.externArgs->at(2)->expression);
+         auto sessionID = externInfo.externArgs->at(1)->expression;
 
          const auto *instanceBitType = IR::getBitType(32);
          auto isCloned = new IR::LAnd(
@@ -534,11 +519,10 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"type", "session"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, state);
 
          auto cloneType =
              externInfo.externArgs->at(0)->expression->checkedTo<IR::Constant>()->asUint64();
-         auto sessionID = resolver.computeResult(externInfo.externArgs->at(1)->expression);
+         auto sessionID = externInfo.externArgs->at(1)->expression;
 
          const auto *instanceBitType = IR::getBitType(32);
          auto isCloned = new IR::LAnd(
@@ -583,15 +567,10 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"result", "algo", "base", "data", "max"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, state);
 
          // TODO: We can actually make this more complex.
          const auto &resultVar =
-             ToolsVariables::convertReference(externInfo.externArgs->at(0)->expression);
-         // Just resolve the data by calling it.
-         resolver.computeResult(externInfo.externArgs->at(2)->expression);
-         resolver.computeResult(externInfo.externArgs->at(3)->expression);
-         resolver.computeResult(externInfo.externArgs->at(4)->expression);
+             externInfo.externArgs->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
 
          auto hashLabel = externInfo.externObjectRef.path->toString() + "_" +
                           externInfo.methodName + "_" +
@@ -607,10 +586,6 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
     {"Checksum16.get",
      {"data"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, externInfo.state);
-
-         // Just resolve the data by calling it.
-         resolver.computeResult(externInfo.externArgs->at(0)->expression);
          auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
                               externInfo.methodName + "_" +
                               std::to_string(externInfo.originalCall.clone_id);
@@ -646,12 +621,9 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"condition", "data", "checksum", "algo"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, externInfo.state);
 
          // We do not calculate the checksum for now and instead use a dummy.
-         const auto *cond = resolver.computeResult(externInfo.externArgs->at(0)->expression);
-         // Just resolve the data by calling it.
-         resolver.computeResult(externInfo.externArgs->at(1)->expression);
+         const auto *cond = externInfo.externArgs->at(0)->expression;
 
          const auto *oneBitType = IR::getBitType(1);
          const auto *checksumErr = new IR::Member(
@@ -679,12 +651,9 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"condition", "data", "checksum", "algo"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, externInfo.state);
 
          // We do not calculate the checksum for now and instead use a dummy.
-         const auto *cond = resolver.computeResult(externInfo.externArgs->at(0)->expression);
-         // Just resolve the data by calling it.
-         resolver.computeResult(externInfo.externArgs->at(1)->expression);
+         const auto *cond = externInfo.externArgs->at(0)->expression;
 
          const auto *oneBitType = IR::getBitType(1);
          const auto *checksumErr = new IR::Member(
@@ -721,16 +690,13 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"condition", "data", "checksum", "algo"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, externInfo.state);
 
          // We do not calculate the checksum
          // for now and instead use a dummy.
-         const auto *cond = resolver.computeResult(externInfo.externArgs->at(0)->expression);
-         // Just resolve the data by calling it.
-         resolver.computeResult(externInfo.externArgs->at(1)->expression);
+         const auto *cond = externInfo.externArgs->at(0)->expression;
 
          const auto &checksumVar =
-             ToolsVariables::convertReference(externInfo.externArgs->at(2)->expression);
+             externInfo.externArgs->at(2)->expression->checkedTo<IR::InOutReference>()->ref;
          auto verifyChecksumLabel = externInfo.externObjectRef.path->toString() + "_" +
                                     externInfo.methodName + "_" +
                                     std::to_string(externInfo.originalCall.clone_id);
@@ -754,16 +720,13 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"condition", "data", "checksum", "algo"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto resolver = V1ModelExpressionResolver(externInfo.programInfo, externInfo.state);
 
          // We do not calculate the checksum
          // for now and instead use a dummy.
-         const auto *cond = resolver.computeResult(externInfo.externArgs->at(0)->expression);
-         // Just resolve the data by calling it.
-         resolver.computeResult(externInfo.externArgs->at(1)->expression);
+         const auto *cond = externInfo.externArgs->at(0)->expression;
 
          const auto &checksumVar =
-             ToolsVariables::convertReference(externInfo.externArgs->at(2)->expression);
+             externInfo.externArgs->at(2)->expression->checkedTo<IR::InOutReference>()->ref;
          auto verifyChecksumLabel = externInfo.externObjectRef.path->toString() + "_" +
                                     externInfo.methodName + "_" +
                                     std::to_string(externInfo.originalCall.clone_id);
