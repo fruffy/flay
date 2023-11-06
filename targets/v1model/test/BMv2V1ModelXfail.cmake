@@ -16,10 +16,10 @@ p4tools_add_xfail_reason("flay-p4c-bmv2-v1model" "Unknown or unimplemented exter
 
 # These are custom externs we do not implement.
 p4tools_add_xfail_reason(
-  "flay-p4c-bmv2-v1model" "Unknown or unimplemented extern method: .*"
+  "flay-p4c-bmv2-v1model"
+  "Unknown or unimplemented extern method: .*"
   issue1882-bmv2.p4 # Unknown or unimplemented extern method: extr.increment
   issue1882-1-bmv2.p4 # Unknown or unimplemented extern method: extr.increment
-  issue3091.p4 # Unknown or unimplemented extern method: *method.fn_foo
   issue2664-bmv2.p4 # Unknown or unimplemented extern method: ipv4_checksum.update
 )
 
@@ -37,6 +37,7 @@ p4tools_add_xfail_reason(
                                       # environment.
   v1model-p4runtime-most-types1.p4 # Unable to find var valueset1_0/valueset1; in the symbolic
                                    # environment.
+  issue3091.p4 # WONTFIX Unable to find var ternary; in the symbolic environment.
 )
 
 p4tools_add_xfail_reason(
