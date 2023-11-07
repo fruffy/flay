@@ -1,11 +1,11 @@
 
-#include "backends/p4tools/modules/flay/targets/v1model/table_executor.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/table_executor.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
-#include "backends/p4tools/modules/flay/targets/v1model/constants.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
 #include "ir/irutils.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"

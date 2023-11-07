@@ -1,4 +1,4 @@
-#include "backends/p4tools/modules/flay/targets/v1model/v1model.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/v1model.h"
 
 #include <string>
 

@@ -1,4 +1,4 @@
-#include "backends/p4tools/modules/flay/targets/v1model/program_info.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
 
 #include <list>
 #include <map>
