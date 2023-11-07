@@ -3,18 +3,15 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <string>
 #include <utility>
-#include <vector>
 
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "backends/p4tools/common/lib/constants.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/table_utils.h"
-#include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
-#include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
@@ -32,6 +29,10 @@ const ProgramInfo &TableExecutor::getProgramInfo() const { return resolver.get()
 
 ExecutionState &TableExecutor::getExecutionState() const {
     return resolver.get().getExecutionState();
+}
+
+ControlPlaneState &TableExecutor::getControlPlaneState() const {
+    return resolver.get().getControlPlaneState();
 }
 
 const IR::P4Table &TableExecutor::getP4Table() const { return table; }
@@ -84,21 +85,20 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
         fieldName = nameAnnot->getName();
     }
     // Create a new variable constant that corresponds to the key expression.
-    cstring keyName = tableName + "_key_" + fieldName;
-    const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
+    const auto *ctrlPlaneKey = ControlPlaneState::getTableKey(tableName, fieldName, keyExpr->type);
 
     if (matchType == P4Constants::MATCH_KIND_EXACT) {
         return new IR::Equ(keyExpr, ctrlPlaneKey);
     }
     if (matchType == P4Constants::MATCH_KIND_TERNARY) {
-        cstring maskName = tableName + "_mask_" + fieldName;
         const IR::Expression *ternaryMask = nullptr;
         // We can recover from taint by inserting a ternary match that is 0.
         if (isTainted) {
             ternaryMask = IR::getConstant(keyExpr->type, 0);
             keyExpr = ternaryMask;
         } else {
-            ternaryMask = ToolsVariables::getSymbolicVariable(keyExpr->type, maskName);
+            ternaryMask =
+                ControlPlaneState::getTableTernaryMask(tableName, fieldName, keyExpr->type);
         }
         return new IR::Equ(new IR::BAnd(keyExpr, ternaryMask),
                            new IR::BAnd(ctrlPlaneKey, ternaryMask));
@@ -106,9 +106,8 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
     if (matchType == P4Constants::MATCH_KIND_LPM) {
         const auto *keyType = keyExpr->type->checkedTo<IR::Type_Bits>();
         auto keyWidth = keyType->width_bits();
-        cstring maskName = tableName + "_lpm_prefix_" + fieldName;
         const IR::Expression *maskVar =
-            ToolsVariables::getSymbolicVariable(keyExpr->type, maskName);
+            ControlPlaneState::getTableMatchLpmPrefix(tableName, fieldName, keyExpr->type);
         // The maxReturn is the maximum vale for the given bit width. This value is shifted by
         // the mask variable to create a mask (and with that, a prefix).
         auto maxReturn = IR::getMaxBvVal(keyWidth);
@@ -132,7 +131,7 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
 }
 
 void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &state,
-                               const IR::P4Action *actionType,
+                               ControlPlaneState &controlPlaneState, const IR::P4Action *actionType,
                                const IR::Vector<IR::Argument> &arguments) {
     const auto *parameters = actionType->parameters;
     BUG_CHECK(
@@ -148,7 +147,7 @@ void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &s
         const auto *paramRef = new IR::PathExpression(paramType, new IR::Path(parameter->name));
         state.set(paramRef, actionArg);
     }
-    auto &actionStepper = FlayTarget::getStepper(programInfo, state);
+    auto &actionStepper = FlayTarget::getStepper(programInfo, state, controlPlaneState);
     actionType->body->apply(actionStepper);
 }
 
@@ -160,7 +159,7 @@ void TableExecutor::processDefaultAction() const {
 
     // Synthesize arguments for the call based on the action parameters.
     const auto *arguments = tableAction->arguments;
-    callAction(getProgramInfo(), state, actionType, *arguments);
+    callAction(getProgramInfo(), state, getControlPlaneState(), actionType, *arguments);
 }
 
 TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
@@ -168,9 +167,12 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     auto table = getP4Table();
     auto tableActionList = TableUtils::buildTableActionList(table);
     auto &state = getExecutionState();
+    auto &controlPlaneState = getControlPlaneState();
 
     // First, we compute the hit condition to trigger this particular action call.
-    const auto *hitCondition = computeKey(key);
+    const auto *tableActiveVar =
+        controlPlaneState.allocateControlPlaneTable(table.controlPlaneName());
+    const auto *hitCondition = new IR::LAnd(tableActiveVar, computeKey(key));
     const auto *actionPath = TableUtils::getDefaultActionName(table);
     ReturnProperties retProperties{hitCondition, new IR::StringLiteral(actionPath->toString())};
     for (auto action : tableActionList) {
@@ -196,12 +198,12 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
             // Synthesize a variable constant here that corresponds to a control plane argument.
             // We get the unique name of the table coupled with the unique name of the action.
             // Getting the unique name is needed to avoid generating duplicate arguments.
-            cstring paramName = getP4Table().controlPlaneName() + "_" + actionName + "_" +
-                                parameter->controlPlaneName();
-            const auto &actionArg = ToolsVariables::getSymbolicVariable(parameter->type, paramName);
+            const auto *actionArg = ControlPlaneState::getTableActionArg(
+                getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
+                parameter->type);
             arguments.push_back(new IR::Argument(actionArg));
         }
-        callAction(getProgramInfo(), actionState, actionType, arguments);
+        callAction(getProgramInfo(), actionState, controlPlaneState, actionType, arguments);
         // Finally, merge in the state of the action call.
         state.merge(actionState);
     }
@@ -249,7 +251,8 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
         const auto *actionType = state.getP4Action(actionCall);
         auto &actionState = state.clone();
         actionState.pushExecutionCondition(hitCondition);
-        callAction(getProgramInfo(), actionState, actionType, *actionCall->arguments);
+        callAction(getProgramInfo(), actionState, getControlPlaneState(), actionType,
+                   *actionCall->arguments);
         // Finally, merge in the state of the action call.
         // We can only match if other entries have not previously matched!
         const auto *entryHitCondition =
@@ -295,8 +298,7 @@ const IR::Expression *TableExecutor::processTable() {
              new IR::NamedExpression("table_name", new IR::StringLiteral(tableName))});
     }
 
-    const auto actionVar = tableName + "_action";
-    const auto *tableActionID = ToolsVariables::getSymbolicVariable(new IR::Type_String, actionVar);
+    const auto *tableActionID = ControlPlaneState::getTableActionChoice(tableName);
     // Execute all other possible action options. Get the combination of all possible hits.
     const auto &retProperties = processTableActionOptions(tableActionID, key);
     return new IR::StructExpression(

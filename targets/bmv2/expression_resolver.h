@@ -4,7 +4,8 @@
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
-#include "backends/p4tools/modules/flay/core/program_info.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/symbolic_state.h"
 #include "ir/ir.h"
 
 namespace P4Tools::Flay::V1Model {
@@ -13,7 +14,8 @@ namespace P4Tools::Flay::V1Model {
 class V1ModelExpressionResolver : public ExpressionResolver {
  public:
     explicit V1ModelExpressionResolver(const ProgramInfo &programInfo,
-                                       ExecutionState &executionState);
+                                       ExecutionState &executionState,
+                                       ControlPlaneState &controlPlaneState);
 
  private:
     const IR::Expression *processTable(const IR::P4Table *table) override;

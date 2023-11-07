@@ -3,6 +3,7 @@
 
 #include <functional>
 
+#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
@@ -13,7 +14,8 @@
 
 namespace P4Tools::Flay {
 
-/// Simplifies an expression, executes method calls, and resolves state references.
+/// Simplifies an expression, executes method calls, and resolves state
+/// references.
 class ExpressionResolver : public Inspector {
     friend TableExecutor;
 
@@ -27,13 +29,18 @@ class ExpressionResolver : public Inspector {
     /// The current execution state.
     std::reference_wrapper<ExecutionState> executionState;
 
-    /// @returns a symbolic expression, which could also be a header stack or struct expression.
+    /// The current control plane state.
+    std::reference_wrapper<ControlPlaneState> controlPlaneState;
+
+    /// @returns a symbolic expression, which could also be a header stack or
+    /// struct expression.
     /// TODO: Simplify.
     static const IR::Expression *createSymbolicExpression(const ExecutionState &state,
                                                           const IR::Type *inputType, cstring label,
                                                           size_t id);
 
-    /// @returns a struct expression in case the member refers to a more complex expression.
+    /// @returns a struct expression in case the member refers to a more complex
+    /// expression.
     /// @returns nullptr otherwise. TODO: Convert to std::nullopt.
     const IR::Expression *checkStructLike(const IR::Member *member);
 
@@ -56,14 +63,19 @@ class ExpressionResolver : public Inspector {
     /// @returns the current execution state.
     ExecutionState &getExecutionState() const;
 
+    /// @returns the current control plane state.
+    ControlPlaneState &getControlPlaneState() const;
+
     /// @returns the program info associated with the current target.
     const ProgramInfo &getProgramInfo() const;
 
-    /// Executes the target-specific table implementation and @returns the result of the execution.
+    /// Executes the target-specific table implementation and @returns the result
+    /// of the execution.
     virtual const IR::Expression *processTable(const IR::P4Table *table) = 0;
 
-    /// Tries to look up the implementation of the extern in the list of available extern functions
-    /// for the expression resolver of the target. Returns the result of the execution.
+    /// Tries to look up the implementation of the extern in the list of available
+    /// extern functions for the expression resolver of the target. Returns the
+    /// result of the execution.
     virtual const IR::Expression *processExtern(const ExternMethodImpls::ExternInfo &externInfo);
 
     /// @returns the result of the execution of this visitor.
@@ -71,7 +83,8 @@ class ExpressionResolver : public Inspector {
     const IR::Expression *getResult();
 
  public:
-    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);
+    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState,
+                                ControlPlaneState &ControlPlaneState);
 
     /// Apply the resolver to the supplied @param node.
     /// @returns the result of the execution of this visitor.

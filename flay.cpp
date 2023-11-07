@@ -40,6 +40,7 @@ int Flay::mainImpl(const IR::P4Program *program) {
     SymbolicExecutor symbex(*programInfo);
     symbex.run();
     const auto &executionState = symbex.getExecutionState();
+    const auto &controlPlaneState = symbex.getControlPlaneState();
 
     auto &options = P4CContext::get().options();
 
@@ -55,7 +56,8 @@ int Flay::mainImpl(const IR::P4Program *program) {
 
     // Gather the initial control-plane configuration. Also from a file input, if present.
     auto &target = FlayTarget::get();
-    auto constraintsOpt = target.computeControlPlaneConstraints(*program, flayOptions);
+    auto constraintsOpt =
+        target.computeControlPlaneConstraints(*program, flayOptions, controlPlaneState);
     if (!constraintsOpt.has_value()) {
         return EXIT_FAILURE;
     }

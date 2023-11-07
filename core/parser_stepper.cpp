@@ -26,6 +26,10 @@ ExecutionState &ParserStepper::getExecutionState() const {
     return stepper.get().getExecutionState();
 }
 
+ControlPlaneState &ParserStepper::getControlPlaneState() const {
+    return stepper.get().getControlPlaneState();
+}
+
 bool ParserStepper::preorder(const IR::Node *node) {
     P4C_UNIMPLEMENTED("Node %1% of type %2% not implemented in the core stepper.", node,
                       node->node_type_name());
@@ -75,7 +79,8 @@ bool ParserStepper::preorder(const IR::P4Parser *parser) {
 
 void ParserStepper::processSelectExpression(const IR::SelectExpression *selectExpr) {
     auto &executionState = getExecutionState();
-    auto &resolver = stepper.get().createExpressionResolver(getProgramInfo(), getExecutionState());
+    auto &resolver = stepper.get().createExpressionResolver(getProgramInfo(), getExecutionState(),
+                                                            getControlPlaneState());
     const auto *selectKeyExpr = resolver.computeResult(selectExpr->select);
 
     const IR::Expression *cond = IR::getBoolLiteral(false);
@@ -108,8 +113,8 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
         }
         notConds.push_back(new IR::LNot(cond));
         selectState.pushExecutionCondition(finalCond);
-        auto subParserStepper =
-            ParserStepper(FlayTarget::getStepper(getProgramInfo(), selectState));
+        auto subParserStepper = ParserStepper(
+            FlayTarget::getStepper(getProgramInfo(), selectState, getControlPlaneState()));
         decl->apply(subParserStepper);
         // Save the state for  later merging.
         accumulatedStates.emplace_back(selectState);

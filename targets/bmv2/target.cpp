@@ -83,18 +83,24 @@ const ArchSpec V1ModelFlayTarget::ARCH_SPEC =
 const ArchSpec *V1ModelFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; }
 
 FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
-                                               ExecutionState &executionState) const {
-    return *new V1ModelFlayStepper(*programInfo.checkedTo<V1ModelProgramInfo>(), executionState);
+                                               ExecutionState &executionState,
+                                               ControlPlaneState &controlPlaneState) const {
+    auto bmv2ControlPlaneState = controlPlaneState.to<Bmv2ControlPlaneState>();
+    CHECK_NULL(bmv2ControlPlaneState);
+    return *new V1ModelFlayStepper(*programInfo.checkedTo<V1ModelProgramInfo>(), executionState,
+                                   *bmv2ControlPlaneState);
+}
+
+Bmv2ControlPlaneState &V1ModelFlayTarget::initializeControlPlaneStateImpl() const {
+    return *new Bmv2ControlPlaneState();
 }
 
 std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneConstraintsImpl(
-    const IR::P4Program &program, const FlayOptions &options) const {
+    const IR::P4Program &program, const FlayOptions &options,
+    const ControlPlaneState &controlPlaneState) const {
     // Initialize some constraints that are active regardless of the control-plane configuration.
     // These constraints can be overridden by the respective control-plane configuration.
-    ControlPlaneConstraints constraints;
-    constraints.emplace(
-        *ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "clone_session_active"),
-        IR::getBoolLiteral(false));
+    auto constraints = controlPlaneState.getDefaultConstraints();
     if (!options.hasControlPlaneConfig()) {
         return constraints;
     }

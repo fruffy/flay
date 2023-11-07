@@ -11,6 +11,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/expression_resolver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/program_info.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/stepper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/symbolic_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/target.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/table_executor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/v1model.cpp

@@ -46,6 +46,9 @@ class ParserStepper : public Inspector {
     /// @returns the current execution state.
     ExecutionState &getExecutionState() const;
 
+    /// @returns the current control plane state.
+    ControlPlaneState &getControlPlaneState() const;
+
     /// @returns the program info associated with the current target.
     virtual const ProgramInfo &getProgramInfo() const;
 
