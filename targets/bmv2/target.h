@@ -1,5 +1,5 @@
-#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_TARGET_H_
-#define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_TARGET_H_
+#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_TARGET_H_
+#define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_TARGET_H_
 
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
@@ -35,4 +35,4 @@ class V1ModelFlayTarget : public FlayTarget {
 
 }  // namespace P4Tools::Flay::V1Model
 
-#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_TARGET_H_ */
+#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_TARGET_H_ */

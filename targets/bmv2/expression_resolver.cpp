@@ -1,4 +1,4 @@
-#include "backends/p4tools/modules/flay/targets/v1model/expression_resolver.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/expression_resolver.h"
 
 #include <functional>
 #include <optional>
@@ -8,8 +8,8 @@
 
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
-#include "backends/p4tools/modules/flay/targets/v1model/constants.h"
-#include "backends/p4tools/modules/flay/targets/v1model/table_executor.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/table_executor.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
 #include "ir/vector.h"

@@ -1,5 +1,5 @@
-#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_V1MODEL_H_
-#define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_V1MODEL_H_
+#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_V1MODEL_H_
+#define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_V1MODEL_H_
 
 #include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/common/compiler/midend.h"
@@ -20,4 +20,4 @@ class V1ModelCompilerTarget : public CompilerTarget {
 
 }  // namespace P4Tools::Flay::V1Model
 
-#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_V1MODEL_V1MODEL_H_ */
+#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_V1MODEL_H_ */
