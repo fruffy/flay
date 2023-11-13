@@ -5,6 +5,7 @@
 #include <google/protobuf/text_format.h>
 
 #include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/lib/logging.h"
 #include "ir/irutils.h"
 
@@ -38,8 +39,7 @@ flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(std::filesyste
 void ProtobufDeserializer::convertTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
                                              cstring keyFieldName, const IR::Expression &keyExpr,
                                              ControlPlaneConstraints &controlPlaneConstraints) {
-    cstring keyName = tableName + "_key_" + keyFieldName;
-    auto keySymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, keyName);
+    auto keySymbol = ControlPlaneState::getTableKey(tableName, keyFieldName, keyExpr.type);
     if (field.has_exact()) {
         auto value = protoValueToBigInt(field.exact().value());
         if (keyExpr.type->is<IR::Type_Boolean>()) {
@@ -48,15 +48,15 @@ void ProtobufDeserializer::convertTableMatch(const p4::v1::FieldMatch &field, cs
             controlPlaneConstraints[*keySymbol] = IR::getConstant(keyExpr.type, value);
         }
     } else if (field.has_lpm()) {
-        cstring prefixName = tableName + "_lpm_prefix_" + keyFieldName;
-        auto maskSymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, prefixName);
+        auto lpmPrefixSymbol =
+            ControlPlaneState::getTableMatchLpmPrefix(tableName, keyFieldName, keyExpr.type);
         auto value = protoValueToBigInt(field.lpm().value());
         int prefix = field.lpm().prefix_len();
         controlPlaneConstraints[*keySymbol] = IR::getConstant(keyExpr.type, value);
-        controlPlaneConstraints[*maskSymbol] = IR::getConstant(keyExpr.type, prefix);
+        controlPlaneConstraints[*lpmPrefixSymbol] = IR::getConstant(keyExpr.type, prefix);
     } else if (field.has_ternary()) {
-        cstring maskName = tableName + "_mask_" + keyFieldName;
-        auto maskSymbol = ToolsVariables::getSymbolicVariable(keyExpr.type, maskName);
+        auto maskSymbol =
+            ControlPlaneState::getTableTernaryMask(tableName, keyFieldName, keyExpr.type);
         auto value = protoValueToBigInt(field.ternary().value());
         auto mask = protoValueToBigInt(field.ternary().mask());
         controlPlaneConstraints[*keySymbol] = IR::getConstant(keyExpr.type, value);
@@ -69,9 +69,7 @@ void ProtobufDeserializer::convertTableMatch(const p4::v1::FieldMatch &field, cs
 void ProtobufDeserializer::convertTableAction(const p4::v1::Action &tblAction, cstring tableName,
                                               const IR::P4Action &p4Action,
                                               ControlPlaneConstraints &controlPlaneConstraints) {
-    auto actionVarName = tableName + "_action";
-    const auto *tableActionID =
-        ToolsVariables::getSymbolicVariable(new IR::Type_String, actionVarName);
+    const auto *tableActionID = ControlPlaneState::getTableActionChoice(tableName);
 
     auto actionName = p4Action.controlPlaneName();
     const auto *actionAssignment = new IR::StringLiteral(actionName);
@@ -79,8 +77,8 @@ void ProtobufDeserializer::convertTableAction(const p4::v1::Action &tblAction, c
     for (auto paramConfig : tblAction.params()) {
         auto param = p4Action.parameters->getParameter(paramConfig.param_id() - 1);
         auto paramName = param->controlPlaneName();
-        cstring paramLabel = tableName + "_" + actionName + "_" + paramName;
-        const auto &actionArg = ToolsVariables::getSymbolicVariable(param->type, paramLabel);
+        const auto &actionArg =
+            ControlPlaneState::getTableActionArg(tableName, actionName, paramName, param->type);
         big_int value;
         auto fieldString = paramConfig.value();
         boost::multiprecision::import_bits(value, fieldString.begin(), fieldString.end());
@@ -95,6 +93,8 @@ void ProtobufDeserializer::convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToI
     auto tblId = tableEntry.table_id();
     auto tbl = irToIdMap.at(tblId)->checkedTo<IR::P4Table>();
     auto tableName = tbl->controlPlaneName();
+    const auto *tableConfiguredVar = ControlPlaneState::getTableActive(tableName);
+    controlPlaneConstraints[*tableConfiguredVar] = IR::getBoolLiteral(true);
 
     auto key = tbl->getKey();
     std::map<uint32_t, const IR::KeyElement *> idMap;

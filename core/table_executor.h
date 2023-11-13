@@ -3,6 +3,7 @@
 
 #include <functional>
 
+#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "ir/ir.h"
@@ -51,6 +52,9 @@ class TableExecutor {
     /// @returns the current execution state.
     [[nodiscard]] ExecutionState &getExecutionState() const;
 
+    /// @returns the current control-plane state.
+    [[nodiscard]] ControlPlaneState &getControlPlaneState() const;
+
     /// @returns the program info associated with the current target.
     [[nodiscard]] const ProgramInfo &getProgramInfo() const;
 
@@ -64,7 +68,7 @@ class TableExecutor {
 
     /// Helper function to call an action with arguments.
     static void callAction(const ProgramInfo &programInfo, ExecutionState &state,
-                           const IR::P4Action *actionType,
+                           ControlPlaneState &controlPlaneState, const IR::P4Action *actionType,
                            const IR::Vector<IR::Argument> &arguments);
 
     explicit TableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver);

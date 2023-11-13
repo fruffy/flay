@@ -22,12 +22,19 @@
 namespace P4Tools::Flay {
 
 ExpressionResolver::ExpressionResolver(const ProgramInfo &programInfo,
-                                       ExecutionState &executionState)
-    : programInfo(programInfo), executionState(executionState) {}
+                                       ExecutionState &executionState,
+                                       ControlPlaneState &controlPlaneState)
+    : programInfo(programInfo),
+      executionState(executionState),
+      controlPlaneState(controlPlaneState) {}
 
 const ProgramInfo &ExpressionResolver::getProgramInfo() const { return programInfo.get(); }
 
 ExecutionState &ExpressionResolver::getExecutionState() const { return executionState.get(); }
+
+ControlPlaneState &ExpressionResolver::getControlPlaneState() const {
+    return controlPlaneState.get();
+}
 
 const IR::Expression *ExpressionResolver::getResult() {
     CHECK_NULL(result);
@@ -304,8 +311,8 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
         if (const auto *path = call->method->to<IR::PathExpression>()) {
             static auto METHOD_DUMMY =
                 IR::PathExpression(new IR::Type_Extern("*method"), new IR::Path("*method"));
-            result = processExtern(
-                {*call, METHOD_DUMMY, path->path->name, &resolvedArgs, state, programInfo});
+            result = processExtern({*call, METHOD_DUMMY, path->path->name, &resolvedArgs, state,
+                                    controlPlaneState, programInfo});
             return false;
         }
 
@@ -319,8 +326,8 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
             if (method->expr->type->is<IR::Type_Extern>() ||
                 method->expr->type->is<IR::Type_SpecializedCanonical>()) {
                 const auto *path = method->expr->checkedTo<IR::PathExpression>();
-                result = processExtern(
-                    {*call, *path, method->member, &resolvedArgs, state, programInfo});
+                result = processExtern({*call, *path, method->member, &resolvedArgs, state,
+                                        controlPlaneState, programInfo});
                 return false;
             }
 
@@ -361,7 +368,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
         // Handle action calls. Actions are called by tables and are not inlined, unlike
         // functions.
         const auto *actionType = state.getP4Action(call);
-        TableExecutor::callAction(programInfo, state, actionType, resolvedArgs);
+        TableExecutor::callAction(programInfo, state, controlPlaneState, actionType, resolvedArgs);
         return false;
     }
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);

@@ -38,14 +38,19 @@ const FlayTarget &FlayTarget::get() { return Target::get<FlayTarget>("flay"); }
 
 const ArchSpec *FlayTarget::getArchSpec() { return get().getArchSpecImpl(); }
 
-FlayStepper &FlayTarget::getStepper(const ProgramInfo &programInfo,
-                                    ExecutionState &executionState) {
-    return get().getStepperImpl(programInfo, executionState);
+FlayStepper &FlayTarget::getStepper(const ProgramInfo &programInfo, ExecutionState &executionState,
+                                    ControlPlaneState &controlPlaneState) {
+    return get().getStepperImpl(programInfo, executionState, controlPlaneState);
+}
+
+ControlPlaneState &FlayTarget::initializeControlPlaneState() {
+    return get().initializeControlPlaneStateImpl();
 }
 
 std::optional<ControlPlaneConstraints> FlayTarget::computeControlPlaneConstraints(
-    const IR::P4Program &program, const FlayOptions &options) {
-    return get().computeControlPlaneConstraintsImpl(program, options);
+    const IR::P4Program &program, const FlayOptions &options,
+    const ControlPlaneState &controlPlaneState) {
+    return get().computeControlPlaneConstraintsImpl(program, options, controlPlaneState);
 }
 
 void FlayTarget::argumentsToTypeDeclarations(

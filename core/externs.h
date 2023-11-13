@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "ir/id.h"
@@ -30,17 +31,19 @@ class ExternMethodImpls {
         const IR::ID &methodName;
         const IR::Vector<IR::Argument> *externArgs;
         ExecutionState &state;
+        ControlPlaneState &controlPlaneState;
         std::reference_wrapper<const ProgramInfo> programInfo;
 
         ExternInfo(const IR::MethodCallExpression &originalCall,
                    const IR::PathExpression &externObjectRef, const IR::ID &methodName,
                    const IR::Vector<IR::Argument> *externArgs, ExecutionState &state,
-                   const ProgramInfo &programInfo)
+                   ControlPlaneState &controlPlaneState, const ProgramInfo &programInfo)
             : originalCall(originalCall),
               externObjectRef(externObjectRef),
               methodName(methodName),
               externArgs(externArgs),
               state(state),
+              controlPlaneState(controlPlaneState),
               programInfo(programInfo) {}
 
      private:

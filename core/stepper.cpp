@@ -17,12 +17,17 @@
 
 namespace P4Tools::Flay {
 
-FlayStepper::FlayStepper(const ProgramInfo &programInfo, ExecutionState &executionState)
-    : programInfo(programInfo), executionState(executionState) {}
+FlayStepper::FlayStepper(const ProgramInfo &programInfo, ExecutionState &executionState,
+                         ControlPlaneState &controlPlaneState)
+    : programInfo(programInfo),
+      executionState(executionState),
+      controlPlaneState(controlPlaneState) {}
 
 const ProgramInfo &FlayStepper::getProgramInfo() const { return programInfo.get(); }
 
 ExecutionState &FlayStepper::getExecutionState() const { return executionState.get(); }
+
+ControlPlaneState &FlayStepper::getControlPlaneState() const { return controlPlaneState.get(); }
 
 bool FlayStepper::preorder(const IR::Node *node) {
     P4C_UNIMPLEMENTED("Node %1% of type %2% not implemented in the core stepper.", node,
@@ -162,7 +167,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
 
     const auto *assignType = executionState.resolveType(left->type);
 
-    auto &resolver = createExpressionResolver(programInfo, executionState);
+    auto &resolver = createExpressionResolver(programInfo, executionState, controlPlaneState);
     right = resolver.computeResult(right);
 
     if (right->is<IR::StructExpression>() || right->to<IR::HeaderStackExpression>()) {
@@ -199,7 +204,7 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
     auto &executionState = getExecutionState();
 
     const auto *cond = ifStatement->condition;
-    auto &resolver = createExpressionResolver(getProgramInfo(), executionState);
+    auto &resolver = createExpressionResolver(programInfo, executionState, controlPlaneState);
     cond = resolver.computeResult(cond);
 
     // Add the node to the reachability map.
@@ -208,7 +213,7 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
     // Execute the case where the condition is true.
     auto &trueState = executionState.clone();
     trueState.pushExecutionCondition(cond);
-    auto &trueStepper = FlayTarget::getStepper(programInfo, trueState);
+    auto &trueStepper = FlayTarget::getStepper(programInfo, trueState, controlPlaneState);
     ifStatement->ifTrue->apply(trueStepper);
 
     // Execute the alternative.
@@ -232,7 +237,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
 
     auto &executionState = getExecutionState();
     // Resolve the switch match expression.
-    auto &resolver = createExpressionResolver(getProgramInfo(), executionState);
+    auto &resolver = createExpressionResolver(programInfo, executionState, controlPlaneState);
     const auto *switchExpr = resolver.computeResult(switchStatement->expression);
 
     const IR::Expression *cond = IR::getBoolLiteral(false);
@@ -273,7 +278,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             cond = IR::getBoolLiteral(false);
             caseState.pushExecutionCondition(finalCond);
             // Execute the state with the accumulated statements.
-            auto &switchStepper = FlayTarget::getStepper(programInfo, caseState);
+            auto &switchStepper = FlayTarget::getStepper(programInfo, caseState, controlPlaneState);
             for (const auto *statement : accumulatedStatements) {
                 statement->apply(switchStepper);
             }
@@ -299,7 +304,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
 }
 
 bool FlayStepper::preorder(const IR::MethodCallStatement *callStatement) {
-    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
+    auto &resolver = createExpressionResolver(programInfo, executionState, controlPlaneState);
     callStatement->methodCall->apply(resolver);
     return false;
 }

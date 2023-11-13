@@ -1,6 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SYMBOLIC_EXECUTOR_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SYMBOLIC_EXECUTOR_H_
 
+#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 
@@ -13,6 +14,9 @@ class SymbolicExecutor {
 
     /// The current execution state.
     ExecutionState executionState;
+
+    /// The control plane state associated with this execution.
+    std::reference_wrapper<ControlPlaneState> controlPlaneState;
 
  public:
     virtual ~SymbolicExecutor() = default;
@@ -30,6 +34,9 @@ class SymbolicExecutor {
 
     /// Return the execution state associated with this symbolic executor.
     const ExecutionState &getExecutionState();
+
+    /// Return the control plane state associated with this symbolic executor.
+    const ControlPlaneState &getControlPlaneState();
 
     explicit SymbolicExecutor(const ProgramInfo &programInfo);
 };
