@@ -65,46 +65,6 @@ const IR::Expression *ExecutionState::createSymbolicExpression(const IR::Type *i
                       inputType->node_type_name());
 }
 
-const IR::Expression *ExecutionState::convertToComplexExpression(
-    const IR::StateVariable &parent) const {
-    if (auto ts = parent->type->to<IR::Type_StructLike>()) {
-        IR::IndexedVector<IR::NamedExpression> components;
-        for (auto structField : ts->fields) {
-            auto fieldName = structField->name;
-            const auto *fieldType = resolveType(structField->type);
-            auto ref = new IR::Member(fieldType, parent, fieldName);
-            if (fieldType->is<IR::Type_StructLike>() || fieldType->to<IR::Type_Stack>()) {
-                components.push_back(
-                    new IR::NamedExpression(fieldName, convertToComplexExpression(ref)));
-            } else {
-                components.push_back(new IR::NamedExpression(fieldName, get(ref)));
-            }
-        }
-        if (ts->is<IR::Type_Header>()) {
-            auto validity = ToolsVariables::getHeaderValidity(parent);
-            // TODO: Do not use nullptr here and instead the real type.
-            return new IR::HeaderExpression(nullptr, components, get(validity));
-        } else {
-            // TODO: Do not use nullptr here and instead the real type.
-            return new IR::StructExpression(nullptr, components);
-        }
-    } else if (auto ts = parent->type->to<IR::Type_Stack>()) {
-        IR::Vector<IR::Expression> components;
-        const auto *elementType = resolveType(ts->elementType);
-        for (size_t idx = 0; idx < ts->getSize(); idx++) {
-            auto ref = new IR::ArrayIndex(elementType, parent, new IR::Constant(idx));
-            if (elementType->is<IR::Type_StructLike>() || elementType->to<IR::Type_Stack>()) {
-                components.push_back(convertToComplexExpression(ref));
-            } else {
-                components.push_back(get(ref));
-            }
-        }
-        return new IR::HeaderStackExpression(components, parent->type);
-    }
-    P4C_UNIMPLEMENTED("Unsupported struct-like type %1% for member %2%",
-                      parent->type->node_type_name(), parent);
-}
-
 const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
     auto varType = resolveType(var->type);
     // In some cases, we may reference a complex expression. Convert it to a struct expression.
