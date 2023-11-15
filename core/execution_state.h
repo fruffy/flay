@@ -29,10 +29,6 @@ class ExecutionState : public AbstractExecutionState {
     /// Keeps track of the reachability of individual nodes in the program.
     ReachabilityMap reachabilityMap;
 
-    /// Convert the input expression into a complex expression. Unrolls list- and struct
-    /// expressions.
-    const IR::Expression *convertToComplexExpression(const IR::StateVariable &parent) const;
-
     /// A static label for placeholder variables used in Flay.
     static const IR::PathExpression PLACEHOLDER_LABEL;
     /* =========================================================================================

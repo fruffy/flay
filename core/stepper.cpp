@@ -81,84 +81,6 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
     return false;
 }
 
-std::vector<const IR::Expression *> flattenComplexExpression(
-    const IR::Expression *inputExpression, std::vector<const IR::Expression *> &flatValids) {
-    std::vector<const IR::Expression *> exprList;
-    if (const auto *structExpr = inputExpression->to<IR::StructExpression>()) {
-        for (const auto *listElem : structExpr->components) {
-            auto subList = flattenComplexExpression(listElem->expression, flatValids);
-            exprList.insert(exprList.end(), subList.begin(), subList.end());
-        }
-        if (auto richStructExpr = structExpr->to<IR::HeaderExpression>()) {
-            flatValids.emplace_back(richStructExpr->validity);
-        }
-    } else if (const auto *headerStackExpr = inputExpression->to<IR::HeaderStackExpression>()) {
-        for (const auto *headerStackElem : headerStackExpr->components) {
-            auto subList = flattenComplexExpression(headerStackElem, flatValids);
-            exprList.insert(exprList.end(), subList.begin(), subList.end());
-        }
-    } else {
-        exprList.emplace_back(inputExpression);
-    }
-    return exprList;
-}
-
-void assignStruct(ExecutionState &executionState, const IR::StateVariable &left,
-                  const IR::Expression *right) {
-    if (const auto *structExpr = right->to<IR::StructExpression>()) {
-        std::vector<IR::StateVariable> flatLeftValids;
-        std::vector<const IR::Expression *> flatRightValids;
-        auto flatTargetFields = executionState.getFlatFields(left, &flatLeftValids);
-        auto flatStructFields = flattenComplexExpression(structExpr, flatRightValids);
-        auto flatTargetSize = flatTargetFields.size();
-        auto flatStructSize = flatStructFields.size();
-        BUG_CHECK(flatTargetSize == flatStructSize,
-                  "The size of target fields (%1%) and the size of source fields (%2%) are "
-                  "different.",
-                  flatTargetSize, flatStructSize);
-        auto flatLeftValidSize = flatLeftValids.size();
-        auto flatRightValidSize = flatRightValids.size();
-        BUG_CHECK(
-            flatLeftValidSize == flatRightValidSize,
-            "The size of target valid fields (%1%) and the size of source valid fields (%2%) are "
-            "different.",
-            flatLeftValidSize, flatRightValidSize);
-        // First, complete the validity assignments for the data structure.
-        for (size_t idx = 0; idx < flatLeftValids.size(); ++idx) {
-            const auto &flatLeftValidRef = flatLeftValids[idx];
-            const auto *flatRightValidExpr = flatRightValids[idx];
-            executionState.set(flatLeftValidRef, flatRightValidExpr);
-        }
-
-        // Then, complete the assignments for the data structure.
-        for (size_t idx = 0; idx < flatTargetFields.size(); ++idx) {
-            const auto &flatTargetRef = flatTargetFields[idx];
-            const auto *flatStructField = flatStructFields[idx];
-            executionState.set(flatTargetRef, flatStructField);
-        }
-    } else if (auto stackExpression = right->to<IR::HeaderStackExpression>()) {
-        auto stackType = stackExpression->headerStackType->checkedTo<IR::Type_Stack>();
-        auto stackSize = stackExpression->components.size();
-        for (size_t idx = 0; idx < stackSize; idx++) {
-            const auto *ref = HSIndexToMember::produceStackIndex(stackType->elementType, left, idx);
-            const auto *rightElem = stackExpression->components.at(idx);
-            assignStruct(executionState, ref, rightElem);
-        }
-    } else if (right->is<IR::PathExpression>() || right->is<IR::Member>() ||
-               right->is<IR::ArrayIndex>()) {
-        executionState.setStructLike(left, ToolsVariables::convertReference(right));
-    } else {
-        P4C_UNIMPLEMENTED("Unsupported assignment rval %1% of type %2%", right,
-                          right->node_type_name());
-    }
-}
-
-#define CHECKED_ASSIGN(leftAssign, nodePtr, TargetType)                        \
-    const auto *result = nodePtr->to<TargetType>();                            \
-    BUG_CHECK(result, "Cast failed: %1% with type %2% is not a %3%.", nodePtr, \
-              nodePtr->node_type_name(), TargetType::static_type_name());      \
-    leftAssign = std::move(result);
-
 bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     const auto *right = assign->right;
     const auto &left = ToolsVariables::convertReference(assign->left);
@@ -171,7 +93,7 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     right = resolver.computeResult(right);
 
     if (right->is<IR::StructExpression>() || right->to<IR::HeaderStackExpression>()) {
-        assignStruct(executionState, left, right);
+        executionState.assignStructLike(left, right);
         return false;
     }
     if (assignType->is<IR::Type_Base>()) {
