@@ -4,7 +4,6 @@
 
 #include <google/protobuf/text_format.h>
 
-#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/lib/logging.h"
 #include "ir/irutils.h"
@@ -17,7 +16,8 @@ big_int ProtobufDeserializer::protoValueToBigInt(const std::string &valueString)
     return value;
 }
 
-flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(std::filesystem::path inputFile) {
+flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(
+    const std::filesystem::path &inputFile) {
     flaytests::Config protoControlPlaneConfig;
 
     // Parse the input file into the Protobuf object.
@@ -39,7 +39,7 @@ flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(std::filesyste
 void ProtobufDeserializer::convertTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
                                              cstring keyFieldName, const IR::Expression &keyExpr,
                                              ControlPlaneConstraints &controlPlaneConstraints) {
-    auto keySymbol = ControlPlaneState::getTableKey(tableName, keyFieldName, keyExpr.type);
+    const auto *keySymbol = ControlPlaneState::getTableKey(tableName, keyFieldName, keyExpr.type);
     if (field.has_exact()) {
         auto value = protoValueToBigInt(field.exact().value());
         if (keyExpr.type->is<IR::Type_Boolean>()) {
@@ -48,14 +48,14 @@ void ProtobufDeserializer::convertTableMatch(const p4::v1::FieldMatch &field, cs
             controlPlaneConstraints[*keySymbol] = IR::getConstant(keyExpr.type, value);
         }
     } else if (field.has_lpm()) {
-        auto lpmPrefixSymbol =
+        const auto *lpmPrefixSymbol =
             ControlPlaneState::getTableMatchLpmPrefix(tableName, keyFieldName, keyExpr.type);
         auto value = protoValueToBigInt(field.lpm().value());
         int prefix = field.lpm().prefix_len();
         controlPlaneConstraints[*keySymbol] = IR::getConstant(keyExpr.type, value);
         controlPlaneConstraints[*lpmPrefixSymbol] = IR::getConstant(keyExpr.type, prefix);
     } else if (field.has_ternary()) {
-        auto maskSymbol =
+        const auto *maskSymbol =
             ControlPlaneState::getTableTernaryMask(tableName, keyFieldName, keyExpr.type);
         auto value = protoValueToBigInt(field.ternary().value());
         auto mask = protoValueToBigInt(field.ternary().mask());
@@ -74,8 +74,8 @@ void ProtobufDeserializer::convertTableAction(const p4::v1::Action &tblAction, c
     auto actionName = p4Action.controlPlaneName();
     const auto *actionAssignment = new IR::StringLiteral(actionName);
     controlPlaneConstraints[*tableActionID] = actionAssignment;
-    for (auto paramConfig : tblAction.params()) {
-        auto param = p4Action.parameters->getParameter(paramConfig.param_id() - 1);
+    for (const auto &paramConfig : tblAction.params()) {
+        const auto *param = p4Action.parameters->getParameter(paramConfig.param_id() - 1);
         auto paramName = param->controlPlaneName();
         const auto &actionArg =
             ControlPlaneState::getTableActionArg(tableName, actionName, paramName, param->type);
@@ -123,22 +123,41 @@ void ProtobufDeserializer::convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToI
     if (tableEntry.action().has_action()) {
         auto tblAction = tableEntry.action().action();
         auto actionId = tblAction.action_id();
-        auto p4Action = irToIdMap.at(actionId)->checkedTo<IR::P4Action>();
+        const auto *p4Action = irToIdMap.at(actionId)->checkedTo<IR::P4Action>();
         convertTableAction(tblAction, tableName, *p4Action, controlPlaneConstraints);
     }
 }
+
+ControlPlaneConstraints ProtobufDeserializer::convertEntityMessageToConstraints(
+    const p4::v1::Entity &entity, const P4RuntimeIdtoIrNodeMap &irToIdMap) {
+    ControlPlaneConstraints controlPlaneConstraints;
+    if (entity.has_table_entry()) {
+        const auto &tableEntry = entity.table_entry();
+        convertTableEntry(irToIdMap, tableEntry, controlPlaneConstraints);
+    } else {
+        P4C_UNIMPLEMENTED("Unsupported control plane entry %1%.", entity.DebugString().c_str());
+    }
+    return controlPlaneConstraints;
+}
+
 ControlPlaneConstraints ProtobufDeserializer::convertToControlPlaneConstraints(
     const flaytests::Config &protoControlPlaneConfig, const P4RuntimeIdtoIrNodeMap &irToIdMap) {
     ControlPlaneConstraints controlPlaneConstraints;
-    for (auto entity : protoControlPlaneConfig.entities()) {
-        if (entity.has_table_entry()) {
-            auto tableEntry = entity.table_entry();
-            convertTableEntry(irToIdMap, tableEntry, controlPlaneConstraints);
-        } else {
-            P4C_UNIMPLEMENTED("Unsupported control plane entry %1%.", entity.DebugString().c_str());
-        }
+    for (const auto &entity : protoControlPlaneConfig.entities()) {
+        controlPlaneConstraints.merge(convertEntityMessageToConstraints(entity, irToIdMap));
     }
     return controlPlaneConstraints;
+}
+
+std::optional<p4::v1::Entity> ProtobufDeserializer::parseEntity(const std::string &message) {
+    p4::v1::Entity entity;
+    if (google::protobuf::TextFormat::ParseFromString(message, &entity)) {
+        printInfo("Parsed entity: %1%", entity.DebugString());
+    } else {
+        std::cerr << "Message not valid (partial content: " << entity.ShortDebugString() << ")\n";
+        return std::nullopt;
+    }
+    return entity;
 }
 
 }  // namespace P4Tools::Flay

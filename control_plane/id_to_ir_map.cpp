@@ -4,11 +4,11 @@
 
 namespace P4Tools::Flay {
 
-P4RuntimeIdtoIrNodeMap MapP4RuntimeIdtoIR::getP4RuntimeIdtoIrNodeMap() const { return idToIrMap; }
+P4RuntimeIdtoIrNodeMap MapP4RuntimeIdtoIr::getP4RuntimeIdtoIrNodeMap() const { return idToIrMap; }
 
-bool MapP4RuntimeIdtoIR::preorder(const IR::P4Table *table) {
+bool MapP4RuntimeIdtoIr::preorder(const IR::P4Table *table) {
     if (P4::ControlPlaneAPI::isHidden(table)) {
-        return table;
+        return false;
     }
     auto p4RuntimeId = P4::ControlPlaneAPI::getIdAnnotation(table);
     if (p4RuntimeId.has_value()) {
@@ -23,7 +23,7 @@ bool MapP4RuntimeIdtoIR::preorder(const IR::P4Table *table) {
     return false;
 }
 
-bool MapP4RuntimeIdtoIR::preorder(const IR::Type_Header *hdr) {
+bool MapP4RuntimeIdtoIr::preorder(const IR::Type_Header *hdr) {
     if (!P4::ControlPlaneAPI::isControllerHeader(hdr) || P4::ControlPlaneAPI::isHidden(hdr)) {
         return false;
     }
@@ -40,9 +40,9 @@ bool MapP4RuntimeIdtoIR::preorder(const IR::Type_Header *hdr) {
     return false;
 }
 
-bool MapP4RuntimeIdtoIR::preorder(const IR::P4ValueSet *valueSet) {
+bool MapP4RuntimeIdtoIr::preorder(const IR::P4ValueSet *valueSet) {
     if (P4::ControlPlaneAPI::isHidden(valueSet)) {
-        return valueSet;
+        return false;
     }
     auto p4RuntimeId = P4::ControlPlaneAPI::getIdAnnotation(valueSet);
     if (p4RuntimeId.has_value()) {
@@ -58,9 +58,9 @@ bool MapP4RuntimeIdtoIR::preorder(const IR::P4ValueSet *valueSet) {
     return false;
 }
 
-bool MapP4RuntimeIdtoIR::preorder(const IR::P4Action *action) {
+bool MapP4RuntimeIdtoIr::preorder(const IR::P4Action *action) {
     if (P4::ControlPlaneAPI::isHidden(action)) {
-        return action;
+        return false;
     }
     auto p4RuntimeId = P4::ControlPlaneAPI::getIdAnnotation(action);
     if (p4RuntimeId.has_value()) {

@@ -85,7 +85,7 @@ const ArchSpec *V1ModelFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; 
 FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
                                                ExecutionState &executionState,
                                                ControlPlaneState &controlPlaneState) const {
-    auto bmv2ControlPlaneState = controlPlaneState.to<Bmv2ControlPlaneState>();
+    auto *bmv2ControlPlaneState = controlPlaneState.to<Bmv2ControlPlaneState>();
     CHECK_NULL(bmv2ControlPlaneState);
     return *new V1ModelFlayStepper(*programInfo.checkedTo<V1ModelProgramInfo>(), executionState,
                                    *bmv2ControlPlaneState);
@@ -107,7 +107,7 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
     auto confPath = options.getControlPlaneConfig();
     printInfo("Parsing initial control plane configuration...\n");
     if (confPath.extension() == ".proto") {
-        MapP4RuntimeIdtoIR idMapper;
+        MapP4RuntimeIdtoIr idMapper;
         program.apply(idMapper);
         if (::errorCount() > 0) {
             return std::nullopt;

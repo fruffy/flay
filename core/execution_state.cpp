@@ -43,11 +43,11 @@ const IR::Expression *ExecutionState::createSymbolicExpression(const IR::Type *i
         if (structType->is<IR::Type_Header>()) {
             cstring labelId = label + "_" + ToolsVariables::VALID;
             auto validity = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), labelId);
-            // TODO: Do not use nullptr here and instead the real type.
-            return new IR::HeaderExpression(nullptr, fields, validity);
+            // TODO: We keep the struct type anonymous because we do not know it.
+            return new IR::HeaderExpression(structType, nullptr, fields, validity);
         } else {
-            // TODO: Do not use nullptr here and instead the real type.
-            return new IR::StructExpression(nullptr, fields);
+            // TODO: We keep the struct type anonymous because we do not know it.
+            return new IR::StructExpression(structType, nullptr, fields);
         }
     }
     if (const auto *stackType = resolvedType->to<IR::Type_Stack>()) {

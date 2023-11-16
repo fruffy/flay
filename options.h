@@ -13,6 +13,14 @@ class FlayOptions : public AbstractP4cToolOptions {
     static const std::set<std::string> SUPPORTED_CONFIG_EXTENSIONS;
 
  public:
+    FlayOptions(const FlayOptions &) = delete;
+
+    FlayOptions(FlayOptions &&) = delete;
+
+    FlayOptions &operator=(const FlayOptions &) = delete;
+
+    FlayOptions &operator=(FlayOptions &&) = delete;
+
     virtual ~FlayOptions() = default;
 
     /// @returns the singleton instance of this class.
@@ -21,14 +29,27 @@ class FlayOptions : public AbstractP4cToolOptions {
     const char *getIncludePath() override;
 
     /// @returns the path set with --config-file.
-    std::filesystem::path getControlPlaneConfig() const;
+    [[nodiscard]] std::filesystem::path getControlPlaneConfig() const;
 
     /// @returns true when the --config-file option has been set.
-    bool hasControlPlaneConfig() const;
+    [[nodiscard]] bool hasControlPlaneConfig() const;
+
+    /// @returns true when the user would like to run in server mode.
+    [[nodiscard]] bool serverModeActive() const;
+
+    /// @returns the server address set with --server-address.
+    [[nodiscard]] std::string getServerAddress() const;
 
  private:
     /// Path to the initial control plane configuration file.
     std::optional<std::filesystem::path> controlPlaneConfig = std::nullopt;
+
+    /// Toggle server mode.
+    /// After parsing, Flay can initialize a P4Runtime server which handles control-plane messages.
+    bool serverMode = false;
+
+    /// Server address for the Flay service.
+    std::string serverAddress = "localhost:50051";
 
     FlayOptions();
 };

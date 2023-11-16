@@ -1,6 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_LIB_LOGGING_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_LIB_LOGGING_H_
 
+#include <filesystem>
 #include <string>
 #include <utility>
 
@@ -17,6 +18,13 @@ void printInfo(const std::string &fmt, Arguments &&...args) {
 
 /// Enable the printing of basic run information.
 void enableInformationLogging();
+
+/// Enable printing of timing reports.
+void enablePerformanceLogging();
+
+/// Print a performance report if performance logging is enabled.
+/// If a file is provided, it will be written to the file.
+void printPerformanceReport(const std::optional<std::filesystem::path> &basePath = std::nullopt);
 
 }  // namespace P4Tools::Flay
 

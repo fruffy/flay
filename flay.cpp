@@ -1,12 +1,15 @@
 #include "backends/p4tools/modules/flay/flay.h"
 
+#include <google/protobuf/text_format.h>
+
 #include <cstdlib>
+#include <string>
 
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/lib/logging.h"
-#include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "backends/p4tools/modules/flay/register.h"
+#include "backends/p4tools/modules/flay/service/flay_server.h"
 #include "frontends/common/parseInput.h"
 #include "frontends/common/parser_options.h"
 #include "lib/error.h"
@@ -49,29 +52,41 @@ int Flay::mainImpl(const IR::P4Program *program) {
 
     /// Substitute any placeholder variables encountered in the execution state.
     printInfo("Substituting placeholder variables...\n");
-    auto &substitutedExecutionState = executionState.substitutePlaceholders();
-
-    // Initialize the dead code eliminator. Use the Z3Solver for now.
-    ElimDeadCode elim(substitutedExecutionState, solver);
-
-    // Gather the initial control-plane configuration. Also from a file input, if present.
-    auto &target = FlayTarget::get();
-    auto constraintsOpt =
-        target.computeControlPlaneConstraints(*program, flayOptions, controlPlaneState);
-    if (!constraintsOpt.has_value()) {
-        return EXIT_FAILURE;
-    }
-    elim.addControlPlaneConstraints(constraintsOpt.value());
+    const auto &substitutedExecutionState = executionState.substitutePlaceholders();
 
     printInfo("Reparsing original program...\n");
     const auto *freshProgram = P4::parseP4File(options);
     if (::errorCount() > 0) {
         return EXIT_FAILURE;
     }
+
+    // Initialize the flay service, which includes a dead code eliminator. Use the Z3Solver for now.
+    // TODO: Get rid of the idMapper.
+    MapP4RuntimeIdtoIr idMapper;
+    program->apply(idMapper);
+    if (::errorCount() > 0) {
+        return EXIT_FAILURE;
+    }
+    Service::FlayService service(freshProgram, substitutedExecutionState, solver,
+                                 idMapper.getP4RuntimeIdtoIrNodeMap());
+
+    // Gather the initial control-plane configuration. Also from a file input, if present.
+    auto constraintsOpt = P4Tools::Flay::FlayTarget::computeControlPlaneConstraints(
+        *program, flayOptions, controlPlaneState);
+    if (!constraintsOpt.has_value()) {
+        return EXIT_FAILURE;
+    }
+    service.addControlPlaneConstraints(constraintsOpt.value());
+
     printInfo("Checking whether dead code can be removed...\n");
-    freshProgram = freshProgram->apply(elim);
-    // P4::ToP4 toP4;
-    // program->apply(toP4);
+    freshProgram = service.elimControlPlaneDeadCode();
+
+    if (flayOptions.serverModeActive()) {
+        printInfo("Starting flay server...\n");
+        service.startServer(flayOptions.getServerAddress());
+    }
+
+    printPerformanceReport();
 
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
