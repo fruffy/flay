@@ -1,0 +1,60 @@
+#include "backends/p4tools/modules/flay/service/client_options.h"
+
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <vector>
+
+#include "backends/p4tools/modules/flay/lib/logging.h"
+#include "lib/exceptions.h"
+
+namespace P4Tools::Flay {
+
+FlayClientOptions::FlayClientOptions(cstring message) : Options(message) {
+    // Register some common options.
+    registerOption(
+        "--help", nullptr,
+        [this](const char *) {
+            usage();
+            exit(0);
+            return false;
+        },
+        "Shows this help message and exits");
+
+    registerOption(
+        "--version", nullptr,
+        [/*this*/](const char *) {
+            P4C_UNIMPLEMENTED("Version is currently not supported.\n");
+            exit(0);
+            return false;
+        },
+        "Prints version information and exits");
+    registerOption(
+        "--print-performance-report", nullptr,
+        [](const char *) {
+            Flay::enablePerformanceLogging();
+            return true;
+        },
+        "Print timing report summary at the end of the program.");
+    registerOption(
+        "--server-address", "serverAddress",
+        [this](const char *arg) {
+            serverAddress = arg;
+            return true;
+        },
+        "The address of the Flay service in the format ADDRESS:PORT.");
+}
+
+const char *FlayClientOptions::getIncludePath() {
+    P4C_UNIMPLEMENTED("getIncludePath not implemented for FlayClient.");
+}
+
+// Process options; return list of remaining options.
+// Returns 'nullptr' if an error is signalled
+std::vector<const char *> *FlayClientOptions::process(int argc, char *const argv[]) {
+    return Util::Options::process(argc, argv);
+}
+
+std::string FlayClientOptions::getServerAddress() const { return serverAddress; }
+
+}  // namespace P4Tools::Flay

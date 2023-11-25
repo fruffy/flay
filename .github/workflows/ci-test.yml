@@ -40,7 +40,7 @@ jobs:
 
     - name: Build (Ubuntu 22.04)
       run: |
-        sudo apt install libc-ares-dev libre2-dev # Needed for gRPC.
+        sudo apt-get install libc-ares-dev libre2-dev # Needed for gRPC.
         ENABLE_WERROR=OFF tools/ci-build.sh
       working-directory: ../p4c
 

@@ -58,7 +58,7 @@ FlayOptions::FlayOptions()
         },
         "Toogle Flay's server mode and start a P4Runtime server.");
     registerOption(
-        "--server-addr", "serverAddr",
+        "--server-address", "serverAddress",
         [this](const char *arg) {
             if (!serverMode) {
                 ::warning(

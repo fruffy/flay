@@ -12,7 +12,7 @@
 #include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 
-namespace P4Tools::Flay::Service {
+namespace P4Tools::Flay {
 
 class FlayService final : public p4::v1::P4Runtime::Service {
  private:
@@ -63,6 +63,6 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     const IR::P4Program *elimControlPlaneDeadCode();
 };
 
-}  // namespace P4Tools::Flay::Service
+}  // namespace P4Tools::Flay
 
 #endif  // BACKENDS_P4TOOLS_MODULES_FLAY_SERVICE_FLAY_SERVER_H_

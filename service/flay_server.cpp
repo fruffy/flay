@@ -9,7 +9,7 @@
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/timer.h"
 
-namespace P4Tools::Flay::Service {
+namespace P4Tools::Flay {
 
 FlayService::FlayService(const IR::P4Program *originalProgram, const ExecutionState &executionState,
                          AbstractSolver &solver, P4RuntimeIdtoIrNodeMap idToIrMap)
@@ -84,4 +84,4 @@ bool FlayService::startServer(const std::string &serverAddress) {
     return true;
 }
 
-}  // namespace P4Tools::Flay::Service
+}  // namespace P4Tools::Flay

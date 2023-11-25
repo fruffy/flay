@@ -67,8 +67,8 @@ int Flay::mainImpl(const IR::P4Program *program) {
     if (::errorCount() > 0) {
         return EXIT_FAILURE;
     }
-    Service::FlayService service(freshProgram, substitutedExecutionState, solver,
-                                 idMapper.getP4RuntimeIdtoIrNodeMap());
+    FlayService service(freshProgram, substitutedExecutionState, solver,
+                        idMapper.getP4RuntimeIdtoIrNodeMap());
 
     // Gather the initial control-plane configuration. Also from a file input, if present.
     auto constraintsOpt = P4Tools::Flay::FlayTarget::computeControlPlaneConstraints(
