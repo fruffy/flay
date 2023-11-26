@@ -1,7 +1,10 @@
+# Anything linking with gRPC requires position independent code.
+set(CMAKE_POSITION_INDEPENDENT_CODE_PREV ${CMAKE_POSITION_INDEPENDENT_CODE_PREV})
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Source files for Flay gRPC server.
 add_custom_command(
   OUTPUT ${P4RUNTIME_GRPC_GEN_SRCS} ${P4RUNTIME_GRPC_GEN_HDRS}
-  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} -I${P4RUNTIME_STD_DIR} -I${P4C_SOURCE_DIR}/control-plane
+  COMMAND ${Protobuf_PROTOC_EXECUTABLE} -I${P4RUNTIME_STD_DIR} -I${P4C_SOURCE_DIR}/control-plane
           -I${Protobuf_INCLUDE_DIR} --grpc_out ${P4C_BINARY_DIR}/control-plane
           --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN_EXECUTABLE} ${P4RUNTIME_RT_PROTO}
   DEPENDS ${P4RUNTIME_RT_PROTO} controlplane grpc_cpp_plugin protoc
@@ -31,3 +34,5 @@ target_link_libraries(flay_grpc_client ${FLAY_GRPC_CLIENT_LIBS})
 target_include_directories(
   flay_grpc_client SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIR} ${GRPC_INCLUDE_DIR}
 )
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ${CMAKE_POSITION_INDEPENDENT_CODE_PREV})

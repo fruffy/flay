@@ -30,7 +30,7 @@ add_custom_target(
 # `control_plane` directory
 add_custom_command(
   OUTPUT ${FLAY_P4RUNTIME_INFO_GEN_SRCS} ${FLAY_P4RUNTIME_INFO_GEN_HDRS}
-  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} -I${FLAY_P4RUNTIME_DIR} -I ${P4RUNTIME_STD_DIR}
+  COMMAND ${Protobuf_PROTOC_EXECUTABLE} -I${FLAY_P4RUNTIME_DIR} -I ${P4RUNTIME_STD_DIR}
           -I${P4C_SOURCE_DIR}/control-plane -I${Protobuf_INCLUDE_DIR} --cpp_out
           ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf --python_out
           ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf ${FLAY_P4RUNTIME_INFO_PROTO}
