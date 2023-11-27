@@ -3,7 +3,9 @@
 
 #include <google/protobuf/text_format.h>
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/support/status.h>
 
+#include <filesystem>
 #include <memory>
 #include <optional>
 
@@ -20,9 +22,13 @@ class FlayClient {
  public:
     explicit FlayClient(const std::shared_ptr<grpc::Channel> &channel);
 
-    static std::optional<p4::v1::Entity> parseEntity(const std::string &message);
+    /// Parse a text Protobuf which describes a write request.
+    static std::optional<p4::v1::WriteRequest> parseWriteRequestFile(
+        const std::filesystem::path &inputFile);
 
-    bool sendWriteRequest(const p4::v1::Entity &entity, const p4::v1::Update_Type &type);
+    /// Send a write request to the gRPC server.
+    /// @returns grpc::StatusOK if everything went well.
+    [[nodiscard]] grpc::Status sendWriteRequest(const p4::v1::WriteRequest &request);
 
  private:
     std::unique_ptr<p4::v1::P4Runtime::Stub> stub_;

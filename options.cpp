@@ -8,7 +8,7 @@
 
 namespace P4Tools {
 
-const std::set<std::string> FlayOptions::SUPPORTED_CONFIG_EXTENSIONS = {".proto"};
+const std::set<std::string> FlayOptions::SUPPORTED_CONFIG_EXTENSIONS = {".txtpb"};
 
 FlayOptions &FlayOptions::get() {
     static FlayOptions INSTANCE;

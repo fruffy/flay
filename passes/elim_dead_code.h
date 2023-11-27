@@ -3,7 +3,6 @@
 
 #include <functional>
 
-#include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "ir/ir.h"
@@ -37,9 +36,15 @@ class ElimDeadCode : public Transform {
     const IR::Node *postorder(IR::IfStatement *stmt) override;
     void end_apply() override;
 
+    profile_t init_apply(const IR::Node *root) override;
+
     /// Add control plane constraints to the tool. These constraints are added to every
     /// solver check.
     void addControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);
+
+    /// Remove control plane constraints from the tool. These constraints are added to every
+    /// solver check.
+    void removeControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);
 };
 
 }  // namespace P4Tools::Flay

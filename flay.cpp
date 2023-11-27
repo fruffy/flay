@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <string>
 
+#include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/lib/logging.h"

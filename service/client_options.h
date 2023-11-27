@@ -1,6 +1,8 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_SERVICE_CLIENT_OPTIONS_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_SERVICE_CLIENT_OPTIONS_H_
 
+#include <filesystem>
+#include <string>
 #include <vector>
 
 #include "lib/cstring.h"
@@ -22,6 +24,7 @@ class FlayClientOptions : protected Util::Options {
     virtual ~FlayClientOptions() = default;
 
     const char *getIncludePath() override;
+
     std::vector<const char *> *process(int argc, char *const *argv) override;
 
     /// @returns true when the user would like to run in server mode.
@@ -30,9 +33,15 @@ class FlayClientOptions : protected Util::Options {
     /// @returns the server address set with --server-address.
     [[nodiscard]] std::string getServerAddress() const;
 
+    /// @returns the list of proto updates which are to be sent to the server.
+    [[nodiscard]] std::vector<std::filesystem::path> getProtoUpdates() const;
+
  private:
     /// Server address for the Flay service.
     std::string serverAddress = "localhost:50051";
+
+    /// The list of proto updates which are to be sent to the server.
+    std::vector<std::filesystem::path> protoUpdates;
 };
 
 }  // namespace P4Tools::Flay

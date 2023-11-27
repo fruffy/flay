@@ -1,15 +1,3 @@
-# A P4TestGen-generated test case for pins_middleblock.p4
-metadata: "p4testgen seed: none"
-metadata: "Date generated: 2023-10-18-14:03:20.477"
-metadata: "Current node coverage: nan"
-
-
-input_packet {
-  packet: "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x08\x00\x00\xFF\x00\x00\x00\x00\x00\x00\x01\x01\xFD\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE\x00\x00\x00"
-  port: 511
-}
-
-
 entities : [
   # Table ingress.acl_pre_ingress.acl_pre_ingress_table
   {

@@ -46,10 +46,9 @@ void FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
 }
 
 void FlayService::processDeleteMessage(const p4::v1::Entity &entity) {
-    P4C_UNIMPLEMENTED("processDeleteMessage not implemented");
     Util::ScopedTimer timer("processDeleteMessage");
     auto constraints = ProtobufDeserializer::convertEntityMessageToConstraints(entity, idToIrMap);
-    elimDeadCode.addControlPlaneConstraints(constraints);
+    elimDeadCode.removeControlPlaneConstraints(constraints);
     elimControlPlaneDeadCode();
 }
 
@@ -60,6 +59,11 @@ const IR::P4Program *FlayService::getOriginalProgram() const { return originalPr
 void FlayService::addControlPlaneConstraints(
     const ControlPlaneConstraints &newControlPlaneConstraints) {
     elimDeadCode.addControlPlaneConstraints(newControlPlaneConstraints);
+}
+
+void FlayService::removeControlPlaneConstraints(
+    const ControlPlaneConstraints &newControlPlaneConstraints) {
+    elimDeadCode.removeControlPlaneConstraints(newControlPlaneConstraints);
 }
 
 const IR::P4Program *FlayService::elimControlPlaneDeadCode() {

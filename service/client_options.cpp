@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -43,6 +44,19 @@ FlayClientOptions::FlayClientOptions(cstring message) : Options(message) {
             return true;
         },
         "The address of the Flay service in the format ADDRESS:PORT.");
+    registerOption(
+        "-u", "proto_update",
+        [this](const char *arg) {
+            auto protoUpdate = std::filesystem::path(arg);
+            if (!std::filesystem::exists(protoUpdate)) {
+                ::error("%1% does not exist. Please provide a valid file path.",
+                        protoUpdate.c_str());
+                return false;
+            }
+            protoUpdates.emplace_back(protoUpdate);
+            return true;
+        },
+        "Specify a proto update file to send to the server. Multiple entries are possible.");
 }
 
 const char *FlayClientOptions::getIncludePath() {
@@ -56,5 +70,9 @@ std::vector<const char *> *FlayClientOptions::process(int argc, char *const argv
 }
 
 std::string FlayClientOptions::getServerAddress() const { return serverAddress; }
+
+std::vector<std::filesystem::path> FlayClientOptions::getProtoUpdates() const {
+    return protoUpdates;
+}
 
 }  // namespace P4Tools::Flay

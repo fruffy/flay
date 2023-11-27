@@ -56,8 +56,10 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     const IR::P4Program *getOriginalProgram() const;
 
     /// Add new control plane constraints to the service.
-    /// TODO: Implement corresponding removal function.
     void addControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);
+
+    /// Remove control plane constraints from the service.
+    void removeControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);
 
     /// Run dead code elimination on the original P4 program.
     const IR::P4Program *elimControlPlaneDeadCode();
