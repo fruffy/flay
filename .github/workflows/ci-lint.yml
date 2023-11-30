@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
-  # Lint Flay on Ubuntu 20.04.
+  # Lint Flay on Ubuntu 22.04.
   lint-flay:
     strategy:
       fail-fast: false
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       CTEST_PARALLEL_LEVEL: 4
       IMAGE_TYPE: test
@@ -32,8 +32,9 @@ jobs:
         git clone --recurse-submodules -b fruffy/flay -j2 https://github.com/fruffy/p4c/ $GITHUB_WORKSPACE/../p4c
         ln -sf $GITHUB_WORKSPACE $GITHUB_WORKSPACE/../p4c/backends/p4tools/modules/
 
-    - name: Build (Ubuntu 20.04)
+    - name: Build (Ubuntu 22.04)
       run: |
+        sudo apt-get install libc-ares-dev libre2-dev # Needed for gRPC.
         tools/ci-build.sh
       working-directory: ../p4c
 

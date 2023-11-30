@@ -1,12 +1,14 @@
 # CMake file for P4Flay.
-
-include(common)
-
 project(flay)
+
+# Add cmake directory to our module path. Also add cmake directory from P4C
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 
 # Declare common P4Flay variables.
 set(FLAY_DIR ${P4C_BINARY_DIR}/flay)
 set(FLAY_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4flay")
+
 
 # ############### Protobuf generation
 set(FLAY_P4RUNTIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf)
@@ -14,21 +16,28 @@ set(FLAY_P4RUNTIME_INFO_PROTO ${FLAY_P4RUNTIME_DIR}/flaytests.proto)
 set(FLAY_P4RUNTIME_INFO_GEN_SRCS ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf/flaytests.pb.cc)
 set(FLAY_P4RUNTIME_INFO_GEN_HDRS ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf/flaytests.pb.h)
 
+set(P4RUNTIME_DIR ${P4C_BINARY_DIR}/control-plane/p4/v1)
+set(P4RUNTIME_RT_PROTO ${P4RUNTIME_STD_DIR}/p4/v1/p4runtime.proto)
+set(P4RUNTIME_GRPC_GEN_SRCS ${P4RUNTIME_DIR}/p4runtime.grpc.pb.cc)
+set(P4RUNTIME_GRPC_GEN_HDRS ${P4RUNTIME_DIR}/p4runtime.grpc.pb.h)
+
 add_custom_target(
   flay_runtime_dir ${CMAKE_COMMAND} -E make_directory
                    ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
 )
+
 # Generate source code from .proto using protoc. The output is placed in the build directory inside
 # `control_plane` directory
 add_custom_command(
   OUTPUT ${FLAY_P4RUNTIME_INFO_GEN_SRCS} ${FLAY_P4RUNTIME_INFO_GEN_HDRS}
-  COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} --proto_path ${FLAY_P4RUNTIME_DIR} --proto_path
-          ${P4RUNTIME_STD_DIR} --proto_path ${P4C_SOURCE_DIR}/control-plane --cpp_out
+  COMMAND ${Protobuf_PROTOC_EXECUTABLE} -I${FLAY_P4RUNTIME_DIR} -I ${P4RUNTIME_STD_DIR}
+          -I${P4C_SOURCE_DIR}/control-plane -I${Protobuf_INCLUDE_DIR} --cpp_out
           ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf --python_out
           ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf ${FLAY_P4RUNTIME_INFO_PROTO}
   DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO} flay_runtime_dir
-  COMMENT "Generating protobuf files for p4info on target FLAY."
+  COMMENT "Generating Flay Protobuf files."
 )
+
 add_dependencies(flay_runtime_dir controlplane)
 
 add_library(flay_runtime STATIC ${FLAY_P4RUNTIME_INFO_GEN_SRCS})
@@ -41,9 +50,12 @@ set_source_files_properties(
   PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-array-bounds -Wno-error"
 )
 
+include(GRpc)
+p4c_obtain_grpc()
+add_subdirectory(service)
+
 # Source files for flay.
 set(FLAY_SOURCES
-    ${FLAY_P4RUNTIME_INFO_GEN_SRCS}
     ${CMAKE_CURRENT_SOURCE_DIR}/options.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/flay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf/protobuf.cpp
@@ -65,7 +77,7 @@ set(FLAY_SOURCES
 )
 
 # Flay libraries.
-set(FLAY_LIBS p4tools-common)
+set(FLAY_LIBS p4tools-common flay_runtime)
 
 file(GLOB flay_targets RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/targets
      ${CMAKE_CURRENT_SOURCE_DIR}/targets/*
@@ -103,8 +115,8 @@ endforeach()
 configure_file(register.h.in register.h)
 
 add_p4tools_library(libflay ${FLAY_SOURCES})
+target_link_libraries(libflay flay_grpc)
 add_dependencies(libflay p4tools-common controlplane)
-target_include_directories(libflay SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIR})
 
 add_p4tools_executable(p4flay main.cpp)
 

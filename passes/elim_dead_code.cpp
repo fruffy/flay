@@ -41,6 +41,14 @@ const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
     return stmt;
 }
 
+ElimDeadCode::profile_t ElimDeadCode::init_apply(const IR::Node *root) {
+    for (auto controlPlaneConstraint : controlPlaneConstraints) {
+        controlPlaneConstraintExprs.push_back(
+            new IR::Equ(&controlPlaneConstraint.first.get(), controlPlaneConstraint.second));
+    }
+    return Transform::init_apply(root);
+}
+
 void ElimDeadCode::end_apply() {
     if (deletedCode) {
         printInfo("Dead code found.\n");
@@ -53,10 +61,12 @@ void ElimDeadCode::addControlPlaneConstraints(
     const ControlPlaneConstraints &newControlPlaneConstraints) {
     controlPlaneConstraints.insert(newControlPlaneConstraints.begin(),
                                    newControlPlaneConstraints.end());
+}
 
-    for (auto controlPlaneConstraint : controlPlaneConstraints) {
-        controlPlaneConstraintExprs.push_back(
-            new IR::Equ(&controlPlaneConstraint.first.get(), controlPlaneConstraint.second));
+void ElimDeadCode::removeControlPlaneConstraints(
+    const ControlPlaneConstraints &newControlPlaneConstraints) {
+    for (const auto &constraint : newControlPlaneConstraints) {
+        controlPlaneConstraints.erase(constraint.first);
     }
 }
 

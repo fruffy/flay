@@ -3,7 +3,6 @@
 
 #include <map>
 
-#include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "control-plane/p4RuntimeArchHandler.h"
 #include "ir/ir.h"
 
@@ -16,7 +15,7 @@ using P4RuntimeIdtoIrNodeMap = std::map<P4::ControlPlaneAPI::p4rt_id_t, const IR
 /// to their respective IR node. This is useful when parsing control plane configuration messages
 /// that use the P4Runtime protocol. These message do only specify the P4Runtime ID and do not
 /// contain typing or naming information on the related IR node.
-class MapP4RuntimeIdtoIR : public Inspector {
+class MapP4RuntimeIdtoIr : public Inspector {
  private:
     /// The mapping from P4Runtime IDs to IR nodes.
     P4RuntimeIdtoIrNodeMap idToIrMap;

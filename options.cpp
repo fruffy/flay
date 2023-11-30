@@ -2,12 +2,13 @@
 
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/common/options.h"
+#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
 namespace P4Tools {
 
-const std::set<std::string> FlayOptions::SUPPORTED_CONFIG_EXTENSIONS = {".proto"};
+const std::set<std::string> FlayOptions::SUPPORTED_CONFIG_EXTENSIONS = {".txtpb"};
 
 FlayOptions &FlayOptions::get() {
     static FlayOptions INSTANCE;
@@ -29,7 +30,7 @@ FlayOptions::FlayOptions()
                         controlPlaneConfig.value().c_str());
                 return false;
             }
-            auto extension = controlPlaneConfig.value().extension().c_str();
+            const auto *extension = controlPlaneConfig.value().extension().c_str();
             if (SUPPORTED_CONFIG_EXTENSIONS.find(extension) == SUPPORTED_CONFIG_EXTENSIONS.end()) {
                 ::error(
                     "File %1% does not have a supported extension. Supported extensions are "
@@ -42,11 +43,42 @@ FlayOptions::FlayOptions()
         "The path to the control plane configuration file. The instructions in this file will be "
         "converted into a semantic representation and merged with the representation of the P4 "
         "file.");
+    registerOption(
+        "--print-performance-report", nullptr,
+        [](const char *) {
+            Flay::enablePerformanceLogging();
+            return true;
+        },
+        "Print timing report summary at the end of the program.");
+    registerOption(
+        "--server-mode", nullptr,
+        [this](const char *) {
+            serverMode = true;
+            return true;
+        },
+        "Toogle Flay's server mode and start a P4Runtime server.");
+    registerOption(
+        "--server-address", "serverAddress",
+        [this](const char *arg) {
+            if (!serverMode) {
+                ::warning(
+                    "Server mode was not active but a server address was provided. Enabling server "
+                    "mode.");
+                serverMode = true;
+            }
+            serverAddress = arg;
+            return true;
+        },
+        "The address of the Flay service in the format ADDRESS:PORT.");
 }
 
 std::filesystem::path FlayOptions::getControlPlaneConfig() const {
     return controlPlaneConfig.value();
 }
+
+bool FlayOptions::serverModeActive() const { return serverMode; }
+
+std::string FlayOptions::getServerAddress() const { return serverAddress; }
 
 bool FlayOptions::hasControlPlaneConfig() const { return controlPlaneConfig.has_value(); }
 

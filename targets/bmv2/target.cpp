@@ -4,14 +4,12 @@
 #include <map>
 #include <vector>
 
-#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/lib/logging.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/stepper.h"
 #include "ir/ir.h"
-#include "ir/irutils.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 #include "lib/ordered_map.h"
@@ -85,7 +83,7 @@ const ArchSpec *V1ModelFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; 
 FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
                                                ExecutionState &executionState,
                                                ControlPlaneState &controlPlaneState) const {
-    auto bmv2ControlPlaneState = controlPlaneState.to<Bmv2ControlPlaneState>();
+    auto *bmv2ControlPlaneState = controlPlaneState.to<Bmv2ControlPlaneState>();
     CHECK_NULL(bmv2ControlPlaneState);
     return *new V1ModelFlayStepper(*programInfo.checkedTo<V1ModelProgramInfo>(), executionState,
                                    *bmv2ControlPlaneState);
@@ -106,8 +104,8 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
     }
     auto confPath = options.getControlPlaneConfig();
     printInfo("Parsing initial control plane configuration...\n");
-    if (confPath.extension() == ".proto") {
-        MapP4RuntimeIdtoIR idMapper;
+    if (confPath.extension() == ".txtpb") {
+        MapP4RuntimeIdtoIr idMapper;
         program.apply(idMapper);
         if (::errorCount() > 0) {
             return std::nullopt;
