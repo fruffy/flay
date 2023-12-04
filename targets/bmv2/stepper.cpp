@@ -16,7 +16,7 @@ const V1ModelProgramInfo &V1ModelFlayStepper::getProgramInfo() const {
 }
 
 Bmv2ControlPlaneState &V1ModelFlayStepper::getControlPlaneState() const {
-    auto state = FlayStepper::getControlPlaneState().to<Bmv2ControlPlaneState>();
+    auto *state = FlayStepper::getControlPlaneState().to<Bmv2ControlPlaneState>();
     CHECK_NULL(state);
     return *state;
 }

@@ -10,20 +10,23 @@
 namespace P4Tools {
 
 struct MuxCondComp {
-    bool operator()(const IR::Expression *s1, const IR::Expression *s2) const {
-        return s1->id < s2->id;
-    }
+    bool operator()(const IR::Expression *s1, const IR::Expression *s2) const;
 };
 
 class CollapseMux : public Transform {
+ private:
     std::map<const IR::Expression *, bool, MuxCondComp> conditionMap;
+
+    explicit CollapseMux(const std::map<const IR::Expression *, bool, MuxCondComp> &conditionMap);
 
  public:
     CollapseMux() = default;
 
-    explicit CollapseMux(const std::map<const IR::Expression *, bool, MuxCondComp> &conditionMap);
-
     const IR::Node *preorder(IR::Mux *mux) override;
+
+    static const IR::Expression *produceOptimizedMux(const IR::Expression *cond,
+                                                     const IR::Expression *trueExpression,
+                                                     const IR::Expression *falseExpression);
 };
 
 }  // namespace P4Tools

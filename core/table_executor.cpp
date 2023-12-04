@@ -11,6 +11,7 @@
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
+#include "backends/p4tools/modules/flay/core/collapse_mux.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
@@ -175,7 +176,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     const auto *hitCondition = new IR::LAnd(tableActiveVar, computeKey(key));
     const auto *actionPath = TableUtils::getDefaultActionName(table);
     ReturnProperties retProperties{hitCondition, new IR::StringLiteral(actionPath->toString())};
-    for (auto action : tableActionList) {
+    for (const auto *action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
         auto *actionChoice =
@@ -183,9 +184,10 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
         const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);
         retProperties.totalHitCondition =
             new IR::LOr(retProperties.totalHitCondition, actionChoice);
-        retProperties.actionRun =
-            new IR::Mux(IR::Type_String::get(), actionHitCondition,
-                        new IR::StringLiteral(action->controlPlaneName()), retProperties.actionRun);
+        retProperties.actionRun = CollapseMux::produceOptimizedMux(
+            actionHitCondition,
+            new IR::StringLiteral(IR::Type_String::get(), action->controlPlaneName()),
+            retProperties.actionRun);
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();
         // Synthesize arguments for the call based on the action parameters.
@@ -260,9 +262,11 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
         state.merge(actionState);
         retProperties.totalHitCondition =
             new IR::LOr(retProperties.totalHitCondition, entryHitCondition);
-        retProperties.actionRun = new IR::Mux(IR::Type_String::get(), entryHitCondition,
-                                              new IR::StringLiteral(actionType->controlPlaneName()),
-                                              retProperties.actionRun);
+        retProperties.actionRun = CollapseMux::produceOptimizedMux(
+            entryHitCondition,
+            new IR::StringLiteral(IR::Type_String::get(), actionType->controlPlaneName()),
+            retProperties.actionRun);
+        retProperties.actionRun = retProperties.actionRun->apply(CollapseMux());
     }
 
     return retProperties;
@@ -288,6 +292,9 @@ const IR::Expression *TableExecutor::processTable() {
 
     // Execute the default action.
     processDefaultAction();
+
+    // If the table is immutable, we can not add control-plane entries.
+    // We can only execute pre-existing entries.
     if (properties.tableIsImmutable) {
         const auto &retProperties = processConstantTableEntries(key);
         return new IR::StructExpression(

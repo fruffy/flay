@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <vector>
 
-#include "backends/p4tools/common/compiler/convert_hs_index.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
@@ -11,7 +10,6 @@
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
-#include "ir/vector.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
@@ -85,14 +83,14 @@ bool FlayStepper::preorder(const IR::AssignmentStatement *assign) {
     const auto *right = assign->right;
     const auto &left = ToolsVariables::convertReference(assign->left);
     auto &executionState = getExecutionState();
-    auto &programInfo = getProgramInfo();
+    const auto &programInfo = getProgramInfo();
 
     const auto *assignType = executionState.resolveType(left->type);
 
     auto &resolver = createExpressionResolver(programInfo, executionState, controlPlaneState);
     right = resolver.computeResult(right);
 
-    if (right->is<IR::StructExpression>() || right->to<IR::HeaderStackExpression>()) {
+    if (right->is<IR::StructExpression>() || right->is<IR::HeaderStackExpression>()) {
         executionState.assignStructLike(left, right);
         return false;
     }
