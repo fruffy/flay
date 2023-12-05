@@ -86,9 +86,6 @@ int Flay::mainImpl(const IR::P4Program *program) {
         printInfo("Starting flay server...\n");
         service.startServer(flayOptions.getServerAddress());
     }
-
-    printPerformanceReport();
-
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

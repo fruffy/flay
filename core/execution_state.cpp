@@ -13,6 +13,7 @@
 #include "ir/irutils.h"
 #include "lib/exceptions.h"
 #include "lib/source_file.h"
+#include "lib/timer.h"
 
 namespace P4Tools::Flay {
 
@@ -184,6 +185,7 @@ std::optional<const IR::Expression *> ExecutionState::getPlaceholderValue(
 }
 
 const ExecutionState &ExecutionState::substitutePlaceholders() const {
+    Util::ScopedTimer timer("Placeholder Substitution");
     auto &substitutionState = clone();
     auto substitute = SubstitutePlaceHolders(*this);
     for (const auto &rechabilityTuple : substitutionState.reachabilityMap) {
