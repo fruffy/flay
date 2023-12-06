@@ -76,6 +76,16 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/elim_dead_code.cpp
 )
 
+# GTest source files for P4Flay.
+set(
+  FLAY_GTEST_SOURCES
+  #  # XXX These should be in a library.
+  ${P4C_SOURCE_DIR}/test/gtest/helpers.cpp
+  ${P4C_SOURCE_DIR}/test/gtest/gtestp4c.cpp
+
+  test/core/collapse_mux.cpp
+)
+
 # Flay libraries.
 set(FLAY_LIBS p4tools-common flay_runtime p4tools-control-plane)
 
@@ -133,3 +143,21 @@ add_custom_target(
 )
 
 add_dependencies(p4flay linkflay)
+
+if(ENABLE_GTESTS)
+  add_executable(flay-gtest ${FLAY_GTEST_SOURCES})
+  target_link_libraries(
+    flay-gtest
+    PRIVATE libflay
+    PRIVATE gtest
+    ${FLAY_LIBS}
+    ${P4C_LIBRARIES}
+    ${P4C_LIB_DEPS}
+  )
+
+  if(ENABLE_TESTING)
+    add_test(NAME flay-gtest COMMAND flay-gtest)
+    set_tests_properties(flay-gtest PROPERTIES LABELS "gtest-flay")
+  endif()
+
+endif()

@@ -4,6 +4,7 @@
 
 #include "frontends/common/constantFolding.h"
 #include "frontends/p4/strengthReduction.h"
+#include "lib/timer.h"
 
 namespace P4Tools {
 
@@ -35,6 +36,7 @@ const IR::Node *CollapseMux::preorder(IR::Mux *mux) {
 const IR::Expression *CollapseMux::produceOptimizedMux(const IR::Expression *cond,
                                                        const IR::Expression *trueExpression,
                                                        const IR::Expression *falseExpression) {
+    Util::ScopedTimer timer("Mux optimization");
     auto *mux = new IR::Mux(trueExpression->type, cond, trueExpression, falseExpression);
     return mux->apply(CollapseMux());
 }

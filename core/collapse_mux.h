@@ -24,6 +24,7 @@ class CollapseMux : public Transform {
 
     const IR::Node *preorder(IR::Mux *mux) override;
 
+    /// Produce a Mux expression where the amount of sub-expressions has been minimized.
     static const IR::Expression *produceOptimizedMux(const IR::Expression *cond,
                                                      const IR::Expression *trueExpression,
                                                      const IR::Expression *falseExpression);
