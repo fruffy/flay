@@ -9,12 +9,17 @@
 namespace P4Tools::Flay {
 
 class SubstitutePlaceHolders : public Transform {
+    /// A helper visitor which replaces placeholder variables with a symbolic variable with the same
+    /// name.
     class SymbolizePlaceHolders : public Transform {
      public:
         const IR::Expression *postorder(IR::Placeholder *placeholder) override;
     };
 
+    /// Reference to an existing execution state.
     std::reference_wrapper<const ExecutionState> state;
+
+    /// The actual symbolizer, which is invoked by the place holder substitution.
     SymbolizePlaceHolders symbolizer;
 
  public:

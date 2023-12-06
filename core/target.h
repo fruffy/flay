@@ -13,7 +13,6 @@
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/options.h"
 #include "ir/ir.h"
-#include "ir/vector.h"
 
 namespace P4Tools::Flay {
 
@@ -64,20 +63,12 @@ class FlayTarget : public Target {
                                                const IR::Declaration_Instance *mainDecl) const = 0;
 
     /// @see @computeControlPlaneConstraints.
-    virtual std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
+    [[nodiscard]] virtual std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
         const IR::P4Program &program, const FlayOptions &options,
         const ControlPlaneState &controlPlaneState) const = 0;
 
     /// @see getArchSpec
     [[nodiscard]] virtual const ArchSpec *getArchSpecImpl() const = 0;
-
-    /// Utility function. Converts the list of arguments @inputArgs to a list of type declarations
-    ///  and appends the result to @v. Any names appearing in the arguments are
-    /// resolved with @ns.
-    //
-    static void argumentsToTypeDeclarations(const IR::IGeneralNamespace *ns,
-                                            const IR::Vector<IR::Argument> *inputArgs,
-                                            std::vector<const IR::Type_Declaration *> &resultDecls);
 
     explicit FlayTarget(std::string deviceName, std::string archName);
 

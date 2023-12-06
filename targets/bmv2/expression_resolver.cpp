@@ -420,12 +420,13 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
 
          auto cloneType =
              externInfo.externArgs->at(0)->expression->checkedTo<IR::Constant>()->asUint64();
-         auto sessionID = externInfo.externArgs->at(1)->expression;
+         const auto *sessionID = externInfo.externArgs->at(1)->expression;
 
          const auto *instanceBitType = IR::getBitType(32);
-         auto isCloned =
-             new IR::LAnd(controlPlaneState->allocateCloneSession(),
-                          new IR::Equ(sessionID, controlPlaneState->getSessionId(sessionID->type)));
+         auto *isCloned = new IR::LAnd(
+             controlPlaneState->allocateCloneSession(),
+             new IR::Equ(sessionID, P4Tools::Flay::V1Model::Bmv2ControlPlaneState::getSessionId(
+                                        sessionID->type)));
          const IR::Constant *instanceTypeConst = nullptr;
          if (cloneType == V1ModelConstants::CloneType::I2E) {
              instanceTypeConst = IR::getConstant(instanceBitType,
@@ -437,7 +438,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
              P4C_UNIMPLEMENTED("Unsupported clone type %1%.", cloneType);
          }
          // Initialize instance_type with a place holder.
-         auto mux = new IR::Mux(
+         auto *mux = new IR::Mux(
              isCloned, instanceTypeConst,
              IR::getConstant(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
          state.setPlaceholderValue("standard_metadata.instance_type", mux);
@@ -541,7 +542,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
              P4C_UNIMPLEMENTED("Unsupported clone type %1%.", cloneType);
          }
          // Initialize instance_type with a place holder.
-         auto mux = new IR::Mux(
+         auto *mux = new IR::Mux(
              isCloned, instanceTypeConst,
              IR::getConstant(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
          state.setPlaceholderValue("standard_metadata.instance_type", mux);

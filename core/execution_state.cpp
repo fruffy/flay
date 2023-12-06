@@ -13,6 +13,7 @@
 #include "ir/irutils.h"
 #include "lib/exceptions.h"
 #include "lib/source_file.h"
+#include "lib/timer.h"
 
 namespace P4Tools::Flay {
 
@@ -34,21 +35,20 @@ const IR::Expression *ExecutionState::createSymbolicExpression(const IR::Type *i
     const auto *resolvedType = resolveType(inputType);
     if (const auto *structType = resolvedType->to<IR::Type_StructLike>()) {
         IR::IndexedVector<IR::NamedExpression> fields;
-        for (size_t idx = 0; idx < structType->fields.size(); ++idx) {
-            const auto *field = structType->fields.at(idx);
+        for (const auto *field : structType->fields) {
             auto fieldLabel = label + "_" + field->name;
             fields.push_back(new IR::NamedExpression(
                 field->name, createSymbolicExpression(field->type, fieldLabel)));
         }
         if (structType->is<IR::Type_Header>()) {
             cstring labelId = label + "_" + ToolsVariables::VALID;
-            auto validity = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), labelId);
+            const auto *validity =
+                ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), labelId);
             // TODO: We keep the struct type anonymous because we do not know it.
             return new IR::HeaderExpression(structType, nullptr, fields, validity);
-        } else {
-            // TODO: We keep the struct type anonymous because we do not know it.
-            return new IR::StructExpression(structType, nullptr, fields);
         }
+        // TODO: We keep the struct type anonymous because we do not know it.
+        return new IR::StructExpression(structType, nullptr, fields);
     }
     if (const auto *stackType = resolvedType->to<IR::Type_Stack>()) {
         IR::Vector<IR::Expression> fields;
@@ -66,16 +66,16 @@ const IR::Expression *ExecutionState::createSymbolicExpression(const IR::Type *i
 }
 
 const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
-    auto varType = resolveType(var->type);
+    const auto *varType = resolveType(var->type);
     // In some cases, we may reference a complex expression. Convert it to a struct expression.
-    if (varType->is<IR::Type_StructLike>() || varType->to<IR::Type_Stack>()) {
+    if (varType->is<IR::Type_StructLike>() || varType->is<IR::Type_Stack>()) {
         return convertToComplexExpression(var);
     }
     // TODO: This is a convoluted (and expensive?) check because struct members are not directly
     // associated with a header. We should be using runtime objects instead of flat assignments.
     const auto *expr = env.get(var);
     if (const auto *member = var->to<IR::Member>()) {
-        auto memberType = resolveType(member->expr->type);
+        const auto *memberType = resolveType(member->expr->type);
         if (memberType->is<IR::Type_Header>() && member->member != ToolsVariables::VALID) {
             // If we are setting the member of a header, we need to check whether the
             // header is valid.
@@ -89,18 +89,14 @@ const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
                 }
                 return IR::getDefaultValue(expr->type, expr->getSourceInfo(), true);
             }
-            return new IR::Mux(expr->type, validVar, expr,
-                               IR::getDefaultValue(expr->type, {}, true));
+            return CollapseMux::produceOptimizedMux(validVar, expr,
+                                                    IR::getDefaultValue(expr->type, {}, true));
         }
     }
     return expr;
 }
 
 void ExecutionState::set(const IR::StateVariable &var, const IR::Expression *value) {
-    // Small optimization. Do not nest Mux that are the same.
-    if (value->is<IR::Mux>()) {
-        value = value->apply(CollapseMux());
-    }
     env.set(var, value);
 }
 
@@ -117,12 +113,12 @@ bool ExecutionState::hasVisitedParserId(int parserId) const {
 const IR::Expression *ExecutionState::getExecutionCondition() const { return executionCondition; }
 
 void ExecutionState::pushExecutionCondition(const IR::Expression *cond) {
-    // cond = P4::optimizeExpression(new IR::LAnd(executionCondition, cond));
     executionCondition = P4::optimizeExpression(new IR::LAnd(executionCondition, cond));
 }
 
 void ExecutionState::merge(const ExecutionState &mergeState) {
     const auto *cond = mergeState.getExecutionCondition();
+    cond = cond->apply(CollapseMux());
     const auto &mergeEnv = mergeState.getSymbolicEnv();
     if (const auto *boolExpr = cond->to<IR::BoolLiteral>()) {
         // If the condition is false, do nothing. If it is true, set all the values.
@@ -139,10 +135,15 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
     for (const auto &envTuple : mergeEnv.getInternalMap()) {
         auto ref = envTuple.first;
         const auto *mergeExpr = envTuple.second;
+        // Do not merge any variable that did not exist previously.
         if (exists(ref)) {
             const auto *currentExpr = get(ref);
-            auto *mergedExpr = new IR::Mux(currentExpr->type, cond, mergeExpr, currentExpr);
-            set(envTuple.first, mergedExpr);
+            // Only merge when the current and the merged expression are different.
+            if (!currentExpr->equiv(*mergeExpr)) {
+                const IR::Expression *mergedExpr =
+                    CollapseMux::produceOptimizedMux(cond, mergeExpr, currentExpr);
+                set(envTuple.first, mergedExpr);
+            }
         }
     }
 
@@ -184,10 +185,11 @@ std::optional<const IR::Expression *> ExecutionState::getPlaceholderValue(
 }
 
 const ExecutionState &ExecutionState::substitutePlaceholders() const {
+    Util::ScopedTimer timer("Placeholder Substitution");
     auto &substitutionState = clone();
     auto substitute = SubstitutePlaceHolders(*this);
     for (const auto &rechabilityTuple : substitutionState.reachabilityMap) {
-        auto substitutedExpression = rechabilityTuple.second;
+        const auto *substitutedExpression = rechabilityTuple.second;
         substitutionState.reachabilityMap[rechabilityTuple.first] =
             substitutedExpression->apply(substitute);
     }

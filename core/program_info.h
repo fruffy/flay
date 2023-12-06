@@ -4,7 +4,6 @@
 #include <map>
 #include <vector>
 
-#include "ir/declaration.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 #include "lib/castable.h"
@@ -43,18 +42,6 @@ class ProgramInfo : public ICastable {
 
     /// @returns the P4 program associated with this program info.
     [[nodiscard]] const IR::P4Program *getProgram() const;
-
-    /// Looks up a declaration from a path. A BUG occurs if no declaration is found.
-    static const IR::IDeclaration *findProgramDecl(const IR::IGeneralNamespace *ns,
-                                                   const IR::Path *path);
-
-    /// Looks up a declaration from a path expression. A BUG occurs if no declaration is found.
-    static const IR::IDeclaration *findProgramDecl(const IR::IGeneralNamespace *ns,
-                                                   const IR::PathExpression *pathExpr);
-
-    /// Resolves a Type_Name in the current environment.
-    static const IR::Type_Declaration *resolveProgramType(const IR::IGeneralNamespace *ns,
-                                                          const IR::Type_Name *type);
 
     /// @returns the canonical name of the program block that is passed in.
     /// Throws a BUG, if the name can not be found.

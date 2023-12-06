@@ -34,8 +34,7 @@ const ProgramInfo *V1ModelFlayTarget::initProgramImpl(
     // The blocks in the main declaration are just the arguments in the constructor call.
     // Convert mainDecl->arguments into a vector of blocks, represented as constructor-call
     // expressions.
-    std::vector<const IR::Type_Declaration *> blocks;
-    argumentsToTypeDeclarations(program, mainDecl->arguments, blocks);
+    auto blocks = argumentsToTypeDeclarations(program, mainDecl->arguments);
 
     // We should have six arguments.
     BUG_CHECK(blocks.size() == 6, "%1%: The BMV2 architecture requires 6 pipes. Received %2%.",
