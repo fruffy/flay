@@ -2,6 +2,9 @@
 
 #include <utility>
 
+#include "frontends/common/constantFolding.h"
+#include "frontends/p4/strengthReduction.h"
+
 namespace P4Tools {
 
 bool MuxCondComp::operator()(const IR::Expression *s1, const IR::Expression *s2) const {
@@ -34,6 +37,18 @@ const IR::Expression *CollapseMux::produceOptimizedMux(const IR::Expression *con
                                                        const IR::Expression *falseExpression) {
     auto *mux = new IR::Mux(trueExpression->type, cond, trueExpression, falseExpression);
     return mux->apply(CollapseMux());
+}
+
+const IR::Expression *CollapseMux::optimizeExpression(const IR::Expression *expr) {
+    // Lifted from frontends/p4/optimizeExpressions.
+    auto pass = PassRepeated({
+        new CollapseMux(),
+        new P4::StrengthReduction(nullptr, nullptr, nullptr),
+        new P4::ConstantFolding(nullptr, nullptr, false),
+    });
+    expr = expr->apply(pass);
+    BUG_CHECK(::errorCount() == 0, "Encountered errors while trying to optimize expressions.");
+    return expr;
 }
 
 CollapseMux::CollapseMux(const std::map<const IR::Expression *, bool, MuxCondComp> &conditionMap)

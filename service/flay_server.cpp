@@ -2,9 +2,9 @@
 
 #include <utility>
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
-#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/timer.h"

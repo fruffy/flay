@@ -289,18 +289,18 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
 
     // Resolve all arguments to the method call.
     IR::Vector<IR::Argument> resolvedArgs;
-    auto method = call->method->type->checkedTo<IR::Type_MethodBase>();
-    auto &methodParams = method->parameters->parameters;
+    const auto *method = call->method->type->checkedTo<IR::Type_MethodBase>();
+    const auto &methodParams = method->parameters->parameters;
     const auto *callArguments = call->arguments;
     for (size_t idx = 0; idx < callArguments->size(); ++idx) {
-        auto arg = callArguments->at(idx);
-        auto param = methodParams.at(idx);
-        auto computedExpr = computeResult(arg->expression);
+        const auto *arg = callArguments->at(idx);
+        const auto *param = methodParams.at(idx);
+        const auto *computedExpr = computeResult(arg->expression);
         if (param->direction == IR::Direction::InOut || param->direction == IR::Direction::Out) {
             auto stateVar = ToolsVariables::convertReference(arg->expression);
             computedExpr = new IR::InOutReference(stateVar, computedExpr);
         }
-        auto newArg = arg->clone();
+        auto *newArg = arg->clone();
         newArg->expression = computedExpr;
         resolvedArgs.push_back(newArg);
     }

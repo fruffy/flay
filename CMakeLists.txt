@@ -72,7 +72,6 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/symbolic_executor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/table_executor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/target.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/logging.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/elim_dead_code.cpp
 )
 

@@ -6,9 +6,9 @@
 #include <string>
 
 #include "backends/p4tools/common/core/z3_solver.h"
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
-#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "backends/p4tools/modules/flay/service/flay_server.h"
 #include "frontends/common/parseInput.h"

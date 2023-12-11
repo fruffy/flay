@@ -4,8 +4,8 @@
 
 #include <google/protobuf/text_format.h>
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
-#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay {

@@ -4,9 +4,9 @@
 #include <map>
 #include <vector>
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
-#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/stepper.h"
 #include "ir/ir.h"
