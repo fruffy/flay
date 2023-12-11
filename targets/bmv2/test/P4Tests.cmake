@@ -25,7 +25,6 @@ list(
   REMOVE_ITEM
   P4_16_V1_TESTS
   # These tests time out and require fixing.
-  "${P4C_SOURCE_DIR}/testdata/p4_16_samples/dash/dash-pipeline-v1model-bmv2.p4"
 )
 
 p4tools_add_tests(

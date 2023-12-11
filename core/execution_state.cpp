@@ -71,29 +71,7 @@ const IR::Expression *ExecutionState::get(const IR::StateVariable &var) const {
     if (varType->is<IR::Type_StructLike>() || varType->is<IR::Type_Stack>()) {
         return convertToComplexExpression(var);
     }
-    // TODO: This is a convoluted (and expensive?) check because struct members are not directly
-    // associated with a header. We should be using runtime objects instead of flat assignments.
-    const auto *expr = env.get(var);
-    if (const auto *member = var->to<IR::Member>()) {
-        const auto *memberType = resolveType(member->expr->type);
-        if (memberType->is<IR::Type_Header>() && member->member != ToolsVariables::VALID) {
-            // If we are setting the member of a header, we need to check whether the
-            // header is valid.
-            // If the header is invalid, the get returns a tainted expression.
-            // The member could have any value.
-            auto validity = ToolsVariables::getHeaderValidity(member->expr);
-            const auto *validVar = env.get(validity);
-            if (const auto *validBool = validVar->to<IR::BoolLiteral>()) {
-                if (validBool->value) {
-                    return expr;
-                }
-                return IR::getDefaultValue(expr->type, expr->getSourceInfo(), true);
-            }
-            return CollapseMux::produceOptimizedMux(validVar, expr,
-                                                    IR::getDefaultValue(expr->type, {}, true));
-        }
-    }
-    return expr;
+    return env.get(var);
 }
 
 void ExecutionState::set(const IR::StateVariable &var, const IR::Expression *value) {

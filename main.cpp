@@ -1,4 +1,3 @@
-
 #include <lib/timer.h>
 
 #include <cstdlib>
