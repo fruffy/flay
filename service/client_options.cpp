@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "backends/p4tools/modules/flay/lib/logging.h"
+#include "backends/p4tools/common/lib/logging.h"
 #include "lib/exceptions.h"
 
 namespace P4Tools::Flay {
@@ -33,7 +33,7 @@ FlayClientOptions::FlayClientOptions(cstring message) : Options(message) {
     registerOption(
         "--print-performance-report", nullptr,
         [](const char *) {
-            Flay::enablePerformanceLogging();
+            enablePerformanceLogging();
             return true;
         },
         "Print timing report summary at the end of the program.");

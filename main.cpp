@@ -6,8 +6,8 @@
 #include <iostream>
 #include <vector>
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/flay.h"
-#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "lib/crash.h"
 #include "lib/exceptions.h"
 
@@ -41,6 +41,6 @@ int main(int argc, char **argv) {
         std::cerr << "Internal error. Please submit a bug report with your code." << '\n';
         result = EXIT_FAILURE;
     }
-    P4Tools::Flay::printPerformanceReport();
+    P4Tools::printPerformanceReport();
     return result;
 }

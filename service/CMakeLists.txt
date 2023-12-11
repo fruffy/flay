@@ -21,7 +21,7 @@ target_link_libraries(flay_grpc grpc++)
 # Flay Service Client #
 # ##################################################################################################
 set(FLAY_GRPC_CLIENT_SOURCES client_main.cpp client_options.cpp flay_client.cpp
-                             ${flay_SOURCE_DIR}/lib/logging.cpp
+                             ${P4TOOLS_SOURCE_DIR}/common/lib/logging.cpp
 )
 
 set (FLAY_GRPC_CLIENT_LIBS p4ctoolkit ${LIBGC_LIBRARIES} controlplane-gen grpc++)

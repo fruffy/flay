@@ -27,6 +27,8 @@ class CollapseMux : public Transform {
     static const IR::Expression *produceOptimizedMux(const IR::Expression *cond,
                                                      const IR::Expression *trueExpression,
                                                      const IR::Expression *falseExpression);
+
+    static const IR::Expression *optimizeExpression(const IR::Expression *expr);
 };
 
 }  // namespace P4Tools

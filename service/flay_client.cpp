@@ -4,7 +4,7 @@
 
 #include <optional>
 
-#include "backends/p4tools/modules/flay/lib/logging.h"
+#include "backends/p4tools/common/lib/logging.h"
 #include "lib/timer.h"
 #include "p4/v1/p4runtime.pb.h"
 

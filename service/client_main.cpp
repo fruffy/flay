@@ -1,6 +1,6 @@
 #include <cstdlib>
 
-#include "backends/p4tools/modules/flay/lib/logging.h"
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/service/client_options.h"
 #include "backends/p4tools/modules/flay/service/flay_client.h"
 #include "lib/error.h"

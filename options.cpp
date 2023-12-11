@@ -1,8 +1,8 @@
 #include "backends/p4tools/modules/flay/options.h"
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/common/options.h"
-#include "backends/p4tools/modules/flay/lib/logging.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
@@ -46,7 +46,7 @@ FlayOptions::FlayOptions()
     registerOption(
         "--print-performance-report", nullptr,
         [](const char *) {
-            Flay::enablePerformanceLogging();
+            enablePerformanceLogging();
             return true;
         },
         "Print timing report summary at the end of the program.");
