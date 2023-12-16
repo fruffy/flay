@@ -1,8 +1,6 @@
-
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 
-#include <stddef.h>
-
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <vector>
@@ -11,6 +9,7 @@
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
+#include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
 #include "ir/irutils.h"
@@ -271,17 +270,16 @@ bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
         components.push_back(newField);
     }
     // If the struct expression type is a header, then it is always valid.
-    auto resolvedType = getExecutionState().resolveType(structExpr->type);
+    const auto *resolvedType = getExecutionState().resolveType(structExpr->type);
     if (resolvedType->is<IR::Type_Header>()) {
         // TODO: Do not use nullptr here and instead the real type.
         result = new IR::HeaderExpression(nullptr, components, IR::getBoolLiteral(true));
         return false;
-    } else {
-        auto *newStructExpr = structExpr->clone();
-        newStructExpr->components = components;
-        result = newStructExpr;
-        return false;
     }
+    auto *newStructExpr = structExpr->clone();
+    newStructExpr->components = components;
+    result = newStructExpr;
+    return false;
 }
 
 bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
@@ -342,12 +340,15 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
                 method->expr->type->is<IR::Type_HeaderUnion>()) {
                 if (method->member == "setValid") {
                     const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
+                    auto headerRef = ToolsVariables::convertReference(method->expr);
+                    state.initializeStructLike(FlayTarget::get(), headerRef, false);
                     state.set(headerRefValidity, IR::getBoolLiteral(true));
                     return false;
                 }
                 if (method->member == "setInvalid") {
                     const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
-                    state.set(headerRefValidity, IR::getBoolLiteral(false));
+                    auto headerRef = ToolsVariables::convertReference(method->expr);
+                    state.initializeStructLike(FlayTarget::get(), headerRef, false);
                     return false;
                 }
                 if (method->member == "isValid") {
@@ -374,7 +375,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
 }
 
-namespace core {
+namespace Core {
 
 /// Provides implementations of P4 core externs.
 static const ExternMethodImpls EXTERN_METHOD_IMPLS(
@@ -429,10 +430,10 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
               // For now, we ignore the assigned size in our calculations and always use the
               // maximum size.
               // TODO: Figure out a way to exploit sizeInBits?
-              if (auto varbitType = field->type->to<IR::Extracted_Varbits>()) {
-                  auto assignedType = varbitType->clone();
+              if (const auto *varbitType = field->type->to<IR::Extracted_Varbits>()) {
+                  auto *assignedType = varbitType->clone();
                   assignedType->assignedSize = assignedType->size;
-                  auto typedField = field.clone();
+                  auto *typedField = field.clone();
                   typedField->type = assignedType;
                   state.set(*typedField, ToolsVariables::getSymbolicVariable(typedField->type,
                                                                              extractFieldLabel));
@@ -487,7 +488,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           // TODO: Implement the error case.
           return nullptr;
       }}});
-}  // namespace core
+}  // namespace Core
 
 /* =============================================================================================
  *  Extern implementations
@@ -495,7 +496,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
 
 const IR::Expression *ExpressionResolver::processExtern(
     const ExternMethodImpls::ExternInfo &externInfo) {
-    auto method = core::EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
+    auto method = Core::EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
                                                  externInfo.externArgs);
     if (method.has_value()) {
         return method.value()(externInfo);
