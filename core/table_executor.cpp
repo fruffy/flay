@@ -172,7 +172,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
 
     // First, we compute the hit condition to trigger this particular action call.
     const auto *tableActiveVar = controlPlaneState.allocateControlPlaneTable(table);
-    const auto *hitCondition = new IR::LAnd(tableActiveVar, computeKey(key));
+    const auto *hitCondition = computeKey(key);
     const auto *actionPath = TableUtils::getDefaultActionName(table);
     ReturnProperties retProperties{hitCondition, new IR::StringLiteral(actionPath->toString())};
     for (const auto *action : tableActionList) {

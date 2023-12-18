@@ -15,7 +15,7 @@ FlayClient::FlayClient(const std::shared_ptr<grpc::Channel> &channel)
 
 grpc::Status FlayClient::sendWriteRequest(const p4::v1::WriteRequest &request) {
     printInfo("Sending update...\n");
-    Util::ScopedTimer timer("sendWriteRequest");
+    Util::ScopedTimer timer("sendGrpcWriteRequest");
     grpc::ClientContext context;
     p4::v1::WriteResponse response;
     return stub_->Write(&context, request, &response);

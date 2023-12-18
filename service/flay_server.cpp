@@ -11,6 +11,42 @@
 
 namespace P4Tools::Flay {
 
+class StatementCounter : public Inspector {
+    uint64_t statementCount = 0;
+
+ public:
+    bool preorder(const IR::AssignmentStatement * /*statement*/) override {
+        statementCount++;
+        return false;
+    }
+    bool preorder(const IR::MethodCallStatement * /*statement*/) override {
+        statementCount++;
+        return false;
+    }
+
+    [[nodiscard]] uint64_t getStatementCount() const { return statementCount; }
+};
+
+uint64_t countStatements(const IR::P4Program *prog) {
+    auto *counter = new StatementCounter();
+    prog->apply(*counter);
+    return counter->getStatementCount();
+}
+
+double measureProgramSize(const IR::P4Program *prog) {
+    auto *programStream = new std::stringstream;
+    auto *toP4 = new P4::ToP4(programStream, false);
+    prog->apply(*toP4);
+    return static_cast<double>(programStream->str().length());
+}
+
+double measureSizeDifference(const IR::P4Program *programBefore,
+                             const IR::P4Program *programAfter) {
+    double beforeLength = measureProgramSize(programBefore);
+
+    return (beforeLength - measureProgramSize(programAfter)) * (100.0 / beforeLength);
+}
+
 FlayService::FlayService(const IR::P4Program *originalProgram, const ExecutionState &executionState,
                          AbstractSolver &solver, P4RuntimeIdtoIrNodeMap idToIrMap)
     : originalProgram(originalProgram),
@@ -45,6 +81,7 @@ void FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
     ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(entity, idToIrMap,
                                                                          constraints);
     elimControlPlaneDeadCode();
+    P4Tools::printPerformanceReport();
 }
 
 void FlayService::processDeleteMessage(const p4::v1::Entity &entity) {
@@ -74,6 +111,9 @@ void FlayService::removeControlPlaneConstraints(
 const IR::P4Program *FlayService::elimControlPlaneDeadCode() {
     Util::ScopedTimer timer("Eliminate Dead Code");
     prunedProgram = originalProgram->apply(elimDeadCode);
+    printInfo("Number of statements - Before: %1% After: %2% Total reduction percentage = %3%%%",
+              countStatements(originalProgram), countStatements(prunedProgram),
+              measureSizeDifference(originalProgram, prunedProgram));
     return prunedProgram;
 }
 

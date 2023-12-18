@@ -13,6 +13,7 @@
 #include "backends/p4tools/modules/flay/service/flay_server.h"
 #include "frontends/common/parseInput.h"
 #include "frontends/common/parser_options.h"
+#include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
@@ -80,7 +81,7 @@ int Flay::mainImpl(const IR::P4Program *program) {
     service.addControlPlaneConstraints(constraintsOpt.value());
 
     printInfo("Checking whether dead code can be removed...\n");
-    freshProgram = service.elimControlPlaneDeadCode();
+    service.elimControlPlaneDeadCode();
 
     if (flayOptions.serverModeActive()) {
         printInfo("Starting flay server...\n");

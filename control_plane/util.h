@@ -147,8 +147,7 @@ class TableConfiguration : public ControlPlaneItem {
     }
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override {
-        const IR::Expression *matchExpression = new IR::LAnd(
-            defaultConfig.computeControlPlaneConstraint(), defaultConfig.getActionAssignment());
+        const IR::Expression *matchExpression = defaultConfig.computeControlPlaneConstraint();
         if (tableEntries.size() == 0) {
             return matchExpression;
         }

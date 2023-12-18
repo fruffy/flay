@@ -2,6 +2,7 @@
 /// These placeholders are necessary to handle constructs such as recirculation or cloning.
 class Placeholder : Expression {
 #noconstructor
+#nooperator<
 
     /// The label of the placeholder.
     cstring label;
@@ -14,7 +15,7 @@ class Placeholder : Expression {
 
     /// Implements comparisons so that Placeholders can be used as map keys.
     /// The default value is ignored.
-    bool operator<(const Placeholder &other) const {
+    bool operator<(const Placeholder &other) const override {
         return label < other.label;
     }
 
