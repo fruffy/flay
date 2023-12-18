@@ -38,6 +38,8 @@ class ElimDeadCode : public Transform {
 
     profile_t init_apply(const IR::Node *root) override;
 
+    [[nodiscard]] ControlPlaneConstraints &getWriteableControlPlaneConstraints();
+
     /// Add control plane constraints to the tool. These constraints are added to every
     /// solver check.
     void addControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);

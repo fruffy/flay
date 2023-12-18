@@ -42,9 +42,9 @@ const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
 }
 
 ElimDeadCode::profile_t ElimDeadCode::init_apply(const IR::Node *root) {
-    for (auto controlPlaneConstraint : controlPlaneConstraints) {
+    for (auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         controlPlaneConstraintExprs.push_back(
-            new IR::Equ(&controlPlaneConstraint.first.get(), controlPlaneConstraint.second));
+            controlPlaneConstraint.get().computeControlPlaneConstraint());
     }
     return Transform::init_apply(root);
 }
@@ -61,6 +61,10 @@ void ElimDeadCode::addControlPlaneConstraints(
     const ControlPlaneConstraints &newControlPlaneConstraints) {
     controlPlaneConstraints.insert(newControlPlaneConstraints.begin(),
                                    newControlPlaneConstraints.end());
+}
+
+ControlPlaneConstraints &ElimDeadCode::getWriteableControlPlaneConstraints() {
+    return controlPlaneConstraints;
 }
 
 void ElimDeadCode::removeControlPlaneConstraints(

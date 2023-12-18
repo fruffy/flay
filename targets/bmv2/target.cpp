@@ -111,9 +111,8 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
         }
         auto idToIrMap = idMapper.getP4RuntimeIdtoIrNodeMap();
         auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
-        auto protoConstraints =
-            ProtobufDeserializer::convertToControlPlaneConstraints(deserializedConfig, idToIrMap);
-        constraints.insert(protoConstraints.begin(), protoConstraints.end());
+        ProtobufDeserializer::updateControlPlaneConstraints(deserializedConfig, idToIrMap,
+                                                            constraints);
         return constraints;
     }
 

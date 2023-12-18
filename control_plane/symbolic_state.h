@@ -17,7 +17,7 @@ class ControlPlaneState : public ICastable {
 
  public:
     /// @returns the default control-plane constraints.
-    ControlPlaneConstraints getDefaultConstraints() const;
+    [[nodiscard]] ControlPlaneConstraints getDefaultConstraints() const;
 
     /// @returns the symbolic boolean variable describing whether a table is configured by the
     /// control plane.
@@ -44,7 +44,7 @@ class ControlPlaneState : public ICastable {
     static const IR::SymbolicVariable *getTableActionChoice(cstring tableName);
 
     /// Initializes the symbolic variable for a table and adds it to @defaultConstraints.
-    virtual const IR::SymbolicVariable *allocateControlPlaneTable(cstring tableName) = 0;
+    virtual const IR::SymbolicVariable *allocateControlPlaneTable(const IR::P4Table &table) = 0;
 };
 
 }  // namespace P4Tools::Flay

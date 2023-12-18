@@ -40,15 +40,20 @@ void FlayService::printPrunedProgram() {
 
 void FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
     Util::ScopedTimer timer("processUpdateMessage");
-    auto constraints = ProtobufDeserializer::convertEntityMessageToConstraints(entity, idToIrMap);
-    elimDeadCode.addControlPlaneConstraints(constraints);
+    // TODO: Clean up this interface.
+    auto constraints = elimDeadCode.getWriteableControlPlaneConstraints();
+    ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(entity, idToIrMap,
+                                                                         constraints);
     elimControlPlaneDeadCode();
 }
 
 void FlayService::processDeleteMessage(const p4::v1::Entity &entity) {
     Util::ScopedTimer timer("processDeleteMessage");
-    auto constraints = ProtobufDeserializer::convertEntityMessageToConstraints(entity, idToIrMap);
-    elimDeadCode.removeControlPlaneConstraints(constraints);
+    // TODO: Clean up this interface.
+    // This does not handle delete correctly.
+    auto constraints = elimDeadCode.getWriteableControlPlaneConstraints();
+    ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(entity, idToIrMap,
+                                                                         constraints);
     elimControlPlaneDeadCode();
 }
 
