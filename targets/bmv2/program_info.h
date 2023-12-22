@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "backends/p4tools/modules/flay/core/program_info.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/v1model.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 #include "lib/cstring.h"
@@ -12,7 +13,7 @@
 
 namespace P4Tools::Flay::V1Model {
 
-class V1ModelProgramInfo : public ProgramInfo {
+class Bmv2V1ModelProgramInfo : public ProgramInfo {
  private:
     /// The program's top level blocks: the parser, the checksum verifier, the MAU pipeline, the
     /// checksum calculator, and the deparser.
@@ -24,8 +25,8 @@ class V1ModelProgramInfo : public ProgramInfo {
                                                      size_t blockIdx) const;
 
  public:
-    explicit V1ModelProgramInfo(const IR::P4Program *program,
-                                ordered_map<cstring, const IR::Type_Declaration *> inputBlocks);
+    Bmv2V1ModelProgramInfo(const FlayCompilerResult &compilerResult,
+                           ordered_map<cstring, const IR::Type_Declaration *> inputBlocks);
 
     /// @returns the gress associated with the given parser.
     int getGress(const IR::Type_Declaration *parser) const;
@@ -38,6 +39,8 @@ class V1ModelProgramInfo : public ProgramInfo {
     /// index. This is the name of the parameter that is used in the P4 program.
     [[nodiscard]] const IR::PathExpression *getBlockParam(cstring blockLabel,
                                                           size_t paramIndex) const;
+
+    [[nodiscard]] const FlayCompilerResult &getCompilerResult() const override;
 };
 
 }  // namespace P4Tools::Flay::V1Model

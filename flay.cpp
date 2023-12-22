@@ -13,7 +13,6 @@
 #include "backends/p4tools/modules/flay/service/flay_server.h"
 #include "frontends/common/parseInput.h"
 #include "frontends/common/parser_options.h"
-#include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
@@ -24,14 +23,16 @@ void Flay::registerTarget() {
     registerCompilerTargets();
 }
 
-int Flay::mainImpl(const IR::P4Program *program) {
+int Flay::mainImpl(const CompilerResult &compilerResult) {
     // Register all available flay targets.
     // These are discovered by CMAKE, which fills out the register.h.in file.
     registerFlayTargets();
 
     enableInformationLogging();
 
-    const auto *programInfo = FlayTarget::initProgram(program);
+    // Make sure the input result corresponds to the result we expect.
+    const auto *flayCompilerResult = compilerResult.checkedTo<FlayCompilerResult>();
+    const auto *programInfo = FlayTarget::produceProgramInfo(compilerResult);
     if (programInfo == nullptr) {
         ::error("Program not supported by target device and architecture.");
         return EXIT_FAILURE;
@@ -63,18 +64,12 @@ int Flay::mainImpl(const IR::P4Program *program) {
     }
 
     // Initialize the flay service, which includes a dead code eliminator. Use the Z3Solver for now.
-    // TODO: Get rid of the idMapper.
-    MapP4RuntimeIdtoIr idMapper;
-    program->apply(idMapper);
-    if (::errorCount() > 0) {
-        return EXIT_FAILURE;
-    }
-    FlayService service(freshProgram, substitutedExecutionState, solver,
-                        idMapper.getP4RuntimeIdtoIrNodeMap());
+    FlayService service(freshProgram, *flayCompilerResult, substitutedExecutionState, solver);
 
     // Gather the initial control-plane configuration. Also from a file input, if present.
+    // TODO: Compute this much earlier.
     auto constraintsOpt = P4Tools::Flay::FlayTarget::computeControlPlaneConstraints(
-        *program, flayOptions, controlPlaneState);
+        *flayCompilerResult, flayOptions, controlPlaneState);
     if (!constraintsOpt.has_value()) {
         return EXIT_FAILURE;
     }

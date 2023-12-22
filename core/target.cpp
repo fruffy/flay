@@ -16,22 +16,23 @@ namespace P4Tools::Flay {
 FlayTarget::FlayTarget(std::string deviceName, std::string archName)
     : Target("flay", std::move(deviceName), std::move(archName)) {}
 
-const ProgramInfo *FlayTarget::initProgramImpl(const IR::P4Program *program) const {
+const ProgramInfo *FlayTarget::produceProgramInfoImpl(const CompilerResult &compilerResult) const {
+    const auto &program = compilerResult.getProgram();
     // Check that the program has at least one main declaration.
-    const auto mainCount = program->getDeclsByName(IR::P4Program::main)->count();
+    const auto mainCount = program.getDeclsByName(IR::P4Program::main)->count();
     BUG_CHECK(mainCount > 0, "Program doesn't have a main declaration.");
 
     // Resolve the program's main declaration instance and delegate to the version of
-    // initProgramImpl that takes the main declaration.
-    const auto *mainIDecl = program->getDeclsByName(IR::P4Program::main)->single();
-    BUG_CHECK(mainIDecl, "Program's main declaration not found: %1%", program->main);
+    // produceProgramInfoImpl that takes the main declaration.
+    const auto *mainIDecl = program.getDeclsByName(IR::P4Program::main)->single();
+    BUG_CHECK(mainIDecl, "Program's main declaration not found: %1%", program.main);
 
     const auto *mainNode = mainIDecl->getNode();
     const auto *mainDecl = mainIDecl->to<IR::Declaration_Instance>();
     BUG_CHECK(mainDecl, "%1%: Program's main declaration is a %2%, not a Declaration_Instance",
               mainNode, mainNode->node_type_name());
 
-    return initProgramImpl(program, mainDecl);
+    return produceProgramInfoImpl(compilerResult, mainDecl);
 }
 
 const FlayTarget &FlayTarget::get() { return Target::get<FlayTarget>("flay"); }
@@ -48,13 +49,13 @@ ControlPlaneState &FlayTarget::initializeControlPlaneState() {
 }
 
 std::optional<ControlPlaneConstraints> FlayTarget::computeControlPlaneConstraints(
-    const IR::P4Program &program, const FlayOptions &options,
+    const FlayCompilerResult &compilerResult, const FlayOptions &options,
     const ControlPlaneState &controlPlaneState) {
-    return get().computeControlPlaneConstraintsImpl(program, options, controlPlaneState);
+    return get().computeControlPlaneConstraintsImpl(compilerResult, options, controlPlaneState);
 }
 
-const ProgramInfo *FlayTarget::initProgram(const IR::P4Program *program) {
-    return get().initProgramImpl(program);
+const ProgramInfo *FlayTarget::produceProgramInfo(const CompilerResult &compilerResult) {
+    return get().produceProgramInfoImpl(compilerResult);
 }
 
 }  // namespace P4Tools::Flay

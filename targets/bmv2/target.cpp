@@ -29,12 +29,13 @@ void V1ModelFlayTarget::make() {
     }
 }
 
-const ProgramInfo *V1ModelFlayTarget::initProgramImpl(
-    const IR::P4Program *program, const IR::Declaration_Instance *mainDecl) const {
+const ProgramInfo *V1ModelFlayTarget::produceProgramInfoImpl(
+    const CompilerResult &compilerResult, const IR::Declaration_Instance *mainDecl) const {
     // The blocks in the main declaration are just the arguments in the constructor call.
     // Convert mainDecl->arguments into a vector of blocks, represented as constructor-call
     // expressions.
-    auto blocks = argumentsToTypeDeclarations(program, mainDecl->arguments);
+    const auto blocks =
+        argumentsToTypeDeclarations(&compilerResult.getProgram(), mainDecl->arguments);
 
     // We should have six arguments.
     BUG_CHECK(blocks.size() == 6, "%1%: The BMV2 architecture requires 6 pipes. Received %2%.",
@@ -51,7 +52,8 @@ const ProgramInfo *V1ModelFlayTarget::initProgramImpl(
         programmableBlocks.emplace(canonicalName, declType);
     }
 
-    return new V1ModelProgramInfo(program, programmableBlocks);
+    return new Bmv2V1ModelProgramInfo(*compilerResult.checkedTo<FlayCompilerResult>(),
+                                      programmableBlocks);
 }
 
 const ArchSpec V1ModelFlayTarget::ARCH_SPEC =
@@ -84,7 +86,7 @@ FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
                                                ControlPlaneState &controlPlaneState) const {
     auto *bmv2ControlPlaneState = controlPlaneState.to<Bmv2ControlPlaneState>();
     CHECK_NULL(bmv2ControlPlaneState);
-    return *new V1ModelFlayStepper(*programInfo.checkedTo<V1ModelProgramInfo>(), executionState,
+    return *new V1ModelFlayStepper(*programInfo.checkedTo<Bmv2V1ModelProgramInfo>(), executionState,
                                    *bmv2ControlPlaneState);
 }
 
@@ -93,7 +95,7 @@ Bmv2ControlPlaneState &V1ModelFlayTarget::initializeControlPlaneStateImpl() cons
 }
 
 std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneConstraintsImpl(
-    const IR::P4Program &program, const FlayOptions &options,
+    const FlayCompilerResult &compilerResult, const FlayOptions &options,
     const ControlPlaneState &controlPlaneState) const {
     // Initialize some constraints that are active regardless of the control-plane configuration.
     // These constraints can be overridden by the respective control-plane configuration.
@@ -104,15 +106,9 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
     auto confPath = options.getControlPlaneConfig();
     printInfo("Parsing initial control plane configuration...\n");
     if (confPath.extension() == ".txtpb") {
-        MapP4RuntimeIdtoIr idMapper;
-        program.apply(idMapper);
-        if (::errorCount() > 0) {
-            return std::nullopt;
-        }
-        auto idToIrMap = idMapper.getP4RuntimeIdtoIrNodeMap();
         auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
-        ProtobufDeserializer::updateControlPlaneConstraints(deserializedConfig, idToIrMap,
-                                                            constraints);
+        ProtobufDeserializer::updateControlPlaneConstraints(
+            deserializedConfig, compilerResult.getP4RuntimeNodeMap(), constraints);
         return constraints;
     }
 

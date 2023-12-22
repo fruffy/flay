@@ -1,9 +1,6 @@
 #include "backends/p4tools/modules/flay/service/flay_server.h"
 
-#include <utility>
-
 #include "backends/p4tools/common/lib/logging.h"
-#include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"
@@ -47,10 +44,11 @@ double measureSizeDifference(const IR::P4Program *programBefore,
     return (beforeLength - measureProgramSize(programAfter)) * (100.0 / beforeLength);
 }
 
-FlayService::FlayService(const IR::P4Program *originalProgram, const ExecutionState &executionState,
-                         AbstractSolver &solver, P4RuntimeIdtoIrNodeMap idToIrMap)
+FlayService::FlayService(const IR::P4Program *originalProgram,
+                         const FlayCompilerResult &compilerResult,
+                         const ExecutionState &executionState, AbstractSolver &solver)
     : originalProgram(originalProgram),
-      idToIrMap(std::move(idToIrMap)),
+      compilerResult(compilerResult),
       elimDeadCode(executionState, solver) {}
 
 grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
@@ -78,8 +76,8 @@ void FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
     Util::ScopedTimer timer("processUpdateMessage");
     // TODO: Clean up this interface.
     auto constraints = elimDeadCode.getWriteableControlPlaneConstraints();
-    ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(entity, idToIrMap,
-                                                                         constraints);
+    ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+        entity, getCompilerResult().getP4RuntimeNodeMap(), constraints);
     elimControlPlaneDeadCode();
     P4Tools::printPerformanceReport();
 }
@@ -89,14 +87,16 @@ void FlayService::processDeleteMessage(const p4::v1::Entity &entity) {
     // TODO: Clean up this interface.
     // This does not handle delete correctly.
     auto constraints = elimDeadCode.getWriteableControlPlaneConstraints();
-    ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(entity, idToIrMap,
-                                                                         constraints);
+    ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+        entity, getCompilerResult().getP4RuntimeNodeMap(), constraints);
     elimControlPlaneDeadCode();
 }
 
 const IR::P4Program *FlayService::getPrunedProgram() const { return prunedProgram; }
 
 const IR::P4Program *FlayService::getOriginalProgram() const { return originalProgram; }
+
+const FlayCompilerResult &FlayService::getCompilerResult() const { return compilerResult.get(); }
 
 void FlayService::addControlPlaneConstraints(
     const ControlPlaneConstraints &newControlPlaneConstraints) {

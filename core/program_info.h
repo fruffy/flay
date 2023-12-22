@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 
+#include "backends/p4tools/modules/flay/core/compiler_target.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 #include "lib/castable.h"
@@ -14,11 +15,12 @@ namespace P4Tools::Flay {
 /// Stores target-specific information about a P4 program.
 class ProgramInfo : public ICastable {
  private:
-    /// The P4 program from which this object is derived.
-    const IR::P4Program *program;
+    /// The program info object stores the results of the compilation, which includes the P4 program
+    /// and any information extracted from the program using static analysis.
+    std::reference_wrapper<const FlayCompilerResult> compilerResult;
 
  protected:
-    explicit ProgramInfo(const IR::P4Program *program);
+    explicit ProgramInfo(const FlayCompilerResult &compilerResult);
 
     /// The pipeline sequence of this P4 program. Can be modified by subclasses.
     std::vector<const IR::Node *> pipelineSequence;
@@ -40,8 +42,12 @@ class ProgramInfo : public ICastable {
     /// @returns the series of nodes that has been computed by this particular target.
     [[nodiscard]] const std::vector<const IR::Node *> *getPipelineSequence() const;
 
-    /// @returns the P4 program associated with this program info.
-    [[nodiscard]] const IR::P4Program *getProgram() const;
+    /// @returns a reference to the compiler result that this program info object was initialized
+    /// with.
+    [[nodiscard]] virtual const FlayCompilerResult &getCompilerResult() const;
+
+    /// @returns the P4 program associated with this ProgramInfo.
+    [[nodiscard]] const IR::P4Program &getP4Program() const;
 
     /// @returns the canonical name of the program block that is passed in.
     /// Throws a BUG, if the name can not be found.

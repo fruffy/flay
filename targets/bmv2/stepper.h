@@ -12,12 +12,12 @@ namespace P4Tools::Flay::V1Model {
 
 class V1ModelFlayStepper : public FlayStepper {
  protected:
-    const V1ModelProgramInfo &getProgramInfo() const override;
+    const Bmv2V1ModelProgramInfo &getProgramInfo() const override;
 
     Bmv2ControlPlaneState &getControlPlaneState() const override;
 
  public:
-    explicit V1ModelFlayStepper(const V1ModelProgramInfo &programInfo,
+    explicit V1ModelFlayStepper(const Bmv2V1ModelProgramInfo &programInfo,
                                 ExecutionState &executionState,
                                 Bmv2ControlPlaneState &controlPlaneState);
 

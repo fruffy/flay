@@ -62,6 +62,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/id_to_ir_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/symbolic_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/collapse_mux.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler_target.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/execution_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/expression_resolver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/externs.cpp
@@ -76,7 +77,7 @@ set(FLAY_SOURCES
 )
 
 # Flay libraries.
-set(FLAY_LIBS p4tools-common flay_runtime)
+set(FLAY_LIBS p4tools-common flay_runtime p4tools-control-plane)
 
 file(GLOB flay_targets RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/targets
      ${CMAKE_CURRENT_SOURCE_DIR}/targets/*

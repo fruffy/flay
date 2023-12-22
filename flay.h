@@ -12,7 +12,7 @@ class Flay : public AbstractP4cTool<FlayOptions> {
  protected:
     void registerTarget() override;
 
-    int mainImpl(const IR::P4Program *program) override;
+    int mainImpl(const CompilerResult &compilerResult) override;
 
  public:
     virtual ~Flay() = default;

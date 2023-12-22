@@ -9,7 +9,7 @@
 #include "control-plane/p4/v1/p4runtime.grpc.pb.h"
 #pragma GCC diagnostic pop
 
-#include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
+#include "backends/p4tools/modules/flay/core/compiler_target.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 
 namespace P4Tools::Flay {
@@ -23,15 +23,17 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// configuration
     const IR::P4Program *prunedProgram = nullptr;
 
-    /// A mapping of P4Runtime IDs to the corresponding IR nodes.
-    P4RuntimeIdtoIrNodeMap idToIrMap;
+    /// The program info object stores the results of the compilation, which includes the P4 program
+    /// and any information extracted from the program using static analysis.
+    std::reference_wrapper<const FlayCompilerResult> compilerResult;
 
     /// The dead code eliminator pass.
     ElimDeadCode elimDeadCode;
 
  public:
-    explicit FlayService(const IR::P4Program *originalProgram, const ExecutionState &executionState,
-                         AbstractSolver &solver, P4RuntimeIdtoIrNodeMap idToIrMap);
+    explicit FlayService(const IR::P4Program *originalProgram,
+                         const FlayCompilerResult &compilerResult,
+                         const ExecutionState &executionState, AbstractSolver &solver);
 
     /// Start the Flay gRPC server and listen to incoming requests.
     bool startServer(const std::string &serverAddress);
@@ -54,6 +56,10 @@ class FlayService final : public p4::v1::P4Runtime::Service {
 
     /// @returns the original program
     const IR::P4Program *getOriginalProgram() const;
+
+    /// @returns a reference to the compiler result that this program info object was initialized
+    /// with.
+    [[nodiscard]] const FlayCompilerResult &getCompilerResult() const;
 
     /// Add new control plane constraints to the service.
     void addControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);

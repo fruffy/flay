@@ -11,8 +11,8 @@
 
 namespace P4Tools::Flay::V1Model {
 
-const V1ModelProgramInfo &V1ModelFlayStepper::getProgramInfo() const {
-    return *FlayStepper::getProgramInfo().checkedTo<V1ModelProgramInfo>();
+const Bmv2V1ModelProgramInfo &V1ModelFlayStepper::getProgramInfo() const {
+    return *FlayStepper::getProgramInfo().checkedTo<Bmv2V1ModelProgramInfo>();
 }
 
 Bmv2ControlPlaneState &V1ModelFlayStepper::getControlPlaneState() const {
@@ -51,7 +51,7 @@ void V1ModelFlayStepper::initializeState() {
         IR::getConstant(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
 }
 
-V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::V1ModelProgramInfo &programInfo,
+V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::Bmv2V1ModelProgramInfo &programInfo,
                                        ExecutionState &executionState,
                                        Bmv2ControlPlaneState &controlPlaneState)
     : FlayStepper(programInfo, executionState, controlPlaneState) {}

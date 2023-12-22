@@ -9,7 +9,7 @@ namespace P4Tools::Flay {
 
 SymbolicExecutor::SymbolicExecutor(const ProgramInfo &programInfo)
     : programInfo(programInfo),
-      executionState(programInfo.getProgram()),
+      executionState(&programInfo.getP4Program()),
       controlPlaneState(FlayTarget::initializeControlPlaneState()) {}
 
 void SymbolicExecutor::run() {

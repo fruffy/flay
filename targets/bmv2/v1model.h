@@ -1,21 +1,20 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_V1MODEL_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_V1MODEL_H_
 
-#include "backends/p4tools/common/compiler/compiler_target.h"
-#include "backends/p4tools/common/compiler/midend.h"
-#include "frontends/common/options.h"
+#include "backends/p4tools/modules/flay/core/compiler_target.h"
 
 namespace P4Tools::Flay::V1Model {
 
-class V1ModelCompilerTarget : public CompilerTarget {
+class V1ModelCompilerTarget : public FlayCompilerTarget {
  public:
     /// Registers this target.
     static void make();
 
  private:
-    [[nodiscard]] MidEnd mkMidEnd(const CompilerOptions &options) const override;
-
     V1ModelCompilerTarget();
+
+    std::optional<const CompilerResult *> runCompilerImpl(
+        const IR::P4Program *program) const override;
 };
 
 }  // namespace P4Tools::Flay::V1Model

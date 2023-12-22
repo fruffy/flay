@@ -2,7 +2,6 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_TARGET_H_
 
 #include <string>
-#include <vector>
 
 #include "backends/p4tools/common/core/target.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
@@ -24,7 +23,7 @@ class FlayTarget : public Target {
     /// Produces a @ProgramInfo for the given P4 program.
     ///
     /// @returns nullptr if the program is not supported by this target.
-    static const ProgramInfo *initProgram(const IR::P4Program *program);
+    static const ProgramInfo *produceProgramInfo(const CompilerResult &compilerResult);
 
     /// @returns the stepper that will step through the program, tailored to the target.
     [[nodiscard]] static FlayStepper &getStepper(const ProgramInfo &programInfo,
@@ -43,12 +42,13 @@ class FlayTarget : public Target {
 
     /// @returns the initial control plane constraints as computed by the target and the input file.
     static std::optional<ControlPlaneConstraints> computeControlPlaneConstraints(
-        const IR::P4Program &program, const FlayOptions &options,
+        const FlayCompilerResult &compilerResult, const FlayOptions &options,
         const ControlPlaneState &controlPlaneState);
 
  protected:
-    /// @see @initProgram.
-    const ProgramInfo *initProgramImpl(const IR::P4Program *program) const;
+    /// @see @produceProgramInfo.
+    [[nodiscard]] virtual const ProgramInfo *produceProgramInfoImpl(
+        const CompilerResult &compilerResult) const;
 
     /// @see @getStepper.
     [[nodiscard]] virtual FlayStepper &getStepperImpl(
@@ -58,13 +58,13 @@ class FlayTarget : public Target {
     /// @see @initializeControlPlaneState.
     [[nodiscard]] virtual ControlPlaneState &initializeControlPlaneStateImpl() const = 0;
 
-    /// @see @initProgram.
-    virtual const ProgramInfo *initProgramImpl(const IR::P4Program *program,
-                                               const IR::Declaration_Instance *mainDecl) const = 0;
+    /// @see @produceProgramInfo.
+    virtual const ProgramInfo *produceProgramInfoImpl(
+        const CompilerResult &compilerResult, const IR::Declaration_Instance *mainDecl) const = 0;
 
     /// @see @computeControlPlaneConstraints.
     [[nodiscard]] virtual std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
-        const IR::P4Program &program, const FlayOptions &options,
+        const FlayCompilerResult &compilerResult, const FlayOptions &options,
         const ControlPlaneState &controlPlaneState) const = 0;
 
     /// @see getArchSpec

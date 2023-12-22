@@ -4,74 +4,57 @@
 
 namespace P4Tools::Flay {
 
-P4RuntimeIdtoIrNodeMap MapP4RuntimeIdtoIr::getP4RuntimeIdtoIrNodeMap() const { return idToIrMap; }
+P4RuntimeIdtoIrNodeMap P4RuntimeToIRMapper::getP4RuntimeIdtoIrNodeMap() const { return idToIrMap; }
 
-bool MapP4RuntimeIdtoIr::preorder(const IR::P4Table *table) {
+bool P4RuntimeToIRMapper::preorder(const IR::P4Table *table) {
     if (P4::ControlPlaneAPI::isHidden(table)) {
         return false;
     }
-    auto p4RuntimeId = P4::ControlPlaneAPI::getIdAnnotation(table);
+    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(table->controlPlaneName());
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), table);
     } else {
-        ::error(
-            "Table %1% has no P4Runtime ID associated with it. At this point "
-            "every P4 control "
-            "plane object should have an ID.");
+        ::error("Table %1% not found in the P4Runtime ID map.");
     }
 
     return false;
 }
 
-bool MapP4RuntimeIdtoIr::preorder(const IR::Type_Header *hdr) {
+bool P4RuntimeToIRMapper::preorder(const IR::Type_Header *hdr) {
     if (!P4::ControlPlaneAPI::isControllerHeader(hdr) || P4::ControlPlaneAPI::isHidden(hdr)) {
         return false;
     }
-    auto p4RuntimeId = P4::ControlPlaneAPI::getIdAnnotation(hdr);
+    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(hdr->controlPlaneName());
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), hdr);
     } else {
-        ::error(
-            "Header %1% has no P4Runtime ID associated with it. At this point "
-            "every P4 control "
-            "plane object should have an ID.",
-            hdr);
+        ::error("Header %1% not found in the P4Runtime ID map.");
     }
     return false;
 }
 
-bool MapP4RuntimeIdtoIr::preorder(const IR::P4ValueSet *valueSet) {
+bool P4RuntimeToIRMapper::preorder(const IR::P4ValueSet *valueSet) {
     if (P4::ControlPlaneAPI::isHidden(valueSet)) {
         return false;
     }
-    auto p4RuntimeId = P4::ControlPlaneAPI::getIdAnnotation(valueSet);
+    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(valueSet->controlPlaneName());
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), valueSet);
     } else {
-        ::error(
-            "Value set %1% has no P4Runtime ID associated with it. At this point "
-            "every P4 "
-            "control "
-            "plane object should have an ID.",
-            valueSet);
+        ::error("Value set %1% not found in the P4Runtime ID map.");
     }
     return false;
 }
 
-bool MapP4RuntimeIdtoIr::preorder(const IR::P4Action *action) {
+bool P4RuntimeToIRMapper::preorder(const IR::P4Action *action) {
     if (P4::ControlPlaneAPI::isHidden(action)) {
         return false;
     }
-    auto p4RuntimeId = P4::ControlPlaneAPI::getIdAnnotation(action);
+    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(action->controlPlaneName());
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), action);
     } else {
-        ::error(
-            "P4 Action %1% has no P4Runtime ID associated with it. At this point "
-            "every P4 "
-            "control "
-            "plane object should have an ID.",
-            action);
+        ::error("P4 action %1% not found in the P4Runtime ID map.");
     }
     return false;
 }
