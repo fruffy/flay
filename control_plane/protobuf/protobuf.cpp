@@ -37,7 +37,7 @@ flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(
     return protoControlPlaneConfig;
 }
 
-void ProtobufDeserializer::fillTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
+bool ProtobufDeserializer::fillTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
                                           cstring keyFieldName, const IR::Expression &keyExpr,
                                           TableMatchEntry &tableMatchEntry) {
     const auto *keySymbol = ControlPlaneState::getTableKey(tableName, keyFieldName, keyExpr.type);
@@ -63,8 +63,10 @@ void ProtobufDeserializer::fillTableMatch(const p4::v1::FieldMatch &field, cstri
         tableMatchEntry.addMatch(*keySymbol, *IR::getConstant(keyExpr.type, value));
         tableMatchEntry.addMatch(*maskSymbol, *IR::getConstant(keyExpr.type, mask));
     } else {
-        P4C_UNIMPLEMENTED("Unsupported table match type %1%.", field.DebugString().c_str());
+        ::error("Unsupported table match type %1%.", field.DebugString().c_str());
+        return false;
     }
+    return true;
 }
 
 const IR::Expression *ProtobufDeserializer::convertTableAction(const p4::v1::Action &tblAction,
@@ -89,40 +91,48 @@ const IR::Expression *ProtobufDeserializer::convertTableAction(const p4::v1::Act
     return actionExpr;
 }
 
-void ProtobufDeserializer::convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
+bool ProtobufDeserializer::convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
                                              const p4::v1::TableEntry &tableEntry,
                                              ControlPlaneConstraints &controlPlaneConstraints) {
     auto tblId = tableEntry.table_id();
-    const auto *tbl = irToIdMap.at(tblId)->checkedTo<IR::P4Table>();
-    auto tableName = tbl->controlPlaneName();
-    // const auto *tableConfiguredVar = ControlPlaneState::getTableActive(tableName);
-    // controlPlaneConstraints[*tableConfiguredVar] = IR::getBoolLiteral(true);
-
-    const auto *key = tbl->getKey();
-    std::map<uint32_t, const IR::KeyElement *> idMap;
-    for (const auto *keyElement : key->keyElements) {
-        const auto *idAnno = keyElement->getAnnotation("id");
-        CHECK_NULL(idAnno);
-        uint32_t idx = idAnno->expr.at(0)->checkedTo<IR::Constant>()->asUnsigned();
-        idMap.emplace(idx, keyElement);
+    const auto *result = irToIdMap.at(tblId);
+    if (result->to<IR::P4Table>() == nullptr) {
+        ::error("Table %1% is not a IR::P4Table.", result);
+        return false;
     }
+    const auto *tbl = result->to<IR::P4Table>();
+    auto tableName = tbl->controlPlaneName();
 
-    BUG_CHECK(tableEntry.action().has_action(), "Table entry has no action.");
+    if (!tableEntry.action().has_action()) {
+        ::error("Table entry %1% has no action.", tableEntry.DebugString());
+        return false;
+    }
 
     auto tblAction = tableEntry.action().action();
     auto actionId = tblAction.action_id();
-    const auto *p4Action = irToIdMap.at(actionId)->checkedTo<IR::P4Action>();
+    const auto *actionResult = irToIdMap.at(actionId);
+    if (actionResult->to<IR::P4Action>() == nullptr) {
+        ::error("Action %1% is not a IR::P4Action.", actionResult);
+        return false;
+    }
+    const auto *p4Action = actionResult->to<IR::P4Action>();
     const auto *actionExpr = convertTableAction(tblAction, tableName, *p4Action);
     auto *tableMatchEntry = new TableMatchEntry(actionExpr, tableEntry.priority());
 
     for (const auto &field : tableEntry.match()) {
         auto fieldId = field.field_id();
-        const auto *keyField = idMap.at(fieldId);
+        const auto *result = irToIdMap.at(P4::ControlPlaneAPI::szudzikPairing(tblId, fieldId));
+        if (result->to<IR::KeyElement>() == nullptr) {
+            ::error("%1% is not a IR::KeyElement.", result);
+            return false;
+        }
+        const auto *keyField = result->to<IR::KeyElement>();
         const auto *keyExpr = keyField->expression;
         const auto *nameAnnot = keyField->getAnnotation("name");
-        // Some hidden tables do not have any key name annotations.
-        BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
-                  "Non-constant table key without an annotation");
+        if (nameAnnot == nullptr) {
+            ::error("Non-constant table key without an annotation");
+            return false;
+        }
         cstring keyFieldName;
         if (nameAnnot != nullptr) {
             keyFieldName = nameAnnot->getName();
@@ -135,28 +145,44 @@ void ProtobufDeserializer::convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToI
             "Configuration for table %1% not found in the control plane constraints. It should "
             "have already been initialized at this point.",
             tableName);
-    } else {
-        it->second.get().checkedTo<TableConfiguration>()->addTableEntry(*tableMatchEntry);
+        return false;
     }
+
+    auto &tableResultOpt = it->second.get();
+    if (tableResultOpt.to<TableConfiguration>() == nullptr) {
+        ::error("Configuration result is not a TableConfiguration.", tableName);
+        return false;
+    }
+    auto *tableResult = tableResultOpt.to<TableConfiguration>();
+    tableResult->addTableEntry(*tableMatchEntry);
+    return true;
 }
 
-void ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+bool ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
     const p4::v1::Entity &entity, const P4RuntimeIdtoIrNodeMap &irToIdMap,
     ControlPlaneConstraints &controlPlaneConstraints) {
     if (entity.has_table_entry()) {
         const auto &tableEntry = entity.table_entry();
-        convertTableEntry(irToIdMap, tableEntry, controlPlaneConstraints);
+        if (!convertTableEntry(irToIdMap, tableEntry, controlPlaneConstraints)) {
+            return false;
+        }
     } else {
-        P4C_UNIMPLEMENTED("Unsupported control plane entry %1%.", entity.DebugString().c_str());
+        ::error("Unsupported control plane entry %1%.", entity.DebugString().c_str());
+        return false;
     }
+    return true;
 }
 
-void ProtobufDeserializer::updateControlPlaneConstraints(
+bool ProtobufDeserializer::updateControlPlaneConstraints(
     const flaytests::Config &protoControlPlaneConfig, const P4RuntimeIdtoIrNodeMap &irToIdMap,
     ControlPlaneConstraints &controlPlaneConstraints) {
     for (const auto &entity : protoControlPlaneConfig.entities()) {
-        updateControlPlaneConstraintsWithEntityMessage(entity, irToIdMap, controlPlaneConstraints);
+        if (!updateControlPlaneConstraintsWithEntityMessage(entity, irToIdMap,
+                                                            controlPlaneConstraints)) {
+            return false;
+        }
     }
+    return true;
 }
 
 std::optional<p4::v1::Entity> ProtobufDeserializer::parseEntity(const std::string &message) {

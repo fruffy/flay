@@ -33,7 +33,8 @@ class FlayService final : public p4::v1::P4Runtime::Service {
  public:
     explicit FlayService(const IR::P4Program *originalProgram,
                          const FlayCompilerResult &compilerResult,
-                         const ExecutionState &executionState, AbstractSolver &solver);
+                         const ExecutionState &executionState, AbstractSolver &solver,
+                         ControlPlaneConstraints &initialControlPlaneConstraints);
 
     /// Start the Flay gRPC server and listen to incoming requests.
     bool startServer(const std::string &serverAddress);
@@ -46,10 +47,10 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     void printPrunedProgram();
 
     /// Process a P4Runtime INSERT or MODIFY message.
-    void processUpdateMessage(const p4::v1::Entity &entity);
+    [[nodiscard]] grpc::Status processUpdateMessage(const p4::v1::Entity &entity);
 
     /// Process a P4Runtime DELETE message.
-    void processDeleteMessage(const p4::v1::Entity &entity);
+    [[nodiscard]] grpc::Status processDeleteMessage(const p4::v1::Entity &entity);
 
     /// @returns the pruned program
     const IR::P4Program *getPrunedProgram() const;

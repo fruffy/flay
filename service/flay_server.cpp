@@ -4,6 +4,7 @@
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"
+#include "lib/error.h"
 #include "lib/timer.h"
 
 namespace P4Tools::Flay {
@@ -46,19 +47,28 @@ double measureSizeDifference(const IR::P4Program *programBefore,
 
 FlayService::FlayService(const IR::P4Program *originalProgram,
                          const FlayCompilerResult &compilerResult,
-                         const ExecutionState &executionState, AbstractSolver &solver)
+                         const ExecutionState &executionState, AbstractSolver &solver,
+                         ControlPlaneConstraints &initialControlPlaneConstraints)
     : originalProgram(originalProgram),
       compilerResult(compilerResult),
-      elimDeadCode(executionState, solver) {}
+      elimDeadCode(executionState, solver) {
+    elimDeadCode.addControlPlaneConstraints(initialControlPlaneConstraints);
+}
 
 grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
                                 const p4::v1::WriteRequest *request,
                                 p4::v1::WriteResponse * /*response*/) {
     for (const auto &update : request->updates()) {
         if (update.type() == p4::v1::Update::INSERT || update.type() == p4::v1::Update::MODIFY) {
-            processUpdateMessage(update.entity());
+            auto status = processUpdateMessage(update.entity());
+            if (!status.ok()) {
+                return status;
+            }
         } else if (update.type() == p4::v1::Update::DELETE) {
-            processDeleteMessage(update.entity());
+            auto status = processDeleteMessage(update.entity());
+            if (!status.ok()) {
+                return status;
+            }
         } else {
             return {grpc::StatusCode::INVALID_ARGUMENT, "Unknown update type"};
         }
@@ -72,24 +82,40 @@ void FlayService::printPrunedProgram() {
     prunedProgram->apply(toP4);
 }
 
-void FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
+grpc::Status FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
     Util::ScopedTimer timer("processUpdateMessage");
     // TODO: Clean up this interface.
     auto constraints = elimDeadCode.getWriteableControlPlaneConstraints();
-    ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-        entity, getCompilerResult().getP4RuntimeNodeMap(), constraints);
+    if (!ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+            entity, getCompilerResult().getP4RuntimeNodeMap(), constraints)) {
+        return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
+    }
     elimControlPlaneDeadCode();
+    if (::errorCount() > 0) {
+        return {grpc::StatusCode::INTERNAL,
+                "processUpdateMessage: Encountered problems while updating dead code."};
+    }
     P4Tools::printPerformanceReport();
+    return grpc::Status::OK;
 }
 
-void FlayService::processDeleteMessage(const p4::v1::Entity &entity) {
+grpc::Status FlayService::processDeleteMessage(const p4::v1::Entity &entity) {
     Util::ScopedTimer timer("processDeleteMessage");
     // TODO: Clean up this interface.
     // This does not handle delete correctly.
     auto constraints = elimDeadCode.getWriteableControlPlaneConstraints();
-    ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-        entity, getCompilerResult().getP4RuntimeNodeMap(), constraints);
+    if (!ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+            entity, getCompilerResult().getP4RuntimeNodeMap(), constraints)) {
+        return {grpc::StatusCode::INTERNAL, "Failed to process delete message"};
+    }
     elimControlPlaneDeadCode();
+    if (::errorCount() > 0) {
+        return {grpc::StatusCode::INTERNAL,
+                "processDeleteMessage: Encountered problems while updating dead code."};
+    }
+
+    P4Tools::printPerformanceReport();
+    return grpc::Status::OK;
 }
 
 const IR::P4Program *FlayService::getPrunedProgram() const { return prunedProgram; }

@@ -10,7 +10,7 @@
 namespace P4Tools::Flay {
 
 /// The mapping from P4Runtime IDs to IR nodes. Currently a simple std::map.
-using P4RuntimeIdtoIrNodeMap = std::map<P4::ControlPlaneAPI::p4rt_id_t, const IR::IDeclaration *>;
+using P4RuntimeIdtoIrNodeMap = std::map<P4::ControlPlaneAPI::p4rt_id_t, const IR::Node *>;
 
 /// Maps P4Runtime IDs (https://p4.org/p4-spec/p4runtime/main/P4Runtime-Spec.html#sec-id-allocation)
 /// to their respective IR node. This is useful when parsing control plane configuration messages

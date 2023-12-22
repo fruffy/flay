@@ -63,9 +63,6 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
         return EXIT_FAILURE;
     }
 
-    // Initialize the flay service, which includes a dead code eliminator. Use the Z3Solver for now.
-    FlayService service(freshProgram, *flayCompilerResult, substitutedExecutionState, solver);
-
     // Gather the initial control-plane configuration. Also from a file input, if present.
     // TODO: Compute this much earlier.
     auto constraintsOpt = P4Tools::Flay::FlayTarget::computeControlPlaneConstraints(
@@ -73,7 +70,10 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     if (!constraintsOpt.has_value()) {
         return EXIT_FAILURE;
     }
-    service.addControlPlaneConstraints(constraintsOpt.value());
+
+    // Initialize the flay service, which includes a dead code eliminator. Use the Z3Solver for now.
+    FlayService service(freshProgram, *flayCompilerResult, substitutedExecutionState, solver,
+                        constraintsOpt.value());
 
     printInfo("Checking whether dead code can be removed...\n");
     service.elimControlPlaneDeadCode();

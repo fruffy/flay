@@ -13,7 +13,7 @@ ElimDeadCode::ElimDeadCode(const ExecutionState &executionState, AbstractSolver 
 const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
     const auto *condition = executionState.get().getReachabilityCondition(stmt, false);
     if (condition == nullptr) {
-        ::warning(
+        ::error(
             "Unable to find node %1% in the reachability map of this execution state. There might "
             "be "
             "issues with the source information.",

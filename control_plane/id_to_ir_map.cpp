@@ -10,11 +10,37 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4Table *table) {
     if (P4::ControlPlaneAPI::isHidden(table)) {
         return false;
     }
-    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(table->controlPlaneName());
+    auto tableName = table->controlPlaneName();
+    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(tableName);
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), table);
+        const auto *key = table->getKey();
+        if (key == nullptr) {
+            return false;
+        }
+        for (const auto *keyElement : key->keyElements) {
+            if (keyElement->matchType->path->name == "selector") {
+                continue;
+            }
+            const auto *nameAnnot = keyElement->getAnnotation("name");
+            // Some hidden tables do not have any key name annotations.
+            if (nameAnnot == nullptr) {
+                ::error("Non-constant table key without an annotation");
+                return false;
+            }
+            auto combinedName = tableName + "_" + nameAnnot->getName();
+            auto p4RuntimeKeyId = p4RuntimeMaps.lookupP4RuntimeId(combinedName);
+            if (p4RuntimeKeyId.has_value()) {
+                idToIrMap.emplace(P4::ControlPlaneAPI::szudzikPairing(p4RuntimeId.value(),
+                                                                      p4RuntimeKeyId.value()),
+                                  keyElement);
+            } else {
+                ::error("%1% not found in the P4Runtime ID map.", keyElement);
+                return false;
+            }
+        }
     } else {
-        ::error("Table %1% not found in the P4Runtime ID map.");
+        ::error("%1% not found in the P4Runtime ID map.", table);
     }
 
     return false;
@@ -24,11 +50,13 @@ bool P4RuntimeToIRMapper::preorder(const IR::Type_Header *hdr) {
     if (!P4::ControlPlaneAPI::isControllerHeader(hdr) || P4::ControlPlaneAPI::isHidden(hdr)) {
         return false;
     }
-    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(hdr->controlPlaneName());
+    const auto *controllerHeaderAnnotation = hdr->getAnnotation("controller_header");
+    auto headerName = controllerHeaderAnnotation->body[0]->text;
+    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(headerName);
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), hdr);
     } else {
-        ::error("Header %1% not found in the P4Runtime ID map.");
+        ::error("%1% not found in the P4Runtime ID map.", hdr);
     }
     return false;
 }
@@ -41,7 +69,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4ValueSet *valueSet) {
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), valueSet);
     } else {
-        ::error("Value set %1% not found in the P4Runtime ID map.");
+        ::error("%1% not found in the P4Runtime ID map.", valueSet);
     }
     return false;
 }
@@ -50,11 +78,24 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4Action *action) {
     if (P4::ControlPlaneAPI::isHidden(action)) {
         return false;
     }
-    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(action->controlPlaneName());
+    auto actionName = action->controlPlaneName();
+    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(actionName);
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), action);
+        for (const auto *param : action->getParameters()->parameters) {
+            auto combinedName = actionName + "_" + param->controlPlaneName();
+            auto paramP4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(combinedName);
+            if (p4RuntimeId.has_value()) {
+                idToIrMap.emplace(P4::ControlPlaneAPI::szudzikPairing(p4RuntimeId.value(),
+                                                                      paramP4RuntimeId.value()),
+                                  param);
+            } else {
+                ::error("Parameter %1% not found in the P4Runtime ID map.", param);
+                return false;
+            }
+        }
     } else {
-        ::error("P4 action %1% not found in the P4Runtime ID map.");
+        ::error("P4 action %1% not found in the P4Runtime ID map.", action);
     }
     return false;
 }

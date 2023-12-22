@@ -24,46 +24,47 @@ class ProtobufDeserializer {
  private:
     /// Helper function, which converts a Protobuf byte string into a big integer
     /// (boost cpp_int).
-    static big_int protoValueToBigInt(const std::string &valueString);
+    [[nodiscard]] static big_int protoValueToBigInt(const std::string &valueString);
 
     /// Convert a P4Runtime TableAction into the appropriate symbolic constraint
     /// assignments.
-    static const IR::Expression *convertTableAction(const p4::v1::Action &tblAction,
-                                                    cstring tableName,
-                                                    const IR::P4Action &p4Action);
+    [[nodiscard]] static const IR::Expression *convertTableAction(const p4::v1::Action &tblAction,
+                                                                  cstring tableName,
+                                                                  const IR::P4Action &p4Action);
 
     /// Convert a P4Runtime FieldMatch into the appropriate symbolic constraint
     /// assignments.
-    static void fillTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
-                               cstring keyFieldName, const IR::Expression &keyExpr,
-                               TableMatchEntry &tableMatchEntry);
+    [[nodiscard]] static bool fillTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
+                                             cstring keyFieldName, const IR::Expression &keyExpr,
+                                             TableMatchEntry &tableMatchEntry);
 
     /// Convert a P4Runtime TableEntry into the appropriate symbolic constraint
     /// assignments.
-    static void convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
-                                  const p4::v1::TableEntry &tableEntry,
-                                  ControlPlaneConstraints &controlPlaneConstraints);
+    [[nodiscard]] static bool convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
+                                                const p4::v1::TableEntry &tableEntry,
+                                                ControlPlaneConstraints &controlPlaneConstraints);
 
  public:  /// Deserialize a .proto file into a P4Runtime-compliant Protobuf object.
-    static flaytests::Config deserializeProtobufConfig(const std::filesystem::path &inputFile);
+    [[nodiscard]] static flaytests::Config deserializeProtobufConfig(
+        const std::filesystem::path &inputFile);
 
     /// Convert a Protobuf P4Runtime entity object into a set of IR-based
     /// control-plane constraints. Use the
     /// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
-    static void updateControlPlaneConstraintsWithEntityMessage(
+    [[nodiscard]] static bool updateControlPlaneConstraintsWithEntityMessage(
         const p4::v1::Entity &entity, const P4RuntimeIdtoIrNodeMap &irToIdMap,
         ControlPlaneConstraints &controlPlaneConstraints);
 
     /// Convert a Protobuf Config object into a set of IR-based control-plane
     /// constraints. Use the
     /// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
-    static void updateControlPlaneConstraints(const flaytests::Config &protoControlPlaneConfig,
-                                              const P4RuntimeIdtoIrNodeMap &irToIdMap,
-                                              ControlPlaneConstraints &controlPlaneConstraints);
+    [[nodiscard]] static bool updateControlPlaneConstraints(
+        const flaytests::Config &protoControlPlaneConfig, const P4RuntimeIdtoIrNodeMap &irToIdMap,
+        ControlPlaneConstraints &controlPlaneConstraints);
 
     /// Parse a  text Protobuf message and convert it into a P4Runtime entity.
     /// Return std::nullopt if the conversion fails.
-    static std::optional<p4::v1::Entity> parseEntity(const std::string &message);
+    [[nodiscard]] static std::optional<p4::v1::Entity> parseEntity(const std::string &message);
 };
 
 }  // namespace P4Tools::Flay
