@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <map>
+#include <optional>
 #include <vector>
 
 #include "backends/p4tools/common/lib/logging.h"
@@ -107,8 +108,10 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
     printInfo("Parsing initial control plane configuration...\n");
     if (confPath.extension() == ".txtpb") {
         auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
-        ProtobufDeserializer::updateControlPlaneConstraints(
-            deserializedConfig, compilerResult.getP4RuntimeNodeMap(), constraints);
+        if (ProtobufDeserializer::updateControlPlaneConstraints(
+                deserializedConfig, compilerResult.getP4RuntimeNodeMap(), constraints)) {
+            return std::nullopt;
+        }
         return constraints;
     }
 
