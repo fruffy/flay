@@ -1,5 +1,7 @@
 #include "backends/p4tools/modules/flay/service/flay_server.h"
 
+#include <utility>
+
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
@@ -46,14 +48,14 @@ double measureSizeDifference(const IR::P4Program *programBefore,
 }
 
 FlayService::FlayService(const IR::P4Program *originalProgram,
-                         const FlayCompilerResult &compilerResult,
-                         const ExecutionState &executionState, AbstractSolver &solver,
-                         ControlPlaneConstraints &initialControlPlaneConstraints)
+                         const FlayCompilerResult &compilerResult, ReachabilityMap reachabilityMap,
+                         AbstractSolver &solver,
+                         ControlPlaneConstraints initialControlPlaneConstraints)
     : originalProgram(originalProgram),
       compilerResult(compilerResult),
-      elimDeadCode(executionState, solver) {
-    elimDeadCode.addControlPlaneConstraints(initialControlPlaneConstraints);
-}
+      reachabilityMap(std::move(reachabilityMap)),
+      solver(solver),
+      controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {}
 
 grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
                                 const p4::v1::WriteRequest *request,
@@ -84,16 +86,21 @@ void FlayService::printPrunedProgram() {
 
 grpc::Status FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
     Util::ScopedTimer timer("processUpdateMessage");
-    // TODO: Clean up this interface.
-    auto constraints = elimDeadCode.getWriteableControlPlaneConstraints();
     if (!ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-            entity, getCompilerResult().getP4RuntimeNodeMap(), constraints)) {
+            entity, getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints)) {
         return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
     }
-    elimControlPlaneDeadCode();
-    if (::errorCount() > 0) {
-        return {grpc::StatusCode::INTERNAL,
-                "processUpdateMessage: Encountered problems while updating dead code."};
+    auto hasChangedOpt = reachabilityMap.recomputeReachability(solver, controlPlaneConstraints);
+    if (!hasChangedOpt.has_value()) {
+        return {grpc::StatusCode::INTERNAL, "processUpdateMessage: Failed to compute reachability"};
+    }
+    auto hasChanged = hasChangedOpt.value();
+    if (hasChanged) {
+        elimControlPlaneDeadCode();
+        if (::errorCount() > 0) {
+            return {grpc::StatusCode::INTERNAL,
+                    "processUpdateMessage: Encountered problems while updating dead code."};
+        }
     }
     P4Tools::printPerformanceReport();
     return grpc::Status::OK;
@@ -101,19 +108,23 @@ grpc::Status FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
 
 grpc::Status FlayService::processDeleteMessage(const p4::v1::Entity &entity) {
     Util::ScopedTimer timer("processDeleteMessage");
-    // TODO: Clean up this interface.
     // This does not handle delete correctly.
-    auto constraints = elimDeadCode.getWriteableControlPlaneConstraints();
     if (!ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-            entity, getCompilerResult().getP4RuntimeNodeMap(), constraints)) {
+            entity, getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints)) {
         return {grpc::StatusCode::INTERNAL, "Failed to process delete message"};
     }
-    elimControlPlaneDeadCode();
-    if (::errorCount() > 0) {
-        return {grpc::StatusCode::INTERNAL,
-                "processDeleteMessage: Encountered problems while updating dead code."};
+    auto hasChangedOpt = reachabilityMap.recomputeReachability(solver, controlPlaneConstraints);
+    if (!hasChangedOpt.has_value()) {
+        return {grpc::StatusCode::INTERNAL, "processDeleteMessage: Failed to compute reachability"};
     }
-
+    auto hasChanged = hasChangedOpt.value();
+    if (hasChanged) {
+        elimControlPlaneDeadCode();
+        if (::errorCount() > 0) {
+            return {grpc::StatusCode::INTERNAL,
+                    "processDeleteMessage: Encountered problems while updating dead code."};
+        }
+    }
     P4Tools::printPerformanceReport();
     return grpc::Status::OK;
 }
@@ -124,19 +135,9 @@ const IR::P4Program *FlayService::getOriginalProgram() const { return originalPr
 
 const FlayCompilerResult &FlayService::getCompilerResult() const { return compilerResult.get(); }
 
-void FlayService::addControlPlaneConstraints(
-    const ControlPlaneConstraints &newControlPlaneConstraints) {
-    elimDeadCode.addControlPlaneConstraints(newControlPlaneConstraints);
-}
-
-void FlayService::removeControlPlaneConstraints(
-    const ControlPlaneConstraints &newControlPlaneConstraints) {
-    elimDeadCode.removeControlPlaneConstraints(newControlPlaneConstraints);
-}
-
 const IR::P4Program *FlayService::elimControlPlaneDeadCode() {
     Util::ScopedTimer timer("Eliminate Dead Code");
-    prunedProgram = originalProgram->apply(elimDeadCode);
+    prunedProgram = originalProgram->apply(ElimDeadCode(reachabilityMap));
     printInfo("Number of statements - Before: %1% After: %2% Total reduction percentage = %3%%%",
               countStatements(originalProgram), countStatements(prunedProgram),
               measureSizeDifference(originalProgram, prunedProgram));

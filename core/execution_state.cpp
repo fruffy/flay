@@ -125,26 +125,18 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
         }
     }
 
-    for (const auto &rechabilityTuple : mergeState.getReachabilityMap()) {
-        reachabilityMap.insert(rechabilityTuple);
-    }
+    reachabilityMap.mergeReachabilityMapping(mergeState.getReachabilityMap());
 }
 
 const ReachabilityMap &ExecutionState::getReachabilityMap() const { return reachabilityMap; }
 
-const IR ::Expression *ExecutionState::getReachabilityCondition(const IR::Node *node,
-                                                                bool checked) const {
-    auto it = reachabilityMap.find(node);
-    if (it != reachabilityMap.end()) {
-        return it->second;
-    }
-    BUG_CHECK(!checked, "Unable to find node %1% with source info %2% in the reachability map.",
-              node, node->srcInfo.toPositionString());
-    return nullptr;
-}
-
 void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expression *cond) {
-    reachabilityMap[node] = new IR::LAnd(getExecutionCondition(), cond);
+    // TODO: Think about better handling of these types of errors?
+    if (!node->getSourceInfo().isValid()) {
+        return;
+    }
+    reachabilityMap.initializeReachabilityMapping(node,
+                                                  new IR::LAnd(getExecutionCondition(), cond));
 }
 
 void ExecutionState::setPlaceholderValue(cstring label, const IR::Expression *value) {
@@ -166,11 +158,7 @@ const ExecutionState &ExecutionState::substitutePlaceholders() const {
     Util::ScopedTimer timer("Placeholder Substitution");
     auto &substitutionState = clone();
     auto substitute = SubstitutePlaceHolders(*this);
-    for (const auto &rechabilityTuple : substitutionState.reachabilityMap) {
-        const auto *substitutedExpression = rechabilityTuple.second;
-        substitutionState.reachabilityMap[rechabilityTuple.first] =
-            substitutedExpression->apply(substitute);
-    }
+    substitutionState.reachabilityMap.substitutePlaceholders(substitute);
     return substitutionState;
 }
 

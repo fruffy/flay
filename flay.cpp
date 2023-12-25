@@ -71,12 +71,21 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
         return EXIT_FAILURE;
     }
 
+    auto reachabilityMap = substitutedExecutionState.getReachabilityMap();
+
+    auto hasChangedOpt = reachabilityMap.recomputeReachability(solver, constraintsOpt.value());
     // Initialize the flay service, which includes a dead code eliminator. Use the Z3Solver for now.
-    FlayService service(freshProgram, *flayCompilerResult, substitutedExecutionState, solver,
+    FlayService service(freshProgram, *flayCompilerResult, reachabilityMap, solver,
                         constraintsOpt.value());
 
     printInfo("Checking whether dead code can be removed...\n");
-    service.elimControlPlaneDeadCode();
+    auto hasChanged = hasChangedOpt.value();
+    if (hasChanged) {
+        service.elimControlPlaneDeadCode();
+    }
+    if (::errorCount() > 0) {
+        return EXIT_FAILURE;
+    }
 
     if (flayOptions.serverModeActive()) {
         printInfo("Starting flay server...\n");

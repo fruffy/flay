@@ -3,6 +3,10 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "backends/p4tools/modules/flay/control_plane/util.h"
+#include "backends/p4tools/modules/flay/core/reachability.h"
+#include "ir/solver.h"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -10,7 +14,6 @@
 #pragma GCC diagnostic pop
 
 #include "backends/p4tools/modules/flay/core/compiler_target.h"
-#include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 
 namespace P4Tools::Flay {
 
@@ -27,14 +30,21 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// and any information extracted from the program using static analysis.
     std::reference_wrapper<const FlayCompilerResult> compilerResult;
 
-    /// The dead code eliminator pass.
-    ElimDeadCode elimDeadCode;
+    /// The reachability map.
+    ReachabilityMap reachabilityMap;
+
+    /// The constraint solver associated with the tool. Currently specialized to Z3.
+    std::reference_wrapper<AbstractSolver> solver;
+
+    /// The set of active control plane constraints. These constraints are added to every solver
+    /// check to compute feasibility of a program node.
+    ControlPlaneConstraints controlPlaneConstraints;
 
  public:
     explicit FlayService(const IR::P4Program *originalProgram,
-                         const FlayCompilerResult &compilerResult,
-                         const ExecutionState &executionState, AbstractSolver &solver,
-                         ControlPlaneConstraints &initialControlPlaneConstraints);
+                         const FlayCompilerResult &compilerResult, ReachabilityMap reachabilityMap,
+                         AbstractSolver &solver,
+                         ControlPlaneConstraints initialControlPlaneConstraints);
 
     /// Start the Flay gRPC server and listen to incoming requests.
     bool startServer(const std::string &serverAddress);
@@ -53,10 +63,10 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     [[nodiscard]] grpc::Status processDeleteMessage(const p4::v1::Entity &entity);
 
     /// @returns the pruned program
-    const IR::P4Program *getPrunedProgram() const;
+    [[nodiscard]] const IR::P4Program *getPrunedProgram() const;
 
     /// @returns the original program
-    const IR::P4Program *getOriginalProgram() const;
+    [[nodiscard]] const IR::P4Program *getOriginalProgram() const;
 
     /// @returns a reference to the compiler result that this program info object was initialized
     /// with.

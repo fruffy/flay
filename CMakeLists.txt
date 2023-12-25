@@ -4,11 +4,9 @@ project(flay)
 # Add cmake directory to our module path. Also add cmake directory from P4C
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-
 # Declare common P4Flay variables.
 set(FLAY_DIR ${P4C_BINARY_DIR}/flay)
 set(FLAY_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4flay")
-
 
 # ############### Protobuf generation
 set(FLAY_P4RUNTIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf)
@@ -68,6 +66,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/externs.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/parser_stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/program_info.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/reachability.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/substitute_placeholders.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/symbolic_executor.cpp

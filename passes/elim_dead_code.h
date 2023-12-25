@@ -3,8 +3,7 @@
 
 #include <functional>
 
-#include "backends/p4tools/modules/flay/control_plane/util.h"
-#include "backends/p4tools/modules/flay/core/execution_state.h"
+#include "backends/p4tools/modules/flay/core/reachability.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 #include "ir/visitor.h"
@@ -12,41 +11,15 @@
 namespace P4Tools::Flay {
 
 class ElimDeadCode : public Transform {
-    /// The computed execution state.
-    std::reference_wrapper<const ExecutionState> executionState;
-
-    /// The constraint solver associated with the tool. Currently specialized to Z3.
-    std::reference_wrapper<AbstractSolver> solver;
-
-    /// This flags records whether this class has eliminated dead code.
-    bool deletedCode = false;
-
-    /// The set of active control plane constraints. These constraints are added to every solver
-    /// check to compute feasibility of a program node.
-    ControlPlaneConstraints controlPlaneConstraints;
-
-    /// The precomputed set of equalities. Computed for every apply.
-    std::vector<const Constraint *> controlPlaneConstraintExprs;
+    /// The reachability map computed by the execution state.
+    std::reference_wrapper<const ReachabilityMap> reachabilityMap;
 
  public:
     ElimDeadCode() = delete;
 
-    explicit ElimDeadCode(const ExecutionState &executionState, AbstractSolver &solver);
+    explicit ElimDeadCode(const ReachabilityMap &reachabilityMap);
 
     const IR::Node *postorder(IR::IfStatement *stmt) override;
-    void end_apply() override;
-
-    profile_t init_apply(const IR::Node *root) override;
-
-    [[nodiscard]] ControlPlaneConstraints &getWriteableControlPlaneConstraints();
-
-    /// Add control plane constraints to the tool. These constraints are added to every
-    /// solver check.
-    void addControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);
-
-    /// Remove control plane constraints from the tool. These constraints are added to every
-    /// solver check.
-    void removeControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);
 };
 
 }  // namespace P4Tools::Flay

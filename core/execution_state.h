@@ -1,29 +1,25 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXECUTION_STATE_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_EXECUTION_STATE_H_
 
-#include <map>
+#include <optional>
 #include <set>
 
 #include "backends/p4tools/common/core/abstract_execution_state.h"
+#include "backends/p4tools/modules/flay/core/reachability.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 
 namespace P4Tools::Flay {
 
-/// Utility function to compare IR nodes in a set. We use their source info.
-struct SourceIdCmp {
-    bool operator()(const IR::Node *s1, const IR::Node *s2) const;
-};
-
-using ReachabilityMap = std::map<const IR::Node *, const IR::Expression *, SourceIdCmp>;
-
 /// Represents state of execution after having reached a program point.
 class ExecutionState : public AbstractExecutionState {
  private:
-    /// The condition necessary to reach this particular execution state. Defaults to true.
+    /// The condition necessary to reach this particular execution state. Defaults
+    /// to true.
     const IR::Expression *executionCondition;
 
-    /// Keeps track of the parserStates which were visited to avoid infinite loops.
+    /// Keeps track of the parserStates which were visited to avoid infinite
+    /// loops.
     std::set<int> visitedParserIds;
 
     /// Keeps track of the reachability of individual nodes in the program.
@@ -33,13 +29,15 @@ class ExecutionState : public AbstractExecutionState {
     static const IR::PathExpression PLACEHOLDER_LABEL;
     /* =========================================================================================
      *  Accessors
-     * ========================================================================================= */
+     * =========================================================================================
+     */
  public:
     /// @returns the value associated with the given state variable.
     [[nodiscard]] const IR::Expression *get(const IR::StateVariable &var) const override;
 
-    /// Sets the symbolic value of the given state variable to the given value. Constant folding
-    /// is done on the given value before updating the symbolic state.
+    /// Sets the symbolic value of the given state variable to the given value.
+    /// Constant folding is done on the given value before updating the symbolic
+    /// state.
     void set(const IR::StateVariable &var, const IR::Expression *value) override;
 
     /// Add a parser ID to the list of visited parser IDs.
@@ -54,7 +52,8 @@ class ExecutionState : public AbstractExecutionState {
 
     /* =========================================================================================
      *  State merging and execution conditions.
-     * ========================================================================================= */
+     * =========================================================================================
+     */
     /// Push an execution condition into this particular state.
     void pushExecutionCondition(const IR::Expression *cond);
 
@@ -64,33 +63,31 @@ class ExecutionState : public AbstractExecutionState {
     /// Merge another execution state into this state.
     void merge(const ExecutionState &mergeState);
 
+    /// @returns the reachability map associated with this state.
     [[nodiscard]] const ReachabilityMap &getReachabilityMap() const;
 
     /// Map the conditions to be reachable to a particular program node.
     void addReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
 
-    /// @returns the set of conditions required to reach a particular node in the program.
-    /// Throws an error if the node is not present in the program.
-    const IR ::Expression *getReachabilityCondition(const IR::Node *node, bool checked) const;
-
-    /// Convenience function to set the value of a placeholder variables in the symbolic
-    /// environment. An example where placeholder variables are necessary is recirculation. We can
-    /// not immediately know the conditions to cover a particular program node and need to assign a
-    /// placeholder.
+    /// Convenience function to set the value of a placeholder variables in the
+    /// symbolic environment. An example where placeholder variables are necessary
+    /// is recirculation. We can not immediately know the conditions to cover a
+    /// particular program node and need to assign a placeholder.
     void setPlaceholderValue(cstring label, const IR::Expression *value);
 
-    /// @returns the assigned value for a particular placeholder in this execution state.
-    /// Returns std::nullopt if no value was found.
-    std::optional<const IR::Expression *> getPlaceholderValue(
+    /// @returns the assigned value for a particular placeholder in this execution
+    /// state. Returns std::nullopt if no value was found.
+    [[nodiscard]] std::optional<const IR::Expression *> getPlaceholderValue(
         const IR::Placeholder &placeholder) const;
 
-    /// Substitute IR::Placeholder expression in all reachability conditions presents in this
-    /// execution state.
-    const ExecutionState &substitutePlaceholders() const;
+    /// Substitute IR::Placeholder expression in all reachability conditions
+    /// presents in this execution state.
+    [[nodiscard]] const ExecutionState &substitutePlaceholders() const;
 
     /* =========================================================================================
      *  Constructors
-     * ========================================================================================= */
+     * =========================================================================================
+     */
     /// Creates an initial execution state for the given program.
     explicit ExecutionState(const IR::P4Program *program);
 
