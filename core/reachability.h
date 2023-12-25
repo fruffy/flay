@@ -54,7 +54,7 @@ class ReachabilityMap : private std::map<const IR::Node *, ReachabilityExpressio
         const IR::Node *node, AbstractSolver &solver,
         const std::vector<const Constraint *> &controlPlaneConstraintExprs);
 
-    void initializeReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
+    bool initializeReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
 
     void mergeReachabilityMapping(const ReachabilityMap &otherMap);
 

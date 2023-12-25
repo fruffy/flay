@@ -11,6 +11,7 @@
 #include "frontends/p4/optimizeExpressions.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
+#include "lib/error.h"
 #include "lib/exceptions.h"
 #include "lib/source_file.h"
 #include "lib/timer.h"
@@ -98,6 +99,8 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
     const auto *cond = mergeState.getExecutionCondition();
     cond = cond->apply(CollapseMux());
     const auto &mergeEnv = mergeState.getSymbolicEnv();
+    reachabilityMap.mergeReachabilityMapping(mergeState.getReachabilityMap());
+
     if (const auto *boolExpr = cond->to<IR::BoolLiteral>()) {
         // If the condition is false, do nothing. If it is true, set all the values.
         if (boolExpr->value) {
@@ -124,8 +127,6 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
             }
         }
     }
-
-    reachabilityMap.mergeReachabilityMapping(mergeState.getReachabilityMap());
 }
 
 const ReachabilityMap &ExecutionState::getReachabilityMap() const { return reachabilityMap; }
@@ -135,8 +136,11 @@ void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expr
     if (!node->getSourceInfo().isValid()) {
         return;
     }
-    reachabilityMap.initializeReachabilityMapping(node,
-                                                  new IR::LAnd(getExecutionCondition(), cond));
+
+    if (!reachabilityMap.initializeReachabilityMapping(
+            node, new IR::LAnd(getExecutionCondition(), cond))) {
+        FATAL_ERROR("Reachability mapping for node %1% already exists.", node);
+    }
 }
 
 void ExecutionState::setPlaceholderValue(cstring label, const IR::Expression *value) {

@@ -53,6 +53,12 @@ p4tools_add_xfail_reason(
 
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
+  "Unsupported type argument for Value Set"
+  pvs-nested-struct.p4
+)
+
+p4tools_add_xfail_reason(
+  "flay-p4c-bmv2-v1model"
   "Parser state .* was already visited. We currently do not support parser loops."
   issue2314.p4
   invalid-hdr-warnings1.p4
@@ -62,3 +68,30 @@ p4tools_add_xfail_reason(
   issue281.p4
   fabric.p4
 )
+
+# When trying to remove dead code we can not find a particular node in the reachability map.
+# Often this happens because the compiler optimizes the expression away and Flay never sees it.
+p4tools_add_xfail_reason(
+  "flay-p4c-bmv2-v1model"
+  "error: Unable to find node .* in the reachability map"
+  issue2345-multiple_dependencies.p4
+  issue1765-1-bmv2.p4
+  issue2345-with_nested_if.p4
+)
+
+# We are trying to map a duplicate condition to the reachability map.
+# This can happen when the source information is ambiguous.
+# Unclear how to resolve this issue as it emerges from unclean compiler passes.
+p4tools_add_xfail_reason(
+  "flay-p4c-bmv2-v1model"
+  "Reachability mapping for node .* already exists"
+  control-hs-index-test2.p4
+  control-hs-index-test3.p4
+  control-hs-index-test4.p4
+  issue1127-bmv2.p4
+  issue2344.p4
+  issue512.p4
+  xor_test.p4
+)
+
+

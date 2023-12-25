@@ -113,12 +113,9 @@ std::optional<bool> ReachabilityMap::computeNodeReachability(
     return hasChanged;
 }
 
-void ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
+bool ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
                                                     const IR::Expression *cond) {
-    auto result = emplace(node, cond).second;
-    if (!result) {
-        ::error("Reachability mapping for node %1% already exists.", node);
-    }
+    return emplace(node, cond).second;
 }
 
 void ReachabilityMap::mergeReachabilityMapping(const ReachabilityMap &otherMap) {
