@@ -1,12 +1,12 @@
 #include "backends/p4tools/modules/flay/targets/bmv2/target.h"
 
 #include <cstddef>
+#include <cstdlib>
 #include <map>
 #include <optional>
 #include <vector>
 
 #include "backends/p4tools/common/lib/logging.h"
-#include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/stepper.h"
@@ -108,8 +108,12 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
     printInfo("Parsing initial control plane configuration...\n");
     if (confPath.extension() == ".txtpb") {
         auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
-        if (!ProtobufDeserializer::updateControlPlaneConstraints(
-                deserializedConfig, compilerResult.getP4RuntimeNodeMap(), constraints)) {
+        if (!deserializedConfig.has_value()) {
+            return std::nullopt;
+        }
+        if (ProtobufDeserializer::updateControlPlaneConstraints(
+                deserializedConfig.value(), compilerResult.getP4RuntimeNodeMap(), constraints) !=
+            EXIT_SUCCESS) {
             return std::nullopt;
         }
         return constraints;

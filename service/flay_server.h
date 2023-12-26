@@ -3,7 +3,7 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "backends/p4tools/modules/flay/control_plane/util.h"
+#include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
 #include "backends/p4tools/modules/flay/core/reachability.h"
 #include "ir/solver.h"
 

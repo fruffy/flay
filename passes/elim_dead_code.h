@@ -10,6 +10,8 @@
 
 namespace P4Tools::Flay {
 
+/// This compiler pass looks up program nodes in the reachability map and deletes nodes which are
+/// not executable according to the computation in the map.
 class ElimDeadCode : public Transform {
     /// The reachability map computed by the execution state.
     std::reference_wrapper<const ReachabilityMap> reachabilityMap;

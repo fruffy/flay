@@ -1,8 +1,11 @@
 #include "backends/p4tools/modules/flay/targets/bmv2/symbolic_state.h"
 
+#include <cstdlib>
 #include <optional>
 
 #include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
+#include "backends/p4tools/modules/flay/targets/bmv2/control_plane_objects.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -14,20 +17,18 @@ const IR::SymbolicVariable *Bmv2ControlPlaneState::getSessionId(const IR::Type *
     return ToolsVariables::getSymbolicVariable(type, "clone_session_id");
 }
 
-const IR::SymbolicVariable *Bmv2ControlPlaneState::allocateControlPlaneTable(
-    const IR::P4Table &table) {
-    const auto *defaultAction = table.getDefaultAction();
+int Bmv2ControlPlaneState::allocateControlPlaneTable(const IR::P4Table &table) {
     auto tableName = table.controlPlaneName();
-    auto defaultEntry = TableMatchEntry(
-        new IR::Equ(ControlPlaneState::getTableActionChoice(tableName),
-                    new IR::StringLiteral(defaultAction->checkedTo<IR::MethodCallExpression>()
-                                              ->method->checkedTo<IR::PathExpression>()
-                                              ->path->name)),
-        0);
-    auto *tableConfig = new TableConfiguration(tableName, defaultEntry, {});
-    defaultConstraints.insert({tableName, *tableConfig});
-    const auto *var = getTableActive(tableName);
-    return var;
+    const auto *defaultAction = table.getDefaultAction();
+    auto actionName = defaultAction->checkedTo<IR::MethodCallExpression>()
+                          ->method->checkedTo<IR::PathExpression>()
+                          ->path->name;
+    auto defaultEntry =
+        TableMatchEntry(new IR::Equ(ControlPlaneState::getTableActionChoice(tableName),
+                                    new IR::StringLiteral(actionName)),
+                        0, {});
+    defaultConstraints.insert({tableName, *new TableConfiguration(tableName, defaultEntry, {})});
+    return EXIT_SUCCESS;
 }
 
 const IR::SymbolicVariable *Bmv2ControlPlaneState::allocateCloneSession() {

@@ -1,5 +1,6 @@
 #include "backends/p4tools/modules/flay/service/flay_server.h"
 
+#include <cstdlib>
 #include <utility>
 
 #include "backends/p4tools/common/lib/logging.h"
@@ -86,8 +87,9 @@ void FlayService::printPrunedProgram() {
 
 grpc::Status FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
     Util::ScopedTimer timer("processUpdateMessage");
-    if (!ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-            entity, getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints)) {
+    if (ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+            entity, getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints) !=
+        EXIT_SUCCESS) {
         return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
     }
     auto hasChangedOpt = reachabilityMap.recomputeReachability(solver, controlPlaneConstraints);
@@ -109,8 +111,9 @@ grpc::Status FlayService::processUpdateMessage(const p4::v1::Entity &entity) {
 grpc::Status FlayService::processDeleteMessage(const p4::v1::Entity &entity) {
     Util::ScopedTimer timer("processDeleteMessage");
     // This does not handle delete correctly.
-    if (!ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-            entity, getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints)) {
+    if (ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+            entity, getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints) !=
+        EXIT_SUCCESS) {
         return {grpc::StatusCode::INTERNAL, "Failed to process delete message"};
     }
     auto hasChangedOpt = reachabilityMap.recomputeReachability(solver, controlPlaneConstraints);

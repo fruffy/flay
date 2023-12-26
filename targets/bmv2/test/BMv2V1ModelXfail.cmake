@@ -10,9 +10,15 @@ p4tools_add_xfail_reason(
   header-stack-ops-bmv2.p4 # Unknown method member expression: hdr_0.h2; of type header h2_t
 )
 
-p4tools_add_xfail_reason("flay-p4c-bmv2-v1model" "Unsupported assignment")
+p4tools_add_xfail_reason(
+  "flay-p4c-bmv2-v1model"
+  "Unsupported assignment"
+)
 
-p4tools_add_xfail_reason("flay-p4c-bmv2-v1model" "Unknown or unimplemented extern method: .*")
+p4tools_add_xfail_reason(
+  "flay-p4c-bmv2-v1model"
+  "Unknown or unimplemented extern method: .*"
+)
 
 # These are custom externs we do not implement.
 p4tools_add_xfail_reason(
@@ -26,6 +32,7 @@ p4tools_add_xfail_reason(
 p4tools_add_xfail_reason(
   "flay-p4c-bmv2-v1model"
   "Unable to find var .* in the symbolic environment"
+  # Most of these are value sets, which we do not support.
   issue1955.p4 # Unable to find var p1_ipv4_ethertypes/ipv4_ethertypes; in the symbolic environment.
   pvs-bitstring-bmv2.p4 # Unable to find var pvs_0/pvs; in the symbolic environment.
   pvs-nested-struct.p4 # Unable to find var pvs_0/pvs; in the symbolic environment.
@@ -41,7 +48,9 @@ p4tools_add_xfail_reason(
 )
 
 p4tools_add_xfail_reason(
-  "flay-p4c-bmv2-v1model" "expected a header or header union stack" issue4057.p4
+  "flay-p4c-bmv2-v1model"
+  "expected a header or header union stack"
+  issue4057.p4
 )
 
 p4tools_add_xfail_reason(

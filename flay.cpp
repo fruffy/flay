@@ -63,6 +63,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
         return EXIT_FAILURE;
     }
 
+    printInfo("Computing initial control plane constraints...\n");
     // Gather the initial control-plane configuration. Also from a file input, if present.
     // TODO: Compute this much earlier.
     auto constraintsOpt = P4Tools::Flay::FlayTarget::computeControlPlaneConstraints(
@@ -71,8 +72,8 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
         return EXIT_FAILURE;
     }
 
+    printInfo("Computing reachability...\n");
     auto reachabilityMap = substitutedExecutionState.getReachabilityMap();
-
     auto hasChangedOpt = reachabilityMap.recomputeReachability(solver, constraintsOpt.value());
     // Initialize the flay service, which includes a dead code eliminator. Use the Z3Solver for now.
     FlayService service(freshProgram, *flayCompilerResult, reachabilityMap, solver,

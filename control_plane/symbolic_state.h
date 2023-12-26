@@ -1,7 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_SYMBOLIC_STATE_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_SYMBOLIC_STATE_H_
 
-#include "backends/p4tools/modules/flay/control_plane/util.h"
+#include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
@@ -44,7 +44,8 @@ class ControlPlaneState : public ICastable {
     static const IR::SymbolicVariable *getTableActionChoice(cstring tableName);
 
     /// Initializes the symbolic variable for a table and adds it to @defaultConstraints.
-    virtual const IR::SymbolicVariable *allocateControlPlaneTable(const IR::P4Table &table) = 0;
+    /// @returns EXIT_SUCCESS on successful completion.
+    virtual int allocateControlPlaneTable(const IR::P4Table &table) = 0;
 };
 
 }  // namespace P4Tools::Flay

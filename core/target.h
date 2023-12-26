@@ -5,8 +5,8 @@
 
 #include "backends/p4tools/common/core/target.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
+#include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
-#include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"

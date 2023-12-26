@@ -4,9 +4,11 @@
 
 #include <google/protobuf/text_format.h>
 
+#include <cstdlib>
+#include <optional>
+
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
-#include "ir/ir-generated.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay {
@@ -17,7 +19,7 @@ big_int ProtobufDeserializer::protoValueToBigInt(const std::string &valueString)
     return value;
 }
 
-flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(
+std::optional<flaytests::Config> ProtobufDeserializer::deserializeProtobufConfig(
     const std::filesystem::path &inputFile) {
     flaytests::Config protoControlPlaneConfig;
 
@@ -29,44 +31,42 @@ flaytests::Config ProtobufDeserializer::deserializeProtobufConfig(
     if (google::protobuf::TextFormat::Parse(input, &protoControlPlaneConfig)) {
         printInfo("Parsed configuration: %1%", protoControlPlaneConfig.DebugString());
     } else {
-        std::cerr << "Message not valid (partial content: "
-                  << protoControlPlaneConfig.ShortDebugString() << ")\n";
+        ::error("Failed to parse configuration: %1%", protoControlPlaneConfig.ShortDebugString());
+        return std::nullopt;
     }
     // Close the open file.
     close(fd);
     return protoControlPlaneConfig;
 }
 
-bool ProtobufDeserializer::fillTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
-                                          cstring keyFieldName, const IR::Expression &keyExpr,
-                                          TableMatchEntry &tableMatchEntry) {
+std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(const p4::v1::FieldMatch &field,
+                                                                   cstring tableName,
+                                                                   cstring keyFieldName,
+                                                                   const IR::Expression &keyExpr) {
+    TableKeySet tableKeySet;
     const auto *keySymbol = ControlPlaneState::getTableKey(tableName, keyFieldName, keyExpr.type);
     if (field.has_exact()) {
         auto value = protoValueToBigInt(field.exact().value());
-        if (keyExpr.type->is<IR::Type_Boolean>()) {
-            tableMatchEntry.addMatch(*keySymbol, *new IR::BoolLiteral(value == 1));
-        } else {
-            tableMatchEntry.addMatch(*keySymbol, *IR::getConstant(keyExpr.type, value));
-        }
+        tableKeySet.emplace(*keySymbol, *IR::getConstant(keyExpr.type, value));
     } else if (field.has_lpm()) {
         const auto *lpmPrefixSymbol =
             ControlPlaneState::getTableMatchLpmPrefix(tableName, keyFieldName, keyExpr.type);
         auto value = protoValueToBigInt(field.lpm().value());
         int prefix = field.lpm().prefix_len();
-        tableMatchEntry.addMatch(*keySymbol, *IR::getConstant(keyExpr.type, value));
-        tableMatchEntry.addMatch(*lpmPrefixSymbol, *IR::getConstant(keyExpr.type, prefix));
+        tableKeySet.emplace(*keySymbol, *IR::getConstant(keyExpr.type, value));
+        tableKeySet.emplace(*lpmPrefixSymbol, *IR::getConstant(keyExpr.type, prefix));
     } else if (field.has_ternary()) {
         const auto *maskSymbol =
             ControlPlaneState::getTableTernaryMask(tableName, keyFieldName, keyExpr.type);
         auto value = protoValueToBigInt(field.ternary().value());
         auto mask = protoValueToBigInt(field.ternary().mask());
-        tableMatchEntry.addMatch(*keySymbol, *IR::getConstant(keyExpr.type, value));
-        tableMatchEntry.addMatch(*maskSymbol, *IR::getConstant(keyExpr.type, mask));
+        tableKeySet.emplace(*keySymbol, *IR::getConstant(keyExpr.type, value));
+        tableKeySet.emplace(*maskSymbol, *IR::getConstant(keyExpr.type, mask));
     } else {
         ::error("Unsupported table match type %1%.", field.DebugString().c_str());
-        return false;
+        return std::nullopt;
     }
-    return true;
+    return tableKeySet;
 }
 
 const IR::Expression *ProtobufDeserializer::convertTableAction(const p4::v1::Action &tblAction,
@@ -82,30 +82,28 @@ const IR::Expression *ProtobufDeserializer::convertTableAction(const p4::v1::Act
         auto paramName = param->controlPlaneName();
         const auto &actionArg =
             ControlPlaneState::getTableActionArg(tableName, actionName, paramName, param->type);
-        big_int value;
-        auto fieldString = paramConfig.value();
-        boost::multiprecision::import_bits(value, fieldString.begin(), fieldString.end());
-        const auto *actionVal = IR::getConstant(param->type, value);
+        const auto *actionVal =
+            IR::getConstant(param->type, protoValueToBigInt(paramConfig.value()));
         actionExpr = new IR::LAnd(actionExpr, new IR::Equ(actionArg, actionVal));
     }
     return actionExpr;
 }
 
-bool ProtobufDeserializer::convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
-                                             const p4::v1::TableEntry &tableEntry,
-                                             ControlPlaneConstraints &controlPlaneConstraints) {
+int ProtobufDeserializer::convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
+                                            const p4::v1::TableEntry &tableEntry,
+                                            ControlPlaneConstraints &controlPlaneConstraints) {
     auto tblId = tableEntry.table_id();
     const auto *result = irToIdMap.at(tblId);
     if (result->to<IR::P4Table>() == nullptr) {
         ::error("Table %1% is not a IR::P4Table.", result);
-        return false;
+        return EXIT_FAILURE;
     }
     const auto *tbl = result->to<IR::P4Table>();
     auto tableName = tbl->controlPlaneName();
 
     if (!tableEntry.action().has_action()) {
         ::error("Table entry %1% has no action.", tableEntry.DebugString());
-        return false;
+        return EXIT_FAILURE;
     }
 
     auto tblAction = tableEntry.action().action();
@@ -113,76 +111,84 @@ bool ProtobufDeserializer::convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToI
     const auto *actionResult = irToIdMap.at(actionId);
     if (actionResult->to<IR::P4Action>() == nullptr) {
         ::error("Action %1% is not a IR::P4Action.", actionResult);
-        return false;
+        return EXIT_FAILURE;
     }
-    const auto *p4Action = actionResult->to<IR::P4Action>();
-    const auto *actionExpr = convertTableAction(tblAction, tableName, *p4Action);
-    auto *tableMatchEntry = new TableMatchEntry(actionExpr, tableEntry.priority());
 
-    for (const auto &field : tableEntry.match()) {
-        auto fieldId = field.field_id();
-        const auto *result = irToIdMap.at(P4::ControlPlaneAPI::szudzikPairing(tblId, fieldId));
-        if (result->to<IR::KeyElement>() == nullptr) {
-            ::error("%1% is not a IR::KeyElement.", result);
-            return false;
-        }
-        const auto *keyField = result->to<IR::KeyElement>();
-        const auto *keyExpr = keyField->expression;
-        const auto *nameAnnot = keyField->getAnnotation("name");
-        if (nameAnnot == nullptr) {
-            ::error("Non-constant table key without an annotation");
-            return false;
-        }
-        cstring keyFieldName;
-        if (nameAnnot != nullptr) {
-            keyFieldName = nameAnnot->getName();
-        }
-        fillTableMatch(field, tableName, keyFieldName, *keyExpr, *tableMatchEntry);
-    }
     auto it = controlPlaneConstraints.find(tableName);
     if (it == controlPlaneConstraints.end()) {
         error(
             "Configuration for table %1% not found in the control plane constraints. It should "
             "have already been initialized at this point.",
             tableName);
-        return false;
+        return EXIT_FAILURE;
     }
 
     auto &tableResultOpt = it->second.get();
     if (tableResultOpt.to<TableConfiguration>() == nullptr) {
         ::error("Configuration result is not a TableConfiguration.", tableName);
-        return false;
+        return EXIT_FAILURE;
     }
     auto *tableResult = tableResultOpt.to<TableConfiguration>();
+
+    const auto *p4Action = actionResult->to<IR::P4Action>();
+    const auto *actionExpr = convertTableAction(tblAction, tableName, *p4Action);
+
+    TableKeySet tableKeySet;
+    for (const auto &field : tableEntry.match()) {
+        auto fieldId = field.field_id();
+        const auto *result = irToIdMap.at(P4::ControlPlaneAPI::szudzikPairing(tblId, fieldId));
+        if (result->to<IR::KeyElement>() == nullptr) {
+            ::error("%1% is not a IR::KeyElement.", result);
+            return EXIT_FAILURE;
+        }
+        const auto *keyField = result->to<IR::KeyElement>();
+        const auto *keyExpr = keyField->expression;
+        const auto *nameAnnot = keyField->getAnnotation("name");
+        if (nameAnnot == nullptr) {
+            ::error("Non-constant table key without an annotation");
+            return EXIT_FAILURE;
+        }
+        cstring keyFieldName;
+        if (nameAnnot != nullptr) {
+            keyFieldName = nameAnnot->getName();
+        }
+        auto matchSet = produceTableMatch(field, tableName, keyFieldName, *keyExpr);
+        if (!matchSet.has_value()) {
+            return EXIT_FAILURE;
+        }
+        tableKeySet.insert(matchSet.value().begin(), matchSet.value().end());
+    }
+
+    auto *tableMatchEntry = new TableMatchEntry(actionExpr, tableEntry.priority(), tableKeySet);
     tableResult->addTableEntry(*tableMatchEntry);
-    return true;
+    return EXIT_SUCCESS;
 }
 
-bool ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+int ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
     const p4::v1::Entity &entity, const P4RuntimeIdtoIrNodeMap &irToIdMap,
     ControlPlaneConstraints &controlPlaneConstraints) {
     if (entity.has_table_entry()) {
         const auto &tableEntry = entity.table_entry();
-        if (!convertTableEntry(irToIdMap, tableEntry, controlPlaneConstraints)) {
-            return false;
+        if (convertTableEntry(irToIdMap, tableEntry, controlPlaneConstraints) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
         }
     } else {
         ::error("Unsupported control plane entry %1%.", entity.DebugString().c_str());
-        return false;
+        return EXIT_FAILURE;
     }
-    return true;
+    return EXIT_SUCCESS;
 }
 
-bool ProtobufDeserializer::updateControlPlaneConstraints(
+int ProtobufDeserializer::updateControlPlaneConstraints(
     const flaytests::Config &protoControlPlaneConfig, const P4RuntimeIdtoIrNodeMap &irToIdMap,
     ControlPlaneConstraints &controlPlaneConstraints) {
     for (const auto &entity : protoControlPlaneConfig.entities()) {
-        if (!updateControlPlaneConstraintsWithEntityMessage(entity, irToIdMap,
-                                                            controlPlaneConstraints)) {
-            return false;
+        if (updateControlPlaneConstraintsWithEntityMessage(
+                entity, irToIdMap, controlPlaneConstraints) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
         }
     }
-    return true;
+    return EXIT_SUCCESS;
 }
 
 std::optional<p4::v1::Entity> ProtobufDeserializer::parseEntity(const std::string &message) {
@@ -190,7 +196,7 @@ std::optional<p4::v1::Entity> ProtobufDeserializer::parseEntity(const std::strin
     if (google::protobuf::TextFormat::ParseFromString(message, &entity)) {
         printInfo("Parsed entity: %1%", entity.DebugString());
     } else {
-        std::cerr << "Message not valid (partial content: " << entity.ShortDebugString() << ")\n";
+        ::error("Failed to parse Protobuf message: %1%", entity.ShortDebugString());
         return std::nullopt;
     }
     return entity;

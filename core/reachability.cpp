@@ -45,15 +45,14 @@ bool ReachabilityMap::updateReachabilityAssignment(const IR::Node *node,
 std::optional<bool> ReachabilityMap::recomputeReachability(
     AbstractSolver &solver, const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
-    std::vector<const Constraint *> controlPlaneConstraintExprs;
+    std::vector<const Constraint *> constraints;
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
-        controlPlaneConstraintExprs.push_back(
-            controlPlaneConstraint.get().computeControlPlaneConstraint());
+        constraints.push_back(controlPlaneConstraint.get().computeControlPlaneConstraint());
     }
 
     bool hasChanged = false;
     for (auto &pair : *this) {
-        auto result = computeNodeReachability(pair.first, solver, controlPlaneConstraintExprs);
+        auto result = computeNodeReachability(pair.first, solver, constraints);
         if (!result.has_value()) {
             return std::nullopt;
         }
@@ -64,7 +63,7 @@ std::optional<bool> ReachabilityMap::recomputeReachability(
 
 std::optional<bool> ReachabilityMap::computeNodeReachability(
     const IR::Node *node, AbstractSolver &solver,
-    const std::vector<const Constraint *> &controlPlaneConstraintExprs) {
+    const std::vector<const Constraint *> &constraints) {
     auto it = find(node);
     if (it == end()) {
         ::error("Reachability mapping for node %1% does not exist.", node);
@@ -73,7 +72,7 @@ std::optional<bool> ReachabilityMap::computeNodeReachability(
     const auto *reachabilityCondition = it->second.getCondition();
     auto reachabilityAssignment = it->second.getReachability();
 
-    std::vector<const Constraint *> mergedConstraints(controlPlaneConstraintExprs);
+    std::vector<const Constraint *> mergedConstraints(constraints);
     mergedConstraints.push_back(reachabilityCondition);
     auto solverResult = solver.checkSat(mergedConstraints);
     /// Solver returns unknown, better leave this alone.
@@ -90,7 +89,7 @@ std::optional<bool> ReachabilityMap::computeNodeReachability(
         return hasChanged;
     }
 
-    std::vector<const Constraint *> mergedConstraints1(controlPlaneConstraintExprs);
+    std::vector<const Constraint *> mergedConstraints1(constraints);
     mergedConstraints1.push_back(new IR::LNot(reachabilityCondition));
     auto solverResult1 = solver.checkSat(mergedConstraints1);
     /// Solver returns unknown, better leave this alone.

@@ -11,7 +11,6 @@
 #include "frontends/p4/optimizeExpressions.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
-#include "lib/error.h"
 #include "lib/exceptions.h"
 #include "lib/source_file.h"
 #include "lib/timer.h"
@@ -139,7 +138,11 @@ void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expr
 
     if (!reachabilityMap.initializeReachabilityMapping(
             node, new IR::LAnd(getExecutionCondition(), cond))) {
-        FATAL_ERROR("Reachability mapping for node %1% already exists.", node);
+        // Throw a fatal error if we try to add a duplicate mapping.
+        // This can affect the correctness of the entire mapping.
+        BUG("Reachability mapping for node %1% already exists. Every mapping must be uniquely "
+            "identifiable.",
+            node);
     }
 }
 

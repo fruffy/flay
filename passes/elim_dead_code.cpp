@@ -2,7 +2,6 @@
 
 #include <optional>
 
-#include "ir/ir-generated.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
