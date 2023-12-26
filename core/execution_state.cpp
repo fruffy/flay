@@ -17,10 +17,6 @@
 
 namespace P4Tools::Flay {
 
-bool SourceIdCmp::operator()(const IR::Node *s1, const IR::Node *s2) const {
-    return s1->srcInfo < s2->srcInfo;
-}
-
 ExecutionState::ExecutionState(const IR::P4Program *program)
     : AbstractExecutionState(program), executionCondition(IR::getBoolLiteral(true)) {}
 
@@ -161,12 +157,10 @@ std::optional<const IR::Expression *> ExecutionState::getPlaceholderValue(
     return std::nullopt;
 }
 
-const ExecutionState &ExecutionState::substitutePlaceholders() const {
+void ExecutionState::substitutePlaceholders() {
     Util::ScopedTimer timer("Placeholder Substitution");
-    auto &substitutionState = clone();
     auto substitute = SubstitutePlaceHolders(*this);
-    substitutionState.reachabilityMap.substitutePlaceholders(substitute);
-    return substitutionState;
+    reachabilityMap.substitutePlaceholders(substitute);
 }
 
 /* =========================================================================================

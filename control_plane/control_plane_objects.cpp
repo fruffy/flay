@@ -1,5 +1,6 @@
 #include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
 
+#include <cstdlib>
 #include <queue>
 
 namespace P4Tools::Flay {
@@ -49,12 +50,15 @@ bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
-void TableConfiguration::addTableEntry(const TableMatchEntry &tableMatchEntry) {
-    tableEntries.emplace(tableMatchEntry);
+int TableConfiguration::addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace) {
+    if (replace) {
+        tableEntries.erase(tableMatchEntry);
+    }
+    return tableEntries.emplace(tableMatchEntry).second ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-void TableConfiguration::removeTableEntry(const TableMatchEntry &tableMatchEntry) {
-    tableEntries.erase(tableMatchEntry);
+size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEntry) {
+    return tableEntries.erase(tableMatchEntry);
 }
 
 const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {

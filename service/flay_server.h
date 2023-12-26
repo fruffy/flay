@@ -3,7 +3,9 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
+#include <cstdint>
+#include <functional>
+
 #include "backends/p4tools/modules/flay/core/reachability.h"
 #include "ir/solver.h"
 
@@ -40,6 +42,9 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// check to compute feasibility of a program node.
     ControlPlaneConstraints controlPlaneConstraints;
 
+    /// Keeps track of how often the semantics have changed after an update.
+    uint64_t semanticsChangeCounter = 0;
+
  public:
     explicit FlayService(const IR::P4Program *originalProgram,
                          const FlayCompilerResult &compilerResult, ReachabilityMap reachabilityMap,
@@ -56,12 +61,6 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// Print the pruned program to stdout;
     void printPrunedProgram();
 
-    /// Process a P4Runtime INSERT or MODIFY message.
-    [[nodiscard]] grpc::Status processUpdateMessage(const p4::v1::Entity &entity);
-
-    /// Process a P4Runtime DELETE message.
-    [[nodiscard]] grpc::Status processDeleteMessage(const p4::v1::Entity &entity);
-
     /// @returns the pruned program
     [[nodiscard]] const IR::P4Program *getPrunedProgram() const;
 
@@ -72,14 +71,9 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// with.
     [[nodiscard]] const FlayCompilerResult &getCompilerResult() const;
 
-    /// Add new control plane constraints to the service.
-    void addControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);
-
-    /// Remove control plane constraints from the service.
-    void removeControlPlaneConstraints(const ControlPlaneConstraints &newControlPlaneConstraints);
-
     /// Run dead code elimination on the original P4 program.
-    const IR::P4Program *elimControlPlaneDeadCode();
+    int elimControlPlaneDeadCode(
+        std::optional<std::reference_wrapper<const SymbolSet>> symbolSet = std::nullopt);
 };
 
 }  // namespace P4Tools::Flay

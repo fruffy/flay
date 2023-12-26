@@ -1,5 +1,6 @@
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/node.h"
@@ -21,6 +22,9 @@ void SymbolicExecutor::run() {
     for (const auto *node : *pipelineSequence) {
         node->apply(stepper);
     }
+    /// Substitute any placeholder variables encountered in the execution state.
+    printInfo("Substituting placeholder variables...");
+    executionState.substitutePlaceholders();
 }
 
 const ExecutionState &SymbolicExecutor::getExecutionState() { return executionState; }

@@ -82,7 +82,7 @@ class ExecutionState : public AbstractExecutionState {
 
     /// Substitute IR::Placeholder expression in all reachability conditions
     /// presents in this execution state.
-    [[nodiscard]] const ExecutionState &substitutePlaceholders() const;
+    void substitutePlaceholders();
 
     /* =========================================================================================
      *  Constructors

@@ -14,6 +14,7 @@
 
 #include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
 #include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
+#include "backends/p4tools/modules/flay/control_plane/util.h"
 
 namespace P4Tools::Flay {
 
@@ -31,38 +32,54 @@ class ProtobufDeserializer {
     /// assignments.
     [[nodiscard]] static const IR::Expression *convertTableAction(const p4::v1::Action &tblAction,
                                                                   cstring tableName,
-                                                                  const IR::P4Action &p4Action);
+                                                                  const IR::P4Action &p4Action,
+                                                                  SymbolSet &symbolSet);
 
     /// Convert a P4Runtime FieldMatch into the appropriate symbolic constraint
     /// assignments.
+    /// @param symbolSet tracks the symbols used in this conversion.
     [[nodiscard]] static std::optional<TableKeySet> produceTableMatch(
         const p4::v1::FieldMatch &field, cstring tableName, cstring keyFieldName,
-        const IR::Expression &keyExpr);
+        const IR::Expression &keyExpr, SymbolSet &symbolSet);
+
+    /// Convert a P4Runtime TableEntry into a TableMatchEntry.
+    /// Returns std::nullopt if the conversion fails.
+    /// @param symbolSet tracks the symbols used in this conversion.
+    [[nodiscard]] static std::optional<TableMatchEntry *> produceTableEntry(
+        cstring tableName, P4::ControlPlaneAPI::p4rt_id_t tblId,
+        const P4RuntimeIdtoIrNodeMap &irToIdMap, const p4::v1::TableEntry &tableEntry,
+        SymbolSet &symbolSet);
 
     /// Convert a P4Runtime TableEntry into the appropriate symbolic constraint
     /// assignments.
-    [[nodiscard]] static int convertTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
-                                               const p4::v1::TableEntry &tableEntry,
-                                               ControlPlaneConstraints &controlPlaneConstraints);
+    /// @param symbolSet tracks the symbols used in this conversion.
+    [[nodiscard]] static int updateTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
+                                              const p4::v1::TableEntry &tableEntry,
+                                              ControlPlaneConstraints &controlPlaneConstraints,
+                                              const ::p4::v1::Update_Type &updateType,
+                                              SymbolSet &symbolSet);
 
  public:
-    /// Deserialize a .proto file into a P4Runtime-compliant Protobuf object.
-    [[nodiscard]] static std::optional<flaytests::Config> deserializeProtobufConfig(
-        const std::filesystem::path &inputFile);
-
     /// Convert a Protobuf P4Runtime entity object into a set of IR-based
     /// control-plane constraints. Use the
     /// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
+    /// @param symbolSet tracks the symbols used in this conversion.
     [[nodiscard]] static int updateControlPlaneConstraintsWithEntityMessage(
         const p4::v1::Entity &entity, const P4RuntimeIdtoIrNodeMap &irToIdMap,
-        ControlPlaneConstraints &controlPlaneConstraints);
+        ControlPlaneConstraints &controlPlaneConstraints, const ::p4::v1::Update_Type &updateType,
+        SymbolSet &symbolSet);
 
     /// Convert a Protobuf Config object into a set of IR-based control-plane
     /// constraints. Use the
     /// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
+    /// @param symbolSet tracks the symbols used in this conversion.
     [[nodiscard]] static int updateControlPlaneConstraints(
         const flaytests::Config &protoControlPlaneConfig, const P4RuntimeIdtoIrNodeMap &irToIdMap,
-        ControlPlaneConstraints &controlPlaneConstraints);
+        ControlPlaneConstraints &controlPlaneConstraints, SymbolSet &symbolSet);
+
+    /// Deserialize a .proto file into a P4Runtime-compliant Protobuf object.
+    [[nodiscard]] static std::optional<flaytests::Config> deserializeProtobufConfig(
+        const std::filesystem::path &inputFile);
 
     /// Parse a  text Protobuf message and convert it into a P4Runtime entity.
     /// Return std::nullopt if the conversion fails.

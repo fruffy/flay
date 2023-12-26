@@ -5,16 +5,12 @@
 #include <optional>
 
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
+#include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "ir/ir.h"
 #include "ir/solver.h"
 #include "ir/visitor.h"
 
 namespace P4Tools::Flay {
-
-/// Utility function to compare IR nodes in a set. We use their source info.
-struct SourceIdCmp {
-    bool operator()(const IR::Node *s1, const IR::Node *s2) const;
-};
 
 /// A reachability expression encodes the condition need for an expression to be executable and the
 /// current calculated result assigned to that expression. If the assignment is std::nullopt, the
@@ -22,7 +18,11 @@ struct SourceIdCmp {
 /// is false, never.
 struct ReachabilityExpression {
  private:
+    /// The conditions for the expression to be executable.
     const IR::Expression *cond;
+
+    /// The current assigned value to `cond`. If the value is std::nullopt, the result is ambiguous.
+    /// Otherwise, cond is considered either true or false and thus always or never true.
     std::optional<bool> reachabilityAssignment;
 
  public:
@@ -56,6 +56,10 @@ class ReachabilityMap : private std::map<const IR::Node *, ReachabilityExpressio
     std::optional<bool> computeNodeReachability(const IR::Node *node, AbstractSolver &solver,
                                                 const std::vector<const Constraint *> &constraints);
 
+    /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the
+    /// reachability map. This map can we used for incremental re-computation of reachability.
+    SymbolMap symbolMap;
+
  public:
     /// @returns the reachability expression for the given node.
     /// @returns std::nullopt if no expression can be found.
@@ -68,6 +72,18 @@ class ReachabilityMap : private std::map<const IR::Node *, ReachabilityExpressio
     /// Compute reachability for all nodes in the map using the provided control plane constraints.
     std::optional<bool> recomputeReachability(
         AbstractSolver &solver, const ControlPlaneConstraints &initialControlPlaneConstraints);
+
+    /// Recompute reachability for all nodes which depend on any of the variables in the given
+    /// symbol set.
+    std::optional<bool> recomputeReachability(
+        const SymbolSet &symbolSet, AbstractSolver &solver,
+        const ControlPlaneConstraints &controlPlaneConstraints);
+
+    /// Recompute reachability for selected nodes in the map using the provided control plane
+    /// constraints.
+    std::optional<bool> recomputeReachability(
+        const NodeSet &targetNodes, AbstractSolver &solver,
+        const ControlPlaneConstraints &controlPlaneConstraints);
 
     /// Initialize the reachability mapping for the given node.
     /// @returns false if the node is already mapped.

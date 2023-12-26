@@ -1,0 +1,629 @@
+# Table dash_ingress.direction_lookup
+entities {
+  table_entry {
+    table_id: 45670434
+    # Match field hdr.vxlan.vni
+    match {
+      field_id: 1
+      exact {
+        value: "\xEB\xDE\x62"
+      }
+    }
+    # Action dash_ingress.set_outbound_direction
+    action {
+      action {
+        action_id: 21912829
+      }
+    }
+  }
+}
+# Table dash_ingress.appliance
+entities {
+  table_entry {
+    table_id: 42701762
+    priority: 1
+    # Match field meta.appliance_id
+    match {
+      field_id: 1
+      ternary {
+        value: "\x00"
+        mask: "\x00"
+      }
+    }
+    # Action dash_ingress.set_appliance
+    action {
+      action {
+        action_id: 21793905
+        # Param neighbor_mac
+        params {
+          param_id: 1
+          value: "\x00\x00\x00\x00\x00\x00"
+        }
+        # Param mac
+        params {
+          param_id: 2
+          value: "\x00\x00\x00\x00\x00\x00"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.eni_ether_address_map
+entities {
+  table_entry {
+    table_id: 46804748
+    # Match field meta.eni_addr
+    match {
+      field_id: 1
+      exact {
+        value: "\xD9\xBD\x5F\xB5\xD4\xC8"
+      }
+    }
+    # Action dash_ingress.set_eni
+    action {
+      action {
+        action_id: 18228884
+        # Param eni_id
+        params {
+          param_id: 1
+          value: "\xCC\x53"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.eni
+entities {
+  table_entry {
+    table_id: 45859274
+    # Match field meta.eni_id
+    match {
+      field_id: 1
+      exact {
+        value: "\xCC\x53"
+      }
+    }
+    # Action dash_ingress.set_eni_attrs
+    action {
+      action {
+        action_id: 27167550
+        # Param cps
+        params {
+          param_id: 1
+          value: "\x00\x00\x00\x00"
+        }
+        # Param pps
+        params {
+          param_id: 2
+          value: "\x00\x00\x00\x00"
+        }
+        # Param flows
+        params {
+          param_id: 3
+          value: "\x00\x00\x00\x00"
+        }
+        # Param admin_state
+        params {
+          param_id: 4
+          value: "\x00"
+        }
+        # Param vm_underlay_dip
+        params {
+          param_id: 5
+          value: "\x00\x00\x00\x00"
+        }
+        # Param vm_vni
+        params {
+          param_id: 6
+          value: "\x00\x00\x00"
+        }
+        # Param vnet_id
+        params {
+          param_id: 7
+          value: "\x00\x00"
+        }
+        # Param pl_sip
+        params {
+          param_id: 8
+          value: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+        # Param pl_sip_mask
+        params {
+          param_id: 9
+          value: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+        # Param pl_underlay_sip
+        params {
+          param_id: 10
+          value: "\x00\x00\x00\x00"
+        }
+        # Param v4_meter_policy_id
+        params {
+          param_id: 11
+          value: "\x50\x63"
+        }
+        # Param v6_meter_policy_id
+        params {
+          param_id: 12
+          value: "\x00\x00"
+        }
+        # Param inbound_v4_stage1_dash_acl_group_id
+        params {
+          param_id: 13
+          value: "\x00\x00"
+        }
+        # Param inbound_v4_stage2_dash_acl_group_id
+        params {
+          param_id: 14
+          value: "\x00\x00"
+        }
+        # Param inbound_v4_stage3_dash_acl_group_id
+        params {
+          param_id: 15
+          value: "\x00\x00"
+        }
+        # Param inbound_v4_stage4_dash_acl_group_id
+        params {
+          param_id: 16
+          value: "\x00\x00"
+        }
+        # Param inbound_v4_stage5_dash_acl_group_id
+        params {
+          param_id: 17
+          value: "\x00\x00"
+        }
+        # Param inbound_v6_stage1_dash_acl_group_id
+        params {
+          param_id: 18
+          value: "\x00\x00"
+        }
+        # Param inbound_v6_stage2_dash_acl_group_id
+        params {
+          param_id: 19
+          value: "\x00\x00"
+        }
+        # Param inbound_v6_stage3_dash_acl_group_id
+        params {
+          param_id: 20
+          value: "\x00\x00"
+        }
+        # Param inbound_v6_stage4_dash_acl_group_id
+        params {
+          param_id: 21
+          value: "\x00\x00"
+        }
+        # Param inbound_v6_stage5_dash_acl_group_id
+        params {
+          param_id: 22
+          value: "\x00\x00"
+        }
+        # Param outbound_v4_stage1_dash_acl_group_id
+        params {
+          param_id: 23
+          value: "\xF6\x65"
+        }
+        # Param outbound_v4_stage2_dash_acl_group_id
+        params {
+          param_id: 24
+          value: "\x00\x00"
+        }
+        # Param outbound_v4_stage3_dash_acl_group_id
+        params {
+          param_id: 25
+          value: "\x00\x00"
+        }
+        # Param outbound_v4_stage4_dash_acl_group_id
+        params {
+          param_id: 26
+          value: "\x00\x00"
+        }
+        # Param outbound_v4_stage5_dash_acl_group_id
+        params {
+          param_id: 27
+          value: "\x00\x00"
+        }
+        # Param outbound_v6_stage1_dash_acl_group_id
+        params {
+          param_id: 28
+          value: "\x00\x00"
+        }
+        # Param outbound_v6_stage2_dash_acl_group_id
+        params {
+          param_id: 29
+          value: "\x00\x00"
+        }
+        # Param outbound_v6_stage3_dash_acl_group_id
+        params {
+          param_id: 30
+          value: "\x00\x00"
+        }
+        # Param outbound_v6_stage4_dash_acl_group_id
+        params {
+          param_id: 31
+          value: "\x00\x00"
+        }
+        # Param outbound_v6_stage5_dash_acl_group_id
+        params {
+          param_id: 32
+          value: "\x00\x00"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.acl_group
+entities {
+  table_entry {
+    table_id: 50200087
+    # Match field meta.stage1_dash_acl_group_id
+    match {
+      field_id: 1
+      exact {
+        value: "\xF6\x65"
+      }
+    }
+    # Action dash_ingress.set_acl_group_attrs
+    action {
+      action {
+        action_id: 25655048
+        # Param ip_addr_family
+        params {
+          param_id: 1
+          value: "\x00\x00\x00\x00"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.outbound.acl.stage1
+entities {
+  table_entry {
+    table_id: 49209582
+    priority: 1
+    # Match field meta.stage1_dash_acl_group_id
+    match {
+      field_id: 1
+      exact {
+        value: "\xF6\x65"
+      }
+    }
+    # Match field meta.dst_ip_addr
+    match {
+      field_id: 2
+      ternary {
+        value: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        mask: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+      }
+    }
+    # Match field meta.dst_l4_port
+    match {
+      field_id: 6
+      ternary {
+        value: "\x1E\x00"
+        mask: "\x00\x00"
+      }
+    }
+    # Match field meta.ip_protocol
+    match {
+      field_id: 4
+      ternary {
+        value: "\x11"
+        mask: "\x00"
+      }
+    }
+    # Match field meta.src_ip_addr
+    match {
+      field_id: 3
+      ternary {
+        value: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        mask: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+      }
+    }
+    # Match field meta.src_l4_port
+    match {
+      field_id: 5
+      ternary {
+        value: "\x00\x00"
+        mask: "\x00\x00"
+      }
+    }
+    # Action dash_ingress.outbound.acl.permit
+    action {
+      action {
+        action_id: 18858683
+      }
+    }
+  }
+}
+# Table dash_ingress.outbound.routing
+entities {
+  table_entry {
+    table_id: 44067785
+    # Match field meta.eni_id
+    match {
+      field_id: 1
+      exact {
+        value: "\xCC\x53"
+      }
+    }
+    # Match field meta.is_overlay_ip_v6
+    match {
+      field_id: 2
+      exact {
+        value: "\x00"
+      }
+    }
+    # Match field meta.dst_ip_addr
+    match {
+      field_id: 3
+      lpm {
+        value: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x35\xE0\xF0\x1E"
+        prefix_len: 128
+      }
+    }
+    # Action dash_ingress.outbound.route_vnet
+    action {
+      action {
+        action_id: 25364446
+        # Param dst_vnet_id
+        params {
+          param_id: 1
+          value: "\xBC\x74"
+        }
+        # Param meter_policy_en
+        params {
+          param_id: 2
+          value: "\x01"
+        }
+        # Param meter_class
+        params {
+          param_id: 3
+          value: "\x00\x00"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.outbound.ca_to_pa
+entities {
+  table_entry {
+    table_id: 39175949
+    # Match field meta.dst_vnet_id
+    match {
+      field_id: 1
+      exact {
+        value: "\xBC\x74"
+      }
+    }
+    # Match field meta.is_lkup_dst_ip_v6
+    match {
+      field_id: 2
+      exact {
+        value: "\x00"
+      }
+    }
+    # Match field meta.lkup_dst_ip_addr
+    match {
+      field_id: 3
+      exact {
+        value: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x35\xE0\xF0\x1E"
+      }
+    }
+    # Action dash_ingress.outbound.set_tunnel_mapping
+    action {
+      action {
+        action_id: 25450412
+        # Param underlay_dip
+        params {
+          param_id: 1
+          value: "\xDA\xE2\xD7\xD1"
+        }
+        # Param overlay_dmac
+        params {
+          param_id: 2
+          value: "\x00\x00\x00\x00\x00\x00"
+        }
+        # Param use_dst_vnet_vni
+        params {
+          param_id: 3
+          value: "\x01"
+        }
+        # Param meter_class
+        params {
+          param_id: 4
+          value: "\xB3\xCE"
+        }
+        # Param meter_class_override
+        params {
+          param_id: 5
+          value: "\x01"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.outbound.vnet
+entities {
+  table_entry {
+    table_id: 34815711
+    # Match field meta.vnet_id
+    match {
+      field_id: 1
+      exact {
+        value: "\xBC\x74"
+      }
+    }
+    # Action dash_ingress.outbound.set_vnet_attrs
+    action {
+      action {
+        action_id: 17187022
+        # Param vni
+        params {
+          param_id: 1
+          value: "\x00\x00\x00"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.underlay.underlay_routing
+entities {
+  table_entry {
+    table_id: 49279256
+    # Match field meta.dst_ip_addr
+    match {
+      field_id: 1
+      lpm {
+        value: "\x00\x00\x00\x88\x0C\xAB\x70\xAA\x0A\xFB\xFE\xA8\x31\xE2\xD1\xB6"
+        prefix_len: 24
+      }
+    }
+    # Action dash_ingress.underlay.pkt_act
+    action {
+      action {
+        action_id: 32404057
+        # Param packet_action
+        params {
+          param_id: 1
+          value: "\x00\x00"
+        }
+        # Param next_hop_id
+        params {
+          param_id: 2
+          value: "\x00\x00"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.meter_policy
+entities {
+  table_entry {
+    table_id: 39168708
+    # Match field meta.meter_policy_id
+    match {
+      field_id: 1
+      exact {
+        value: "\x50\x63"
+      }
+    }
+    # Action dash_ingress.check_ip_addr_family
+    action {
+      action {
+        action_id: 31945207
+        # Param ip_addr_family
+        params {
+          param_id: 1
+          value: "\x00\x00\x00\x00"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.meter_rule
+entities {
+  table_entry {
+    table_id: 34535910
+    priority: 1
+    # Match field meta.meter_policy_id
+    match {
+      field_id: 1
+      exact {
+        value: "\x50\x63"
+      }
+    }
+    # Match field hdr.ipv4.dst_addr
+    match {
+      field_id: 2
+      ternary {
+        value: "\x98\xC2\x16\x51"
+        mask: "\x00\x00\x00\x00"
+      }
+    }
+    # Action dash_ingress.set_policy_meter_class
+    action {
+      action {
+        action_id: 24426589
+        # Param meter_class
+        params {
+          param_id: 1
+          value: "\x00\x00"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.meter_bucket
+entities {
+  table_entry {
+    table_id: 38547152
+    # Match field meta.eni_id
+    match {
+      field_id: 1
+      exact {
+        value: "\xCC\x53"
+      }
+    }
+    # Match field meta.meter_class
+    match {
+      field_id: 2
+      exact {
+        value: "\xB3\xCE"
+      }
+    }
+    # Action dash_ingress.meter_bucket_action
+    action {
+      action {
+        action_id: 23500411
+        # Param outbound_bytes_counter
+        params {
+          param_id: 1
+          value: "\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+        # Param inbound_bytes_counter
+        params {
+          param_id: 2
+          value: "\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+        # Param meter_bucket_index
+        params {
+          param_id: 3
+          value: "\x00\x00\x00\x00"
+        }
+      }
+    }
+  }
+}
+# Table dash_ingress.eni_meter
+entities {
+  table_entry {
+    table_id: 40418231
+    # Match field meta.direction
+    match {
+      field_id: 2
+      exact {
+        value: "\x00\x01"
+      }
+    }
+    # Match field meta.dropped
+    match {
+      field_id: 3
+      exact {
+        value: "\x01"
+      }
+    }
+    # Match field meta.eni_id
+    match {
+      field_id: 1
+      exact {
+        value: "\xCC\x53"
+      }
+    }
+    # Action NoAction
+    action {
+      action {
+        action_id: 21257015
+      }
+    }
+  }
+}

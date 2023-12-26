@@ -112,8 +112,49 @@ std::optional<bool> ReachabilityMap::computeNodeReachability(
     return hasChanged;
 }
 
+std::optional<bool> ReachabilityMap::recomputeReachability(
+    const SymbolSet &symbolSet, AbstractSolver &solver,
+    const ControlPlaneConstraints &controlPlaneConstraints) {
+    NodeSet targetNodes;
+    for (const auto &symbol : symbolSet) {
+        auto it = symbolMap.find(symbol);
+        if (it != symbolMap.end()) {
+            for (const auto *node : it->second) {
+                targetNodes.insert(node);
+            }
+        }
+    }
+    return recomputeReachability(targetNodes, solver, controlPlaneConstraints);
+}
+
+std::optional<bool> ReachabilityMap::recomputeReachability(
+    const NodeSet &targetNodes, AbstractSolver &solver,
+    const ControlPlaneConstraints &controlPlaneConstraints) {
+    /// Generate IR equalities from the control plane constraints.
+    std::vector<const Constraint *> constraints;
+    for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
+        constraints.push_back(controlPlaneConstraint.get().computeControlPlaneConstraint());
+    }
+    bool hasChanged = false;
+    for (const auto *node : targetNodes) {
+        auto result = computeNodeReachability(node, solver, constraints);
+        if (!result.has_value()) {
+            return std::nullopt;
+        }
+        hasChanged |= result.value();
+    }
+    return hasChanged;
+}
+
 bool ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
                                                     const IR::Expression *cond) {
+    SymbolCollector collector;
+    cond->apply(collector);
+    const auto &collectedSymbols = collector.getCollectedSymbols();
+    for (const auto &symbol : collectedSymbols) {
+        symbolMap[symbol].emplace(node);
+    }
+
     return emplace(node, cond).second;
 }
 

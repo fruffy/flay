@@ -68,10 +68,10 @@ class TableConfiguration : public ControlPlaneItem {
     bool operator<(const ControlPlaneItem &other) const override;
 
     /// Adds a new table entry.
-    void addTableEntry(const TableMatchEntry &tableMatchEntry);
+    int addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace);
 
-    /// Remove an existing table entry.
-    void removeTableEntry(const TableMatchEntry &tableMatchEntry);
+    /// Delete an existing table entry.
+    size_t deleteTableEntry(const TableMatchEntry &tableMatchEntry);
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 };

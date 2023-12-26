@@ -111,9 +111,10 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
         if (!deserializedConfig.has_value()) {
             return std::nullopt;
         }
+        SymbolSet symbolSet;
         if (ProtobufDeserializer::updateControlPlaneConstraints(
-                deserializedConfig.value(), compilerResult.getP4RuntimeNodeMap(), constraints) !=
-            EXIT_SUCCESS) {
+                deserializedConfig.value(), compilerResult.getP4RuntimeNodeMap(), constraints,
+                symbolSet) != EXIT_SUCCESS) {
             return std::nullopt;
         }
         return constraints;
