@@ -171,9 +171,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     auto &controlPlaneState = getControlPlaneState();
 
     // First, we compute the hit condition to trigger this particular action call.
-    const auto *tableActiveVar =
-        controlPlaneState.allocateControlPlaneTable(table.controlPlaneName());
-    const auto *hitCondition = new IR::LAnd(tableActiveVar, computeKey(key));
+    const auto *hitCondition = computeKey(key);
     const auto *actionPath = TableUtils::getDefaultActionName(table);
     ReturnProperties retProperties{hitCondition, new IR::StringLiteral(actionPath->toString())};
     for (const auto *action : tableActionList) {
@@ -304,6 +302,8 @@ const IR::Expression *TableExecutor::processTable() {
              new IR::NamedExpression("action_run", retProperties.actionRun),
              new IR::NamedExpression("table_name", new IR::StringLiteral(tableName))});
     }
+
+    getControlPlaneState().allocateControlPlaneTable(table);
 
     const auto *tableActionID = ControlPlaneState::getTableActionChoice(tableName);
     // Execute all other possible action options. Get the combination of all possible hits.

@@ -15,7 +15,7 @@ add_library(flay_grpc STATIC ${FLAY_GRPC_SOURCES})
 target_include_directories(
   flay_grpc SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIR} ${GRPC_INCLUDE_DIR}
 )
-target_link_libraries(flay_grpc grpc++)
+target_link_libraries(flay_grpc grpc++ p4tools-control-plane)
 
 # ##################################################################################################
 # Flay Service Client #

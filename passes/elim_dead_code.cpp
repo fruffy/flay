@@ -2,72 +2,41 @@
 
 #include <optional>
 
-#include "backends/p4tools/common/lib/logging.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
 
-ElimDeadCode::ElimDeadCode(const ExecutionState &executionState, AbstractSolver &solver)
-    : executionState(executionState), solver(solver) {}
+ElimDeadCode::ElimDeadCode(const ReachabilityMap &reachabilityMap)
+    : reachabilityMap(reachabilityMap) {}
 
 const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
-    const auto *condition = executionState.get().getReachabilityCondition(stmt, false);
-    if (condition == nullptr) {
-        ::warning(
+    auto conditionOpt = reachabilityMap.get().getReachabilityExpression(stmt);
+    if (!conditionOpt.has_value()) {
+        ::error(
             "Unable to find node %1% in the reachability map of this execution state. There might "
             "be "
             "issues with the source information.",
             stmt);
         return stmt;
     }
+    auto condition = conditionOpt.value();
+    auto reachability = condition.getReachability();
 
-    /// Merge the execution condition with the overall constraints.
-    std::vector<const Constraint *> mergedConstraints(controlPlaneConstraintExprs);
-    mergedConstraints.push_back(condition);
-    auto solverResult = solver.get().checkSat(mergedConstraints);
-    if (solverResult == std::nullopt) {
-        return stmt;
-    }
-    /// There is no way to satisfy the condition. This means we can not ever
-    /// execute the true branch.
-    if (!solverResult.value()) {
-        deletedCode = true;
-        ::warning("%1% can be deleted.", stmt->ifTrue);
+    if (reachability) {
+        ::warning("%1% condition can be deleted.", stmt->condition);
+        if (reachability.value()) {
+            if (stmt->ifFalse != nullptr) {
+                ::warning("%1% false branch can be deleted.", stmt->ifFalse);
+            }
+            return stmt->ifTrue;
+        }
+        ::warning("%1% true branch can be deleted.", stmt->ifTrue);
         if (stmt->ifFalse != nullptr) {
             return stmt->ifFalse;
         }
         return new IR::EmptyStatement();
     }
     return stmt;
-}
-
-ElimDeadCode::profile_t ElimDeadCode::init_apply(const IR::Node *root) {
-    for (auto controlPlaneConstraint : controlPlaneConstraints) {
-        controlPlaneConstraintExprs.push_back(
-            new IR::Equ(&controlPlaneConstraint.first.get(), controlPlaneConstraint.second));
-    }
-    return Transform::init_apply(root);
-}
-
-void ElimDeadCode::end_apply() {
-    if (deletedCode) {
-        printInfo("Dead code found.\n");
-    } else {
-        printInfo("No dead code found.\n");
-    }
-}
-
-void ElimDeadCode::addControlPlaneConstraints(
-    const ControlPlaneConstraints &newControlPlaneConstraints) {
-    controlPlaneConstraints.insert(newControlPlaneConstraints.begin(),
-                                   newControlPlaneConstraints.end());
-}
-
-void ElimDeadCode::removeControlPlaneConstraints(
-    const ControlPlaneConstraints &newControlPlaneConstraints) {
-    for (const auto &constraint : newControlPlaneConstraints) {
-        controlPlaneConstraints.erase(constraint.first);
-    }
 }
 
 }  // namespace P4Tools::Flay

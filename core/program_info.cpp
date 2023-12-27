@@ -6,7 +6,8 @@
 
 namespace P4Tools::Flay {
 
-ProgramInfo::ProgramInfo(const IR::P4Program *program) : program(program) {}
+ProgramInfo::ProgramInfo(const FlayCompilerResult &compilerResult)
+    : compilerResult(compilerResult) {}
 
 /* =============================================================================================
  *  Getters
@@ -16,7 +17,9 @@ const std::vector<const IR::Node *> *ProgramInfo::getPipelineSequence() const {
     return &pipelineSequence;
 }
 
-const IR::P4Program *ProgramInfo::getProgram() const { return program; }
+const FlayCompilerResult &ProgramInfo::getCompilerResult() const { return compilerResult.get(); }
+
+const IR::P4Program &ProgramInfo::getP4Program() const { return getCompilerResult().getProgram(); }
 
 cstring ProgramInfo::getCanonicalBlockName(cstring programBlockName) const {
     auto it = blockMap.find(programBlockName);

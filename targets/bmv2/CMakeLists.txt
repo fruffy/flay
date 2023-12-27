@@ -8,6 +8,7 @@ endif()
 set(FLAY_SOURCES
     ${FLAY_SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/constants.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/control_plane_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/expression_resolver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/program_info.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/stepper.cpp

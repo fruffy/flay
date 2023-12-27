@@ -14,7 +14,7 @@ class Bmv2ControlPlaneState : public ControlPlaneState {
     /// @returns the symbolic session id variable.
     static const IR::SymbolicVariable *getSessionId(const IR::Type *type);
 
-    const IR::SymbolicVariable *allocateControlPlaneTable(cstring tableName) override;
+    int allocateControlPlaneTable(const IR::P4Table &table) override;
 
     /// Initializes a control plane session default assignment and returns the appropriate variable.
     const IR::SymbolicVariable *allocateCloneSession();

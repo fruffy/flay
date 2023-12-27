@@ -16,9 +16,10 @@
 
 namespace P4Tools::Flay::V1Model {
 
-V1ModelProgramInfo::V1ModelProgramInfo(
-    const IR::P4Program *program, ordered_map<cstring, const IR::Type_Declaration *> inputBlocks)
-    : ProgramInfo(program), programmableBlocks(std::move(inputBlocks)) {
+Bmv2V1ModelProgramInfo::Bmv2V1ModelProgramInfo(
+    const FlayCompilerResult &compilerResult,
+    ordered_map<cstring, const IR::Type_Declaration *> inputBlocks)
+    : ProgramInfo(compilerResult), programmableBlocks(std::move(inputBlocks)) {
     // Just concatenate everything together.
     // Iterate through the (ordered) pipes of the target architecture.
     const auto *archSpec = FlayTarget::getArchSpec();
@@ -44,11 +45,11 @@ V1ModelProgramInfo::V1ModelProgramInfo(
 }
 
 const ordered_map<cstring, const IR::Type_Declaration *>
-    *V1ModelProgramInfo::getProgrammableBlocks() const {
+    *Bmv2V1ModelProgramInfo::getProgrammableBlocks() const {
     return &programmableBlocks;
 }
 
-std::vector<const IR::Node *> V1ModelProgramInfo::processDeclaration(
+std::vector<const IR::Node *> Bmv2V1ModelProgramInfo::processDeclaration(
     const IR::Type_Declaration *typeDecl, size_t /*blockIdx*/) const {
     // Collect parameters.
     const auto *applyBlock = typeDecl->to<IR::IApply>();
@@ -63,8 +64,8 @@ std::vector<const IR::Node *> V1ModelProgramInfo::processDeclaration(
     return cmds;
 }
 
-const IR::PathExpression *V1ModelProgramInfo::getBlockParam(cstring blockLabel,
-                                                            size_t paramIndex) const {
+const IR::PathExpression *Bmv2V1ModelProgramInfo::getBlockParam(cstring blockLabel,
+                                                                size_t paramIndex) const {
     // Retrieve the block and get the parameter type.
     // TODO: This should be necessary, we should be able to this using only the arch spec.
     // TODO: Make this more general and lift it into program_info core.
@@ -77,13 +78,17 @@ const IR::PathExpression *V1ModelProgramInfo::getBlockParam(cstring blockLabel,
     const auto *paramType = param->type;
     // For convenience, resolve type names.
     if (const auto *tn = paramType->to<IR::Type_Name>()) {
-        paramType = resolveProgramType(getProgram(), tn);
+        paramType = resolveProgramType(&getP4Program(), tn);
     }
 
     const auto *archSpec = FlayTarget::getArchSpec();
     auto archIndex = archSpec->getBlockIndex(blockLabel);
     auto archRef = archSpec->getParamName(archIndex, paramIndex);
     return new IR::PathExpression(paramType, new IR::Path(archRef));
+}
+
+const FlayCompilerResult &Bmv2V1ModelProgramInfo::getCompilerResult() const {
+    return *ProgramInfo::getCompilerResult().checkedTo<FlayCompilerResult>();
 }
 
 }  // namespace P4Tools::Flay::V1Model

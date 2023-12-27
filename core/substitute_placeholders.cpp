@@ -8,11 +8,11 @@ const IR::Expression *SubstitutePlaceHolders::SymbolizePlaceHolders::postorder(
 }
 
 const IR::Expression *SubstitutePlaceHolders::postorder(IR::Placeholder *placeholder) {
-    auto &executionState = state.get();
+    const auto &executionState = state.get();
     auto optValue = executionState.getPlaceholderValue(*placeholder);
     if (optValue.has_value()) {
         /// Resolve any placeholders that are part of the return value as symbolic variables.
-        auto value = optValue.value();
+        const auto *value = optValue.value();
         return value->apply(symbolizer);
     }
     return placeholder->defaultValue;

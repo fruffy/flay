@@ -17,10 +17,6 @@
 
 namespace P4Tools::Flay {
 
-bool SourceIdCmp::operator()(const IR::Node *s1, const IR::Node *s2) const {
-    return s1->srcInfo < s2->srcInfo;
-}
-
 ExecutionState::ExecutionState(const IR::P4Program *program)
     : AbstractExecutionState(program), executionCondition(IR::getBoolLiteral(true)) {}
 
@@ -98,6 +94,8 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
     const auto *cond = mergeState.getExecutionCondition();
     cond = cond->apply(CollapseMux());
     const auto &mergeEnv = mergeState.getSymbolicEnv();
+    reachabilityMap.mergeReachabilityMapping(mergeState.getReachabilityMap());
+
     if (const auto *boolExpr = cond->to<IR::BoolLiteral>()) {
         // If the condition is false, do nothing. If it is true, set all the values.
         if (boolExpr->value) {
@@ -124,27 +122,24 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
             }
         }
     }
-
-    for (const auto &rechabilityTuple : mergeState.getReachabilityMap()) {
-        reachabilityMap.insert(rechabilityTuple);
-    }
 }
 
 const ReachabilityMap &ExecutionState::getReachabilityMap() const { return reachabilityMap; }
 
-const IR ::Expression *ExecutionState::getReachabilityCondition(const IR::Node *node,
-                                                                bool checked) const {
-    auto it = reachabilityMap.find(node);
-    if (it != reachabilityMap.end()) {
-        return it->second;
-    }
-    BUG_CHECK(!checked, "Unable to find node %1% with source info %2% in the reachability map.",
-              node, node->srcInfo.toPositionString());
-    return nullptr;
-}
-
 void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expression *cond) {
-    reachabilityMap[node] = new IR::LAnd(getExecutionCondition(), cond);
+    // TODO: Think about better handling of these types of errors?
+    if (!node->getSourceInfo().isValid()) {
+        return;
+    }
+
+    if (!reachabilityMap.initializeReachabilityMapping(
+            node, new IR::LAnd(getExecutionCondition(), cond))) {
+        // Throw a fatal error if we try to add a duplicate mapping.
+        // This can affect the correctness of the entire mapping.
+        BUG("Reachability mapping for node %1% already exists. Every mapping must be uniquely "
+            "identifiable.",
+            node);
+    }
 }
 
 void ExecutionState::setPlaceholderValue(cstring label, const IR::Expression *value) {
@@ -162,16 +157,10 @@ std::optional<const IR::Expression *> ExecutionState::getPlaceholderValue(
     return std::nullopt;
 }
 
-const ExecutionState &ExecutionState::substitutePlaceholders() const {
+void ExecutionState::substitutePlaceholders() {
     Util::ScopedTimer timer("Placeholder Substitution");
-    auto &substitutionState = clone();
     auto substitute = SubstitutePlaceHolders(*this);
-    for (const auto &rechabilityTuple : substitutionState.reachabilityMap) {
-        const auto *substitutedExpression = rechabilityTuple.second;
-        substitutionState.reachabilityMap[rechabilityTuple.first] =
-            substitutedExpression->apply(substitute);
-    }
-    return substitutionState;
+    reachabilityMap.substitutePlaceholders(substitute);
 }
 
 /* =========================================================================================

@@ -4,11 +4,9 @@ project(flay)
 # Add cmake directory to our module path. Also add cmake directory from P4C
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-
 # Declare common P4Flay variables.
 set(FLAY_DIR ${P4C_BINARY_DIR}/flay)
 set(FLAY_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4flay")
-
 
 # ############### Protobuf generation
 set(FLAY_P4RUNTIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf)
@@ -59,14 +57,17 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/options.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/flay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf/protobuf.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/control_plane_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/id_to_ir_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/symbolic_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/collapse_mux.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler_target.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/execution_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/expression_resolver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/externs.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/parser_stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/program_info.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/reachability.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/substitute_placeholders.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/symbolic_executor.cpp
@@ -76,7 +77,7 @@ set(FLAY_SOURCES
 )
 
 # Flay libraries.
-set(FLAY_LIBS p4tools-common flay_runtime)
+set(FLAY_LIBS p4tools-common flay_runtime p4tools-control-plane)
 
 file(GLOB flay_targets RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/targets
      ${CMAKE_CURRENT_SOURCE_DIR}/targets/*

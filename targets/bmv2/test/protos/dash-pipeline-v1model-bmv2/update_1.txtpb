@@ -1,0 +1,243 @@
+# Table dash_ingress.appliance
+updates {
+  entity {
+    table_entry {
+      table_id: 40418231
+      # Match field meta.direction
+      match {
+        field_id: 2
+        exact {
+          value: "\x00\x01"
+        }
+      }
+      # Match field meta.dropped
+      match {
+        field_id: 3
+        exact {
+          value: "\x01"
+        }
+      }
+      # Match field meta.eni_id
+      match {
+        field_id: 1
+        exact {
+          value: "\xDD\x51"
+        }
+      }
+      # Action NoAction
+      action {
+        action {
+          action_id: 21257015
+        }
+      }
+    }
+  }
+  type: MODIFY
+}
+
+# Table dash_ingress.direction_lookup
+updates {
+  type: MODIFY
+  entity {
+  table_entry {
+    table_id: 45670434
+    # Match field hdr.vxlan.vni
+    match {
+      field_id: 1
+      exact {
+        value: "\x9B\x96\x8D"
+      }
+    }
+    # Action dash_ingress.set_outbound_direction
+    action {
+      action {
+        action_id: 21912829
+      }
+    }
+  }
+}}
+# Table dash_ingress.appliance
+updates {
+  type: MODIFY
+  entity {
+  table_entry {
+    table_id: 42701762
+    priority: 1
+    # Match field meta.appliance_id
+    match {
+      field_id: 1
+      ternary {
+        value: "\x00"
+        mask: "\x00"
+      }
+    }
+    # Action dash_ingress.set_appliance
+    action {
+      action {
+        action_id: 21793905
+        # Param neighbor_mac
+        params {
+          param_id: 1
+          value: "\x00\x00\x00\x00\x00\x00"
+        }
+        # Param mac
+        params {
+          param_id: 2
+          value: "\x00\x00\x00\x00\x00\x00"
+        }
+      }
+    }
+  }
+}}
+# Table dash_ingress.acl_group
+updates {
+  type: MODIFY
+  entity {
+  table_entry {
+    table_id: 50200087
+    # Match field meta.stage1_dash_acl_group_id
+    match {
+      field_id: 1
+      exact {
+        value: "\x00\x00"
+      }
+    }
+    # Action dash_ingress.set_acl_group_attrs
+    action {
+      action {
+        action_id: 25655048
+        # Param ip_addr_family
+        params {
+          param_id: 1
+          value: "\xF5\x1F\x0E\xE0"
+        }
+      }
+    }
+  }
+}}
+# Table dash_ingress.outbound.routing
+updates {
+  type: MODIFY
+  entity {
+  table_entry {
+    table_id: 44067785
+    # Match field meta.eni_id
+    match {
+      field_id: 1
+      exact {
+        value: "\x00\x00"
+      }
+    }
+    # Match field meta.is_overlay_ip_v6
+    match {
+      field_id: 2
+      exact {
+        value: "\x01"
+      }
+    }
+    # Match field meta.dst_ip_addr
+    match {
+      field_id: 3
+      lpm {
+        value: "\xC1\x83\x43\x6C\x98\x1A\x94\x31\xA1\x6C\x23\xB7\x10\x33\xB5\x71"
+        prefix_len: 116
+      }
+    }
+    # Action dash_ingress.outbound.route_vnet
+    action {
+      action {
+        action_id: 25364446
+        # Param dst_vnet_id
+        params {
+          param_id: 1
+          value: "\x00\x00"
+        }
+        # Param meter_policy_en
+        params {
+          param_id: 2
+          value: "\x00"
+        }
+        # Param meter_class
+        params {
+          param_id: 3
+          value: "\xBE\x25"
+        }
+      }
+    }
+  }
+}}
+# Table dash_ingress.underlay.underlay_routing
+updates {
+  type: MODIFY
+  entity {
+  table_entry {
+    table_id: 49279256
+    # Match field meta.dst_ip_addr
+    match {
+      field_id: 1
+      lpm {
+        value: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        prefix_len: 0
+      }
+    }
+    # Action dash_ingress.underlay.pkt_act
+    action {
+      action {
+        action_id: 32404057
+        # Param packet_action
+        params {
+          param_id: 1
+          value: "\x00\x00"
+        }
+        # Param next_hop_id
+        params {
+          param_id: 2
+          value: "\x00\x00"
+        }
+      }
+    }
+  }
+}}
+# Table dash_ingress.meter_bucket
+updates {
+  type: MODIFY
+  entity {
+  table_entry {
+    table_id: 38547152
+    # Match field meta.eni_id
+    match {
+      field_id: 1
+      exact {
+        value: "\x00\x00"
+      }
+    }
+    # Match field meta.meter_class
+    match {
+      field_id: 2
+      exact {
+        value: "\xBE\x25"
+      }
+    }
+    # Action dash_ingress.meter_bucket_action
+    action {
+      action {
+        action_id: 23500411
+        # Param outbound_bytes_counter
+        params {
+          param_id: 1
+          value: "\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+        # Param inbound_bytes_counter
+        params {
+          param_id: 2
+          value: "\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+        # Param meter_bucket_index
+        params {
+          param_id: 3
+          value: "\x00\x00\x00\x00"
+        }
+      }
+    }
+  }
+}}

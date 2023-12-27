@@ -22,11 +22,12 @@ class V1ModelFlayTarget : public FlayTarget {
     static void make();
 
  protected:
-    const ProgramInfo *initProgramImpl(const IR::P4Program *program,
-                                       const IR::Declaration_Instance *mainDecl) const override;
+    const ProgramInfo *produceProgramInfoImpl(
+        const CompilerResult &compilerResult,
+        const IR::Declaration_Instance *mainDecl) const override;
 
-    std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
-        const IR::P4Program &program, const FlayOptions &options,
+    [[nodiscard]] std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
+        const FlayCompilerResult &compilerResult, const FlayOptions &options,
         const ControlPlaneState &controlPlaneState) const override;
 
     [[nodiscard]] Bmv2ControlPlaneState &initializeControlPlaneStateImpl() const override;
