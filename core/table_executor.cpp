@@ -203,6 +203,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
                 parameter->type);
             arguments.push_back(new IR::Argument(actionArg));
         }
+        state.addReachabilityMapping(action, actionHitCondition);
         callAction(getProgramInfo(), actionState, controlPlaneState, actionType, arguments);
         // Finally, merge in the state of the action call.
         state.merge(actionState);

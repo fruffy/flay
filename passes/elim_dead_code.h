@@ -21,7 +21,9 @@ class ElimDeadCode : public Transform {
 
     explicit ElimDeadCode(const ReachabilityMap &reachabilityMap);
 
-    const IR::Node *postorder(IR::IfStatement *stmt) override;
+    const IR::Node *preorder(IR::IfStatement *stmt) override;
+    const IR::Node *preorder(IR::SwitchStatement *switchStmt) override;
+    const IR::Node *preorder(IR::P4Table *table) override;
 };
 
 }  // namespace P4Tools::Flay
