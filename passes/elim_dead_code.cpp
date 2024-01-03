@@ -1,7 +1,9 @@
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 
 #include <optional>
+#include <utility>
 
+#include "backends/p4tools/common/lib/table_utils.h"
 #include "ir/indexed_vector.h"
 #include "ir/node.h"
 #include "ir/vector.h"
@@ -9,8 +11,8 @@
 
 namespace P4Tools::Flay {
 
-ElimDeadCode::ElimDeadCode(const ReachabilityMap &reachabilityMap)
-    : reachabilityMap(reachabilityMap) {}
+ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap, const ReachabilityMap &reachabilityMap)
+    : reachabilityMap(reachabilityMap), refMap(refMap) {}
 
 const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     auto conditionOpt = reachabilityMap.get().getReachabilityExpression(stmt);
@@ -82,22 +84,67 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
     return switchStmt;
 }
 
-cstring getActionName(const IR::Expression *methodCallExpr) {
-    const auto *tableAction = methodCallExpr->checkedTo<IR::MethodCallExpression>();
-    const auto *actionPath = tableAction->method->checkedTo<IR::PathExpression>();
-    return actionPath->path->name.name;
+std::optional<cstring> getActionName(const IR::Expression *expr) {
+    if (const auto *tableAction = expr->to<IR::MethodCallExpression>()) {
+        const auto *actionPath = tableAction->method->to<IR::PathExpression>();
+        if (actionPath == nullptr) {
+            ::error("Action reference %1% is not a path expression.", tableAction->method);
+            return std::nullopt;
+        }
+        return actionPath->path->name.name;
+    }
+    if (const auto *tableAction = expr->to<IR::PathExpression>()) {
+        return tableAction->path->name.name;
+    }
+    ::error("Unsupported action reference %1%.", expr);
+    return std::nullopt;
 }
 
-const IR::Node *ElimDeadCode::preorder(IR::P4Table *table) {
+const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
+    const auto *call = stmt->methodCall->method->to<IR::Member>();
+    if (call == nullptr || call->member != IR::IApply::applyMethodName) {
+        return stmt;
+    }
+    const auto *tableReference = call->expr->to<IR::PathExpression>();
+    if (tableReference == nullptr) {
+        return stmt;
+    }
+
+    const auto *tableDecl = refMap.get().getDeclaration(tableReference->path, false);
+    if (tableDecl == nullptr) {
+        return stmt;
+    }
+    const auto *table = tableDecl->to<IR::P4Table>();
+    if (table == nullptr) {
+        return stmt;
+    }
+
     IR::IndexedVector<IR::ActionListElement> filteredActionList;
+    cstring defaultActionName = "NoAction";
     const auto *defaultAction = table->getDefaultAction();
-    for (const auto *action : table->getActionList()->actionList) {
+    // If there is no default action set, assume "NoAction".
+    if (defaultAction != nullptr) {
+        auto defaultActionNameOpt = getActionName(defaultAction);
+        if (!defaultActionNameOpt.has_value()) {
+            return stmt;
+        }
+        defaultActionName = defaultActionNameOpt.value();
+    }
+    auto tableActionList = TableUtils::buildTableActionList(*table);
+
+    for (const auto *action : tableActionList) {
+        // Do not check the default action.
+        auto actionName = action->getName();
+        if (actionName == defaultActionName) {
+            continue;
+        }
         auto conditionOpt = reachabilityMap.get().getReachabilityExpression(action);
         if (!conditionOpt.has_value()) {
             ::error(
                 "Unable to find node %1% in the reachability map of this execution state. There "
                 "might be issues with the source information.",
                 action);
+            continue;
         }
         auto condition = conditionOpt.value();
         auto reachabilityOpt = condition.getReachability();
@@ -113,19 +160,13 @@ const IR::Node *ElimDeadCode::preorder(IR::P4Table *table) {
         }
     }
 
-    auto *properties = table->properties->clone();
-    auto &propertyVector = properties->properties;
-    for (const auto it = propertyVector.begin(); it != propertyVector.end();) {
-        const auto *property = *it;
-        if (property->is<IR::Property>() &&
-            property->to<IR::Property>()->name.name == IR::TableProperties::actionsPropertyName) {
-            propertyVector.erase(it);
-        }
+    // There is no action to execute other than NoAction, remove the table.
+    if (filteredActionList.size() == 0 && defaultActionName == "NoAction") {
+        ::warning("Removing %1%", stmt);
+        return nullptr;
     }
-    propertyVector.push_back(new IR::Property(IR::TableProperties::actionsPropertyName,
-                                              new IR::ActionList(filteredActionList), false));
-    table->properties = properties;
-    return table;
+
+    return stmt;
 }
 
 }  // namespace P4Tools::Flay

@@ -45,6 +45,9 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// Keeps track of how often the semantics have changed after an update.
     uint64_t semanticsChangeCounter = 0;
 
+    /// A map to look up declaration references.
+    P4::ReferenceMap refMap;
+
  public:
     explicit FlayService(const IR::P4Program *originalProgram,
                          const FlayCompilerResult &compilerResult, ReachabilityMap reachabilityMap,
