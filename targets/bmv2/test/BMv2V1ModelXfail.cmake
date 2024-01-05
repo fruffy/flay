@@ -86,6 +86,10 @@ p4tools_add_xfail_reason(
   issue2345-multiple_dependencies.p4
   issue1765-1-bmv2.p4
   issue2345-with_nested_if.p4
+  gauntlet_exit_combination_1-bmv2.p4
+  gauntlet_exit_combination_11-bmv2.p4
+  gauntlet_exit_combination_16-bmv2.p4
+  issue420.p4
 )
 
 # We are trying to map a duplicate condition to the reachability map.
