@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <future>
 
 #include "backends/p4tools/modules/flay/core/reachability.h"
 #include "ir/solver.h"
@@ -44,6 +45,12 @@ class FlayService final : public p4::v1::P4Runtime::Service {
 
     /// Keeps track of how often the semantics have changed after an update.
     uint64_t semanticsChangeCounter = 0;
+
+    /// A map to look up declaration references.
+    P4::ReferenceMap refMap;
+
+    /// For exiting the gRPC server (useful for benchmarking).
+    std::promise<void> exit_requested;
 
  public:
     explicit FlayService(const IR::P4Program *originalProgram,

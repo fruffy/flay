@@ -57,7 +57,9 @@ FlayService::FlayService(const IR::P4Program *originalProgram,
       compilerResult(compilerResult),
       reachabilityMap(std::move(reachabilityMap)),
       solver(solver),
-      controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {}
+      controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
+    originalProgram->apply(ReferenceResolver(refMap));
+}
 
 grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
                                 const p4::v1::WriteRequest *request,
@@ -75,7 +77,6 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
         return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
     }
     P4Tools::printPerformanceReport();
-
     return grpc::Status::OK;
 }
 
@@ -112,10 +113,14 @@ int FlayService::elimControlPlaneDeadCode(
     }
     printInfo("Dead code that can be removed detected.");
     semanticsChangeCounter++;
-    prunedProgram = originalProgram->apply(ElimDeadCode(reachabilityMap));
+
+    prunedProgram = originalProgram->apply(ElimDeadCode(refMap, reachabilityMap));
+    auto statementCountBefore = countStatements(originalProgram);
+    auto statementCountAfter = countStatements(prunedProgram);
+    float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
+                                         static_cast<float>(statementCountBefore));
     printInfo("Number of statements - Before: %1% After: %2% Total reduction percentage = %3%%%",
-              countStatements(originalProgram), countStatements(prunedProgram),
-              measureSizeDifference(originalProgram, prunedProgram));
+              statementCountBefore, statementCountAfter, stmtPct);
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -131,7 +136,14 @@ bool FlayService::startServer(const std::string &serverAddress) {
     }
 
     printInfo("Flay service listening on: %1%", serverAddress);
-    server->Wait();
+
+    auto serveFn = [&]() { server->Wait(); };
+    std::thread servingThread(serveFn);
+
+    auto f = exit_requested.get_future();
+    f.wait();
+    server->Shutdown();
+    servingThread.join();
     return true;
 }
 

@@ -203,6 +203,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
                 parameter->type);
             arguments.push_back(new IR::Argument(actionArg));
         }
+        state.addReachabilityMapping(action, actionHitCondition);
         callAction(getProgramInfo(), actionState, controlPlaneState, actionType, arguments);
         // Finally, merge in the state of the action call.
         state.merge(actionState);
@@ -275,9 +276,16 @@ const IR::Expression *TableExecutor::processTable() {
     TableUtils::TableProperties properties;
     TableUtils::checkTableImmutability(table, properties);
 
-    // First, resolve the key.
+    // First, execute the default action.
+    processDefaultAction();
+
+    // Then, resolve the key.
     const auto *key = getP4Table().getKey();
     if (key == nullptr) {
+        auto tableActionList = TableUtils::buildTableActionList(table);
+        for (const auto *action : tableActionList) {
+            getExecutionState().addReachabilityMapping(action, IR::getBoolLiteral(false));
+        }
         const auto *actionPath = TableUtils::getDefaultActionName(getP4Table());
         return new IR::StructExpression(
             nullptr,
@@ -287,9 +295,6 @@ const IR::Expression *TableExecutor::processTable() {
              new IR::NamedExpression("table_name", new IR::StringLiteral(tableName))});
     }
     key = resolveKey(key);
-
-    // Execute the default action.
-    processDefaultAction();
 
     // If the table is immutable, we can not add control-plane entries.
     // We can only execute pre-existing entries.

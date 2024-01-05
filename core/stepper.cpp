@@ -161,7 +161,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
     const auto *switchExpr = resolver.computeResult(switchStatement->expression);
 
     const IR::Expression *cond = IR::getBoolLiteral(false);
-    std::vector<const IR::Statement *> accumulatedStatements;
+    std::vector<const IR::SwitchCase *> accumulatedSwitchCases;
     std::vector<const IR::Expression *> notConds;
     std::vector<std::reference_wrapper<const ExecutionState>> accumulatedStates;
     for (const auto *switchCase : switchStatement->cases) {
@@ -177,12 +177,12 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             switchCaseLabel = new IR::StringLiteral(path->path->name);
         }
         cond = new IR::LOr(cond, new IR::Equ(switchExpr, switchCaseLabel));
+        // We fall through, so add the statements to execute to a list.
+        accumulatedSwitchCases.push_back(switchCase);
         // Nothing to do with this statement. Fall through to the next case.
         if (switchCase->statement == nullptr) {
             continue;
         }
-        // We fall through, so add the statements to execute to a list.
-        accumulatedStatements.push_back(switchCase->statement);
 
         // If the statement is a block, we do not fall through and terminate execution.
         if (switchCase->statement->is<IR::BlockStatement>()) {
@@ -199,10 +199,14 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             caseState.pushExecutionCondition(finalCond);
             // Execute the state with the accumulated statements.
             auto &switchStepper = FlayTarget::getStepper(programInfo, caseState, controlPlaneState);
-            for (const auto *statement : accumulatedStatements) {
-                statement->apply(switchStepper);
+            for (const auto *switchCase : accumulatedSwitchCases) {
+                // Add the switch case to the reachability map.
+                executionState.addReachabilityMapping(switchCase, finalCond);
+                if (switchCase->statement != nullptr) {
+                    switchCase->statement->apply(switchStepper);
+                }
             }
-            accumulatedStatements.clear();
+            accumulatedSwitchCases.clear();
             // Save the state for  later merging.
             accumulatedStates.emplace_back(caseState);
         }
