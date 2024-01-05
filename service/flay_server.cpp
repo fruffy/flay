@@ -77,7 +77,6 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
         return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
     }
     P4Tools::printPerformanceReport();
-
     return grpc::Status::OK;
 }
 
@@ -137,7 +136,14 @@ bool FlayService::startServer(const std::string &serverAddress) {
     }
 
     printInfo("Flay service listening on: %1%", serverAddress);
-    server->Wait();
+
+    auto serveFn = [&]() { server->Wait(); };
+    std::thread servingThread(serveFn);
+
+    auto f = exit_requested.get_future();
+    f.wait();
+    server->Shutdown();
+    servingThread.join();
     return true;
 }
 
