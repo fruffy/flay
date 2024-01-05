@@ -7,9 +7,6 @@
 #include <functional>
 #include <future>
 
-#include "backends/p4tools/modules/flay/core/reachability.h"
-#include "ir/solver.h"
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -17,11 +14,26 @@
 #pragma GCC diagnostic pop
 
 #include "backends/p4tools/modules/flay/core/compiler_target.h"
+#include "backends/p4tools/modules/flay/core/reachability.h"
 
 namespace P4Tools::Flay {
 
+enum ReachabilityMapType { Z3_PRECOMPUTED, Z3_DEFAULT };
+
+struct FlayServiceOptions {
+    /// If useSymbolSet is true, we only check whether the symbols in the set have changed.
+    bool useSymbolSet = true;
+    /// The type of map to initialize.
+    ReachabilityMapType mapType = ReachabilityMapType::Z3_PRECOMPUTED;
+};
+
 class FlayService final : public p4::v1::P4Runtime::Service {
+    friend class FlayServiceWrapper;
+
  private:
+    // Configuration options for the service.
+    FlayServiceOptions options;
+
     /// The original source P4 program.
     const IR::P4Program *originalProgram;
 
@@ -33,11 +45,8 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// and any information extracted from the program using static analysis.
     std::reference_wrapper<const FlayCompilerResult> compilerResult;
 
-    /// The reachability map.
-    ReachabilityMap reachabilityMap;
-
-    /// The constraint solver associated with the tool. Currently specialized to Z3.
-    std::reference_wrapper<AbstractSolver> solver;
+    /// The reachability map used by the server. Derived from the input argument.
+    std::reference_wrapper<AbstractReachabilityMap> reachabilityMap;
 
     /// The set of active control plane constraints. These constraints are added to every solver
     /// check to compute feasibility of a program node.
@@ -50,12 +59,24 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     P4::ReferenceMap refMap;
 
     /// For exiting the gRPC server (useful for benchmarking).
-    std::promise<void> exit_requested;
+    std::promise<void> exitRequested;
+
+    /// Compute whether the semantics of the program under this control plane configuration have
+    /// changed since the last update.
+    // @returns std::nullopt if an error occurred during the computation.
+    std::optional<bool> checkForSemanticChange(
+        std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) const;
+
+    /// Update the internal  control plane constraints with the given entity message.
+    /// Private method used for testing.
+    int updateControlPlaneConstraintsWithEntityMessage(const p4::v1::Entity &entity,
+                                                       const ::p4::v1::Update_Type &updateType,
+                                                       SymbolSet &symbolSet);
 
  public:
-    explicit FlayService(const IR::P4Program *originalProgram,
-                         const FlayCompilerResult &compilerResult, ReachabilityMap reachabilityMap,
-                         AbstractSolver &solver,
+    explicit FlayService(const FlayServiceOptions &options, const IR::P4Program *originalProgram,
+                         const FlayCompilerResult &compilerResult,
+                         const ReachabilityMap &reachabilityMap,
                          ControlPlaneConstraints initialControlPlaneConstraints);
 
     /// Start the Flay gRPC server and listen to incoming requests.
@@ -67,6 +88,9 @@ class FlayService final : public p4::v1::P4Runtime::Service {
 
     /// Print the pruned program to stdout;
     void printPrunedProgram();
+
+    static AbstractReachabilityMap &initializeReachabilityMap(
+        ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap);
 
     /// @returns the pruned program
     [[nodiscard]] const IR::P4Program *getPrunedProgram() const;
@@ -81,6 +105,24 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// Run dead code elimination on the original P4 program.
     int elimControlPlaneDeadCode(
         std::optional<std::reference_wrapper<const SymbolSet>> symbolSet = std::nullopt);
+};
+
+/// Wrapper class to simplify benchmarking and the collection of statics.
+class FlayServiceWrapper {
+    std::vector<p4::v1::WriteRequest> controlPlaneUpdates;
+
+ private:
+    /// Helper function to retrieve a list of files matching a pattern.
+    static std::vector<std::string> findFiles(const std::string &pattern);
+
+ public:
+    FlayServiceWrapper() = default;
+
+    int parseControlUpdatesFromPattern(const std::string &pattern);
+
+    int run(const FlayServiceOptions &serviceOptions, const IR::P4Program *originalProgram,
+            const FlayCompilerResult &compilerResult, const ReachabilityMap &reachabilityMap,
+            const ControlPlaneConstraints &initialControlPlaneConstraints) const;
 };
 
 }  // namespace P4Tools::Flay

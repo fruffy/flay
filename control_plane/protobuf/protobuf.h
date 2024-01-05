@@ -1,6 +1,10 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_PROTOBUF_PROTOBUF_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_PROTOBUF_PROTOBUF_H_
 
+#include <fcntl.h>
+
+#include <google/protobuf/text_format.h>
+
 #include <filesystem>
 #include <optional>
 
@@ -78,8 +82,26 @@ class ProtobufDeserializer {
         ControlPlaneConstraints &controlPlaneConstraints, SymbolSet &symbolSet);
 
     /// Deserialize a .proto file into a P4Runtime-compliant Protobuf object.
-    [[nodiscard]] static std::optional<flaytests::Config> deserializeProtobufConfig(
-        const std::filesystem::path &inputFile);
+    template <class T>
+    [[nodiscard]] static std::optional<T> deserializeProtoObjectFromFile(
+        const std::filesystem::path &inputFile) {
+        T protoObject;
+
+        // Parse the input file into the Protobuf object.
+        int fd = open(inputFile.c_str(), O_RDONLY);
+        google::protobuf::io::ZeroCopyInputStream *input =
+            new google::protobuf::io::FileInputStream(fd);
+
+        if (google::protobuf::TextFormat::Parse(input, &protoObject)) {
+            printInfo("Parsed configuration: %1%", protoObject.DebugString());
+        } else {
+            ::error("Failed to parse configuration: %1%", protoObject.ShortDebugString());
+            return std::nullopt;
+        }
+        // Close the open file.
+        close(fd);
+        return protoObject;
+    }
 
     /// Parse a  text Protobuf message and convert it into a P4Runtime entity.
     /// Return std::nullopt if the conversion fails.

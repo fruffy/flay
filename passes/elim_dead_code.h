@@ -18,7 +18,7 @@ namespace P4Tools::Flay {
 /// not executable according to the computation in the map.
 class ElimDeadCode : public Transform {
     /// The reachability map computed by the execution state.
-    std::reference_wrapper<const ReachabilityMap> reachabilityMap;
+    std::reference_wrapper<const AbstractReachabilityMap> reachabilityMap;
 
     /// The precomputed reference map.
     std::reference_wrapper<const P4::ReferenceMap> refMap;
@@ -26,7 +26,8 @@ class ElimDeadCode : public Transform {
  public:
     ElimDeadCode() = delete;
 
-    explicit ElimDeadCode(const P4::ReferenceMap &refMap, const ReachabilityMap &reachabilityMap);
+    explicit ElimDeadCode(const P4::ReferenceMap &refMap,
+                          const AbstractReachabilityMap &reachabilityMap);
 
     const IR::Node *preorder(IR::IfStatement *stmt) override;
     const IR::Node *preorder(IR::SwitchStatement *switchStmt) override;

@@ -1,15 +1,19 @@
 #include "backends/p4tools/modules/flay/service/flay_server.h"
 
+#include <glob.h>
+
 #include <cstdlib>
 #include <optional>
 #include <utility>
 
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
+#include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 #include "lib/timer.h"
+#include "p4/v1/p4runtime.pb.h"
 
 namespace P4Tools::Flay {
 
@@ -49,16 +53,35 @@ double measureSizeDifference(const IR::P4Program *programBefore,
     return (beforeLength - measureProgramSize(programAfter)) * (100.0 / beforeLength);
 }
 
-FlayService::FlayService(const IR::P4Program *originalProgram,
-                         const FlayCompilerResult &compilerResult, ReachabilityMap reachabilityMap,
-                         AbstractSolver &solver,
+AbstractReachabilityMap &FlayService::initializeReachabilityMap(
+    ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap) {
+    printInfo("Creating the reachability map...");
+    AbstractReachabilityMap *initializedReachabilityMap = nullptr;
+    if (mapType == ReachabilityMapType::Z3_PRECOMPUTED) {
+        initializedReachabilityMap = new Z3SolverReachabilityMap(reachabilityMap);
+    }
+    return *initializedReachabilityMap;
+}
+
+FlayService::FlayService(const FlayServiceOptions &options, const IR::P4Program *originalProgram,
+                         const FlayCompilerResult &compilerResult,
+                         const ReachabilityMap &reachabilityMap,
                          ControlPlaneConstraints initialControlPlaneConstraints)
-    : originalProgram(originalProgram),
+    : options(options),
+      originalProgram(originalProgram),
       compilerResult(compilerResult),
-      reachabilityMap(std::move(reachabilityMap)),
-      solver(solver),
+      reachabilityMap(initializeReachabilityMap(options.mapType, reachabilityMap)),
       controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
+    printInfo("Checking whether dead code can be removed with the initial configuration...");
     originalProgram->apply(ReferenceResolver(refMap));
+    elimControlPlaneDeadCode();
+}
+
+int FlayService::updateControlPlaneConstraintsWithEntityMessage(
+    const p4::v1::Entity &entity, const ::p4::v1::Update_Type &updateType, SymbolSet &symbolSet) {
+    return ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+        entity, getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints, updateType,
+        symbolSet);
 }
 
 grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
@@ -91,18 +114,22 @@ const IR::P4Program *FlayService::getOriginalProgram() const { return originalPr
 
 const FlayCompilerResult &FlayService::getCompilerResult() const { return compilerResult.get(); }
 
+std::optional<bool> FlayService::checkForSemanticChange(
+    std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) const {
+    printInfo("Checking for change in reachability semantics...");
+    Util::ScopedTimer timer("Check for semantics change");
+    if (symbolSet.has_value() && options.useSymbolSet) {
+        return reachabilityMap.get().recomputeReachability(symbolSet.value(),
+                                                           controlPlaneConstraints);
+    }
+    return reachabilityMap.get().recomputeReachability(controlPlaneConstraints);
+}
+
 int FlayService::elimControlPlaneDeadCode(
     std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) {
     Util::ScopedTimer timer("Eliminate Dead Code");
 
-    std::optional<bool> hasChangedOpt;
-    printInfo("Computing reachability...");
-    if (symbolSet.has_value()) {
-        hasChangedOpt = reachabilityMap.recomputeReachability(symbolSet.value(), solver,
-                                                              controlPlaneConstraints);
-    } else {
-        hasChangedOpt = reachabilityMap.recomputeReachability(solver, controlPlaneConstraints);
-    }
+    std::optional<bool> hasChangedOpt = checkForSemanticChange(symbolSet);
     if (!hasChangedOpt.has_value()) {
         return EXIT_FAILURE;
     }
@@ -140,11 +167,70 @@ bool FlayService::startServer(const std::string &serverAddress) {
     auto serveFn = [&]() { server->Wait(); };
     std::thread servingThread(serveFn);
 
-    auto f = exit_requested.get_future();
+    auto f = exitRequested.get_future();
     f.wait();
     server->Shutdown();
     servingThread.join();
     return true;
+}
+
+std::vector<std::string> FlayServiceWrapper::findFiles(const std::string &pattern) {
+    std::vector<std::string> files;
+    glob_t globResult;
+
+    // Perform globbing.
+    if (glob(pattern.c_str(), GLOB_TILDE, nullptr, &globResult) == 0) {
+        for (size_t i = 0; i < globResult.gl_pathc; ++i) {
+            files.emplace_back(globResult.gl_pathv[i]);
+        }
+    }
+
+    // Free allocated resources
+    globfree(&globResult);
+
+    return files;
+}
+
+int FlayServiceWrapper::parseControlUpdatesFromPattern(const std::string &pattern) {
+    auto files = findFiles(pattern);
+    for (const auto &file : files) {
+        auto entityOpt =
+            ProtobufDeserializer::deserializeProtoObjectFromFile<p4::v1::WriteRequest>(file);
+        if (!entityOpt.has_value()) {
+            return EXIT_FAILURE;
+        }
+        controlPlaneUpdates.emplace_back(entityOpt.value());
+    }
+    return EXIT_SUCCESS;
+}
+
+int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
+                            const IR::P4Program *originalProgram,
+                            const FlayCompilerResult &compilerResult,
+                            const ReachabilityMap &reachabilityMap,
+                            const ControlPlaneConstraints &initialControlPlaneConstraints) const {
+    // Initialize the flay service, which includes a dead code eliminator.
+    FlayService service(serviceOptions, originalProgram, compilerResult, reachabilityMap,
+                        initialControlPlaneConstraints);
+    if (::errorCount() > 0) {
+        return EXIT_FAILURE;
+    }
+
+    for (const auto &controlPlaneUpdate : controlPlaneUpdates) {
+        SymbolSet symbolSet;
+        for (const auto &update : controlPlaneUpdate.updates()) {
+            Util::ScopedTimer timer("processMessage");
+            if (service.updateControlPlaneConstraintsWithEntityMessage(
+                    update.entity(), update.type(), symbolSet) != EXIT_SUCCESS) {
+                return EXIT_FAILURE;
+            }
+        }
+        if (service.elimControlPlaneDeadCode(symbolSet) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
+        }
+    }
+
+    return EXIT_SUCCESS;
 }
 
 }  // namespace P4Tools::Flay

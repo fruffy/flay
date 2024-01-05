@@ -2,8 +2,6 @@
 
 #include <fcntl.h>
 
-#include <google/protobuf/text_format.h>
-
 #include <cstdlib>
 #include <optional>
 
@@ -206,26 +204,6 @@ int ProtobufDeserializer::updateControlPlaneConstraints(
         }
     }
     return EXIT_SUCCESS;
-}
-
-std::optional<flaytests::Config> ProtobufDeserializer::deserializeProtobufConfig(
-    const std::filesystem::path &inputFile) {
-    flaytests::Config protoControlPlaneConfig;
-
-    // Parse the input file into the Protobuf object.
-    int fd = open(inputFile.c_str(), O_RDONLY);
-    google::protobuf::io::ZeroCopyInputStream *input =
-        new google::protobuf::io::FileInputStream(fd);
-
-    if (google::protobuf::TextFormat::Parse(input, &protoControlPlaneConfig)) {
-        printInfo("Parsed configuration: %1%", protoControlPlaneConfig.DebugString());
-    } else {
-        ::error("Failed to parse configuration: %1%", protoControlPlaneConfig.ShortDebugString());
-        return std::nullopt;
-    }
-    // Close the open file.
-    close(fd);
-    return protoControlPlaneConfig;
 }
 
 std::optional<p4::v1::Entity> ProtobufDeserializer::parseEntity(const std::string &message) {

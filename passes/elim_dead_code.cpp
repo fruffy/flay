@@ -1,7 +1,6 @@
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 
 #include <optional>
-#include <utility>
 
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "ir/indexed_vector.h"
@@ -11,7 +10,8 @@
 
 namespace P4Tools::Flay {
 
-ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap, const ReachabilityMap &reachabilityMap)
+ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
+                           const AbstractReachabilityMap &reachabilityMap)
     : reachabilityMap(reachabilityMap), refMap(refMap) {}
 
 const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
@@ -24,8 +24,8 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
             stmt);
         return stmt;
     }
-    auto condition = conditionOpt.value();
-    auto reachability = condition.getReachability();
+    const auto *condition = conditionOpt.value();
+    auto reachability = condition->getReachability();
 
     if (reachability) {
         ::warning("%1% condition can be deleted.", stmt->condition);
@@ -59,8 +59,8 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
                 switchCase);
             return switchCase;
         }
-        auto condition = conditionOpt.value();
-        auto reachabilityOpt = condition.getReachability();
+        const auto *condition = conditionOpt.value();
+        auto reachabilityOpt = condition->getReachability();
         if (!reachabilityOpt.has_value()) {
             filteredSwitchCases.push_back(switchCase);
             continue;
@@ -146,8 +146,8 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
                 action);
             continue;
         }
-        auto condition = conditionOpt.value();
-        auto reachabilityOpt = condition.getReachability();
+        const auto *condition = conditionOpt.value();
+        auto reachabilityOpt = condition->getReachability();
         if (!reachabilityOpt.has_value()) {
             filteredActionList.push_back(action);
             continue;
