@@ -96,7 +96,8 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
             return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
         }
     }
-    if (elimControlPlaneDeadCode(symbolSet) != EXIT_SUCCESS) {
+    auto result = elimControlPlaneDeadCode(symbolSet);
+    if (result.first != EXIT_SUCCESS) {
         return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
     }
     P4Tools::printPerformanceReport();
@@ -125,24 +126,24 @@ std::optional<bool> FlayService::checkForSemanticChange(
     return reachabilityMap.get().recomputeReachability(controlPlaneConstraints);
 }
 
-int FlayService::elimControlPlaneDeadCode(
+std::pair<int, bool> FlayService::elimControlPlaneDeadCode(
     std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) {
     Util::ScopedTimer timer("Eliminate Dead Code");
 
     std::optional<bool> hasChangedOpt = checkForSemanticChange(symbolSet);
     if (!hasChangedOpt.has_value()) {
-        return EXIT_FAILURE;
+        return {EXIT_FAILURE, false};
     }
     bool hasChanged = hasChangedOpt.value();
     if (!hasChanged) {
         printInfo("Received update, but semantics have not changed. No program change necessary.");
-        return EXIT_SUCCESS;
+        return {EXIT_SUCCESS, hasChanged};
     }
     printInfo("Dead code that can be removed detected.");
-    semanticsChangeCounter++;
 
     prunedProgram = originalProgram->apply(ElimDeadCode(refMap, reachabilityMap));
-    return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
+                               : std::pair{EXIT_FAILURE, hasChanged};
 }
 
 bool FlayService::startServer(const std::string &serverAddress) {
@@ -220,6 +221,8 @@ int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
     }
     recordProgramChange(service);
 
+    /// Keeps track of how often the semantics have changed after an update.
+    uint64_t semanticsChangeCounter = 0;
     for (const auto &controlPlaneUpdate : controlPlaneUpdates) {
         SymbolSet symbolSet;
         for (const auto &update : controlPlaneUpdate.updates()) {
@@ -229,10 +232,14 @@ int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
                 return EXIT_FAILURE;
             }
         }
-        if (service.elimControlPlaneDeadCode(symbolSet) != EXIT_SUCCESS) {
+        auto result = service.elimControlPlaneDeadCode(symbolSet);
+        if (result.first != EXIT_SUCCESS) {
             return EXIT_FAILURE;
         }
-        recordProgramChange(service);
+        if (result.second) {
+            recordProgramChange(service);
+            semanticsChangeCounter++;
+        }
     }
 
     return EXIT_SUCCESS;

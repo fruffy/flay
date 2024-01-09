@@ -3,7 +3,6 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include <cstdint>
 #include <functional>
 #include <future>
 
@@ -51,9 +50,6 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// The set of active control plane constraints. These constraints are added to every solver
     /// check to compute feasibility of a program node.
     ControlPlaneConstraints controlPlaneConstraints;
-
-    /// Keeps track of how often the semantics have changed after an update.
-    uint64_t semanticsChangeCounter = 0;
 
     /// A map to look up declaration references.
     P4::ReferenceMap refMap;
@@ -103,12 +99,13 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     [[nodiscard]] const FlayCompilerResult &getCompilerResult() const;
 
     /// Run dead code elimination on the original P4 program.
-    int elimControlPlaneDeadCode(
+    std::pair<int, bool> elimControlPlaneDeadCode(
         std::optional<std::reference_wrapper<const SymbolSet>> symbolSet = std::nullopt);
 };
 
 /// Wrapper class to simplify benchmarking and the collection of statics.
 class FlayServiceWrapper {
+    /// The series of control plane updates which is applied after Flay service has started.
     std::vector<p4::v1::WriteRequest> controlPlaneUpdates;
 
  private:
@@ -118,8 +115,11 @@ class FlayServiceWrapper {
  public:
     FlayServiceWrapper() = default;
 
+    /// Try to parse the provided pattern into update files and convert them to control-plane
+    /// updates.
     int parseControlUpdatesFromPattern(const std::string &pattern);
 
+    /// Compute some statistics on the changes in the program and print them out.
     static void recordProgramChange(const FlayService &service);
 
     int run(const FlayServiceOptions &serviceOptions, const IR::P4Program *originalProgram,

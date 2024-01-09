@@ -1,6 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_REACHABILITY_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_REACHABILITY_H_
 
+#include <functional>
 #include <map>
 #include <optional>
 
@@ -113,7 +114,7 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
     SymbolMap symbolMap;
 
  private:
-    AbstractSolver &solver;
+    std::reference_wrapper<AbstractSolver> solver;
 
     /// Compute reachability for the node given the set of constraints.
     std::optional<bool> computeNodeReachability(const IR::Node *node,
@@ -122,27 +123,19 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
  public:
     explicit SolverReachabilityMap(AbstractSolver &solver, const ReachabilityMap &map);
 
-    /// @returns the reachability expression for the given node.
-    /// @returns std::nullopt if no expression can be found.
     std::optional<const ReachabilityExpression *> getReachabilityExpression(
         const IR::Node *node) const override;
 
-    /// Updates the reachability assignment for the given node.
     bool updateReachabilityAssignment(const IR::Node *node,
                                       std::optional<bool> reachability) override;
 
-    /// Compute reachability for all nodes in the map using the provided control plane constraints.
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;
 
-    /// Recompute reachability for all nodes which depend on any of the variables in the given
-    /// symbol set.
     std::optional<bool> recomputeReachability(
         const SymbolSet &symbolSet,
         const ControlPlaneConstraints &controlPlaneConstraints) override;
 
-    /// Recompute reachability for selected nodes in the map using the provided control plane
-    /// constraints.
     std::optional<bool> recomputeReachability(
         const NodeSet &targetNodes,
         const ControlPlaneConstraints &controlPlaneConstraints) override;

@@ -8,6 +8,8 @@
 
 namespace P4Tools::Flay {
 
+/// A Z3ReachabilityExpression extends the ReachabilityExpression class with precomputed Z3
+/// expressions. This significantly can improve performance for complex programs.
 class Z3ReachabilityExpression : public ReachabilityExpression {
  private:
     /// The condition for the expression to be executable in Z3 form.
@@ -17,6 +19,7 @@ class Z3ReachabilityExpression : public ReachabilityExpression {
     explicit Z3ReachabilityExpression(ReachabilityExpression reachabilityExpression,
                                       z3::expr z3Condition);
 
+    /// @returns the precomputed Z3 condition.
     [[nodiscard]] const z3::expr &getZ3Condition() const;
 };
 
@@ -36,27 +39,19 @@ class Z3SolverReachabilityMap
  public:
     explicit Z3SolverReachabilityMap(const ReachabilityMap &map);
 
-    /// @returns the reachability expression for the given node.
-    /// @returns std::nullopt if no expression can be found.
     std::optional<const ReachabilityExpression *> getReachabilityExpression(
         const IR::Node *node) const override;
 
-    /// Updates the reachability assignment for the given node.
     bool updateReachabilityAssignment(const IR::Node *node,
                                       std::optional<bool> reachability) override;
 
-    /// Compute reachability for all nodes in the map using the provided control plane constraints.
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;
 
-    /// Recompute reachability for all nodes which depend on any of the variables in the given
-    /// symbol set.
     std::optional<bool> recomputeReachability(
         const SymbolSet &symbolSet,
         const ControlPlaneConstraints &controlPlaneConstraints) override;
 
-    /// Recompute reachability for selected nodes in the map using the provided control plane
-    /// constraints.
     std::optional<bool> recomputeReachability(
         const NodeSet &targetNodes,
         const ControlPlaneConstraints &controlPlaneConstraints) override;

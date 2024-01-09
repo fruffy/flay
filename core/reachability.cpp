@@ -63,7 +63,7 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
 
     std::vector<const Constraint *> mergedConstraints(constraints);
     mergedConstraints.push_back(reachabilityCondition);
-    auto solverResult = solver.checkSat(mergedConstraints);
+    auto solverResult = solver.get().checkSat(mergedConstraints);
     /// Solver returns unknown, better leave this alone.
     if (solverResult == std::nullopt) {
         ::warning("Solver returned unknown result for %1%.", node);
@@ -80,7 +80,7 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
 
     std::vector<const Constraint *> mergedConstraints1(constraints);
     mergedConstraints1.push_back(new IR::LNot(reachabilityCondition));
-    auto solverResult1 = solver.checkSat(mergedConstraints1);
+    auto solverResult1 = solver.get().checkSat(mergedConstraints1);
     /// Solver returns unknown, better leave this alone.
     if (solverResult1 == std::nullopt) {
         ::warning("Solver returned unknown result for %1%.", node);
