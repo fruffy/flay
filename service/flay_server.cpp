@@ -142,12 +142,6 @@ int FlayService::elimControlPlaneDeadCode(
     semanticsChangeCounter++;
 
     prunedProgram = originalProgram->apply(ElimDeadCode(refMap, reachabilityMap));
-    auto statementCountBefore = countStatements(originalProgram);
-    auto statementCountAfter = countStatements(prunedProgram);
-    float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
-                                         static_cast<float>(statementCountBefore));
-    printInfo("Number of statements - Before: %1% After: %2% Total reduction percentage = %3%%%",
-              statementCountBefore, statementCountAfter, stmtPct);
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -204,6 +198,15 @@ int FlayServiceWrapper::parseControlUpdatesFromPattern(const std::string &patter
     return EXIT_SUCCESS;
 }
 
+void FlayServiceWrapper::recordProgramChange(const FlayService &service) {
+    auto statementCountBefore = countStatements(service.originalProgram);
+    auto statementCountAfter = countStatements(service.prunedProgram);
+    float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
+                                         static_cast<float>(statementCountBefore));
+    printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",
+              statementCountBefore, statementCountAfter, stmtPct);
+}
+
 int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
                             const IR::P4Program *originalProgram,
                             const FlayCompilerResult &compilerResult,
@@ -215,6 +218,7 @@ int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
     if (::errorCount() > 0) {
         return EXIT_FAILURE;
     }
+    recordProgramChange(service);
 
     for (const auto &controlPlaneUpdate : controlPlaneUpdates) {
         SymbolSet symbolSet;
@@ -228,6 +232,7 @@ int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
         if (service.elimControlPlaneDeadCode(symbolSet) != EXIT_SUCCESS) {
             return EXIT_FAILURE;
         }
+        recordProgramChange(service);
     }
 
     return EXIT_SUCCESS;

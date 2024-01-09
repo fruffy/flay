@@ -120,6 +120,8 @@ class FlayServiceWrapper {
 
     int parseControlUpdatesFromPattern(const std::string &pattern);
 
+    static void recordProgramChange(const FlayService &service);
+
     int run(const FlayServiceOptions &serviceOptions, const IR::P4Program *originalProgram,
             const FlayCompilerResult &compilerResult, const ReachabilityMap &reachabilityMap,
             const ControlPlaneConstraints &initialControlPlaneConstraints) const;
