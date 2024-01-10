@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdio>
 #include <utility>
 
 #include <boost/multiprecision/cpp_int.hpp>
@@ -173,15 +174,20 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     // First, we compute the hit condition to trigger this particular action call.
     const auto *hitCondition = computeKey(key);
     const auto *actionPath = TableUtils::getDefaultActionName(table);
-    ReturnProperties retProperties{hitCondition, new IR::StringLiteral(actionPath->toString())};
+    /// Pay attention to how we use "toString" for the path name here.
+    /// We need to match these choices correctly. TODO: Make this very explicit.
+    ReturnProperties retProperties{
+        hitCondition, new IR::StringLiteral(IR::Type_String::get(), actionPath->path->toString())};
     for (const auto *action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
-        auto *actionChoice =
-            new IR::Equ(tableActionID, new IR::StringLiteral(action->controlPlaneName()));
-        const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);
+        auto *actionChoice = new IR::Equ(
+            tableActionID,
+            new IR::StringLiteral(IR::Type_String::get(), actionType->controlPlaneName()));
         retProperties.totalHitCondition =
             new IR::LOr(retProperties.totalHitCondition, actionChoice);
+        const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);
+        // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         retProperties.actionRun = CollapseMux::produceOptimizedMux(
             actionHitCondition,
             new IR::StringLiteral(IR::Type_String::get(), action->controlPlaneName()),
@@ -219,8 +225,11 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
 
     // First, we compute the hit condition to trigger this particular action call.
     const auto *actionPath = TableUtils::getDefaultActionName(getP4Table());
-    ReturnProperties retProperties{IR::getBoolLiteral(false),
-                                   new IR::StringLiteral(actionPath->toString())};
+    /// Pay attention to how we use "toString" for the path name here.
+    /// We need to match these choices correctly. TODO: Make this very explicit.
+    ReturnProperties retProperties{
+        IR::getBoolLiteral(false),
+        new IR::StringLiteral(IR::Type_String::get(), actionPath->path->toString())};
 
     const auto *entries = table.getEntries();
 
@@ -261,11 +270,13 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
         state.merge(actionState);
         retProperties.totalHitCondition =
             new IR::LOr(retProperties.totalHitCondition, entryHitCondition);
+        // We use controlPlaneName() here. TODO: Clean this up?
         retProperties.actionRun = CollapseMux::produceOptimizedMux(
             entryHitCondition,
-            new IR::StringLiteral(IR::Type_String::get(), actionType->controlPlaneName()),
+            new IR::StringLiteral(
+                IR::Type_String::get(),
+                actionCall->method->checkedTo<IR::PathExpression>()->path->toString()),
             retProperties.actionRun);
-        retProperties.actionRun = retProperties.actionRun->apply(CollapseMux());
     }
 
     return retProperties;
@@ -291,8 +302,10 @@ const IR::Expression *TableExecutor::processTable() {
             nullptr,
             {new IR::NamedExpression("hit", new IR::BoolLiteral(false)),
              new IR::NamedExpression("miss", new IR::BoolLiteral(true)),
-             new IR::NamedExpression("action_run", new IR::StringLiteral(actionPath->toString())),
-             new IR::NamedExpression("table_name", new IR::StringLiteral(tableName))});
+             new IR::NamedExpression("action_run", new IR::StringLiteral(IR::Type_String::get(),
+                                                                         actionPath->toString())),
+             new IR::NamedExpression("table_name",
+                                     new IR::StringLiteral(IR::Type_String::get(), tableName))});
     }
     key = resolveKey(key);
 
@@ -305,7 +318,8 @@ const IR::Expression *TableExecutor::processTable() {
             {new IR::NamedExpression("hit", retProperties.totalHitCondition),
              new IR::NamedExpression("miss", new IR::LNot(retProperties.totalHitCondition)),
              new IR::NamedExpression("action_run", retProperties.actionRun),
-             new IR::NamedExpression("table_name", new IR::StringLiteral(tableName))});
+             new IR::NamedExpression("table_name",
+                                     new IR::StringLiteral(IR::Type_String::get(), tableName))});
     }
 
     getControlPlaneState().allocateControlPlaneTable(table);
@@ -317,7 +331,8 @@ const IR::Expression *TableExecutor::processTable() {
         nullptr, {new IR::NamedExpression("hit", retProperties.totalHitCondition),
                   new IR::NamedExpression("miss", new IR::LNot(retProperties.totalHitCondition)),
                   new IR::NamedExpression("action_run", retProperties.actionRun),
-                  new IR::NamedExpression("table_name", new IR::StringLiteral(tableName))});
+                  new IR::NamedExpression(
+                      "table_name", new IR::StringLiteral(IR::Type_String::get(), tableName))});
 }
 
 }  // namespace P4Tools::Flay

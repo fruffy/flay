@@ -40,6 +40,12 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns the server address set with --server-address.
     [[nodiscard]] std::string getServerAddress() const;
 
+    /// @returns true when the --config-update-pattern option has been set.
+    [[nodiscard]] bool hasConfigurationUpdatePattern() const;
+
+    /// @returns the configuration update pattern set with --config-update-pattern.
+    [[nodiscard]] std::string getConfigurationUpdatePattern() const;
+
  private:
     /// Path to the initial control plane configuration file.
     std::optional<std::filesystem::path> controlPlaneConfig = std::nullopt;
@@ -50,6 +56,11 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     /// Server address for the Flay service.
     std::string serverAddress = "localhost:50051";
+
+    /// A pattern which can either match a single file or a list of files.
+    /// This pattern is converted into a list of configuration updates.
+    /// Used for testing.
+    std::optional<std::string> configUpdatePattern;
 
     FlayOptions();
 };

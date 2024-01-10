@@ -70,6 +70,14 @@ FlayOptions::FlayOptions()
             return true;
         },
         "The address of the Flay service in the format ADDRESS:PORT.");
+    registerOption(
+        "--config-update-pattern", "configUpdatePattern",
+        [this](const char *arg) {
+            configUpdatePattern = arg;
+            return true;
+        },
+        "A pattern which can either match a single file or a list of files. Primarily used for "
+        "testing.");
 }
 
 std::filesystem::path FlayOptions::getControlPlaneConfig() const {
@@ -81,5 +89,11 @@ bool FlayOptions::serverModeActive() const { return serverMode; }
 std::string FlayOptions::getServerAddress() const { return serverAddress; }
 
 bool FlayOptions::hasControlPlaneConfig() const { return controlPlaneConfig.has_value(); }
+
+bool FlayOptions::hasConfigurationUpdatePattern() const { return configUpdatePattern.has_value(); }
+
+std::string FlayOptions::getConfigurationUpdatePattern() const {
+    return configUpdatePattern.value();
+}
 
 }  // namespace P4Tools

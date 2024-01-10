@@ -1,11 +1,6 @@
-# A P4TestGen-generated test case for basic_routing-bmv2.p4
-metadata: "p4testgen seed: none"
-metadata: "Date generated: 2023-10-13-11:26:50.623"
-metadata: "Current node coverage: nan"
-
-entities : [
-  # Table ingress.port_mapping
-  {
+updates {
+  entity {
+    # Table ingress.port_mapping
     table_entry {
       table_id: 39645634
       # Match field standard_metadata.ingress_port
@@ -28,8 +23,11 @@ entities : [
       }
     }
   },
-  # Table ingress.bd
-  {
+  type: INSERT
+}
+updates {
+  entity {
+    # Table ingress.bd
     table_entry {
       table_id: 48392551
       # Match field meta.ingress_metadata.bd
@@ -52,8 +50,11 @@ entities : [
       }
     }
   },
-  # Table ingress.ipv4_fib
-  {
+  type: INSERT
+}
+updates {
+  entity {
+    # Table ingress.ipv4_fib
     table_entry {
       table_id: 41084491
       # Match field hdr.ipv4.dstAddr
@@ -78,8 +79,11 @@ entities : [
       }
     }
   },
-  # Table ingress.ipv4_fib_lpm
-  {
+  type: INSERT
+}
+updates {
+  entity {
+    # Table ingress.ipv4_fib_lpm
     table_entry {
       table_id: 42875950
       # Match field meta.ingress_metadata.vrf
@@ -105,8 +109,11 @@ entities : [
       }
     }
   },
-  # Table ingress.nexthop
-  {
+  type: INSERT
+}
+updates {
+  entity {
+    # Table ingress.nexthop
     table_entry {
       table_id: 43581057
       # Match field meta.ingress_metadata.nexthop_index
@@ -124,8 +131,11 @@ entities : [
       }
     }
   },
-  # Table egress.rewrite_mac
-  {
+  type: INSERT
+}
+updates {
+  entity {
+    # Table egress.rewrite_mac
     table_entry {
       table_id: 40309161
       # Match field meta.ingress_metadata.nexthop_index
@@ -142,5 +152,6 @@ entities : [
         }
       }
     }
-  }
-]
+  },
+  type: INSERT
+}

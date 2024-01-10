@@ -2,8 +2,6 @@
 
 #include <fcntl.h>
 
-#include <google/protobuf/text_format.h>
-
 #include <cstdlib>
 #include <optional>
 
@@ -165,11 +163,15 @@ int ProtobufDeserializer::updateTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdM
         tableResult->addTableEntry(*tableMatchEntry, true);
     } else if (updateType == p4::v1::Update::INSERT) {
         if (tableResult->addTableEntry(*tableMatchEntry, false) != EXIT_SUCCESS) {
-            ::error("Table entry %1% already exists .", tableEntry.DebugString());
+            ::error("Table entry \"%1%\" already exists.", tableEntry.ShortDebugString());
             return EXIT_FAILURE;
         }
     } else if (updateType == p4::v1::Update::DELETE) {
-        tableResult->deleteTableEntry(*tableMatchEntry);
+        if (tableResult->deleteTableEntry(*tableMatchEntry) == 0) {
+            ::error("Table entry %1% not found and can not be deleted.",
+                    tableEntry.ShortDebugString());
+            return EXIT_FAILURE;
+        }
     } else {
         ::error("Unsupported update type %1%.", updateType);
         return EXIT_FAILURE;
@@ -206,26 +208,6 @@ int ProtobufDeserializer::updateControlPlaneConstraints(
         }
     }
     return EXIT_SUCCESS;
-}
-
-std::optional<flaytests::Config> ProtobufDeserializer::deserializeProtobufConfig(
-    const std::filesystem::path &inputFile) {
-    flaytests::Config protoControlPlaneConfig;
-
-    // Parse the input file into the Protobuf object.
-    int fd = open(inputFile.c_str(), O_RDONLY);
-    google::protobuf::io::ZeroCopyInputStream *input =
-        new google::protobuf::io::FileInputStream(fd);
-
-    if (google::protobuf::TextFormat::Parse(input, &protoControlPlaneConfig)) {
-        printInfo("Parsed configuration: %1%", protoControlPlaneConfig.DebugString());
-    } else {
-        ::error("Failed to parse configuration: %1%", protoControlPlaneConfig.ShortDebugString());
-        return std::nullopt;
-    }
-    // Close the open file.
-    close(fd);
-    return protoControlPlaneConfig;
 }
 
 std::optional<p4::v1::Entity> ProtobufDeserializer::parseEntity(const std::string &message) {

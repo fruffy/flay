@@ -1,7 +1,6 @@
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 
 #include <optional>
-#include <utility>
 
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "ir/indexed_vector.h"
@@ -11,7 +10,8 @@
 
 namespace P4Tools::Flay {
 
-ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap, const ReachabilityMap &reachabilityMap)
+ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
+                           const AbstractReachabilityMap &reachabilityMap)
     : reachabilityMap(reachabilityMap), refMap(refMap) {}
 
 const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
@@ -24,8 +24,8 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
             stmt);
         return stmt;
     }
-    auto condition = conditionOpt.value();
-    auto reachability = condition.getReachability();
+    const auto *condition = conditionOpt.value();
+    auto reachability = condition->getReachability();
 
     if (reachability) {
         ::warning("%1% condition can be deleted.", stmt->condition);
@@ -59,8 +59,8 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
                 switchCase);
             return switchCase;
         }
-        auto condition = conditionOpt.value();
-        auto reachabilityOpt = condition.getReachability();
+        const auto *condition = conditionOpt.value();
+        auto reachabilityOpt = condition->getReachability();
         if (!reachabilityOpt.has_value()) {
             filteredSwitchCases.push_back(switchCase);
             continue;
@@ -84,20 +84,33 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
     return switchStmt;
 }
 
-std::optional<cstring> getActionName(const IR::Expression *expr) {
-    if (const auto *tableAction = expr->to<IR::MethodCallExpression>()) {
+std::optional<const IR::P4Action *> getActionDecl(const P4::ReferenceMap &refMap,
+                                                  const IR::Expression &expr) {
+    const IR::Path *actionDeclPath = nullptr;
+    if (const auto *tableAction = expr.to<IR::MethodCallExpression>()) {
         const auto *actionPath = tableAction->method->to<IR::PathExpression>();
         if (actionPath == nullptr) {
             ::error("Action reference %1% is not a path expression.", tableAction->method);
             return std::nullopt;
         }
-        return actionPath->path->name.name;
+        actionDeclPath = actionPath->path;
+    } else if (const auto *tableAction = expr.to<IR::PathExpression>()) {
+        actionDeclPath = tableAction->path;
+    } else {
+        ::error("Unsupported action reference %1%.", expr);
+        return std::nullopt;
     }
-    if (const auto *tableAction = expr->to<IR::PathExpression>()) {
-        return tableAction->path->name.name;
+    const auto *actionDecl = refMap.getDeclaration(actionDeclPath, false);
+    if (actionDecl == nullptr) {
+        ::error("Unable to find action declaration %1%.", actionDeclPath);
+        return std::nullopt;
     }
-    ::error("Unsupported action reference %1%.", expr);
-    return std::nullopt;
+    const auto *action = actionDecl->to<IR::P4Action>();
+    if (action == nullptr) {
+        ::error("%1% is not an action.", actionDecl);
+        return std::nullopt;
+    }
+    return action;
 }
 
 const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
@@ -119,23 +132,28 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
         return stmt;
     }
 
-    IR::IndexedVector<IR::ActionListElement> filteredActionList;
-    cstring defaultActionName = "NoAction";
-    const auto *defaultAction = table->getDefaultAction();
+    const IR::P4Action *defaultAction = nullptr;
+
+    const auto *defaultActionRef = table->getDefaultAction();
     // If there is no default action set, assume "NoAction".
-    if (defaultAction != nullptr) {
-        auto defaultActionNameOpt = getActionName(defaultAction);
-        if (!defaultActionNameOpt.has_value()) {
+    if (defaultActionRef != nullptr) {
+        auto defaultActionOpt = getActionDecl(refMap, *defaultActionRef);
+        if (!defaultActionOpt.has_value()) {
             return stmt;
         }
-        defaultActionName = defaultActionNameOpt.value();
+        defaultAction = defaultActionOpt.value();
+    } else {
+        // TODO: Shouldn't there be a builtin?
+        defaultAction =
+            new IR::P4Action("NoAction", new IR::ParameterList(), new IR::BlockStatement());
     }
     auto tableActionList = TableUtils::buildTableActionList(*table);
 
+    IR::IndexedVector<IR::ActionListElement> filteredActionList;
     for (const auto *action : tableActionList) {
         // Do not check the default action.
         auto actionName = action->getName();
-        if (actionName == defaultActionName) {
+        if (actionName == defaultAction->controlPlaneName()) {
             continue;
         }
         auto conditionOpt = reachabilityMap.get().getReachabilityExpression(action);
@@ -146,8 +164,8 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
                 action);
             continue;
         }
-        auto condition = conditionOpt.value();
-        auto reachabilityOpt = condition.getReachability();
+        const auto *condition = conditionOpt.value();
+        auto reachabilityOpt = condition->getReachability();
         if (!reachabilityOpt.has_value()) {
             filteredActionList.push_back(action);
             continue;
@@ -160,8 +178,8 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
         }
     }
 
-    // There is no action to execute other than NoAction, remove the table.
-    if (filteredActionList.size() == 0 && defaultActionName == "NoAction") {
+    // There is no action to execute other than an empty action, remove the table.
+    if (filteredActionList.size() == 0 && defaultAction->body->components.empty()) {
         ::warning("Removing %1%", stmt);
         return nullptr;
     }

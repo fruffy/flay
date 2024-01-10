@@ -107,7 +107,8 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
     auto confPath = options.getControlPlaneConfig();
     printInfo("Parsing initial control plane configuration...\n");
     if (confPath.extension() == ".txtpb") {
-        auto deserializedConfig = ProtobufDeserializer::deserializeProtobufConfig(confPath);
+        auto deserializedConfig =
+            ProtobufDeserializer::deserializeProtoObjectFromFile<flaytests::Config>(confPath);
         if (!deserializedConfig.has_value()) {
             return std::nullopt;
         }

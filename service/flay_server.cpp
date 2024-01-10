@@ -1,15 +1,20 @@
 #include "backends/p4tools/modules/flay/service/flay_server.h"
 
+#include <glob.h>
+
 #include <cstdlib>
 #include <optional>
 #include <utility>
 
+#include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
+#include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 #include "lib/timer.h"
+#include "p4/v1/p4runtime.pb.h"
 
 namespace P4Tools::Flay {
 
@@ -49,16 +54,38 @@ double measureSizeDifference(const IR::P4Program *programBefore,
     return (beforeLength - measureProgramSize(programAfter)) * (100.0 / beforeLength);
 }
 
-FlayService::FlayService(const IR::P4Program *originalProgram,
-                         const FlayCompilerResult &compilerResult, ReachabilityMap reachabilityMap,
-                         AbstractSolver &solver,
+AbstractReachabilityMap &FlayService::initializeReachabilityMap(
+    ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap) {
+    printInfo("Creating the reachability map...");
+    AbstractReachabilityMap *initializedReachabilityMap = nullptr;
+    if (mapType == ReachabilityMapType::Z3_PRECOMPUTED) {
+        initializedReachabilityMap = new Z3SolverReachabilityMap(reachabilityMap);
+    } else {
+        auto *solver = new Z3Solver();
+        initializedReachabilityMap = new SolverReachabilityMap(*solver, reachabilityMap);
+    }
+    return *initializedReachabilityMap;
+}
+
+FlayService::FlayService(const FlayServiceOptions &options, const IR::P4Program *originalProgram,
+                         const FlayCompilerResult &compilerResult,
+                         const ReachabilityMap &reachabilityMap,
                          ControlPlaneConstraints initialControlPlaneConstraints)
-    : originalProgram(originalProgram),
+    : options(options),
+      originalProgram(originalProgram),
       compilerResult(compilerResult),
-      reachabilityMap(std::move(reachabilityMap)),
-      solver(solver),
+      reachabilityMap(initializeReachabilityMap(options.mapType, reachabilityMap)),
       controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
+    printInfo("Checking whether dead code can be removed with the initial configuration...");
     originalProgram->apply(ReferenceResolver(refMap));
+    elimControlPlaneDeadCode();
+}
+
+int FlayService::updateControlPlaneConstraintsWithEntityMessage(
+    const p4::v1::Entity &entity, const ::p4::v1::Update_Type &updateType, SymbolSet &symbolSet) {
+    return ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
+        entity, getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints, updateType,
+        symbolSet);
 }
 
 grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
@@ -73,7 +100,8 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
             return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
         }
     }
-    if (elimControlPlaneDeadCode(symbolSet) != EXIT_SUCCESS) {
+    auto result = elimControlPlaneDeadCode(symbolSet);
+    if (result.first != EXIT_SUCCESS) {
         return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
     }
     P4Tools::printPerformanceReport();
@@ -91,37 +119,35 @@ const IR::P4Program *FlayService::getOriginalProgram() const { return originalPr
 
 const FlayCompilerResult &FlayService::getCompilerResult() const { return compilerResult.get(); }
 
-int FlayService::elimControlPlaneDeadCode(
+std::optional<bool> FlayService::checkForSemanticChange(
+    std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) const {
+    printInfo("Checking for change in reachability semantics...");
+    Util::ScopedTimer timer("Check for semantics change");
+    if (symbolSet.has_value() && options.useSymbolSet) {
+        return reachabilityMap.get().recomputeReachability(symbolSet.value(),
+                                                           controlPlaneConstraints);
+    }
+    return reachabilityMap.get().recomputeReachability(controlPlaneConstraints);
+}
+
+std::pair<int, bool> FlayService::elimControlPlaneDeadCode(
     std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) {
     Util::ScopedTimer timer("Eliminate Dead Code");
 
-    std::optional<bool> hasChangedOpt;
-    printInfo("Computing reachability...");
-    if (symbolSet.has_value()) {
-        hasChangedOpt = reachabilityMap.recomputeReachability(symbolSet.value(), solver,
-                                                              controlPlaneConstraints);
-    } else {
-        hasChangedOpt = reachabilityMap.recomputeReachability(solver, controlPlaneConstraints);
-    }
+    std::optional<bool> hasChangedOpt = checkForSemanticChange(symbolSet);
     if (!hasChangedOpt.has_value()) {
-        return EXIT_FAILURE;
+        return {EXIT_FAILURE, false};
     }
     bool hasChanged = hasChangedOpt.value();
     if (!hasChanged) {
         printInfo("Received update, but semantics have not changed. No program change necessary.");
-        return EXIT_SUCCESS;
+        return {EXIT_SUCCESS, hasChanged};
     }
-    printInfo("Dead code that can be removed detected.");
-    semanticsChangeCounter++;
+    printInfo("Change in semantics detected.");
 
     prunedProgram = originalProgram->apply(ElimDeadCode(refMap, reachabilityMap));
-    auto statementCountBefore = countStatements(originalProgram);
-    auto statementCountAfter = countStatements(prunedProgram);
-    float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
-                                         static_cast<float>(statementCountBefore));
-    printInfo("Number of statements - Before: %1% After: %2% Total reduction percentage = %3%%%",
-              statementCountBefore, statementCountAfter, stmtPct);
-    return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
+                               : std::pair{EXIT_FAILURE, hasChanged};
 }
 
 bool FlayService::startServer(const std::string &serverAddress) {
@@ -140,11 +166,90 @@ bool FlayService::startServer(const std::string &serverAddress) {
     auto serveFn = [&]() { server->Wait(); };
     std::thread servingThread(serveFn);
 
-    auto f = exit_requested.get_future();
+    auto f = exitRequested.get_future();
     f.wait();
     server->Shutdown();
     servingThread.join();
     return true;
+}
+
+std::vector<std::string> FlayServiceWrapper::findFiles(const std::string &pattern) {
+    std::vector<std::string> files;
+    glob_t globResult;
+
+    // Perform globbing.
+    if (glob(pattern.c_str(), GLOB_TILDE, nullptr, &globResult) == 0) {
+        for (size_t i = 0; i < globResult.gl_pathc; ++i) {
+            files.emplace_back(globResult.gl_pathv[i]);
+        }
+    }
+
+    // Free allocated resources
+    globfree(&globResult);
+
+    return files;
+}
+
+int FlayServiceWrapper::parseControlUpdatesFromPattern(const std::string &pattern) {
+    auto files = findFiles(pattern);
+    for (const auto &file : files) {
+        auto entityOpt =
+            ProtobufDeserializer::deserializeProtoObjectFromFile<p4::v1::WriteRequest>(file);
+        if (!entityOpt.has_value()) {
+            return EXIT_FAILURE;
+        }
+        controlPlaneUpdates.emplace_back(entityOpt.value());
+    }
+    return EXIT_SUCCESS;
+}
+
+void FlayServiceWrapper::recordProgramChange(const FlayService &service) {
+    auto statementCountBefore = countStatements(service.originalProgram);
+    auto statementCountAfter = countStatements(service.prunedProgram);
+    float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
+                                         static_cast<float>(statementCountBefore));
+    printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",
+              statementCountBefore, statementCountAfter, stmtPct);
+}
+
+int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
+                            const IR::P4Program *originalProgram,
+                            const FlayCompilerResult &compilerResult,
+                            const ReachabilityMap &reachabilityMap,
+                            const ControlPlaneConstraints &initialControlPlaneConstraints) const {
+    // Initialize the flay service, which includes a dead code eliminator.
+    FlayService service(serviceOptions, originalProgram, compilerResult, reachabilityMap,
+                        initialControlPlaneConstraints);
+    if (::errorCount() > 0) {
+        return EXIT_FAILURE;
+    }
+    recordProgramChange(service);
+
+    /// Keeps track of how often the semantics have changed after an update.
+    uint64_t semanticsChangeCounter = 0;
+    if (!controlPlaneUpdates.empty()) {
+        printInfo("Processing control plane updates...");
+    }
+    for (const auto &controlPlaneUpdate : controlPlaneUpdates) {
+        SymbolSet symbolSet;
+        for (const auto &update : controlPlaneUpdate.updates()) {
+            Util::ScopedTimer timer("processMessage");
+            if (service.updateControlPlaneConstraintsWithEntityMessage(
+                    update.entity(), update.type(), symbolSet) != EXIT_SUCCESS) {
+                return EXIT_FAILURE;
+            }
+        }
+        auto result = service.elimControlPlaneDeadCode(symbolSet);
+        if (result.first != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
+        }
+        if (result.second) {
+            recordProgramChange(service);
+            semanticsChangeCounter++;
+        }
+    }
+
+    return EXIT_SUCCESS;
 }
 
 }  // namespace P4Tools::Flay

@@ -1,11 +1,8 @@
 #include "backends/p4tools/modules/flay/flay.h"
 
-#include <google/protobuf/text_format.h>
-
 #include <cstdlib>
 #include <string>
 
-#include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
@@ -67,22 +64,32 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
         return EXIT_FAILURE;
     }
 
-    Z3Solver solver;
-    auto reachabilityMap = executionState.getReachabilityMap();
-    // Initialize the flay service, which includes a dead code eliminator. Use the Z3Solver for now.
-    FlayService service(freshProgram, *flayCompilerResult, reachabilityMap, solver,
-                        constraintsOpt.value());
-    printInfo("Checking whether dead code can be removed with the initial configuration...");
-    service.elimControlPlaneDeadCode();
+    printInfo("Starting the service...");
+    FlayServiceOptions serviceOptions;
+    // If server mode is active, start the server and exit once it has finished.
+    if (flayOptions.serverModeActive()) {
+        // Initialize the flay service, which includes a dead code eliminator.
+        FlayService service(serviceOptions, freshProgram, *flayCompilerResult,
+                            executionState.getReachabilityMap(), constraintsOpt.value());
+        printInfo("Starting flay server...");
+        service.startServer(flayOptions.getServerAddress());
+        return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    }
 
-    if (::errorCount() > 0) {
+    FlayServiceWrapper serviceWrapper;
+    if (flayOptions.hasConfigurationUpdatePattern()) {
+        if (serviceWrapper.parseControlUpdatesFromPattern(
+                flayOptions.getConfigurationUpdatePattern()) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
+        }
+    }
+
+    if (serviceWrapper.run(serviceOptions, freshProgram, *flayCompilerResult,
+                           executionState.getReachabilityMap(),
+                           constraintsOpt.value()) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
 
-    if (flayOptions.serverModeActive()) {
-        printInfo("Starting flay server...");
-        service.startServer(flayOptions.getServerAddress());
-    }
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
