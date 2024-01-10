@@ -2,11 +2,10 @@
 
 #include <fcntl.h>
 
+#include <cerrno>
 #include <cstdlib>
 #include <optional>
 
-#include "backends/p4tools/common/lib/logging.h"
-#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "ir/irutils.h"
 #include "p4/v1/p4runtime.pb.h"
 
@@ -78,46 +77,36 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
     cstring tableName, P4::ControlPlaneAPI::p4rt_id_t tblId,
     const P4RuntimeIdtoIrNodeMap &irToIdMap, const p4::v1::TableEntry &tableEntry,
     SymbolSet &symbolSet) {
-    if (!tableEntry.action().has_action()) {
-        ::error("Table entry %1% has no action.", tableEntry.DebugString());
-        return std::nullopt;
-    }
+    RETURN_IF_FALSE_WITH_MESSAGE(
+        tableEntry.action().has_action(), std::nullopt,
+        ::error("Table entry %1% has no action.", tableEntry.DebugString()));
 
     auto tblAction = tableEntry.action().action();
-    auto actionId = tblAction.action_id();
-    const auto *actionResult = irToIdMap.at(actionId);
-    if (actionResult->to<IR::P4Action>() == nullptr) {
-        ::error("Action %1% is not a IR::P4Action.", actionResult);
-        return std::nullopt;
-    }
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        const auto *actionResult, safeAt(irToIdMap, tblAction.action_id()), std::nullopt,
+        ::error("ID %1% not found in the irToIdMap map.", tblAction.action_id()));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(auto &p4Action, actionResult->to<IR::P4Action>(), std::nullopt,
+                                  ::error("%1% is not a IR::P4Action.", actionResult));
 
-    const auto *p4Action = actionResult->to<IR::P4Action>();
-    const auto *actionExpr = convertTableAction(tblAction, tableName, *p4Action, symbolSet);
+    const auto *actionExpr = convertTableAction(tblAction, tableName, p4Action, symbolSet);
 
     TableKeySet tableKeySet;
     for (const auto &field : tableEntry.match()) {
-        auto fieldId = field.field_id();
-        const auto *result = irToIdMap.at(P4::ControlPlaneAPI::szudzikPairing(tblId, fieldId));
-        if (result->to<IR::KeyElement>() == nullptr) {
-            ::error("%1% is not a IR::KeyElement.", result);
-            return std::nullopt;
-        }
-        const auto *keyField = result->to<IR::KeyElement>();
-        const auto *keyExpr = keyField->expression;
-        const auto *nameAnnot = keyField->getAnnotation("name");
-        if (nameAnnot == nullptr) {
-            ::error("Non-constant table key without an annotation");
-            return std::nullopt;
-        }
-        cstring keyFieldName;
-        if (nameAnnot != nullptr) {
-            keyFieldName = nameAnnot->getName();
-        }
-        auto matchSet = produceTableMatch(field, tableName, keyFieldName, *keyExpr, symbolSet);
-        if (!matchSet.has_value()) {
-            return std::nullopt;
-        }
-        tableKeySet.insert(matchSet.value().begin(), matchSet.value().end());
+        auto fieldId = P4::ControlPlaneAPI::szudzikPairing(tblId, field.field_id());
+        ASSIGN_OR_RETURN_WITH_MESSAGE(const auto *result, safeAt(irToIdMap, fieldId), std::nullopt,
+                                      ::error("ID %1% not found in the irToIdMap map.", fieldId));
+
+        ASSIGN_OR_RETURN_WITH_MESSAGE(auto &keyField, result->to<IR::KeyElement>(), std::nullopt,
+                                      ::error("%1% is not a IR::KeyElement.", result));
+        ASSIGN_OR_RETURN_WITH_MESSAGE(auto &nameAnnot, keyField.getAnnotation("name"), std::nullopt,
+                                      ::error("Non-constant table key without an annotation"));
+
+        ASSIGN_OR_RETURN(auto matchSet,
+                         produceTableMatch(field, tableName, nameAnnot.getName(),
+                                           *keyField.expression, symbolSet),
+                         std::nullopt);
+
+        tableKeySet.insert(matchSet.begin(), matchSet.end());
     }
 
     return new TableMatchEntry(actionExpr, tableEntry.priority(), tableKeySet);
@@ -129,49 +118,38 @@ int ProtobufDeserializer::updateTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdM
                                            const ::p4::v1::Update_Type &updateType,
                                            SymbolSet &symbolSet) {
     auto tblId = tableEntry.table_id();
-    const auto *result = irToIdMap.at(tblId);
-    if (result->to<IR::P4Table>() == nullptr) {
-        ::error("Table %1% is not a IR::P4Table.", result);
-        return EXIT_FAILURE;
-    }
-    const auto *tbl = result->to<IR::P4Table>();
-    auto tableName = tbl->controlPlaneName();
+    ASSIGN_OR_RETURN_WITH_MESSAGE(const auto *result, safeAt(irToIdMap, tblId), EXIT_FAILURE,
+                                  ::error("ID %1% not found in the irToIdMap map.", tblId));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(auto &tbl, result->to<IR::P4Table>(), EXIT_FAILURE,
+                                  ::error("Table %1% is not a IR::P4Table.", result));
+    cstring tableName = tbl.controlPlaneName();
+
     auto it = controlPlaneConstraints.find(tableName);
-    if (it == controlPlaneConstraints.end()) {
-        error(
-            "Configuration for table %1% not found in the control plane constraints. It should "
-            "have already been initialized at this point.",
-            tableName);
-        return EXIT_FAILURE;
-    }
+    RETURN_IF_FALSE_WITH_MESSAGE(
+        it != controlPlaneConstraints.end(), EXIT_FAILURE,
+        ::error("Configuration for table %1% not found in the control plane constraints. It should "
+                "have already been initialized at this point.",
+                tableName));
 
-    auto &tableResultOpt = it->second.get();
-    if (tableResultOpt.to<TableConfiguration>() == nullptr) {
-        ::error("Configuration result is not a TableConfiguration.", tableName);
-        return EXIT_FAILURE;
-    }
-    auto *tableResult = tableResultOpt.to<TableConfiguration>();
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        auto &tableResult, it->second.get().to<TableConfiguration>(), EXIT_FAILURE,
+        ::error("Configuration result is not a TableConfiguration.", tableName));
 
-    auto tableMatchEntryOpt = produceTableEntry(tableName, tblId, irToIdMap, tableEntry, symbolSet);
+    ASSIGN_OR_RETURN(auto *tableMatchEntry,
+                     produceTableEntry(tableName, tblId, irToIdMap, tableEntry, symbolSet),
+                     EXIT_FAILURE);
 
-    if (!tableMatchEntryOpt.has_value()) {
-        return EXIT_FAILURE;
-    }
-
-    auto *tableMatchEntry = tableMatchEntryOpt.value();
     if (updateType == p4::v1::Update::MODIFY) {
-        tableResult->addTableEntry(*tableMatchEntry, true);
+        tableResult.addTableEntry(*tableMatchEntry, true);
     } else if (updateType == p4::v1::Update::INSERT) {
-        if (tableResult->addTableEntry(*tableMatchEntry, false) != EXIT_SUCCESS) {
-            ::error("Table entry \"%1%\" already exists.", tableEntry.ShortDebugString());
-            return EXIT_FAILURE;
-        }
+        RETURN_IF_FALSE_WITH_MESSAGE(
+            tableResult.addTableEntry(*tableMatchEntry, false) == EXIT_SUCCESS, EXIT_FAILURE,
+            ::error("Table entry \"%1%\" already exists.", tableEntry.ShortDebugString()));
     } else if (updateType == p4::v1::Update::DELETE) {
-        if (tableResult->deleteTableEntry(*tableMatchEntry) == 0) {
-            ::error("Table entry %1% not found and can not be deleted.",
-                    tableEntry.ShortDebugString());
-            return EXIT_FAILURE;
-        }
+        RETURN_IF_FALSE_WITH_MESSAGE(tableResult.deleteTableEntry(*tableMatchEntry) != 0,
+                                     EXIT_FAILURE,
+                                     ::error("Table entry %1% not found and can not be deleted.",
+                                             tableEntry.ShortDebugString()));
     } else {
         ::error("Unsupported update type %1%.", updateType);
         return EXIT_FAILURE;
@@ -185,11 +163,9 @@ int ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
     ControlPlaneConstraints &controlPlaneConstraints, const ::p4::v1::Update_Type &updateType,
     SymbolSet &symbolSet) {
     if (entity.has_table_entry()) {
-        const auto &tableEntry = entity.table_entry();
-        if (updateTableEntry(irToIdMap, tableEntry, controlPlaneConstraints, updateType,
-                             symbolSet) != EXIT_SUCCESS) {
-            return EXIT_FAILURE;
-        }
+        RETURN_IF_FALSE(updateTableEntry(irToIdMap, entity.table_entry(), controlPlaneConstraints,
+                                         updateType, symbolSet) == EXIT_SUCCESS,
+                        EXIT_FAILURE)
     } else {
         ::error("Unsupported control plane entry %1%.", entity.DebugString().c_str());
         return EXIT_FAILURE;
@@ -208,17 +184,6 @@ int ProtobufDeserializer::updateControlPlaneConstraints(
         }
     }
     return EXIT_SUCCESS;
-}
-
-std::optional<p4::v1::Entity> ProtobufDeserializer::parseEntity(const std::string &message) {
-    p4::v1::Entity entity;
-    if (google::protobuf::TextFormat::ParseFromString(message, &entity)) {
-        printInfo("Parsed entity: %1%", entity.DebugString());
-    } else {
-        ::error("Failed to parse Protobuf message: %1%", entity.ShortDebugString());
-        return std::nullopt;
-    }
-    return entity;
 }
 
 }  // namespace P4Tools::Flay

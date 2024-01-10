@@ -7,6 +7,37 @@
 
 namespace P4Tools::Flay {
 
+/// Utility function to compare IR nodes in a set. We use their source info.
+struct SourceIdCmp {
+    bool operator()(const IR::Node *s1, const IR::Node *s2) const {
+        return s1->srcInfo < s2->srcInfo;
+    }
+};
+
+/// Data structures which simplify the handling of symbolic variables.
+using SymbolSet = std::set<std::reference_wrapper<const IR::SymbolicVariable>,
+                           std::less<const IR::SymbolicVariable &>>;
+using SymbolMap = std::map<std::reference_wrapper<const IR::SymbolicVariable>,
+                           std::set<const IR::Node *>, std::less<const IR::SymbolicVariable &>>;
+using NodeSet = std::set<const IR::Node *, SourceIdCmp>;
+
+/// Collects all IR::SymbolicVariables in a given IR::Node.
+class SymbolCollector : public Inspector {
+ private:
+    /// The set of symbolic variables.
+    SymbolSet collectedSymbols;
+
+ public:
+    SymbolCollector() = default;
+
+    void postorder(const IR::SymbolicVariable *symbolicVariable) override {
+        collectedSymbols.insert(*symbolicVariable);
+    }
+
+    /// Returns the collected  symbolic variables.
+    [[nodiscard]] const SymbolSet &getCollectedSymbols() const { return collectedSymbols; }
+};
+
 /// Defines accessors and utility functions for state that is managed by the control plane.
 /// This class can be extended by targets to customize initialization behavior and add
 /// target-specific utility functions.
