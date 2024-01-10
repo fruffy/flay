@@ -29,7 +29,7 @@ add_custom_target(
 add_custom_command(
   OUTPUT ${FLAY_P4RUNTIME_INFO_GEN_SRCS} ${FLAY_P4RUNTIME_INFO_GEN_HDRS}
   COMMAND ${Protobuf_PROTOC_EXECUTABLE} -I${FLAY_P4RUNTIME_DIR} -I ${P4RUNTIME_STD_DIR}
-          -I${P4C_SOURCE_DIR}/control-plane -I${Protobuf_INCLUDE_DIR} --cpp_out
+          -I${P4C_SOURCE_DIR}/control-plane ${PROTOBUF_PROTOC_INCLUDES} --cpp_out
           ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf --python_out
           ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf ${FLAY_P4RUNTIME_INFO_PROTO}
   DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO} flay_runtime_dir
@@ -39,7 +39,7 @@ add_custom_command(
 add_dependencies(flay_runtime_dir controlplane)
 
 add_library(flay_runtime STATIC ${FLAY_P4RUNTIME_INFO_GEN_SRCS})
-target_include_directories(flay_runtime SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIR})
+target_include_directories(flay_runtime SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS})
 
 # Silence various warnings as the root issue is out of our control, example
 # https://github.com/protocolbuffers/protobuf/issues/7140
