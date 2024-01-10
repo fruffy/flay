@@ -41,6 +41,7 @@ parser p(packet_in pkt, out Headers h, inout local_metadata_t local_metadata, in
         }
     }
     state parse_ipv4 {
+        pkt.extract(h.ipv4);
         transition accept;
     }
 }

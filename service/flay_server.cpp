@@ -6,6 +6,7 @@
 #include <optional>
 #include <utility>
 
+#include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
@@ -59,6 +60,9 @@ AbstractReachabilityMap &FlayService::initializeReachabilityMap(
     AbstractReachabilityMap *initializedReachabilityMap = nullptr;
     if (mapType == ReachabilityMapType::Z3_PRECOMPUTED) {
         initializedReachabilityMap = new Z3SolverReachabilityMap(reachabilityMap);
+    } else {
+        auto *solver = new Z3Solver();
+        initializedReachabilityMap = new SolverReachabilityMap(*solver, reachabilityMap);
     }
     return *initializedReachabilityMap;
 }
@@ -139,7 +143,7 @@ std::pair<int, bool> FlayService::elimControlPlaneDeadCode(
         printInfo("Received update, but semantics have not changed. No program change necessary.");
         return {EXIT_SUCCESS, hasChanged};
     }
-    printInfo("Dead code that can be removed detected.");
+    printInfo("Change in semantics detected.");
 
     prunedProgram = originalProgram->apply(ElimDeadCode(refMap, reachabilityMap));
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
@@ -223,6 +227,9 @@ int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
 
     /// Keeps track of how often the semantics have changed after an update.
     uint64_t semanticsChangeCounter = 0;
+    if (!controlPlaneUpdates.empty()) {
+        printInfo("Processing control plane updates...");
+    }
     for (const auto &controlPlaneUpdate : controlPlaneUpdates) {
         SymbolSet symbolSet;
         for (const auto &update : controlPlaneUpdate.updates()) {

@@ -181,13 +181,13 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     for (const auto *action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
-        auto *actionChoice =
-            new IR::Equ(tableActionID,
-                        new IR::StringLiteral(IR::Type_String::get(), action->controlPlaneName()));
+        auto *actionChoice = new IR::Equ(
+            tableActionID,
+            new IR::StringLiteral(IR::Type_String::get(), actionType->controlPlaneName()));
         retProperties.totalHitCondition =
             new IR::LOr(retProperties.totalHitCondition, actionChoice);
         const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);
-        // We use getName() here. TODO: Clean this up?
+        // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         retProperties.actionRun = CollapseMux::produceOptimizedMux(
             actionHitCondition,
             new IR::StringLiteral(IR::Type_String::get(), action->controlPlaneName()),
@@ -270,10 +270,12 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
         state.merge(actionState);
         retProperties.totalHitCondition =
             new IR::LOr(retProperties.totalHitCondition, entryHitCondition);
-        // We use getName() here. TODO: Clean this up?
+        // We use controlPlaneName() here. TODO: Clean this up?
         retProperties.actionRun = CollapseMux::produceOptimizedMux(
             entryHitCondition,
-            new IR::StringLiteral(IR::Type_String::get(), actionType->controlPlaneName()),
+            new IR::StringLiteral(
+                IR::Type_String::get(),
+                actionCall->method->checkedTo<IR::PathExpression>()->path->toString()),
             retProperties.actionRun);
     }
 
