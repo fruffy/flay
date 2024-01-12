@@ -28,15 +28,7 @@ std::optional<const CompilerResult *> V1ModelCompilerTarget::runCompilerImpl(
         return std::nullopt;
     }
 
-    // TODO: Can we get rid of the idMapper?.
-    P4RuntimeToIRMapper idMapper(*p4runtimeApi.p4Info);
-    program->apply(idMapper);
-    if (::errorCount() > 0) {
-        return std::nullopt;
-    }
-
-    return new FlayCompilerResult{CompilerResult(*program), p4runtimeApi,
-                                  idMapper.getP4RuntimeIdtoIrNodeMap()};
+    return new FlayCompilerResult{CompilerResult(*program), p4runtimeApi};
 }
 
 }  // namespace P4Tools::Flay::V1Model

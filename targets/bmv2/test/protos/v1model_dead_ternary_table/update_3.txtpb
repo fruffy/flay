@@ -20,5 +20,5 @@ updates {
       }
     }
   }
-  type: INSERT
+  type: MODIFY
 }

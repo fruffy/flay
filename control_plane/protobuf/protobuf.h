@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <optional>
 
+#include "control-plane/p4RuntimeArchHandler.h"
 #include "ir/ir.h"
 
 #pragma GCC diagnostic push
@@ -17,7 +18,6 @@
 #pragma GCC diagnostic pop
 
 #include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
-#include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/control_plane/util.h"
 
@@ -35,30 +35,29 @@ class ProtobufDeserializer {
 
     /// Convert a P4Runtime TableAction into the appropriate symbolic constraint
     /// assignments.
-    [[nodiscard]] static const IR::Expression *convertTableAction(const p4::v1::Action &tblAction,
-                                                                  cstring tableName,
-                                                                  const IR::P4Action &p4Action,
-                                                                  SymbolSet &symbolSet);
+    [[nodiscard]] static std::optional<const IR::Expression *> convertTableAction(
+        const p4::v1::Action &tblAction, cstring tableName, const p4::config::v1::Action &p4Action,
+        SymbolSet &symbolSet);
 
     /// Convert a P4Runtime FieldMatch into the appropriate symbolic constraint
     /// assignments.
     /// @param symbolSet tracks the symbols used in this conversion.
     [[nodiscard]] static std::optional<TableKeySet> produceTableMatch(
-        const p4::v1::FieldMatch &field, cstring tableName, cstring keyFieldName,
-        const IR::Expression &keyExpr, SymbolSet &symbolSet);
+        const p4::v1::FieldMatch &field, cstring tableName,
+        const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet);
 
     /// Convert a P4Runtime TableEntry into a TableMatchEntry.
     /// Returns std::nullopt if the conversion fails.
     /// @param symbolSet tracks the symbols used in this conversion.
     [[nodiscard]] static std::optional<TableMatchEntry *> produceTableEntry(
         cstring tableName, P4::ControlPlaneAPI::p4rt_id_t tblId,
-        const P4RuntimeIdtoIrNodeMap &irToIdMap, const p4::v1::TableEntry &tableEntry,
+        const p4::config::v1::P4Info &p4Info, const p4::v1::TableEntry &tableEntry,
         SymbolSet &symbolSet);
 
     /// Convert a P4Runtime TableEntry into the appropriate symbolic constraint
     /// assignments.
     /// @param symbolSet tracks the symbols used in this conversion.
-    [[nodiscard]] static int updateTableEntry(const P4RuntimeIdtoIrNodeMap &irToIdMap,
+    [[nodiscard]] static int updateTableEntry(const p4::config::v1::P4Info &p4Info,
                                               const p4::v1::TableEntry &tableEntry,
                                               ControlPlaneConstraints &controlPlaneConstraints,
                                               const ::p4::v1::Update_Type &updateType,
@@ -70,7 +69,7 @@ class ProtobufDeserializer {
     /// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
     /// @param symbolSet tracks the symbols used in this conversion.
     [[nodiscard]] static int updateControlPlaneConstraintsWithEntityMessage(
-        const p4::v1::Entity &entity, const P4RuntimeIdtoIrNodeMap &irToIdMap,
+        const p4::v1::Entity &entity, const p4::config::v1::P4Info &p4Info,
         ControlPlaneConstraints &controlPlaneConstraints, const ::p4::v1::Update_Type &updateType,
         SymbolSet &symbolSet);
 
@@ -79,7 +78,7 @@ class ProtobufDeserializer {
     /// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
     /// @param symbolSet tracks the symbols used in this conversion.
     [[nodiscard]] static int updateControlPlaneConstraints(
-        const flaytests::Config &protoControlPlaneConfig, const P4RuntimeIdtoIrNodeMap &irToIdMap,
+        const flaytests::Config &protoControlPlaneConfig, const p4::config::v1::P4Info &p4Info,
         ControlPlaneConstraints &controlPlaneConstraints, SymbolSet &symbolSet);
 
     /// Deserialize a .proto file into a P4Runtime-compliant Protobuf object.

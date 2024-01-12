@@ -28,7 +28,7 @@ bool ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
     cond->apply(collector);
     const auto &collectedSymbols = collector.getCollectedSymbols();
     for (const auto &symbol : collectedSymbols) {
-        symbolMap[symbol].emplace(node);
+        symbolMap[symbol.get()].emplace(node);
     }
 
     return emplace(node, cond).second;
@@ -37,6 +37,9 @@ bool ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
 void ReachabilityMap::mergeReachabilityMapping(const ReachabilityMap &otherMap) {
     for (const auto &rechabilityTuple : otherMap) {
         insert(rechabilityTuple);
+    }
+    for (const auto &symbol : otherMap.getSymbolMap()) {
+        symbolMap[symbol.first.get()].insert(symbol.second.begin(), symbol.second.end());
     }
 }
 

@@ -21,7 +21,7 @@ enum ReachabilityMapType { Z3_PRECOMPUTED, Z3_DEFAULT };
 
 struct FlayServiceOptions {
     /// If useSymbolSet is true, we only check whether the symbols in the set have changed.
-    bool useSymbolSet = true;
+    bool useSymbolSet = false;
     /// The type of map to initialize.
     ReachabilityMapType mapType = ReachabilityMapType::Z3_PRECOMPUTED;
 };

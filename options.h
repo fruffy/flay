@@ -9,9 +9,6 @@ namespace P4Tools {
 
 /// Encapsulates and processes command-line options for P4Testgen.
 class FlayOptions : public AbstractP4cToolOptions {
-    /// List of the supported config file extensions (and with that, formats).
-    static const std::set<std::string> SUPPORTED_CONFIG_EXTENSIONS;
-
  public:
     FlayOptions(const FlayOptions &) = delete;
 
