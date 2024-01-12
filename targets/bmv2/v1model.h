@@ -13,8 +13,7 @@ class V1ModelCompilerTarget : public FlayCompilerTarget {
  private:
     V1ModelCompilerTarget();
 
-    std::optional<const CompilerResult *> runCompilerImpl(
-        const IR::P4Program *program) const override;
+    CompilerResultOrError runCompilerImpl(const IR::P4Program *program) const override;
 };
 
 }  // namespace P4Tools::Flay::V1Model

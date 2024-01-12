@@ -13,8 +13,7 @@ void V1ModelCompilerTarget::make() {
     }
 }
 
-std::optional<const CompilerResult *> V1ModelCompilerTarget::runCompilerImpl(
-    const IR::P4Program *program) const {
+CompilerResultOrError V1ModelCompilerTarget::runCompilerImpl(const IR::P4Program *program) const {
     program = runFrontend(program);
     if (program == nullptr) {
         return std::nullopt;
@@ -28,7 +27,7 @@ std::optional<const CompilerResult *> V1ModelCompilerTarget::runCompilerImpl(
         return std::nullopt;
     }
 
-    return new FlayCompilerResult{CompilerResult(*program), p4runtimeApi};
+    return {*new FlayCompilerResult{CompilerResult(*program), p4runtimeApi}};
 }
 
 }  // namespace P4Tools::Flay::V1Model
