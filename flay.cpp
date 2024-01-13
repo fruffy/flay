@@ -40,27 +40,25 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
         return EXIT_FAILURE;
     }
 
+    const auto &flayOptions = FlayOptions::get();
+    printInfo("Computing initial control plane constraints...");
+    // Gather the initial control-plane configuration. Also from a file input, if present.
+    auto constraintsOpt =
+        FlayTarget::computeControlPlaneConstraints(*flayCompilerResult, flayOptions);
+    if (!constraintsOpt.has_value()) {
+        return EXIT_FAILURE;
+    }
+
     printInfo("Running analysis...");
     SymbolicExecutor symbolicExecutor(*programInfo);
     symbolicExecutor.run();
 
     const auto &executionState = symbolicExecutor.getExecutionState();
-    const auto &controlPlaneState = symbolicExecutor.getControlPlaneState();
     auto &options = P4CContext::get().options();
-    const auto &flayOptions = FlayOptions::get();
 
     printInfo("Reparsing original program...");
     const auto *freshProgram = P4::parseP4File(options);
     if (::errorCount() > 0) {
-        return EXIT_FAILURE;
-    }
-
-    printInfo("Computing initial control plane constraints...");
-    // Gather the initial control-plane configuration. Also from a file input, if present.
-    // TODO: Compute this much earlier.
-    auto constraintsOpt = P4Tools::Flay::FlayTarget::computeControlPlaneConstraints(
-        *flayCompilerResult, flayOptions, controlPlaneState);
-    if (!constraintsOpt.has_value()) {
         return EXIT_FAILURE;
     }
 

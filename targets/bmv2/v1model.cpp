@@ -1,6 +1,9 @@
 #include "backends/p4tools/modules/flay/targets/bmv2/v1model.h"
 
+#include <cstdlib>
 #include <string>
+
+#include "backends/p4tools/modules/flay/targets/bmv2/symbolic_state.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -27,7 +30,12 @@ CompilerResultOrError V1ModelCompilerTarget::runCompilerImpl(const IR::P4Program
         return std::nullopt;
     }
 
-    return {*new FlayCompilerResult{CompilerResult(*program), p4runtimeApi}};
+    auto &controlPlaneState = *new ProtobufBmv2ControlPlaneState();
+    if (controlPlaneState.initializeDefaultState(*p4runtimeApi.p4Info) != EXIT_SUCCESS) {
+        return std::nullopt;
+    }
+
+    return {*new FlayCompilerResult{CompilerResult(*program), p4runtimeApi, controlPlaneState}};
 }
 
 }  // namespace P4Tools::Flay::V1Model

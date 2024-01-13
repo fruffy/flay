@@ -52,9 +52,6 @@ class TableExecutor {
     /// @returns the current execution state.
     [[nodiscard]] ExecutionState &getExecutionState() const;
 
-    /// @returns the current control-plane state.
-    [[nodiscard]] ControlPlaneState &getControlPlaneState() const;
-
     /// @returns the program info associated with the current target.
     [[nodiscard]] const ProgramInfo &getProgramInfo() const;
 
@@ -68,7 +65,7 @@ class TableExecutor {
 
     /// Helper function to call an action with arguments.
     static void callAction(const ProgramInfo &programInfo, ExecutionState &state,
-                           ControlPlaneState &controlPlaneState, const IR::P4Action *actionType,
+                           const IR::P4Action *actionType,
                            const IR::Vector<IR::Argument> &arguments);
 
     explicit TableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver);

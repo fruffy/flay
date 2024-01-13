@@ -25,10 +25,17 @@
 
 namespace P4Tools::Flay {
 
-FlayCompilerResult::FlayCompilerResult(CompilerResult compilerResult, P4::P4RuntimeAPI p4runtimeApi)
-    : CompilerResult(std::move(compilerResult)), p4runtimeApi(p4runtimeApi) {}
+FlayCompilerResult::FlayCompilerResult(CompilerResult compilerResult, P4::P4RuntimeAPI p4runtimeApi,
+                                       const ControlPlaneState &defaultControlPlaneState)
+    : CompilerResult(std::move(compilerResult)),
+      p4runtimeApi(p4runtimeApi),
+      defaultControlPlaneState(defaultControlPlaneState) {}
 
 const P4::P4RuntimeAPI &FlayCompilerResult::getP4RuntimeApi() const { return p4runtimeApi; }
+
+const ControlPlaneState &FlayCompilerResult::getDefaultControlPlaneState() const {
+    return defaultControlPlaneState.get();
+}
 
 FlayCompilerTarget::FlayCompilerTarget(std::string deviceName, std::string archName)
     : CompilerTarget(std::move(deviceName), std::move(archName)) {}
@@ -96,4 +103,5 @@ MidEnd FlayCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
     });
     return midEnd;
 }
+
 }  // namespace P4Tools::Flay

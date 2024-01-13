@@ -19,9 +19,8 @@
 namespace P4Tools::Flay::V1Model {
 
 V1ModelExpressionResolver::V1ModelExpressionResolver(const ProgramInfo &programInfo,
-                                                     ExecutionState &executionState,
-                                                     ControlPlaneState &controlPlaneState)
-    : ExpressionResolver(programInfo, executionState, controlPlaneState) {}
+                                                     ExecutionState &executionState)
+    : ExpressionResolver(programInfo, executionState) {}
 
 const IR::Expression *V1ModelExpressionResolver::processTable(const IR::P4Table *table) {
     auto copy = V1ModelExpressionResolver(*this);
@@ -416,7 +415,6 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"type", "session", "data"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto *controlPlaneState = externInfo.controlPlaneState.checkedTo<Bmv2ControlPlaneState>();
 
          auto cloneType =
              externInfo.externArgs->at(0)->expression->checkedTo<IR::Constant>()->asUint64();
@@ -424,9 +422,8 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
 
          const auto *instanceBitType = IR::getBitType(32);
          auto *isCloned = new IR::LAnd(
-             controlPlaneState->allocateCloneSession(),
-             new IR::Equ(sessionID, P4Tools::Flay::V1Model::Bmv2ControlPlaneState::getSessionId(
-                                        sessionID->type)));
+             Bmv2ControlPlaneState::getCloneActive(),
+             new IR::Equ(sessionID, Bmv2ControlPlaneState::getSessionId(sessionID->type)));
          const IR::Constant *instanceTypeConst = nullptr;
          if (cloneType == V1ModelConstants::CloneType::I2E) {
              instanceTypeConst = IR::getConstant(instanceBitType,
@@ -521,16 +518,15 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
      {"type", "session"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
-         auto *controlPlaneState = externInfo.controlPlaneState.checkedTo<Bmv2ControlPlaneState>();
 
          auto cloneType =
              externInfo.externArgs->at(0)->expression->checkedTo<IR::Constant>()->asUint64();
-         auto sessionID = externInfo.externArgs->at(1)->expression;
+         const auto *sessionID = externInfo.externArgs->at(1)->expression;
 
          const auto *instanceBitType = IR::getBitType(32);
-         auto isCloned =
-             new IR::LAnd(controlPlaneState->allocateCloneSession(),
-                          new IR::Equ(sessionID, controlPlaneState->getSessionId(sessionID->type)));
+         auto *isCloned = new IR::LAnd(
+             Bmv2ControlPlaneState::getCloneActive(),
+             new IR::Equ(sessionID, Bmv2ControlPlaneState::getSessionId(sessionID->type)));
          const IR::Constant *instanceTypeConst = nullptr;
          if (cloneType == V1ModelConstants::CloneType::I2E) {
              instanceTypeConst = IR::getConstant(instanceBitType,

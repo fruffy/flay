@@ -9,15 +9,13 @@
 namespace P4Tools::Flay {
 
 SymbolicExecutor::SymbolicExecutor(const ProgramInfo &programInfo)
-    : programInfo(programInfo),
-      executionState(&programInfo.getP4Program()),
-      controlPlaneState(FlayTarget::initializeControlPlaneState()) {}
+    : programInfo(programInfo), executionState(&programInfo.getP4Program()) {}
 
 void SymbolicExecutor::run() {
     Util::ScopedTimer timer("Data plane analysis");
 
     const auto *pipelineSequence = programInfo.getPipelineSequence();
-    auto &stepper = FlayTarget::getStepper(programInfo, executionState, controlPlaneState);
+    auto &stepper = FlayTarget::getStepper(programInfo, executionState);
     stepper.initializeState();
     for (const auto *node : *pipelineSequence) {
         node->apply(stepper);
@@ -28,9 +26,5 @@ void SymbolicExecutor::run() {
 }
 
 const ExecutionState &SymbolicExecutor::getExecutionState() { return executionState; }
-
-const ControlPlaneState &SymbolicExecutor::getControlPlaneState() {
-    return controlPlaneState.get();
-}
 
 }  // namespace P4Tools::Flay

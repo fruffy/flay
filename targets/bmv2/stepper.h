@@ -6,7 +6,6 @@
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
-#include "backends/p4tools/modules/flay/targets/bmv2/symbolic_state.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -14,18 +13,14 @@ class V1ModelFlayStepper : public FlayStepper {
  protected:
     const Bmv2V1ModelProgramInfo &getProgramInfo() const override;
 
-    Bmv2ControlPlaneState &getControlPlaneState() const override;
-
  public:
     explicit V1ModelFlayStepper(const Bmv2V1ModelProgramInfo &programInfo,
-                                ExecutionState &executionState,
-                                Bmv2ControlPlaneState &controlPlaneState);
+                                ExecutionState &executionState);
 
     void initializeState() override;
 
     V1ModelExpressionResolver &createExpressionResolver(
-        const ProgramInfo &programInfo, ExecutionState &executionState,
-        ControlPlaneState &controlPlaneState) const override;
+        const ProgramInfo &programInfo, ExecutionState &executionState) const override;
 };
 
 }  // namespace P4Tools::Flay::V1Model

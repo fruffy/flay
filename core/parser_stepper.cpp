@@ -1,18 +1,12 @@
 #include "backends/p4tools/modules/flay/core/parser_stepper.h"
 
-#include <stddef.h>
-
-#include <string>
-
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/common/lib/gen_eq.h"
-#include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/declaration.h"
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
 #include "ir/irutils.h"
-#include "ir/vector.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
@@ -24,10 +18,6 @@ const ProgramInfo &ParserStepper::getProgramInfo() const { return stepper.get().
 
 ExecutionState &ParserStepper::getExecutionState() const {
     return stepper.get().getExecutionState();
-}
-
-ControlPlaneState &ParserStepper::getControlPlaneState() const {
-    return stepper.get().getControlPlaneState();
 }
 
 bool ParserStepper::preorder(const IR::Node *node) {
@@ -79,8 +69,7 @@ bool ParserStepper::preorder(const IR::P4Parser *parser) {
 
 void ParserStepper::processSelectExpression(const IR::SelectExpression *selectExpr) {
     auto &executionState = getExecutionState();
-    auto &resolver = stepper.get().createExpressionResolver(getProgramInfo(), getExecutionState(),
-                                                            getControlPlaneState());
+    auto &resolver = stepper.get().createExpressionResolver(getProgramInfo(), getExecutionState());
     const auto *selectKeyExpr = resolver.computeResult(selectExpr->select);
 
     const IR::Expression *cond = IR::getBoolLiteral(false);
@@ -113,8 +102,8 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
         }
         notConds.push_back(new IR::LNot(cond));
         selectState.pushExecutionCondition(finalCond);
-        auto subParserStepper = ParserStepper(
-            FlayTarget::getStepper(getProgramInfo(), selectState, getControlPlaneState()));
+        auto subParserStepper =
+            ParserStepper(FlayTarget::getStepper(getProgramInfo(), selectState));
         decl->apply(subParserStepper);
         // Save the state for  later merging.
         accumulatedStates.emplace_back(selectState);

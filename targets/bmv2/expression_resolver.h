@@ -14,8 +14,7 @@ namespace P4Tools::Flay::V1Model {
 class V1ModelExpressionResolver : public ExpressionResolver {
  public:
     explicit V1ModelExpressionResolver(const ProgramInfo &programInfo,
-                                       ExecutionState &executionState,
-                                       ControlPlaneState &controlPlaneState);
+                                       ExecutionState &executionState);
 
  private:
     const IR::Expression *processTable(const IR::P4Table *table) override;

@@ -107,9 +107,11 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
         ::error("Table entry %1% has %2% matches, but P4Info has %3%.", tableEntry.DebugString(),
                 tableEntry.match().size(), p4InfoTable.match_fields().size()));
 
-    for (int idx = 0; idx < tableEntry.match().size(); ++idx) {
-        auto matchField = tableEntry.match().at(idx);
-        auto p4InfoMatchField = p4InfoTable.match_fields().at(idx);
+    for (const auto &matchField : tableEntry.match()) {
+        ASSIGN_OR_RETURN(
+            auto p4InfoMatchField,
+            P4::ControlPlaneAPI::findP4RuntimeMatchField(p4InfoTable, matchField.field_id()),
+            std::nullopt);
         ASSIGN_OR_RETURN(auto matchSet,
                          produceTableMatch(matchField, tableName, p4InfoMatchField, symbolSet),
                          std::nullopt);
