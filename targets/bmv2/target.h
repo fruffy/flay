@@ -6,7 +6,6 @@
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"
 #include "backends/p4tools/modules/flay/core/target.h"
-#include "backends/p4tools/modules/flay/targets/bmv2/symbolic_state.h"
 #include "ir/ir.h"
 
 namespace P4Tools::Flay::V1Model {
@@ -27,16 +26,12 @@ class V1ModelFlayTarget : public FlayTarget {
         const IR::Declaration_Instance *mainDecl) const override;
 
     [[nodiscard]] std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
-        const FlayCompilerResult &compilerResult, const FlayOptions &options,
-        const ControlPlaneState &controlPlaneState) const override;
-
-    [[nodiscard]] Bmv2ControlPlaneState &initializeControlPlaneStateImpl() const override;
+        const FlayCompilerResult &compilerResult, const FlayOptions &options) const override;
 
     [[nodiscard]] const ArchSpec *getArchSpecImpl() const override;
 
     [[nodiscard]] FlayStepper &getStepperImpl(const ProgramInfo &programInfo,
-                                              ExecutionState &executionState,
-                                              ControlPlaneState &controlPlaneState) const override;
+                                              ExecutionState &executionState) const override;
 };
 
 }  // namespace P4Tools::Flay::V1Model

@@ -83,24 +83,16 @@ const ArchSpec V1ModelFlayTarget::ARCH_SPEC =
 const ArchSpec *V1ModelFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; }
 
 FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
-                                               ExecutionState &executionState,
-                                               ControlPlaneState &controlPlaneState) const {
-    auto *bmv2ControlPlaneState = controlPlaneState.to<Bmv2ControlPlaneState>();
-    CHECK_NULL(bmv2ControlPlaneState);
-    return *new V1ModelFlayStepper(*programInfo.checkedTo<Bmv2V1ModelProgramInfo>(), executionState,
-                                   *bmv2ControlPlaneState);
-}
-
-Bmv2ControlPlaneState &V1ModelFlayTarget::initializeControlPlaneStateImpl() const {
-    return *new Bmv2ControlPlaneState();
+                                               ExecutionState &executionState) const {
+    return *new V1ModelFlayStepper(*programInfo.checkedTo<Bmv2V1ModelProgramInfo>(),
+                                   executionState);
 }
 
 std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneConstraintsImpl(
-    const FlayCompilerResult &compilerResult, const FlayOptions &options,
-    const ControlPlaneState &controlPlaneState) const {
+    const FlayCompilerResult &compilerResult, const FlayOptions &options) const {
     // Initialize some constraints that are active regardless of the control-plane configuration.
     // These constraints can be overridden by the respective control-plane configuration.
-    auto constraints = controlPlaneState.getDefaultConstraints();
+    auto constraints = compilerResult.getDefaultControlPlaneState().getDefaultConstraints();
     if (!options.hasControlPlaneConfig()) {
         return constraints;
     }
@@ -114,7 +106,7 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
         }
         SymbolSet symbolSet;
         if (ProtobufDeserializer::updateControlPlaneConstraints(
-                deserializedConfig.value(), compilerResult.getP4RuntimeNodeMap(), constraints,
+                deserializedConfig.value(), *compilerResult.getP4RuntimeApi().p4Info, constraints,
                 symbolSet) != EXIT_SUCCESS) {
             return std::nullopt;
         }

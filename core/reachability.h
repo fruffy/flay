@@ -6,7 +6,7 @@
 #include <optional>
 
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
-#include "backends/p4tools/modules/flay/control_plane/util.h"
+#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "ir/ir.h"
 #include "ir/solver.h"
 #include "ir/visitor.h"

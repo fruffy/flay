@@ -1,0 +1,49 @@
+updates {
+    entity {
+      # Table ingress.toggle_check
+      table_entry {
+        table_id: 46418392
+        priority: 1
+        # Match field dst_eth
+        match {
+          field_id: 1
+          ternary {
+            value: "\xEE\x0A\x61\xCE\x11\xF6"
+            mask: "\x00\x00\x00\x00\x00\x00"
+          }
+        }
+        # Action ingress.check
+        action {
+          action {
+            action_id: 31006061
+        }
+      }
+    }
+  },
+  type: INSERT
+}
+
+updates {
+    entity {
+    # Table ingress.acl_ingress_table
+    table_entry {
+      table_id: 39215123
+      priority: 1
+      # Match field dst_ip
+      match {
+        field_id: 1
+        ternary {
+          value: "\xE4\xF4\xE4\xD7"
+          mask: "\x00\x00\x00\x00"
+        }
+      }
+      # Action ingress.acl_drop
+      action {
+        action {
+          action_id: 30268069
+        }
+      }
+    }
+  },
+  type: INSERT
+}

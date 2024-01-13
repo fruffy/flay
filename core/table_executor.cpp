@@ -33,10 +33,6 @@ ExecutionState &TableExecutor::getExecutionState() const {
     return resolver.get().getExecutionState();
 }
 
-ControlPlaneState &TableExecutor::getControlPlaneState() const {
-    return resolver.get().getControlPlaneState();
-}
-
 const IR::P4Table &TableExecutor::getP4Table() const { return table; }
 
 const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
@@ -133,7 +129,7 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
 }
 
 void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &state,
-                               ControlPlaneState &controlPlaneState, const IR::P4Action *actionType,
+                               const IR::P4Action *actionType,
                                const IR::Vector<IR::Argument> &arguments) {
     const auto *parameters = actionType->parameters;
     BUG_CHECK(
@@ -149,7 +145,7 @@ void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &s
         const auto *paramRef = new IR::PathExpression(paramType, new IR::Path(parameter->name));
         state.set(paramRef, actionArg);
     }
-    auto &actionStepper = FlayTarget::getStepper(programInfo, state, controlPlaneState);
+    auto &actionStepper = FlayTarget::getStepper(programInfo, state);
     actionType->body->apply(actionStepper);
 }
 
@@ -161,7 +157,7 @@ void TableExecutor::processDefaultAction() const {
 
     // Synthesize arguments for the call based on the action parameters.
     const auto *arguments = tableAction->arguments;
-    callAction(getProgramInfo(), state, getControlPlaneState(), actionType, *arguments);
+    callAction(getProgramInfo(), state, actionType, *arguments);
 }
 
 TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
@@ -169,7 +165,6 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     auto table = getP4Table();
     auto tableActionList = TableUtils::buildTableActionList(table);
     auto &state = getExecutionState();
-    auto &controlPlaneState = getControlPlaneState();
 
     // First, we compute the hit condition to trigger this particular action call.
     const auto *hitCondition = computeKey(key);
@@ -210,7 +205,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
             arguments.push_back(new IR::Argument(actionArg));
         }
         state.addReachabilityMapping(action, actionHitCondition);
-        callAction(getProgramInfo(), actionState, controlPlaneState, actionType, arguments);
+        callAction(getProgramInfo(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
         state.merge(actionState);
     }
@@ -261,8 +256,7 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
         const auto *actionType = state.getP4Action(actionCall);
         auto &actionState = state.clone();
         actionState.pushExecutionCondition(hitCondition);
-        callAction(getProgramInfo(), actionState, getControlPlaneState(), actionType,
-                   *actionCall->arguments);
+        callAction(getProgramInfo(), actionState, actionType, *actionCall->arguments);
         // Finally, merge in the state of the action call.
         // We can only match if other entries have not previously matched!
         const auto *entryHitCondition =
@@ -321,8 +315,6 @@ const IR::Expression *TableExecutor::processTable() {
              new IR::NamedExpression("table_name",
                                      new IR::StringLiteral(IR::Type_String::get(), tableName))});
     }
-
-    getControlPlaneState().allocateControlPlaneTable(table);
 
     const auto *tableActionID = ControlPlaneState::getTableActionChoice(tableName);
     // Execute all other possible action options. Get the combination of all possible hits.

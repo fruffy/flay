@@ -3,7 +3,6 @@
 
 #include <functional>
 
-#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
@@ -28,9 +27,6 @@ class ExpressionResolver : public Inspector {
 
     /// The current execution state.
     std::reference_wrapper<ExecutionState> executionState;
-
-    /// The current control plane state.
-    std::reference_wrapper<ControlPlaneState> controlPlaneState;
 
     /// @returns a symbolic expression, which could also be a header stack or
     /// struct expression.
@@ -63,9 +59,6 @@ class ExpressionResolver : public Inspector {
     /// @returns the current execution state.
     ExecutionState &getExecutionState() const;
 
-    /// @returns the current control plane state.
-    ControlPlaneState &getControlPlaneState() const;
-
     /// @returns the program info associated with the current target.
     const ProgramInfo &getProgramInfo() const;
 
@@ -83,8 +76,7 @@ class ExpressionResolver : public Inspector {
     const IR::Expression *getResult();
 
  public:
-    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState,
-                                ControlPlaneState &ControlPlaneState);
+    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);
 
     /// Apply the resolver to the supplied @param node.
     /// @returns the result of the execution of this visitor.

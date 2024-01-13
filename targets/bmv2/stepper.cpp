@@ -15,12 +15,6 @@ const Bmv2V1ModelProgramInfo &V1ModelFlayStepper::getProgramInfo() const {
     return *FlayStepper::getProgramInfo().checkedTo<Bmv2V1ModelProgramInfo>();
 }
 
-Bmv2ControlPlaneState &V1ModelFlayStepper::getControlPlaneState() const {
-    auto *state = FlayStepper::getControlPlaneState().to<Bmv2ControlPlaneState>();
-    CHECK_NULL(state);
-    return *state;
-}
-
 void V1ModelFlayStepper::initializeState() {
     const auto &target = FlayTarget::get();
     const auto *archSpec = FlayTarget::getArchSpec();
@@ -52,14 +46,12 @@ void V1ModelFlayStepper::initializeState() {
 }
 
 V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::Bmv2V1ModelProgramInfo &programInfo,
-                                       ExecutionState &executionState,
-                                       Bmv2ControlPlaneState &controlPlaneState)
-    : FlayStepper(programInfo, executionState, controlPlaneState) {}
+                                       ExecutionState &executionState)
+    : FlayStepper(programInfo, executionState) {}
 
 V1ModelExpressionResolver &V1ModelFlayStepper::createExpressionResolver(
-    const ProgramInfo &programInfo, ExecutionState &executionState,
-    ControlPlaneState &controlPlaneState) const {
-    return *new V1ModelExpressionResolver(programInfo, executionState, controlPlaneState);
+    const ProgramInfo &programInfo, ExecutionState &executionState) const {
+    return *new V1ModelExpressionResolver(programInfo, executionState);
 }
 
 }  // namespace P4Tools::Flay::V1Model

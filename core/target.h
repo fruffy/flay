@@ -5,7 +5,6 @@
 
 #include "backends/p4tools/common/core/target.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
-#include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
@@ -27,11 +26,7 @@ class FlayTarget : public Target {
 
     /// @returns the stepper that will step through the program, tailored to the target.
     [[nodiscard]] static FlayStepper &getStepper(const ProgramInfo &programInfo,
-                                                 ExecutionState &executionState,
-                                                 ControlPlaneState &controlPlaneState);
-
-    /// @returns the control plane state implementation for this particular target.
-    [[nodiscard]] static ControlPlaneState &initializeControlPlaneState();
+                                                 ExecutionState &executionState);
 
     /// A vector that maps the architecture parameters of each pipe to the corresponding
     /// global architecture variables. For example, this map specifies which parameter of each pipe
@@ -42,8 +37,7 @@ class FlayTarget : public Target {
 
     /// @returns the initial control plane constraints as computed by the target and the input file.
     static std::optional<ControlPlaneConstraints> computeControlPlaneConstraints(
-        const FlayCompilerResult &compilerResult, const FlayOptions &options,
-        const ControlPlaneState &controlPlaneState);
+        const FlayCompilerResult &compilerResult, const FlayOptions &options);
 
  protected:
     /// @see @produceProgramInfo.
@@ -51,12 +45,8 @@ class FlayTarget : public Target {
         const CompilerResult &compilerResult) const;
 
     /// @see @getStepper.
-    [[nodiscard]] virtual FlayStepper &getStepperImpl(
-        const ProgramInfo &programInfo, ExecutionState &executionState,
-        ControlPlaneState &controlPlaneState) const = 0;
-
-    /// @see @initializeControlPlaneState.
-    [[nodiscard]] virtual ControlPlaneState &initializeControlPlaneStateImpl() const = 0;
+    [[nodiscard]] virtual FlayStepper &getStepperImpl(const ProgramInfo &programInfo,
+                                                      ExecutionState &executionState) const = 0;
 
     /// @see @produceProgramInfo.
     virtual const ProgramInfo *produceProgramInfoImpl(
@@ -64,8 +54,7 @@ class FlayTarget : public Target {
 
     /// @see @computeControlPlaneConstraints.
     [[nodiscard]] virtual std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
-        const FlayCompilerResult &compilerResult, const FlayOptions &options,
-        const ControlPlaneState &controlPlaneState) const = 0;
+        const FlayCompilerResult &compilerResult, const FlayOptions &options) const = 0;
 
     /// @see getArchSpec
     [[nodiscard]] virtual const ArchSpec *getArchSpecImpl() const = 0;

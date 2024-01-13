@@ -1,14 +1,11 @@
 #include "backends/p4tools/modules/flay/options.h"
 
 #include "backends/p4tools/common/lib/logging.h"
-#include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/common/options.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
 namespace P4Tools {
-
-const std::set<std::string> FlayOptions::SUPPORTED_CONFIG_EXTENSIONS = {".txtpb"};
 
 FlayOptions &FlayOptions::get() {
     static FlayOptions INSTANCE;
@@ -29,14 +26,6 @@ FlayOptions::FlayOptions()
                 ::error("%1% does not exist. Please provide a valid file path.",
                         controlPlaneConfig.value().c_str());
                 return false;
-            }
-            const auto *extension = controlPlaneConfig.value().extension().c_str();
-            if (SUPPORTED_CONFIG_EXTENSIONS.find(extension) == SUPPORTED_CONFIG_EXTENSIONS.end()) {
-                ::error(
-                    "File %1% does not have a supported extension. Supported extensions are "
-                    "%2%.",
-                    controlPlaneConfig.value().c_str(),
-                    Utils::containerToString(SUPPORTED_CONFIG_EXTENSIONS));
             }
             return true;
         },

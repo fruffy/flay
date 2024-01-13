@@ -84,7 +84,7 @@ FlayService::FlayService(const FlayServiceOptions &options, const IR::P4Program 
 int FlayService::updateControlPlaneConstraintsWithEntityMessage(
     const p4::v1::Entity &entity, const ::p4::v1::Update_Type &updateType, SymbolSet &symbolSet) {
     return ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-        entity, getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints, updateType,
+        entity, *getCompilerResult().getP4RuntimeApi().p4Info, controlPlaneConstraints, updateType,
         symbolSet);
 }
 
@@ -95,8 +95,8 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
     for (const auto &update : request->updates()) {
         Util::ScopedTimer timer("processMessage");
         if (ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-                update.entity(), getCompilerResult().getP4RuntimeNodeMap(), controlPlaneConstraints,
-                update.type(), symbolSet) != EXIT_SUCCESS) {
+                update.entity(), *getCompilerResult().getP4RuntimeApi().p4Info,
+                controlPlaneConstraints, update.type(), symbolSet) != EXIT_SUCCESS) {
             return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
         }
     }
@@ -104,6 +104,13 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
     if (result.first != EXIT_SUCCESS) {
         return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
     }
+    auto statementCountBefore = countStatements(originalProgram);
+    auto statementCountAfter = countStatements(prunedProgram);
+    float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
+                                         static_cast<float>(statementCountBefore));
+    printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",
+              statementCountBefore, statementCountAfter, stmtPct);
+
     P4Tools::printPerformanceReport();
     return grpc::Status::OK;
 }
@@ -233,7 +240,7 @@ int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
     for (const auto &controlPlaneUpdate : controlPlaneUpdates) {
         SymbolSet symbolSet;
         for (const auto &update : controlPlaneUpdate.updates()) {
-            Util::ScopedTimer timer("processMessage");
+            Util::ScopedTimer timer("processWrapperMessage");
             if (service.updateControlPlaneConstraintsWithEntityMessage(
                     update.entity(), update.type(), symbolSet) != EXIT_SUCCESS) {
                 return EXIT_FAILURE;
