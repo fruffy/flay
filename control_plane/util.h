@@ -6,35 +6,39 @@
 
 namespace P4Tools::Flay {
 
-/// If @param expr evaluates to false, returns @param ret.
+/// If @param inputFunction evaluates to false, returns @param ret.
 // NOLINTNEXTLINE
-#define RETURN_IF_FALSE(expr, ret) \
-    if (!(expr)) return ret;
+#define RETURN_IF_FALSE(inputFunction, returnValue) \
+    if (!(inputFunction)) return returnValue;
 
-/// If @param expr evaluates to false, returns @param ret and also executes @param err_fun.
+/// If @param inputFunction evaluates to false, returns @param ret and also executes @param
+/// errorFunction.
 // NOLINTNEXTLINE
-#define RETURN_IF_FALSE_WITH_MESSAGE(expr, ret, err_fun) \
-    if (!(expr)) {                                       \
-        err_fun;                                         \
-        return ret;                                      \
+#define RETURN_IF_FALSE_WITH_MESSAGE(inputFunction, returnValue, errorFunction) \
+    if (!(inputFunction)) {                                                     \
+        errorFunction;                                                          \
+        return returnValue;                                                     \
     }
 
-/// Assigns the value of @param expr to @param lhs if the contained value is not false.
+/// Assigns the value of @param inputFunction to @param targetVariable if the contained value is not
+/// false.
 // NOLINTNEXTLINE
-#define ASSIGN_OR_RETURN(lhs, expr, ret) \
-    if (!(expr)) return ret;             \
-    lhs = *(expr);  // NOLINT
+#define ASSIGN_OR_RETURN(targetVariable, inputFunction, returnValue) \
+    if (!(inputFunction)) return returnValue;                        \
+    targetVariable = *(inputFunction);  // NOLINT
 
-/// Assigns the value of @param expr to @param lhs if the contained value is not false.
-/// @param expr is dereferenced, which will work on std::nullopt and pointers, but not bools.
-/// Prints an error provided with @param err_fun if the expr evaluates to false.
+/// Assigns the value of @param inputFunction to @param targetVariable if the contained value is not
+/// false.
+/// @param inputFunction is dereferenced, which will work on std::nullopt and pointers, but not
+/// bools. Prints an error provided with @param errorFunction if the inputFunction evaluates to
+/// false.
 // NOLINTNEXTLINE
-#define ASSIGN_OR_RETURN_WITH_MESSAGE(lhs, expr, ret, err_fun) \
-    if (!(expr)) {                                             \
-        err_fun;                                               \
-        return ret;                                            \
-    }                                                          \
-    lhs = *(expr);  // NOLINT
+#define ASSIGN_OR_RETURN_WITH_MESSAGE(targetVariable, inputFunction, returnValue, errorFunction) \
+    if (!(inputFunction)) {                                                                      \
+        errorFunction;                                                                           \
+        return returnValue;                                                                      \
+    }                                                                                            \
+    targetVariable = *(inputFunction);  // NOLINT
 
 /// Tries to look up a key in a map, returns std::nullopt if the key does not exist.
 template <class K, class T, class V, class Comp, class Alloc>

@@ -4,6 +4,8 @@
 #include <string>
 
 #include "backends/p4tools/modules/flay/targets/bmv2/symbolic_state.h"
+#include "frontends/common/resolveReferences/referenceMap.h"
+#include "frontends/common/resolveReferences/resolveReferences.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -30,8 +32,19 @@ CompilerResultOrError V1ModelCompilerTarget::runCompilerImpl(const IR::P4Program
         return std::nullopt;
     }
 
+    // TODO: Can we get rid of the idMapper?
+    P4RuntimeToIRMapper idMapper(*p4runtimeApi.p4Info);
+    program->apply(idMapper);
+    if (::errorCount() > 0) {
+        return std::nullopt;
+    }
+    // TODO: We only need this because P4Info does not contain information on default actions.
+    P4::ReferenceMap refMap;
+    program->apply(P4::ResolveReferences(&refMap));
+
     auto &controlPlaneState = *new ProtobufBmv2ControlPlaneState();
-    if (controlPlaneState.initializeDefaultState(*p4runtimeApi.p4Info) != EXIT_SUCCESS) {
+    if (controlPlaneState.initializeDefaultState(
+            *p4runtimeApi.p4Info, idMapper.getP4RuntimeIdtoIrNodeMap(), refMap) != EXIT_SUCCESS) {
         return std::nullopt;
     }
 

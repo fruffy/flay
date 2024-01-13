@@ -4,6 +4,7 @@
 #include <string>
 
 #include "backends/p4tools/common/lib/logging.h"
+#include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/register.h"
@@ -43,11 +44,9 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     const auto &flayOptions = FlayOptions::get();
     printInfo("Computing initial control plane constraints...");
     // Gather the initial control-plane configuration. Also from a file input, if present.
-    auto constraintsOpt =
-        FlayTarget::computeControlPlaneConstraints(*flayCompilerResult, flayOptions);
-    if (!constraintsOpt.has_value()) {
-        return EXIT_FAILURE;
-    }
+    ASSIGN_OR_RETURN(auto constraints,
+                     FlayTarget::computeControlPlaneConstraints(*flayCompilerResult, flayOptions),
+                     EXIT_FAILURE);
 
     printInfo("Running analysis...");
     SymbolicExecutor symbolicExecutor(*programInfo);
@@ -58,9 +57,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
 
     printInfo("Reparsing original program...");
     const auto *freshProgram = P4::parseP4File(options);
-    if (::errorCount() > 0) {
-        return EXIT_FAILURE;
-    }
+    RETURN_IF_FALSE(freshProgram != nullptr && ::errorCount() == 0, EXIT_FAILURE);
 
     printInfo("Starting the service...");
     FlayServiceOptions serviceOptions;
@@ -68,7 +65,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     if (flayOptions.serverModeActive()) {
         // Initialize the flay service, which includes a dead code eliminator.
         FlayService service(serviceOptions, freshProgram, *flayCompilerResult,
-                            executionState.getReachabilityMap(), constraintsOpt.value());
+                            executionState.getReachabilityMap(), constraints);
         printInfo("Starting flay server...");
         service.startServer(flayOptions.getServerAddress());
         return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -76,17 +73,15 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
 
     FlayServiceWrapper serviceWrapper;
     if (flayOptions.hasConfigurationUpdatePattern()) {
-        if (serviceWrapper.parseControlUpdatesFromPattern(
-                flayOptions.getConfigurationUpdatePattern()) != EXIT_SUCCESS) {
-            return EXIT_FAILURE;
-        }
+        RETURN_IF_FALSE(serviceWrapper.parseControlUpdatesFromPattern(
+                            flayOptions.getConfigurationUpdatePattern()) == EXIT_SUCCESS,
+                        EXIT_FAILURE);
     }
 
-    if (serviceWrapper.run(serviceOptions, freshProgram, *flayCompilerResult,
-                           executionState.getReachabilityMap(),
-                           constraintsOpt.value()) != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
-    }
+    RETURN_IF_FALSE(
+        serviceWrapper.run(serviceOptions, freshProgram, *flayCompilerResult,
+                           executionState.getReachabilityMap(), constraints) == EXIT_SUCCESS,
+        EXIT_FAILURE);
 
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

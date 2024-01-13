@@ -24,7 +24,7 @@
 namespace P4Tools::Flay {
 
 /// Parses a Protobuf text message file and converts the instructions contained
-/// within into P4C-IR nodes. These IR-nodes are structure to represent a
+/// within into P4C-IR nodes. These IR-nodes are structured to represent a
 /// control-plane configuration that maps to the semantic data-plane
 /// representation of the program.
 class ProtobufDeserializer {

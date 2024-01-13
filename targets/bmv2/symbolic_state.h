@@ -1,6 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_SYMBOLIC_STATE_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_SYMBOLIC_STATE_H_
 
+#include "backends/p4tools/modules/flay/control_plane/id_to_ir_map.h"
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 
 #pragma GCC diagnostic push
@@ -29,7 +30,9 @@ class Bmv2ControlPlaneState : public ControlPlaneState {
 
 class ProtobufBmv2ControlPlaneState : public Bmv2ControlPlaneState {
  public:
-    int initializeDefaultState(const p4::config::v1::P4Info &p4info);
+    int initializeDefaultState(const p4::config::v1::P4Info &p4info,
+                               const P4RuntimeIdtoIrNodeMap &idMapper,
+                               const P4::ReferenceMap &refMap);
 };
 
 }  // namespace P4Tools::Flay::V1Model
