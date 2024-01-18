@@ -1,5 +1,7 @@
 #include "backends/p4tools/modules/flay/core/compiler_target.h"
 
+#include <utility>
+
 #include "backends/bmv2/common/annotations.h"
 #include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/common/compiler/convert_varbits.h"
@@ -26,15 +28,15 @@
 namespace P4Tools::Flay {
 
 FlayCompilerResult::FlayCompilerResult(CompilerResult compilerResult, P4::P4RuntimeAPI p4runtimeApi,
-                                       const ControlPlaneState &defaultControlPlaneState)
+                                       ControlPlaneConstraints defaultControlPlaneConstraints)
     : CompilerResult(std::move(compilerResult)),
       p4runtimeApi(p4runtimeApi),
-      defaultControlPlaneState(defaultControlPlaneState) {}
+      defaultControlPlaneConstraints(std::move(defaultControlPlaneConstraints)) {}
 
 const P4::P4RuntimeAPI &FlayCompilerResult::getP4RuntimeApi() const { return p4runtimeApi; }
 
-const ControlPlaneState &FlayCompilerResult::getDefaultControlPlaneState() const {
-    return defaultControlPlaneState.get();
+const ControlPlaneConstraints &FlayCompilerResult::getDefaultControlPlaneConstraints() const {
+    return defaultControlPlaneConstraints;
 }
 
 FlayCompilerTarget::FlayCompilerTarget(std::string deviceName, std::string archName)

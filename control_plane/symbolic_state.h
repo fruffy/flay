@@ -42,14 +42,7 @@ class SymbolCollector : public Inspector {
 /// This class can be extended by targets to customize initialization behavior and add
 /// target-specific utility functions.
 class ControlPlaneState : public ICastable {
- protected:
-    /// The default control-plane constraints as defined by a target.
-    ControlPlaneConstraints defaultConstraints;
-
  public:
-    /// @returns the default control-plane constraints.
-    [[nodiscard]] ControlPlaneConstraints getDefaultConstraints() const;
-
     /// @returns the symbolic boolean variable describing whether a table is configured by the
     /// control plane.
     static const IR::SymbolicVariable *getTableActive(cstring tableName);
@@ -73,10 +66,24 @@ class ControlPlaneState : public ICastable {
 
     /// @returns the symbolic variable listing the chosen action for a particular table.
     static const IR::SymbolicVariable *getTableActionChoice(cstring tableName);
+};
 
-    /// Initializes the symbolic variable for a table and adds it to @defaultConstraints.
-    /// @returns EXIT_SUCCESS on successful completion.
-    virtual int allocateControlPlaneTable(const IR::P4Table &table) = 0;
+class ControlPlaneStateInitializer : public Inspector {
+ protected:
+    /// The default control-plane constraints as defined by a target.
+    ControlPlaneConstraints defaultConstraints;
+
+ public:
+    ControlPlaneStateInitializer() = default;
+
+    virtual std::optional<ControlPlaneConstraints> generateInitialControlPlaneConstraints(
+        const IR::P4Program *program) = 0;
+
+    /// @returns the default control-plane constraints.
+    [[nodiscard]] ControlPlaneConstraints getDefaultConstraints() const;
+
+ private:
+    bool preorder(const IR::P4Table *table) override;
 };
 
 }  // namespace P4Tools::Flay
