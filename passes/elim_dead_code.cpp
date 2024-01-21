@@ -3,7 +3,7 @@
 #include <optional>
 
 #include "backends/p4tools/common/lib/table_utils.h"
-#include "ir/indexed_vector.h"
+#include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "ir/node.h"
 #include "ir/vector.h"
 #include "lib/error.h"
@@ -115,76 +115,52 @@ std::optional<const IR::P4Action *> getActionDecl(const P4::ReferenceMap &refMap
 
 const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     const auto *call = stmt->methodCall->method->to<IR::Member>();
-    if (call == nullptr || call->member != IR::IApply::applyMethodName) {
-        return stmt;
-    }
-    const auto *tableReference = call->expr->to<IR::PathExpression>();
-    if (tableReference == nullptr) {
-        return stmt;
-    }
+    RETURN_IF_FALSE(call != nullptr && call->member == IR::IApply::applyMethodName, stmt);
+    ASSIGN_OR_RETURN(auto &tableReference, call->expr->to<IR::PathExpression>(), stmt);
+    ASSIGN_OR_RETURN(auto &tableDecl, refMap.get().getDeclaration(tableReference.path, false),
+                     stmt);
+    ASSIGN_OR_RETURN(auto &table, tableDecl.to<IR::P4Table>(), stmt);
 
-    const auto *tableDecl = refMap.get().getDeclaration(tableReference->path, false);
-    if (tableDecl == nullptr) {
-        return stmt;
-    }
-    const auto *table = tableDecl->to<IR::P4Table>();
-    if (table == nullptr) {
-        return stmt;
-    }
+    TableUtils::TableProperties properties;
+    TableUtils::checkTableImmutability(table, properties);
+    RETURN_IF_FALSE(!properties.tableIsImmutable, stmt);
 
     const IR::P4Action *defaultAction = nullptr;
 
-    const auto *defaultActionRef = table->getDefaultAction();
+    const auto *defaultActionRef = table.getDefaultAction();
     // If there is no default action set, assume "NoAction".
     if (defaultActionRef != nullptr) {
-        auto defaultActionOpt = getActionDecl(refMap, *defaultActionRef);
-        if (!defaultActionOpt.has_value()) {
-            return stmt;
-        }
-        defaultAction = defaultActionOpt.value();
+        ASSIGN_OR_RETURN(defaultAction, getActionDecl(refMap, *defaultActionRef), stmt);
     } else {
         // TODO: Shouldn't there be a builtin?
         defaultAction =
             new IR::P4Action("NoAction", new IR::ParameterList(), new IR::BlockStatement());
     }
-    auto tableActionList = TableUtils::buildTableActionList(*table);
+    auto tableActionList = TableUtils::buildTableActionList(table);
 
-    IR::IndexedVector<IR::ActionListElement> filteredActionList;
     for (const auto *action : tableActionList) {
         // Do not check the default action.
         auto actionName = action->getName();
         if (actionName == defaultAction->controlPlaneName()) {
             continue;
         }
-        auto conditionOpt = reachabilityMap.get().getReachabilityExpression(action);
-        if (!conditionOpt.has_value()) {
+        ASSIGN_OR_RETURN_WITH_MESSAGE(
+            const auto *condition, reachabilityMap.get().getReachabilityExpression(action), stmt,
             ::error(
                 "Unable to find node %1% in the reachability map of this execution state. There "
                 "might be issues with the source information.",
-                action);
-            continue;
-        }
-        const auto *condition = conditionOpt.value();
-        auto reachabilityOpt = condition->getReachability();
-        if (!reachabilityOpt.has_value()) {
-            filteredActionList.push_back(action);
-            continue;
-        }
-        auto reachability = reachabilityOpt.value();
+                action));
+        ASSIGN_OR_RETURN(auto reachability, condition->getReachability(), stmt);
+
         if (reachability) {
-            filteredActionList.push_back(action);
             ::warning("%1% will always be executed.", action);
-            break;
+            return stmt;
         }
     }
 
     // There is no action to execute other than an empty action, remove the table.
-    if (filteredActionList.size() == 0 && defaultAction->body->components.empty()) {
-        ::warning("Removing %1%", stmt);
-        return nullptr;
-    }
-
-    return stmt;
+    ::warning("Removing %1%", stmt);
+    return nullptr;
 }
 
 }  // namespace P4Tools::Flay

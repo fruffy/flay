@@ -20,10 +20,9 @@ class Bmv2ControlPlaneState : public ControlPlaneState {
 class Bmv2ControlPlaneInitializer : public ControlPlaneStateInitializer {
     Bmv2ControlPlaneState state;
 
-    std::reference_wrapper<const P4::ReferenceMap> refMap_;
-
  public:
-    explicit Bmv2ControlPlaneInitializer(const P4::ReferenceMap &refMap) : refMap_(refMap) {}
+    explicit Bmv2ControlPlaneInitializer(const P4::ReferenceMap &refMap)
+        : ControlPlaneStateInitializer(refMap) {}
 
     std::optional<ControlPlaneConstraints> generateInitialControlPlaneConstraints(
         const IR::P4Program *program) override;

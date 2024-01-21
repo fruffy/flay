@@ -59,7 +59,7 @@ std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
     const auto *tableActionID = ControlPlaneState::getTableActionChoice(tableName);
     symbolSet.emplace(*tableActionID);
     auto actionName = p4Action.preamble().name();
-    const auto *actionAssignment = new IR::StringLiteral(actionName);
+    const auto *actionAssignment = new IR::StringLiteral(IR::Type_String::get(), actionName);
     const IR::Expression *actionExpr = new IR::Equ(tableActionID, actionAssignment);
     if (tblAction.params().size() != p4Action.params().size()) {
         return actionExpr;

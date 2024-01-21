@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <queue>
 
+#include "ir/irutils.h"
+
 namespace P4Tools::Flay {
 
 TableMatchEntry::TableMatchEntry(const Constraint *actionAssignment, int32_t priority,

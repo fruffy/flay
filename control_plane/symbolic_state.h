@@ -2,6 +2,7 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_SYMBOLIC_STATE_H_
 
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
+#include "frontends/common/resolveReferences/referenceMap.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
@@ -73,8 +74,11 @@ class ControlPlaneStateInitializer : public Inspector {
     /// The default control-plane constraints as defined by a target.
     ControlPlaneConstraints defaultConstraints;
 
+    /// The reference map to look up specific declarations.
+    std::reference_wrapper<const P4::ReferenceMap> refMap_;
+
  public:
-    ControlPlaneStateInitializer() = default;
+    explicit ControlPlaneStateInitializer(const P4::ReferenceMap &refMap);
 
     virtual std::optional<ControlPlaneConstraints> generateInitialControlPlaneConstraints(
         const IR::P4Program *program) = 0;

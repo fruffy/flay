@@ -73,6 +73,7 @@ FlayService::FlayService(const FlayServiceOptions &options, const IR::P4Program 
                          ControlPlaneConstraints initialControlPlaneConstraints)
     : options(options),
       originalProgram(originalProgram),
+      prunedProgram(originalProgram),
       compilerResult(compilerResult),
       reachabilityMap(initializeReachabilityMap(options.mapType, reachabilityMap)),
       controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
