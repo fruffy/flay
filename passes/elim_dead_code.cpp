@@ -28,7 +28,6 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     auto reachability = condition->getReachability();
 
     if (reachability) {
-        ::warning("%1% condition can be deleted.", stmt->condition);
         if (reachability.value()) {
             if (stmt->ifFalse != nullptr) {
                 ::warning("%1% false branch can be deleted.", stmt->ifFalse);
@@ -125,25 +124,9 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     TableUtils::checkTableImmutability(table, properties);
     RETURN_IF_FALSE(!properties.tableIsImmutable, stmt);
 
-    const IR::P4Action *defaultAction = nullptr;
-
-    const auto *defaultActionRef = table.getDefaultAction();
-    // If there is no default action set, assume "NoAction".
-    if (defaultActionRef != nullptr) {
-        ASSIGN_OR_RETURN(defaultAction, getActionDecl(refMap, *defaultActionRef), stmt);
-    } else {
-        // TODO: Shouldn't there be a builtin?
-        defaultAction =
-            new IR::P4Action("NoAction", new IR::ParameterList(), new IR::BlockStatement());
-    }
+    // Filter out any actions which are @defaultonly.
     auto tableActionList = TableUtils::buildTableActionList(table);
-
     for (const auto *action : tableActionList) {
-        // Do not check the default action.
-        auto actionName = action->getName();
-        if (actionName == defaultAction->controlPlaneName()) {
-            continue;
-        }
         ASSIGN_OR_RETURN_WITH_MESSAGE(
             const auto *condition, reachabilityMap.get().getReachabilityExpression(action), stmt,
             ::error(

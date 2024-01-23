@@ -24,12 +24,20 @@ header ipv4_t {
     bit<32> dst_addr;
 }
 
+header udp_t {
+    bit<16> src_port;
+    bit<16> dst_port;
+    bit<16> length;
+    bit<16> checksum;
+}
+
 struct local_metadata_t {
 }
 
 struct Headers {
     ethernet_t ethernet;
     ipv4_t     ipv4;
+    udp_t      udp;
 }
 
 parser p(packet_in pkt, out Headers h, inout local_metadata_t local_metadata, inout standard_metadata_t stdmeta) {
@@ -64,6 +72,7 @@ control ingress(inout Headers h, inout local_metadata_t local_metadata, inout st
         }
         actions = {
             check();
+            NoAction();
         }
     }
 
