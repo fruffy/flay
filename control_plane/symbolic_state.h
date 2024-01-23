@@ -2,6 +2,8 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_SYMBOLIC_STATE_H_
 
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
+#include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
+#include "frontends/common/resolveReferences/referenceMap.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
@@ -42,14 +44,7 @@ class SymbolCollector : public Inspector {
 /// This class can be extended by targets to customize initialization behavior and add
 /// target-specific utility functions.
 class ControlPlaneState : public ICastable {
- protected:
-    /// The default control-plane constraints as defined by a target.
-    ControlPlaneConstraints defaultConstraints;
-
  public:
-    /// @returns the default control-plane constraints.
-    [[nodiscard]] ControlPlaneConstraints getDefaultConstraints() const;
-
     /// @returns the symbolic boolean variable describing whether a table is configured by the
     /// control plane.
     static const IR::SymbolicVariable *getTableActive(cstring tableName);
@@ -73,10 +68,42 @@ class ControlPlaneState : public ICastable {
 
     /// @returns the symbolic variable listing the chosen action for a particular table.
     static const IR::SymbolicVariable *getTableActionChoice(cstring tableName);
+};
 
-    /// Initializes the symbolic variable for a table and adds it to @defaultConstraints.
-    /// @returns EXIT_SUCCESS on successful completion.
-    virtual int allocateControlPlaneTable(const IR::P4Table &table) = 0;
+class ControlPlaneStateInitializer : public Inspector {
+ protected:
+    /// The default control-plane constraints as defined by a target.
+    ControlPlaneConstraints defaultConstraints;
+
+    /// The reference map to look up specific declarations.
+    std::reference_wrapper<const P4::ReferenceMap> refMap_;
+
+    /// Tries to assemble a match for the given entry key and inserts into the @param keySet.
+    /// @returns false if the match type is not supported.
+    virtual bool computeMatch(const IR::Expression &entryKey, const IR::SymbolicVariable &keySymbol,
+                              cstring tableName, cstring fieldName, cstring matchType,
+                              TableKeySet &keySet);
+
+    /// Tries to build a TableKeySet by matching the table fields and the keys listed in the entry.
+    /// @returns std::nullopt if this is not possible.
+    std::optional<TableKeySet> computeEntryKeySet(const IR::P4Table &table, const IR::Entry &entry);
+
+    /// Tries to build a table control plane entry from the P4 entry member of the table.
+    /// @returns std::nullopt if an error occurs when doing this.
+    std::optional<TableEntrySet> initializeTableEntries(const IR::P4Table *table,
+                                                        const P4::ReferenceMap &refMap);
+
+ public:
+    explicit ControlPlaneStateInitializer(const P4::ReferenceMap &refMap);
+
+    virtual std::optional<ControlPlaneConstraints> generateInitialControlPlaneConstraints(
+        const IR::P4Program *program) = 0;
+
+    /// @returns the default control-plane constraints.
+    [[nodiscard]] ControlPlaneConstraints getDefaultConstraints() const;
+
+ private:
+    bool preorder(const IR::P4Table *table) override;
 };
 
 }  // namespace P4Tools::Flay

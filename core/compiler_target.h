@@ -1,10 +1,8 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_TARGET_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_TARGET_H_
 
-#include <functional>
-
 #include "backends/p4tools/common/compiler/compiler_target.h"
-#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
+#include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
 
 namespace P4Tools::Flay {
 
@@ -15,17 +13,17 @@ class FlayCompilerResult : public CompilerResult {
     P4::P4RuntimeAPI p4runtimeApi;
 
     /// The initial control plane state inferred from this particular P4 program.
-    std::reference_wrapper<const ControlPlaneState> defaultControlPlaneState;
+    ControlPlaneConstraints defaultControlPlaneConstraints;
 
  public:
     explicit FlayCompilerResult(CompilerResult compilerResult, P4::P4RuntimeAPI p4runtimeApi,
-                                const ControlPlaneState &controlPlaneState);
+                                ControlPlaneConstraints defaultConstraints);
 
     /// @returns the P4RuntimeAPI inferred from this particular BMv2 V1Model P4 program.
     [[nodiscard]] const P4::P4RuntimeAPI &getP4RuntimeApi() const;
 
     /// @returns the initial control plane state inferred from this particular P4 program.
-    [[nodiscard]] const ControlPlaneState &getDefaultControlPlaneState() const;
+    [[nodiscard]] const ControlPlaneConstraints &getDefaultControlPlaneConstraints() const;
 };
 
 class FlayCompilerTarget : public CompilerTarget {

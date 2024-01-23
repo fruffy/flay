@@ -14,9 +14,11 @@ class Placeholder : Expression {
     Placeholder(cstring label, Expression defaultValue) : Expression(defaultValue->type), label(label), defaultValue(defaultValue) {}
 
     /// Implements comparisons so that Placeholders can be used as map keys.
-    /// The default value is ignored.
-    bool operator<(const Placeholder &other) const override {
-        return label < other.label;
+    operator< {
+        if (static_cast<const Node *>(this) == &a_) return false;
+        if (node_type_name() != a_.node_type_name()) return node_type_name() < a_.node_type_name();
+        auto &a = static_cast<const SymbolicVariable &>(a_);
+        return label < a.label;  /* ignore type and default value */
     }
 
     toString { return "@" + label +"(" + type->toString() + ")@"; }

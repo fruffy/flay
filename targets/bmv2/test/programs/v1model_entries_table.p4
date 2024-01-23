@@ -24,20 +24,12 @@ header ipv4_t {
     bit<32> dst_addr;
 }
 
-header udp_t {
-    bit<16> src_port;
-    bit<16> dst_port;
-    bit<16> length;
-    bit<16> checksum;
-}
-
 struct local_metadata_t {
 }
 
 struct Headers {
     ethernet_t ethernet;
     ipv4_t     ipv4;
-    udp_t      udp;
 }
 
 parser p(packet_in pkt, out Headers h, inout local_metadata_t local_metadata, inout standard_metadata_t stdmeta) {
@@ -69,24 +61,14 @@ control ingress(inout Headers h, inout local_metadata_t local_metadata, inout st
     table toggle_check {
         key = {
             h.ethernet.dst_addr : ternary @name("dst_eth");
+            h.ethernet.src_addr : optional @name("dst_src");
         }
         actions = {
-            check();
             NoAction();
+            check();
         }
-    }
-
-    // Drop the packet.
-    action acl_drop(inout standard_metadata_t standard_metadata) {
-        mark_to_drop(standard_metadata);
-    }
-
-    table acl_ingress_table {
-        key = {
-            h.ipv4.dst_addr : ternary @name("dst_ip");
-        }
-        actions = {
-            acl_drop(s);
+        entries = {
+               (0x00 &&& 0x00, _) : check();
         }
     }
 
@@ -95,8 +77,8 @@ control ingress(inout Headers h, inout local_metadata_t local_metadata, inout st
             toggle_check.apply();
         }
 
-        if (h.ipv4.isValid() && check_l3) {
-            acl_ingress_table.apply();
+        if (check_l3) {
+            mark_to_drop(s);
         }
     }
 

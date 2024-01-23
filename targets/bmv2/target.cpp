@@ -92,7 +92,7 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
     const FlayCompilerResult &compilerResult, const FlayOptions &options) const {
     // Initialize some constraints that are active regardless of the control-plane configuration.
     // These constraints can be overridden by the respective control-plane configuration.
-    auto constraints = compilerResult.getDefaultControlPlaneState().getDefaultConstraints();
+    auto constraints = compilerResult.getDefaultControlPlaneConstraints();
     if (!options.hasControlPlaneConfig()) {
         return constraints;
     }

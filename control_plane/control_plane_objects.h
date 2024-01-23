@@ -42,6 +42,10 @@ class TableMatchEntry : public ControlPlaneItem {
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 };
 
+/// The active set of table entries. Sorted by type.
+using TableEntrySet =
+    std::set<std::reference_wrapper<const TableMatchEntry>, std::less<const TableMatchEntry>>;
+
 /// Concrete configuration of a control plane table. May contain arbitrary many table match entries.
 class TableConfiguration : public ControlPlaneItem {
     /// The control plane name of the table that is being configured.
@@ -50,9 +54,6 @@ class TableConfiguration : public ControlPlaneItem {
     /// The default behavior of the table when it is not configured.
     TableMatchEntry defaultConfig;
 
-    /// The active set of table entries. Sorted by type.
-    using TableEntrySet =
-        std::set<std::reference_wrapper<const TableMatchEntry>, std::less<const TableMatchEntry>>;
     TableEntrySet tableEntries;
 
     /// Second-order sorting function for table entries. Sorts entries by priority.
