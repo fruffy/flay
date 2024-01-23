@@ -12,14 +12,6 @@ updates {
           mask: "\x00"
         }
       }
-      # Match field src_eth
-      match {
-        field_id: 2
-        ternary {
-          value: "\x00"
-          mask: "\x00"
-        }
-      }
       # Action ingress.check
       action {
         action {

@@ -103,7 +103,7 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
         ::error("ID %1% not found in the P4Info.", actionId));
 
     RETURN_IF_FALSE_WITH_MESSAGE(
-        tableEntry.match().size() == p4InfoTable.match_fields().size(), std::nullopt,
+        tableEntry.match().size() <= p4InfoTable.match_fields().size(), std::nullopt,
         ::error("Table entry %1% has %2% matches, but P4Info has %3%.", tableEntry.DebugString(),
                 tableEntry.match().size(), p4InfoTable.match_fields().size()));
 

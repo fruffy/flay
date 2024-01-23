@@ -2,6 +2,7 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_SYMBOLIC_STATE_H_
 
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
+#include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
@@ -76,6 +77,21 @@ class ControlPlaneStateInitializer : public Inspector {
 
     /// The reference map to look up specific declarations.
     std::reference_wrapper<const P4::ReferenceMap> refMap_;
+
+    /// Tries to assemble a match for the given entry key and inserts into the @param keySet.
+    /// @returns false if the match type is not supported.
+    virtual bool computeMatch(const IR::Expression &entryKey, const IR::SymbolicVariable &keySymbol,
+                              cstring tableName, cstring fieldName, cstring matchType,
+                              TableKeySet &keySet);
+
+    /// Tries to build a TableKeySet by matching the table fields and the keys listed in the entry.
+    /// @returns std::nullopt if this is not possible.
+    std::optional<TableKeySet> computeEntryKeySet(const IR::P4Table &table, const IR::Entry &entry);
+
+    /// Tries to build a table control plane entry from the P4 entry member of the table.
+    /// @returns std::nullopt if an error occurs when doing this.
+    std::optional<TableEntrySet> initializeTableEntries(const IR::P4Table *table,
+                                                        const P4::ReferenceMap &refMap);
 
  public:
     explicit ControlPlaneStateInitializer(const P4::ReferenceMap &refMap);

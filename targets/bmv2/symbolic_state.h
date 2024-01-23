@@ -20,6 +20,10 @@ class Bmv2ControlPlaneState : public ControlPlaneState {
 class Bmv2ControlPlaneInitializer : public ControlPlaneStateInitializer {
     Bmv2ControlPlaneState state;
 
+    bool computeMatch(const IR::Expression &entryKey, const IR::SymbolicVariable &keySymbol,
+                      cstring tableName, cstring fieldName, cstring matchType,
+                      TableKeySet &keySet) override;
+
  public:
     explicit Bmv2ControlPlaneInitializer(const P4::ReferenceMap &refMap)
         : ControlPlaneStateInitializer(refMap) {}
