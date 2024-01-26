@@ -13,7 +13,7 @@
 function(p4tools_add_test_with_args)
   # Parse arguments.
   set(options)
-  set(oneValueArgs TAG DRIVER ALIAS P4TEST TARGET ARCH)
+  set(oneValueArgs TAG DRIVER ALIAS P4TEST TARGET ARCH CONTROL_PLANE_UPDATES)
   set(multiValueArgs TEST_ARGS CMAKE_ARGS)
   cmake_parse_arguments(
     TOOLS_FLAY_V1MODEL_TESTS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
@@ -27,6 +27,7 @@ function(p4tools_add_test_with_args)
   set(arch ${TOOLS_FLAY_V1MODEL_TESTS_ARCH})
   set(test_args ${TOOLS_FLAY_V1MODEL_TESTS_TEST_ARGS})
   set(cmake_args ${TOOLS_FLAY_V1MODEL_TESTS_CMAKE_ARGS})
+  set(control_plane_updates ${TOOLS_FLAY_V1MODEL_TESTS_CONTROL_PLANE_UPDATES})
 
   # This is the actual test processing.
   p4c_test_set_name(__testname ${tag} ${alias})
@@ -38,6 +39,11 @@ function(p4tools_add_test_with_args)
   file(APPEND ${__testfile} "# Generated file, modify with care\n\n")
   file(APPEND ${__testfile} "set -e\n")
   file(APPEND ${__testfile} "cd ${P4C_BINARY_DIR}\n")
+
+  if (control_plane_updates)
+    set(test_args "${test_args} --config-update-pattern \"${control_plane_updates}\"")
+  endif()
+
   file(APPEND ${__testfile} "${driver} --target ${target} --arch ${arch} "
                             "${test_args} \"$@\" ${p4test}\n"
   )
