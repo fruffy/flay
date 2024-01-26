@@ -48,5 +48,7 @@ p4c_find_tests(
   "${TESTGEN_BMV2_P416_TESTS}" BMV2_P4_16_V1_TESTS INCLUDE "${V1_SEARCH_PATTERNS}" EXCLUDE ""
 )
 
+include(${CMAKE_CURRENT_LIST_DIR}/ConfigTests.cmake)
+
 # Include the list of failing tests.
 include(${CMAKE_CURRENT_LIST_DIR}/BMv2V1ModelXfail.cmake)
