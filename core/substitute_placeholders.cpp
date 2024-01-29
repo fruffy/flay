@@ -2,12 +2,12 @@
 
 namespace P4Tools::Flay {
 
-const IR::Expression *SubstitutePlaceHolders::SymbolizePlaceHolders::postorder(
+const IR::Expression *SubstitutePlaceHolders::SymbolizePlaceHolders::preorder(
     IR::Placeholder *placeholder) {
     return new IR::SymbolicVariable(placeholder->type, "*placeholder" + placeholder->label);
 }
 
-const IR::Expression *SubstitutePlaceHolders::postorder(IR::Placeholder *placeholder) {
+const IR::Expression *SubstitutePlaceHolders::preorder(IR::Placeholder *placeholder) {
     const auto &executionState = state.get();
     auto optValue = executionState.getPlaceholderValue(*placeholder);
     if (optValue.has_value()) {
