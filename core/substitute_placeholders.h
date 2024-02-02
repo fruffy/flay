@@ -13,7 +13,7 @@ class SubstitutePlaceHolders : public Transform {
     /// name.
     class SymbolizePlaceHolders : public Transform {
      public:
-        const IR::Expression *postorder(IR::Placeholder *placeholder) override;
+        const IR::Expression *preorder(IR::Placeholder *placeholder) override;
     };
 
     /// Reference to an existing execution state.
@@ -25,7 +25,7 @@ class SubstitutePlaceHolders : public Transform {
  public:
     explicit SubstitutePlaceHolders(const ExecutionState &state);
 
-    const IR::Expression *postorder(IR::Placeholder *placeholder) override;
+    const IR::Expression *preorder(IR::Placeholder *placeholder) override;
 };
 
 }  // namespace P4Tools::Flay

@@ -1,5 +1,3 @@
-#include <lib/timer.h>
-
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -9,6 +7,7 @@
 #include "backends/p4tools/modules/flay/flay.h"
 #include "lib/crash.h"
 #include "lib/exceptions.h"
+#include "lib/timer.h"
 
 int main(int argc, char **argv) {
     setup_signals();
