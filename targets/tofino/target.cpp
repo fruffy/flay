@@ -10,6 +10,7 @@
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/targets/tofino/tofino1/program_info.h"
 #include "backends/p4tools/modules/flay/targets/tofino/tofino1/stepper.h"
+#include "ir/ir-generated.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
@@ -58,7 +59,7 @@ std::optional<ControlPlaneConstraints> TofinoBaseFlayTarget::computeControlPlane
  *  Tofino1FlayTarget implementation
  * ============================================================================================= */
 
-Tofino1FlayTarget::Tofino1FlayTarget() : TofinoBaseFlayTarget("bmv2", "v1model") {}
+Tofino1FlayTarget::Tofino1FlayTarget() : TofinoBaseFlayTarget("tofino1", "tna") {}
 
 void Tofino1FlayTarget::make() {
     static Tofino1FlayTarget *INSTANCE = nullptr;
@@ -72,19 +73,32 @@ const ProgramInfo *Tofino1FlayTarget::produceProgramInfoImpl(
     // The blocks in the main declaration are just the arguments in the constructor call.
     // Convert mainDecl->arguments into a vector of blocks, represented as constructor-call
     // expressions.
-    const auto blocks =
-        argumentsToTypeDeclarations(&compilerResult.getProgram(), mainDecl->arguments);
+    std::vector<const IR::Type_Declaration *> flattenedBlocks;
+
+    for (const auto *arg : *mainDecl->arguments) {
+        if (const auto *pathExpr = arg->expression->to<IR::PathExpression>()) {
+            // Look up the path expression in the top-level namespace and expect to find a
+            // declaration instance.
+            const auto *declInstance = findProgramDecl(&compilerResult.getProgram(), pathExpr->path)
+                                           ->checkedTo<IR::Declaration_Instance>();
+            // Convert declInstance->arguments into a vector of blocks.
+            auto blocks =
+                argumentsToTypeDeclarations(&compilerResult.getProgram(), declInstance->arguments);
+            flattenedBlocks.insert(flattenedBlocks.end(), blocks.begin(), blocks.end());
+        }
+    }
 
     // We should have six arguments.
-    BUG_CHECK(blocks.size() == 6, "%1%: The BMV2 architecture requires 6 pipes. Received %2%.",
-              mainDecl, blocks.size());
+    BUG_CHECK(flattenedBlocks.size() == 6,
+              "%1%: The Tofno1 architecture requires 6 pipes. Received %2%.", mainDecl,
+              flattenedBlocks.size());
 
     ordered_map<cstring, const IR::Type_Declaration *> programmableBlocks;
     std::map<int, int> declIdToGress;
 
     // Add to parserDeclIdToGress, mauDeclIdToGress, and deparserDeclIdToGress.
-    for (size_t idx = 0; idx < blocks.size(); ++idx) {
-        const auto *declType = blocks.at(idx);
+    for (size_t idx = 0; idx < flattenedBlocks.size(); ++idx) {
+        const auto *declType = flattenedBlocks.at(idx);
 
         auto canonicalName = ARCH_SPEC.getArchMember(idx)->blockName;
         programmableBlocks.emplace(canonicalName, declType);
@@ -95,7 +109,7 @@ const ProgramInfo *Tofino1FlayTarget::produceProgramInfoImpl(
 }
 
 const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
-    "V1Switch",
+    "Pipeline",
     {
         // parser IngressParserT<H, M>(
         //     packet_in pkt,
@@ -127,6 +141,7 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
              "*ig_intr_md",
              "*ig_intr_md_from_prsr",
              "*ig_intr_md_for_dprsr",
+             "*ig_intr_md_for_tm",
          }},
         // control IngressDeparserT<H, M>(
         //     packet_out pkt,
@@ -134,7 +149,14 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
         //     in M metadata,
         //     @optional in ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
         //     @optional in ingress_intrinsic_metadata_t ig_intr_md);
-        {"IngressDeparserT", {"*hdr", "*ig_md", "*ig_intr_md_for_dprsr", "*ig_intr_md"}},
+        {"IngressDeparserT",
+         {
+             nullptr,
+             "*hdr",
+             "*ig_md",
+             "*ig_intr_md_for_dprsr",
+             "*ig_intr_md",
+         }},
         // parser EgressParserT<H, M>(
         //     packet_in pkt,
         //     out H hdr,
@@ -144,6 +166,7 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
         //     @optional out egress_intrinsic_metadata_for_deparser_t eg_intr_md_for_dprsr);
         {"EgressParserT",
          {
+             nullptr,
              "*hdr",
              "*eg_md",
              "*eg_intr_md",
@@ -164,6 +187,7 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
              "*eg_intr_md",
              "*eg_intr_md_from_prsr",
              "*eg_intr_md_for_dprsr",
+             "*eg_intr_md_for_oport",
          }},
         // control EgressDeparserT<H, M>(
         //     packet_out pkt,

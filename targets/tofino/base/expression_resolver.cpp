@@ -22,12 +22,14 @@ const IR::Expression *TofinoBaseExpressionResolver::processTable(const IR::P4Tab
 }
 
 // Provides implementations of Tofino externs.
-static const ExternMethodImpls EXTERN_METHOD_IMPLS({});
+namespace TofinoBaseExterns {
+const ExternMethodImpls EXTERN_METHOD_IMPLS({});
+}  // namespace TofinoBaseExterns
 
 const IR::Expression *TofinoBaseExpressionResolver::processExtern(
     const ExternMethodImpls::ExternInfo &externInfo) {
-    auto method = EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
-                                           externInfo.externArgs);
+    auto method = TofinoBaseExterns::EXTERN_METHOD_IMPLS.find(
+        externInfo.externObjectRef, externInfo.methodName, externInfo.externArgs);
     if (method.has_value()) {
         return method.value()(externInfo);
     }

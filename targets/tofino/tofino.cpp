@@ -20,7 +20,8 @@ CompilerResultOrError TofinoBaseCompilerTarget::runCompilerImpl(
     }
 
     /// After the front end, get the P4Runtime API for the tna architecture.
-    auto p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "tofino");
+    /// TODO: We need to implement the P4Runtime handler for Tofino.
+    auto p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "v1model");
 
     program = runMidEnd(program);
     if (program == nullptr) {

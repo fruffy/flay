@@ -1,3 +1,9 @@
+if(ENABLE_TESTING)
+  # Include the test subdirectory.
+  message("-- Adding Flay tna and t2na test suite.")
+  include(test/P4Tests.cmake)
+endif()
+
 # Source files for the main flay.
 set(FLAY_SOURCES
     ${FLAY_SOURCES}
