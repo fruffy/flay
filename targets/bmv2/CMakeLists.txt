@@ -1,6 +1,6 @@
 if(ENABLE_TESTING)
   # Include the test subdirectory.
-  message("-- Adding Flay v1model test suite")
+  message("-- Adding Flay v1model test suite.")
   include(test/P4Tests.cmake)
 endif()
 

@@ -29,7 +29,9 @@ const IR::Expression *V1ModelExpressionResolver::processTable(const IR::P4Table 
 }
 
 // Provides implementations of BMv2 externs.
-static const ExternMethodImpls EXTERN_METHOD_IMPLS({
+namespace Bmv2V1modelExterns {
+
+const ExternMethodImpls EXTERN_METHOD_IMPLS({
     {"*method.mark_to_drop",
      {"standard_metadata"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
@@ -735,11 +737,12 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS({
          return nullptr;
      }},
 });
+}  // namespace Bmv2V1modelExterns
 
 const IR::Expression *V1ModelExpressionResolver::processExtern(
     const ExternMethodImpls::ExternInfo &externInfo) {
-    auto method = EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
-                                           externInfo.externArgs);
+    auto method = Bmv2V1modelExterns::EXTERN_METHOD_IMPLS.find(
+        externInfo.externObjectRef, externInfo.methodName, externInfo.externArgs);
     if (method.has_value()) {
         return method.value()(externInfo);
     }

@@ -368,9 +368,9 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     P4C_UNIMPLEMENTED("Unknown method call expression: %1%", call);
 }
 
-namespace Core {
-
 /// Provides implementations of P4 core externs.
+namespace CoreExterns {
+
 static const ExternMethodImpls EXTERN_METHOD_IMPLS(
     {{"packet_in.extract",
       {"hdr"},
@@ -481,7 +481,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           // TODO: Implement the error case.
           return nullptr;
       }}});
-}  // namespace Core
+}  // namespace CoreExterns
 
 /* =============================================================================================
  *  Extern implementations
@@ -489,8 +489,8 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
 
 const IR::Expression *ExpressionResolver::processExtern(
     const ExternMethodImpls::ExternInfo &externInfo) {
-    auto method = Core::EXTERN_METHOD_IMPLS.find(externInfo.externObjectRef, externInfo.methodName,
-                                                 externInfo.externArgs);
+    auto method = CoreExterns::EXTERN_METHOD_IMPLS.find(
+        externInfo.externObjectRef, externInfo.methodName, externInfo.externArgs);
     if (method.has_value()) {
         return method.value()(externInfo);
     }

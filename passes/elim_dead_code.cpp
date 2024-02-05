@@ -32,6 +32,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
             if (stmt->ifFalse != nullptr) {
                 ::warning("%1% false branch can be deleted.", stmt->ifFalse);
             }
+            ::warning("%1% will always be executed.", stmt->ifTrue);
             return stmt->ifTrue;
         }
         ::warning("%1% true branch can be deleted.", stmt->ifTrue);
