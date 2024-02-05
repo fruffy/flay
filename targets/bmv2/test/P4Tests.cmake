@@ -31,7 +31,7 @@ p4tools_add_tests(
   TESTS
   "${P4_16_V1_TESTS}"
   TAG
-  "flay-p4c-bmv2-v1model"
+  "flay-bmv2-v1model"
   DRIVER
   ${FLAY_DRIVER}
   TARGET
