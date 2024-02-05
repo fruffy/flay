@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <optional>
 
-#include "backends/p4tools/common/control_plane/p4runtime_api.h"
 #include "control-plane/p4RuntimeArchHandler.h"
+#include "control-plane/p4infoApi.h"
 #include "ir/irutils.h"
 #include "p4/config/v1/p4info.pb.h"
 #include "p4/v1/p4runtime.pb.h"
@@ -93,13 +93,13 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
     auto tableAction = tableEntry.action().action();
     auto actionId = tableAction.action_id();
     ASSIGN_OR_RETURN_WITH_MESSAGE(
-        auto p4Action, P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, actionId), std::nullopt,
+        auto &p4Action, P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, actionId), std::nullopt,
         ::error("ID %1% not found in the P4Info.", actionId));
     ASSIGN_OR_RETURN(const auto *actionExpr,
                      convertTableAction(tableAction, tableName, p4Action, symbolSet), std::nullopt);
     TableKeySet tableKeySet;
     ASSIGN_OR_RETURN_WITH_MESSAGE(
-        auto p4InfoTable, P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId), std::nullopt,
+        auto &p4InfoTable, P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId), std::nullopt,
         ::error("ID %1% not found in the P4Info.", actionId));
 
     RETURN_IF_FALSE_WITH_MESSAGE(
@@ -109,7 +109,7 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
 
     for (const auto &matchField : tableEntry.match()) {
         ASSIGN_OR_RETURN(
-            auto p4InfoMatchField,
+            auto &p4InfoMatchField,
             P4::ControlPlaneAPI::findP4RuntimeMatchField(p4InfoTable, matchField.field_id()),
             std::nullopt);
         ASSIGN_OR_RETURN(auto matchSet,
@@ -128,7 +128,7 @@ int ProtobufDeserializer::updateTableEntry(const p4::config::v1::P4Info &p4Info,
                                            const ::p4::v1::Update_Type &updateType,
                                            SymbolSet &symbolSet) {
     auto tblId = tableEntry.table_id();
-    ASSIGN_OR_RETURN_WITH_MESSAGE(auto p4Table,
+    ASSIGN_OR_RETURN_WITH_MESSAGE(auto &p4Table,
                                   P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId),
                                   EXIT_FAILURE, ::error("ID %1% not found in the P4Info.", tblId));
     cstring tableName = p4Table.preamble().name();

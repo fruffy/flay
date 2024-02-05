@@ -3,7 +3,7 @@
 
 #include <map>
 
-#include "backends/p4tools/common/control_plane/p4runtime_api.h"
+#include "backends/p4tools/common/control_plane/p4info_map.h"
 #include "control-plane/p4RuntimeArchHandler.h"
 #include "ir/ir.h"
 
@@ -19,7 +19,7 @@ using P4RuntimeIdtoIrNodeMap = std::map<P4::ControlPlaneAPI::p4rt_id_t, const IR
 class P4RuntimeToIRMapper : public Inspector {
  private:
     /// A mapping from P4 control plane names to their mapped P4Runtime ids and vice versa.
-    P4::ControlPlaneAPI::P4RuntimeMaps p4RuntimeMaps;
+    P4::ControlPlaneAPI::P4InfoMaps p4InfoMaps;
 
     /// The mapping from P4Runtime IDs to IR nodes.
     P4RuntimeIdtoIrNodeMap idToIrMap;
@@ -31,7 +31,7 @@ class P4RuntimeToIRMapper : public Inspector {
 
  public:
     explicit P4RuntimeToIRMapper(const p4::config::v1::P4Info &p4Info)
-        : p4RuntimeMaps(P4::ControlPlaneAPI::P4RuntimeMaps(p4Info)) {}
+        : p4InfoMaps(P4::ControlPlaneAPI::P4InfoMaps(p4Info)) {}
 
     /// @returns the mapping from P4Runtime IDs to IR nodes.
     [[nodiscard]] P4RuntimeIdtoIrNodeMap getP4RuntimeIdtoIrNodeMap() const;
