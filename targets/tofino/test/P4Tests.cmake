@@ -9,6 +9,8 @@ include(${CMAKE_CURRENT_LIST_DIR}/TestTemplate.cmake)
 set(TNA_SEARCH_PATTERNS "include.*tna.p4" "main")
 
 set(P4TESTS_FOR_TOFINO
+  # P4Studio tests
+  "${CMAKE_CURRENT_LIST_DIR}/programs/opentofino/**/*.p4"
   # Custom tests
   "${CMAKE_CURRENT_LIST_DIR}/programs/common/*.p4"
 )
@@ -20,13 +22,13 @@ list(REMOVE_ITEM TNA_TESTS
   # These tests time out and require fixing.
 )
 
-set (EXTRA_OPTS "-I${CMAKE_CURRENT_LIST_DIR}/p4include")
+set (EXTRA_OPTS "-I${CMAKE_CURRENT_LIST_DIR}/p4include -I${CMAKE_CURRENT_LIST_DIR}/programs/opentofino")
 
 p4tools_add_tests(
   TESTS
   "${TNA_TESTS}"
   TAG
-  "flay-p4c-tofino1-tna"
+  "flay-tofino1-tna"
   DRIVER
   ${FLAY_DRIVER}
   TARGET

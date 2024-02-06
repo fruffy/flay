@@ -9,13 +9,25 @@
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
+#include "ir/node.h"
 #include "ir/solver.h"
 
 namespace P4Tools::Flay {
 
 /// The set of concrete mappings of symbolic control plane variables for table match keys.
 /// TODO: Make this an unordered set.
-using TableKeySet = std::set<std::pair<const IR::SymbolicVariable &, const IR::Literal &>>;
+using TableKeyPointerPair = std::pair<const IR::SymbolicVariable *, const IR::Literal *>;
+using TableKeyReferencePair = std::pair<const IR::SymbolicVariable &, const IR::Literal &>;
+struct IsSemanticallyLessPairComparator {
+    bool operator()(const TableKeyPointerPair &s1, const TableKeyPointerPair &s2) const {
+        return s1.first->isSemanticallyLess(*s2.first) || s1.second->isSemanticallyLess(*s2.second);
+    }
+    bool operator()(const TableKeyReferencePair &s1, const TableKeyReferencePair &s2) const {
+        return s1.first.isSemanticallyLess(s2.first) || s1.second.isSemanticallyLess(s2.second);
+    }
+};
+using TableKeySet = std::set<std::pair<const IR::SymbolicVariable &, const IR::Literal &>,
+                             IsSemanticallyLessPairComparator>;
 
 class TableMatchEntry : public ControlPlaneItem {
     /// The action that will be executed by this entry.

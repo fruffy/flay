@@ -11,7 +11,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4Table *table) {
         return false;
     }
     auto tableName = table->controlPlaneName();
-    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(tableName);
+    auto p4RuntimeId = p4InfoMaps.lookUpP4RuntimeId(tableName);
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), table);
         const auto *key = table->getKey();
@@ -29,7 +29,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4Table *table) {
                 return false;
             }
             auto combinedName = tableName + "_" + nameAnnot->getName();
-            auto p4RuntimeKeyId = p4RuntimeMaps.lookupP4RuntimeId(combinedName);
+            auto p4RuntimeKeyId = p4InfoMaps.lookUpP4RuntimeId(combinedName);
             if (p4RuntimeKeyId.has_value()) {
                 idToIrMap.emplace(P4::ControlPlaneAPI::szudzikPairing(p4RuntimeId.value(),
                                                                       p4RuntimeKeyId.value()),
@@ -52,7 +52,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::Type_Header *hdr) {
     }
     const auto *controllerHeaderAnnotation = hdr->getAnnotation("controller_header");
     auto headerName = controllerHeaderAnnotation->body[0]->text;
-    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(headerName);
+    auto p4RuntimeId = p4InfoMaps.lookUpP4RuntimeId(headerName);
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), hdr);
     } else {
@@ -65,7 +65,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4ValueSet *valueSet) {
     if (P4::ControlPlaneAPI::isHidden(valueSet)) {
         return false;
     }
-    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(valueSet->controlPlaneName());
+    auto p4RuntimeId = p4InfoMaps.lookUpP4RuntimeId(valueSet->controlPlaneName());
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), valueSet);
     } else {
@@ -79,12 +79,12 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4Action *action) {
         return false;
     }
     auto actionName = action->controlPlaneName();
-    auto p4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(actionName);
+    auto p4RuntimeId = p4InfoMaps.lookUpP4RuntimeId(actionName);
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), action);
         for (const auto *param : action->getParameters()->parameters) {
             auto combinedName = actionName + "_" + param->controlPlaneName();
-            auto paramP4RuntimeId = p4RuntimeMaps.lookupP4RuntimeId(combinedName);
+            auto paramP4RuntimeId = p4InfoMaps.lookUpP4RuntimeId(combinedName);
             if (p4RuntimeId.has_value()) {
                 idToIrMap.emplace(P4::ControlPlaneAPI::szudzikPairing(p4RuntimeId.value(),
                                                                       paramP4RuntimeId.value()),

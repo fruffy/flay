@@ -10,7 +10,7 @@ namespace P4Tools::Flay {
 TableMatchEntry::TableMatchEntry(const Constraint *actionAssignment, int32_t priority,
                                  const TableKeySet &matches)
     : actionAssignment(actionAssignment), priority(priority), matchExpression(actionAssignment) {
-    // Precompute the match expresison in the constructor.
+    // Precompute the match expression in the constructor.
     for (const auto &match : matches) {
         const auto &symbolicVariable = match.first;
         const auto &assignment = match.second;
@@ -26,8 +26,8 @@ const IR::Expression *TableMatchEntry::getActionAssignment() const { return acti
 bool TableMatchEntry::operator<(const ControlPlaneItem &other) const {
     // Table match entries are only compared based on the match expression.
     return typeid(*this) == typeid(other)
-               ? matchExpression->operator<(
-                     *(static_cast<const TableMatchEntry &>(other)).matchExpression)
+               ? matchExpression->isSemanticallyLess(
+                     *(dynamic_cast<const TableMatchEntry &>(other)).matchExpression)
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 

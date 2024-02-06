@@ -2,7 +2,6 @@
 /// These placeholders are necessary to handle constructs such as recirculation or cloning.
 class Placeholder : Expression {
 #noconstructor
-#nooperator<
 
     /// The label of the placeholder.
     cstring label;
@@ -14,7 +13,7 @@ class Placeholder : Expression {
     Placeholder(cstring label, Expression defaultValue) : Expression(defaultValue->type), label(label), defaultValue(defaultValue) {}
 
     /// Implements comparisons so that Placeholders can be used as map keys.
-    operator< {
+    isSemanticallyLess {
         if (static_cast<const Node *>(this) == &a_) return false;
         if (node_type_name() != a_.node_type_name()) return node_type_name() < a_.node_type_name();
         auto &a = static_cast<const SymbolicVariable &>(a_);

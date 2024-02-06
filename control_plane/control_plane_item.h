@@ -28,8 +28,7 @@ class ControlPlaneItem : public ICastable {
 
 /// The constraints imposed by the control plane on the program. The map key is a unique identifier
 /// of the object, typically its control plane name.
-using ControlPlaneConstraints =
-    std::map<cstring, std::reference_wrapper<ControlPlaneItem>, std::less<>>;
+using ControlPlaneConstraints = std::map<cstring, std::reference_wrapper<ControlPlaneItem>>;
 
 }  // namespace P4Tools::Flay
 
