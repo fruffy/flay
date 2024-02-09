@@ -1,14 +1,20 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_TARGET_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_TARGET_H_
 
+#include <functional>
+
 #include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
+#include "ir/ir-generated.h"
 
 namespace P4Tools::Flay {
 
 /// Extends the CompilerResult with the associated P4RuntimeApi
 class FlayCompilerResult : public CompilerResult {
  private:
+    /// The original P4 program after it has been transformed by the front end.
+    std::reference_wrapper<const IR::P4Program> originalProgram;
+
     /// The P4RuntimeAPI inferred from this particular  P4 program.
     P4::P4RuntimeAPI p4runtimeApi;
 
@@ -16,8 +22,12 @@ class FlayCompilerResult : public CompilerResult {
     ControlPlaneConstraints defaultControlPlaneConstraints;
 
  public:
-    explicit FlayCompilerResult(CompilerResult compilerResult, P4::P4RuntimeAPI p4runtimeApi,
-                                ControlPlaneConstraints defaultConstraints);
+    explicit FlayCompilerResult(CompilerResult compilerResult, const IR::P4Program &originalProgram,
+                                P4::P4RuntimeAPI p4runtimeApi,
+                                ControlPlaneConstraints defaultControlPlaneConstraints);
+
+    /// @returns the original P4 program after it has been transformed by the front end.
+    [[nodiscard]] const IR::P4Program &getOriginalProgram() const;
 
     /// @returns the P4RuntimeAPI inferred from this particular BMv2 V1Model P4 program.
     [[nodiscard]] const P4::P4RuntimeAPI &getP4RuntimeApi() const;
