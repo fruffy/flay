@@ -3,9 +3,11 @@
 #include <cstdlib>
 
 #include "backends/p4tools/modules/flay/control_plane/util.h"
+#include "backends/p4tools/modules/flay/targets/tofino/control_plane_architecture.h"
 #include "backends/p4tools/modules/flay/targets/tofino/symbolic_state.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
 #include "frontends/common/resolveReferences/resolveReferences.h"
+#include "lib/error.h"
 
 namespace P4Tools::Flay::Tofino {
 
@@ -21,7 +23,13 @@ CompilerResultOrError TofinoBaseCompilerTarget::runCompilerImpl(
 
     /// After the front end, get the P4Runtime API for the tna architecture.
     /// TODO: We need to implement the P4Runtime handler for Tofino.
-    auto p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "v1model");
+    auto *serializer = P4::P4RuntimeSerializer::get();
+    serializer->registerArch("tofino",
+                             new P4::ControlPlaneAPI::Standard::TofinoArchHandlerBuilder());
+    auto p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "tofino");
+    if (::errorCount() > 0) {
+        return std::nullopt;
+    }
 
     program = runMidEnd(program);
     if (program == nullptr) {

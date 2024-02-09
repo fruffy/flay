@@ -57,6 +57,7 @@ class ErrorOn32Bits : public P4::ChooseErrorRepresentation {
 
 MidEnd FlayCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
     MidEnd midEnd(options);
+    midEnd.setStopOnError(true);
     auto *refMap = midEnd.getRefMap();
     auto *typeMap = midEnd.getTypeMap();
     midEnd.addPasses({
