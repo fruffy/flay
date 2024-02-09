@@ -26,15 +26,14 @@ p4tools_add_xfail_reason(
   tna_symmetric_hash.p4  # Unknown or unimplemented extern method: my_symmetric_hash.ge
   tna_simple_switch.p4  # srv6_cnt1/cnt1.count;: unknown type
   tna_32q_2pipe.p4  # meter_0/meter.execute;: unknown type
+  tna_action_profile.p4  # error: Unknown or unimplemented extern method: ipv4_checksum.update
+  tna_action_selector.p4  # Compiler Bug: No parameter named size
 )
 
 p4tools_add_xfail_reason(
   "flay-tofino1-tna"
-  "Expected an action profile or action selector:"
-  tna_ternary_match.p4  # error: Expected an action profile or action selector: action_profile
-  tna_action_profile.p4  # error: Expected an action profile or action selector: action_profile
-  tna_action_selector.p4  # error: Expected an action profile or action selector: action_profile
-  tna_idletimeout.p4  # error: Expected an action profile or action selector: action_profile
+  "Match type .* not implemented for table keys"
+  tna_ternary_match.p4  # error: Match type atcam_partition_index not implemented for table keys
 )
 
 p4tools_add_xfail_reason(
@@ -50,6 +49,7 @@ p4tools_add_xfail_reason(
   tna_proxy_hash.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_range_match.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_timestamp.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
+  tna_idletimeout.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
 )
 
 

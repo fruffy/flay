@@ -18,6 +18,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/tofino1/stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tofino1/table_executor.cpp
     # Common Tofino utilities.
+    ${CMAKE_CURRENT_SOURCE_DIR}/control_plane_architecture.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constants.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/symbolic_state.cpp
