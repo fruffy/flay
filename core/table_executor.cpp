@@ -8,10 +8,10 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/constants.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/table_utils.h"
-#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/collapse_mux.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/target.h"
@@ -194,12 +194,11 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
         auto &actionState = state.clone();
         actionState.pushExecutionCondition(actionHitCondition);
         IR::Vector<IR::Argument> arguments;
-        for (size_t argIdx = 0; argIdx < parameters->size(); ++argIdx) {
-            const auto *parameter = parameters->getParameter(argIdx);
+        for (const auto *parameter : parameters->parameters) {
             // Synthesize a variable constant here that corresponds to a control plane argument.
             // We get the unique name of the table coupled with the unique name of the action.
             // Getting the unique name is needed to avoid generating duplicate arguments.
-            const auto *actionArg = ControlPlaneState::getTableActionArg(
+            const auto *actionArg = ControlPlaneState::getTableActionArgument(
                 getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
                 parameter->type);
             arguments.push_back(new IR::Argument(actionArg));

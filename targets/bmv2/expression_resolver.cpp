@@ -6,6 +6,7 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
@@ -425,7 +426,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
          const auto *instanceBitType = IR::getBitType(32);
          auto *isCloned = new IR::LAnd(
              Bmv2ControlPlaneState::getCloneActive(),
-             new IR::Equ(sessionID, Bmv2ControlPlaneState::getSessionId(sessionID->type)));
+             new IR::Equ(sessionID, Bmv2ControlPlaneState::getCloneSessionId(sessionID->type)));
          const IR::Constant *instanceTypeConst = nullptr;
          if (cloneType == V1ModelConstants::CloneType::I2E) {
              instanceTypeConst = IR::getConstant(instanceBitType,
@@ -528,7 +529,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
          const auto *instanceBitType = IR::getBitType(32);
          auto *isCloned = new IR::LAnd(
              Bmv2ControlPlaneState::getCloneActive(),
-             new IR::Equ(sessionID, Bmv2ControlPlaneState::getSessionId(sessionID->type)));
+             new IR::Equ(sessionID, Bmv2ControlPlaneState::getCloneSessionId(sessionID->type)));
          const IR::Constant *instanceTypeConst = nullptr;
          if (cloneType == V1ModelConstants::CloneType::I2E) {
              instanceTypeConst = IR::getConstant(instanceBitType,

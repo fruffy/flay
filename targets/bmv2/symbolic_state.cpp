@@ -10,14 +10,6 @@
 
 namespace P4Tools::Flay::V1Model {
 
-const IR::SymbolicVariable *Bmv2ControlPlaneState::getCloneActive() {
-    return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "clone_session_active");
-}
-
-const IR::SymbolicVariable *Bmv2ControlPlaneState::getSessionId(const IR::Type *type) {
-    return ToolsVariables::getSymbolicVariable(type, "clone_session_id");
-}
-
 bool Bmv2ControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
                                                const IR::SymbolicVariable &keySymbol,
                                                cstring tableName, cstring fieldName,

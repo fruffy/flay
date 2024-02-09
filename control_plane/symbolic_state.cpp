@@ -2,55 +2,16 @@
 
 #include <optional>
 
+#include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/constants.h"
 #include "backends/p4tools/common/lib/table_utils.h"
-#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
 #include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
-#include "frontends/p4/entryPriorities.h"
 #include "ir/irutils.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
-
-const IR::SymbolicVariable *ControlPlaneState::getTableActive(cstring tableName) {
-    cstring label = tableName + "_configured";
-    return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), label);
-}
-
-const IR::SymbolicVariable *ControlPlaneState::getTableKey(cstring tableName, cstring fieldName,
-                                                           const IR::Type *type) {
-    cstring label = tableName + "_key_" + fieldName;
-    return ToolsVariables::getSymbolicVariable(type, label);
-}
-
-const IR::SymbolicVariable *ControlPlaneState::getTableTernaryMask(cstring tableName,
-                                                                   cstring fieldName,
-                                                                   const IR::Type *type) {
-    cstring label = tableName + "_mask_" + fieldName;
-    return ToolsVariables::getSymbolicVariable(type, label);
-}
-
-const IR::SymbolicVariable *ControlPlaneState::getTableMatchLpmPrefix(cstring tableName,
-                                                                      cstring fieldName,
-                                                                      const IR::Type *type) {
-    cstring label = tableName + "_lpm_prefix_" + fieldName;
-    return ToolsVariables::getSymbolicVariable(type, label);
-}
-
-const IR::SymbolicVariable *ControlPlaneState::getTableActionArg(cstring tableName,
-                                                                 cstring actionName,
-                                                                 cstring parameterName,
-                                                                 const IR::Type *type) {
-    cstring label = tableName + "_" + actionName + "_param_" + parameterName;
-    return ToolsVariables::getSymbolicVariable(type, label);
-}
-
-const IR::SymbolicVariable *ControlPlaneState::getTableActionChoice(cstring tableName) {
-    cstring label = tableName + "_action";
-    return ToolsVariables::getSymbolicVariable(IR::Type_String::get(), label);
-}
 
 ControlPlaneStateInitializer::ControlPlaneStateInitializer(const P4::ReferenceMap &refMap)
     : refMap_(refMap) {}
