@@ -20,6 +20,8 @@ CompilerResultOrError TofinoBaseCompilerTarget::runCompilerImpl(
     if (program == nullptr) {
         return std::nullopt;
     }
+    // Copy the program after the front end.
+    auto *originalProgram = program->clone();
 
     /// After the front end, get the P4Runtime API for the tna architecture.
     /// TODO: We need to implement the P4Runtime handler for Tofino.
@@ -45,8 +47,8 @@ CompilerResultOrError TofinoBaseCompilerTarget::runCompilerImpl(
         TofinoControlPlaneInitializer(refMap).generateInitialControlPlaneConstraints(program),
         std::nullopt);
 
-    return {
-        *new FlayCompilerResult{CompilerResult(*program), p4runtimeApi, initialControlPlaneState}};
+    return {*new FlayCompilerResult{CompilerResult(*program), *originalProgram, p4runtimeApi,
+                                    initialControlPlaneState}};
 }
 
 Tofino1CompilerTarget::Tofino1CompilerTarget() : TofinoBaseCompilerTarget("tofino1", "tna") {}

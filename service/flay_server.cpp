@@ -34,21 +34,21 @@ class StatementCounter : public Inspector {
     [[nodiscard]] uint64_t getStatementCount() const { return statementCount; }
 };
 
-uint64_t countStatements(const IR::P4Program *prog) {
+uint64_t countStatements(const IR::P4Program &prog) {
     auto *counter = new StatementCounter();
-    prog->apply(*counter);
+    prog.apply(*counter);
     return counter->getStatementCount();
 }
 
-double measureProgramSize(const IR::P4Program *prog) {
+double measureProgramSize(const IR::P4Program &prog) {
     auto *programStream = new std::stringstream;
     auto *toP4 = new P4::ToP4(programStream, false);
-    prog->apply(*toP4);
+    prog.apply(*toP4);
     return static_cast<double>(programStream->str().length());
 }
 
-double measureSizeDifference(const IR::P4Program *programBefore,
-                             const IR::P4Program *programAfter) {
+double measureSizeDifference(const IR::P4Program &programBefore,
+                             const IR::P4Program &programAfter) {
     double beforeLength = measureProgramSize(programBefore);
 
     return (beforeLength - measureProgramSize(programAfter)) * (100.0 / beforeLength);
@@ -67,18 +67,21 @@ AbstractReachabilityMap &FlayService::initializeReachabilityMap(
     return *initializedReachabilityMap;
 }
 
-FlayService::FlayService(const FlayServiceOptions &options, const IR::P4Program *originalProgram,
+FlayService::FlayService(const FlayServiceOptions &options, const IR::P4Program &originalProgram,
                          const FlayCompilerResult &compilerResult,
                          const ReachabilityMap &reachabilityMap,
                          ControlPlaneConstraints initialControlPlaneConstraints)
     : options(options),
       originalProgram(originalProgram),
-      prunedProgram(originalProgram),
+      prunedProgram(&originalProgram),
       compilerResult(compilerResult),
       reachabilityMap(initializeReachabilityMap(options.mapType, reachabilityMap)),
       controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
     printInfo("Checking whether dead code can be removed with the initial configuration...");
-    originalProgram->apply(ReferenceResolver(refMap));
+    originalProgram.apply(P4::ResolveReferences(&refMap));
+    if (::errorCount() > 0) {
+        return;
+    }
     elimControlPlaneDeadCode();
 }
 
@@ -106,7 +109,7 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
         return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
     }
     auto statementCountBefore = countStatements(originalProgram);
-    auto statementCountAfter = countStatements(prunedProgram);
+    auto statementCountAfter = countStatements(*prunedProgram);
     float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
                                          static_cast<float>(statementCountBefore));
     printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",
@@ -121,9 +124,9 @@ void FlayService::printPrunedProgram() {
     prunedProgram->apply(toP4);
 }
 
-const IR::P4Program *FlayService::getPrunedProgram() const { return prunedProgram; }
+const IR::P4Program &FlayService::getPrunedProgram() const { return *prunedProgram; }
 
-const IR::P4Program *FlayService::getOriginalProgram() const { return originalProgram; }
+const IR::P4Program &FlayService::getOriginalProgram() const { return originalProgram; }
 
 const FlayCompilerResult &FlayService::getCompilerResult() const { return compilerResult.get(); }
 
@@ -153,7 +156,7 @@ std::pair<int, bool> FlayService::elimControlPlaneDeadCode(
     }
     printInfo("Change in semantics detected.");
 
-    prunedProgram = originalProgram->apply(ElimDeadCode(refMap, reachabilityMap));
+    prunedProgram = getOriginalProgram().apply(ElimDeadCode(refMap, reachabilityMap));
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
                                : std::pair{EXIT_FAILURE, hasChanged};
 }
@@ -213,7 +216,7 @@ int FlayServiceWrapper::parseControlUpdatesFromPattern(const std::string &patter
 
 void FlayServiceWrapper::recordProgramChange(const FlayService &service) {
     auto statementCountBefore = countStatements(service.originalProgram);
-    auto statementCountAfter = countStatements(service.prunedProgram);
+    auto statementCountAfter = countStatements(*service.prunedProgram);
     float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
                                          static_cast<float>(statementCountBefore));
     printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",
@@ -221,7 +224,7 @@ void FlayServiceWrapper::recordProgramChange(const FlayService &service) {
 }
 
 int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
-                            const IR::P4Program *originalProgram,
+                            const IR::P4Program &originalProgram,
                             const FlayCompilerResult &compilerResult,
                             const ReachabilityMap &reachabilityMap,
                             const ControlPlaneConstraints &initialControlPlaneConstraints) const {
@@ -229,6 +232,7 @@ int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
     FlayService service(serviceOptions, originalProgram, compilerResult, reachabilityMap,
                         initialControlPlaneConstraints);
     if (::errorCount() > 0) {
+        ::error("Encountered errors trying to starting the service.");
         return EXIT_FAILURE;
     }
     recordProgramChange(service);
