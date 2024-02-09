@@ -3,6 +3,7 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
@@ -47,8 +48,6 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
         return IR::getBoolLiteral(true);
     }
     if (matchType == V1ModelConstants::MATCH_KIND_RANGE) {
-        cstring minName = tableName + "_range_min_" + fieldName;
-        cstring maxName = tableName + "_range_max_" + fieldName;
         // We can recover from taint by matching on the entire possible range.
         const IR::Expression *minKey = nullptr;
         const IR::Expression *maxKey = nullptr;
@@ -57,8 +56,10 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
             maxKey = IR::getConstant(keyExpr->type, IR::getMaxBvVal(keyExpr->type));
             keyExpr = minKey;
         } else {
-            minKey = ToolsVariables::getSymbolicVariable(keyExpr->type, minName);
-            maxKey = ToolsVariables::getSymbolicVariable(keyExpr->type, maxName);
+            auto symbolicTableRange =
+                Bmv2ControlPlaneState::getTableRange(tableName, fieldName, keyExpr->type);
+            minKey = symbolicTableRange.first;
+            maxKey = symbolicTableRange.second;
         }
         return new IR::LAnd(new IR::LAnd(new IR::Lss(minKey, maxKey), new IR::Leq(minKey, keyExpr)),
                             new IR::Leq(keyExpr, maxKey));

@@ -9,14 +9,6 @@
 
 namespace P4Tools::Flay::Tofino {
 
-const IR::SymbolicVariable *TofinoControlPlaneState::getCloneActive() {
-    return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "clone_session_active");
-}
-
-const IR::SymbolicVariable *TofinoControlPlaneState::getSessionId(const IR::Type *type) {
-    return ToolsVariables::getSymbolicVariable(type, "clone_session_id");
-}
-
 bool TofinoControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
                                                  const IR::SymbolicVariable &keySymbol,
                                                  cstring tableName, cstring fieldName,

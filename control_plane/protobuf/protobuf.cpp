@@ -6,11 +6,17 @@
 #include <cstdlib>
 #include <optional>
 
+#include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "control-plane/p4RuntimeArchHandler.h"
 #include "control-plane/p4infoApi.h"
 #include "ir/irutils.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include "p4/config/v1/p4info.pb.h"
 #include "p4/v1/p4runtime.pb.h"
+#pragma GCC diagnostic pop
 
 namespace P4Tools::Flay {
 
@@ -75,7 +81,7 @@ std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
         const auto *paramType = IR::getBitType(param.bitwidth());
         auto paramName = param.name();
         const auto *actionArg =
-            ControlPlaneState::getTableActionArg(tableName, actionName, paramName, paramType);
+            ControlPlaneState::getTableActionArgument(tableName, actionName, paramName, paramType);
         symbolSet.emplace(*actionArg);
         const auto *actionVal = IR::getConstant(paramType, protoValueToBigInt(paramConfig.value()));
         actionExpr = new IR::LAnd(actionExpr, new IR::Equ(actionArg, actionVal));
