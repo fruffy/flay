@@ -41,8 +41,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
     {"Checksum.add",
      {"data"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
-         P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                           externInfo.externObjectRef.toString(), externInfo.methodName);
+         // We do not calculate the checksum for now.
          return nullptr;
      }},
     /// Subtract data from existing checksum.
@@ -61,9 +60,13 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
     {"Checksum.verify",
      {},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
-         P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                           externInfo.externObjectRef.toString(), externInfo.methodName);
-         return nullptr;
+        // We do not calculate the checksum for now and instead use a dummy.
+         auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                              externInfo.methodName + "_" +
+                              std::to_string(externInfo.originalCall.clone_id);
+         const auto *hashCalc =
+             ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
+         return new IR::Equ(hashCalc, IR::getConstant(IR::getBitType(16), 0xffff));
      }},
     /// Subtract all header fields after the current state and
     /// return the calculated checksum value.
@@ -92,16 +95,24 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
     {"Checksum.update",
      {"data"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
-         P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                           externInfo.externObjectRef.toString(), externInfo.methodName);
-         return nullptr;
+         // We do not calculate the checksum for now and instead use a dummy.
+         auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                              externInfo.methodName + "_" +
+                              std::to_string(externInfo.originalCall.clone_id);
+         const auto hashCalc =
+             ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
+         return hashCalc;
      }},
     {"Checksum.update",
      {"data", "zeros_as_ones"},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
-         P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                           externInfo.externObjectRef.toString(), externInfo.methodName);
-         return nullptr;
+         // We do not calculate the checksum for now and instead use a dummy.
+         auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                              externInfo.methodName + "_" +
+                              std::to_string(externInfo.originalCall.clone_id);
+         const auto hashCalc =
+             ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
+         return hashCalc;
      }},
 
     // -----------------------------------------------------------------------------
@@ -277,18 +288,10 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
     // TODO: Count currently has no effect in the symbolic interpreter.
     {"Counter.count",
      {"index"},
-     [](const ExternMethodImpls::ExternInfo &externInfo) {
-         P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                           externInfo.externObjectRef.toString(), externInfo.methodName);
-         return nullptr;
-     }},
+     [](const ExternMethodImpls::ExternInfo &externInfo) { return nullptr; }},
     {"Counter.count",
      {"index", "adjust_byte_count"},
-     [](const ExternMethodImpls::ExternInfo &externInfo) {
-         P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                           externInfo.externObjectRef.toString(), externInfo.methodName);
-         return nullptr;
-     }},
+     [](const ExternMethodImpls::ExternInfo &externInfo) { return nullptr; }},
     /// DirectCounter
     /// Increment the counter value.
     /// @param adjust_byte_count : optional parameter indicating value to be
@@ -296,18 +299,10 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
     // TODO: Count currently has no effect in the symbolic interpreter.
     {"DirectCounter.count",
      {},
-     [](const ExternMethodImpls::ExternInfo &externInfo) {
-         P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                           externInfo.externObjectRef.toString(), externInfo.methodName);
-         return nullptr;
-     }},
+     [](const ExternMethodImpls::ExternInfo &externInfo) { return nullptr; }},
     {"DirectCounter.count",
      {"adjust_byte_count"},
-     [](const ExternMethodImpls::ExternInfo &externInfo) {
-         P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                           externInfo.externObjectRef.toString(), externInfo.methodName);
-         return nullptr;
-     }},
+     [](const ExternMethodImpls::ExternInfo &externInfo) { return nullptr; }},
 
     // -----------------------------------------------------------------------------
     /// Meter
