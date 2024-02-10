@@ -34,7 +34,7 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     FlayServiceOptions options;
 
     /// The original source P4 program.
-    const IR::P4Program *originalProgram;
+    std::reference_wrapper<const IR::P4Program> originalProgram;
 
     /// The P4 program after pruning. Should be initialized with the initial data plane
     /// configuration
@@ -70,7 +70,7 @@ class FlayService final : public p4::v1::P4Runtime::Service {
                                                        SymbolSet &symbolSet);
 
  public:
-    explicit FlayService(const FlayServiceOptions &options, const IR::P4Program *originalProgram,
+    explicit FlayService(const FlayServiceOptions &options, const IR::P4Program &originalProgram,
                          const FlayCompilerResult &compilerResult,
                          const ReachabilityMap &reachabilityMap,
                          ControlPlaneConstraints initialControlPlaneConstraints);
@@ -89,10 +89,10 @@ class FlayService final : public p4::v1::P4Runtime::Service {
         ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap);
 
     /// @returns the pruned program
-    [[nodiscard]] const IR::P4Program *getPrunedProgram() const;
+    [[nodiscard]] const IR::P4Program &getPrunedProgram() const;
 
     /// @returns the original program
-    [[nodiscard]] const IR::P4Program *getOriginalProgram() const;
+    [[nodiscard]] const IR::P4Program &getOriginalProgram() const;
 
     /// @returns a reference to the compiler result that this program info object was initialized
     /// with.
@@ -122,9 +122,11 @@ class FlayServiceWrapper {
     /// Compute some statistics on the changes in the program and print them out.
     static void recordProgramChange(const FlayService &service);
 
-    int run(const FlayServiceOptions &serviceOptions, const IR::P4Program *originalProgram,
-            const FlayCompilerResult &compilerResult, const ReachabilityMap &reachabilityMap,
-            const ControlPlaneConstraints &initialControlPlaneConstraints) const;
+    [[nodiscard]] int run(const FlayServiceOptions &serviceOptions,
+                          const IR::P4Program &originalProgram,
+                          const FlayCompilerResult &compilerResult,
+                          const ReachabilityMap &reachabilityMap,
+                          const ControlPlaneConstraints &initialControlPlaneConstraints) const;
 };
 
 }  // namespace P4Tools::Flay

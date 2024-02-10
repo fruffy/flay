@@ -9,8 +9,6 @@
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "backends/p4tools/modules/flay/service/flay_server.h"
-#include "frontends/common/parseInput.h"
-#include "frontends/common/parser_options.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
@@ -53,19 +51,21 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     symbolicExecutor.run();
 
     const auto &executionState = symbolicExecutor.getExecutionState();
-    auto &options = P4CContext::get().options();
 
-    printInfo("Reparsing original program...");
-    const auto *freshProgram = P4::parseP4File(options);
-    RETURN_IF_FALSE(freshProgram != nullptr && ::errorCount() == 0, EXIT_FAILURE);
+    printInfo("Loading original program...");
+    const auto &originalProgram = flayCompilerResult->getOriginalProgram();
 
     printInfo("Starting the service...");
     FlayServiceOptions serviceOptions;
     // If server mode is active, start the server and exit once it has finished.
     if (flayOptions.serverModeActive()) {
         // Initialize the flay service, which includes a dead code eliminator.
-        FlayService service(serviceOptions, freshProgram, *flayCompilerResult,
+        FlayService service(serviceOptions, originalProgram, *flayCompilerResult,
                             executionState.getReachabilityMap(), constraints);
+        if (::errorCount() > 0) {
+            ::error("Encountered errors trying to starting the service.");
+            return EXIT_FAILURE;
+        }
         printInfo("Starting flay server...");
         service.startServer(flayOptions.getServerAddress());
         return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -79,7 +79,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     }
 
     RETURN_IF_FALSE(
-        serviceWrapper.run(serviceOptions, freshProgram, *flayCompilerResult,
+        serviceWrapper.run(serviceOptions, originalProgram, *flayCompilerResult,
                            executionState.getReachabilityMap(), constraints) == EXIT_SUCCESS,
         EXIT_FAILURE);
 

@@ -4,6 +4,7 @@
 
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/modules/flay/control_plane/util.h"
+#include "ir/ir-generated.h"
 #include "ir/node.h"
 #include "ir/vector.h"
 #include "lib/error.h"
@@ -14,7 +15,12 @@ ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
                            const AbstractReachabilityMap &reachabilityMap)
     : reachabilityMap(reachabilityMap), refMap(refMap) {}
 
-const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
+const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
+    // Only analyze statements with valid source location.
+    if (!stmt->srcInfo.isValid()) {
+        return stmt;
+    }
+
     auto conditionOpt = reachabilityMap.get().getReachabilityExpression(stmt);
     if (!conditionOpt.has_value()) {
         ::error(
@@ -27,24 +33,34 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     const auto *condition = conditionOpt.value();
     auto reachability = condition->getReachability();
 
-    if (reachability) {
-        if (reachability.value()) {
-            if (stmt->ifFalse != nullptr) {
-                ::warning("%1% false branch can be deleted.", stmt->ifFalse);
-            }
-            ::warning("%1% will always be executed.", stmt->ifTrue);
-            return stmt->ifTrue;
-        }
-        ::warning("%1% true branch can be deleted.", stmt->ifTrue);
-        if (stmt->ifFalse != nullptr) {
-            return stmt->ifFalse;
-        }
-        return new IR::EmptyStatement();
+    // Ambiguous condition, we can not simplify.
+    if (!reachability) {
+        return stmt;
     }
+
+    if (reachability.value()) {
+        ::warning("%1% true branch will always be executed.", stmt);
+        stmt->ifFalse = nullptr;
+        return stmt;
+    }
+    stmt->condition = new IR::LNot(stmt->condition);
+    if (stmt->ifFalse != nullptr) {
+        ::warning("%1% false branch will always be executed.", stmt);
+        stmt->ifTrue = stmt->ifFalse;
+    } else {
+        ::warning("%1% true branch can be deleted.", stmt);
+        stmt->ifTrue = new IR::EmptyStatement();
+    }
+    stmt->ifFalse = nullptr;
     return stmt;
 }
 
-const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
+const IR::Node *ElimDeadCode::postorder(IR::SwitchStatement *switchStmt) {
+    // Only analyze statements with valid source location.
+    if (!switchStmt->srcInfo.isValid()) {
+        return switchStmt;
+    }
+
     IR::Vector<IR::SwitchCase> filteredSwitchCases;
     for (const auto *switchCase : switchStmt->cases) {
         if (switchCase->label->is<IR::DefaultExpression>()) {
@@ -113,7 +129,12 @@ std::optional<const IR::P4Action *> getActionDecl(const P4::ReferenceMap &refMap
     return action;
 }
 
-const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
+const IR::Node *ElimDeadCode::postorder(IR::MethodCallStatement *stmt) {
+    // Only analyze statements with valid source location.
+    if (!stmt->srcInfo.isValid()) {
+        return stmt;
+    }
+
     const auto *call = stmt->methodCall->method->to<IR::Member>();
     RETURN_IF_FALSE(call != nullptr && call->member == IR::IApply::applyMethodName, stmt);
     ASSIGN_OR_RETURN(auto &tableReference, call->expr->to<IR::PathExpression>(), stmt);
@@ -144,7 +165,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
 
     // There is no action to execute other than an empty action, remove the table.
     ::warning("Removing %1%", stmt);
-    return nullptr;
+    return new IR::EmptyStatement();
 }
 
 }  // namespace P4Tools::Flay

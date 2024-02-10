@@ -32,23 +32,11 @@ p4tools_add_xfail_reason(
   tna_ternary_match.p4  # error: Match type atcam_partition_index not implemented for table keys
 )
 
+# When trying to remove dead code we can not find a particular node in the reachability map.
+# Often this happens because the compiler optimizes the expression away and Flay never sees it.
 p4tools_add_xfail_reason(
   "flay-tofino1-tna"
   "Unable to find node .* in the reachability map of this execution state"
-  bri_with_pdfixed_thrift.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_action_profile.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_bridged_md.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_field_slice.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_lpm_match.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_multicast.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_pktgen.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_port_metadata.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_ports.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_proxy_hash.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_range_match.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_snapshot.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_timestamp.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
-  tna_idletimeout.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
 )
 
 
