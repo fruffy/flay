@@ -40,7 +40,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// data must be byte aligned.
      {"Checksum.add",
       {"data"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
           // We do not calculate the checksum for now.
           return nullptr;
       }},
@@ -49,14 +49,12 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// data must be byte aligned.
      {"Checksum.subtract",
       {"data"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
+          // We do not calculate the checksum for now.
           return nullptr;
       }},
-     /// Subtract data from existing checksum.
-     /// @param data : List of fields to be subtracted from the checksum. The
-     /// data must be byte aligned.
+     /// Verify whether the complemented sum is zero, i.e. the checksum is valid.
+     /// @return : Boolean flag indicating whether the checksum is valid or not.
      {"Checksum.verify",
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
@@ -64,9 +62,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
                                externInfo.methodName + "_" +
                                std::to_string(externInfo.originalCall.clone_id);
-          const auto *hashCalc =
-              ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
-          return new IR::Equ(hashCalc, IR::getConstant(IR::getBitType(16), 0xffff));
+          return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), checksumLabel);
       }},
      /// Subtract all header fields after the current state and
      /// return the calculated checksum value.
@@ -76,8 +72,15 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      {"Checksum.subtract_all_and_deposit",
       {"residual"},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
+          const auto &resultVar =
+              externInfo.externArgs->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
+
+          auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                               externInfo.methodName + "_" +
+                               std::to_string(externInfo.originalCall.clone_id);
+          const auto *hashCalc =
+              ToolsVariables::getSymbolicVariable(resultVar->type, checksumLabel);
+          externInfo.state.set(resultVar, hashCalc);
           return nullptr;
       }},
      /// Get the calculated checksum value.
@@ -85,9 +88,12 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      {"Checksum.get",
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
+          auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
+                               externInfo.methodName + "_" +
+                               std::to_string(externInfo.originalCall.clone_id);
+          const auto *hashCalc =
+              ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
+          return hashCalc;
       }},
      /// Calculate the checksum for a  given list of fields.
      /// @param data : List of fields contributing to the checksum value.
@@ -288,10 +294,10 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // TODO: Count currently has no effect in the symbolic interpreter.
      {"Counter.count",
       {"index"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) { return nullptr; }},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
      {"Counter.count",
       {"index", "adjust_byte_count"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) { return nullptr; }},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
      /// DirectCounter
      /// Increment the counter value.
      /// @param adjust_byte_count : optional parameter indicating value to be
@@ -299,10 +305,10 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // TODO: Count currently has no effect in the symbolic interpreter.
      {"DirectCounter.count",
       {},
-      [](const ExternMethodImpls::ExternInfo &externInfo) { return nullptr; }},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
      {"DirectCounter.count",
       {"adjust_byte_count"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) { return nullptr; }},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
 
      // -----------------------------------------------------------------------------
      /// Meter
