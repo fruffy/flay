@@ -55,9 +55,12 @@ bool ExpressionResolver::preorder(const IR::PathExpression *path) {
 const IR::Expression *ExpressionResolver::checkStructLike(const IR::Member *member) {
     std::vector<const IR::ID *> ids;
     const IR::Expression *expr = member;
-    while (const auto *member = expr->to<IR::Member>()) {
-        ids.emplace_back(&member->member);
-        expr = member->expr;
+    // Add a mapping if the member tail is hit or miss.
+    bool addMapping =
+        member->member == IR::Type_Table::hit || member->member == IR::Type_Table::miss;
+    while (const auto *subMember = expr->to<IR::Member>()) {
+        ids.emplace_back(&subMember->member);
+        expr = subMember->expr;
     }
     // If the member is a method call, resolve it. The result MUST be a struct expression.
     if (const auto *methodCallExpr = expr->to<IR::MethodCallExpression>()) {
@@ -73,6 +76,9 @@ const IR::Expression *ExpressionResolver::checkStructLike(const IR::Member *memb
             if (const auto *se = expr->to<IR::StructExpression>()) {
                 structExpr = se;
             } else {
+                if (addMapping) {
+                    getExecutionState().addReachabilityMapping(member, expr);
+                }
                 return expr;
             }
         }

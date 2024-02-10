@@ -15,7 +15,7 @@ ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
                            const AbstractReachabilityMap &reachabilityMap)
     : reachabilityMap(reachabilityMap), refMap(refMap) {}
 
-const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
+const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     // Only analyze statements with valid source location.
     if (!stmt->srcInfo.isValid()) {
         return stmt;
@@ -55,7 +55,7 @@ const IR::Node *ElimDeadCode::postorder(IR::IfStatement *stmt) {
     return stmt;
 }
 
-const IR::Node *ElimDeadCode::postorder(IR::SwitchStatement *switchStmt) {
+const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
     // Only analyze statements with valid source location.
     if (!switchStmt->srcInfo.isValid()) {
         return switchStmt;
@@ -129,7 +129,23 @@ std::optional<const IR::P4Action *> getActionDecl(const P4::ReferenceMap &refMap
     return action;
 }
 
-const IR::Node *ElimDeadCode::postorder(IR::MethodCallStatement *stmt) {
+const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
+    if (member->member != IR::Type_Table::hit && member->member != IR::Type_Table::miss) {
+        return member;
+    }
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        const auto *condition, reachabilityMap.get().getReachabilityExpression(member), member,
+        ::error("Unable to find node %1% in the reachability map of this execution state. There "
+                "might be issues with the source information.",
+                member));
+    ASSIGN_OR_RETURN(auto reachability, condition->getReachability(), member);
+
+    const auto *result = new IR::BoolLiteral(member->srcInfo, reachability);
+    ::warning("%1% can be replaced with %2%.", member, result->toString());
+    return result;
+}
+
+const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     // Only analyze statements with valid source location.
     if (!stmt->srcInfo.isValid()) {
         return stmt;

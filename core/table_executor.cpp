@@ -172,15 +172,14 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     /// Pay attention to how we use "toString" for the path name here.
     /// We need to match these choices correctly. TODO: Make this very explicit.
     ReturnProperties retProperties{
-        hitCondition, new IR::StringLiteral(IR::Type_String::get(), actionPath->path->toString())};
+        new IR::LAnd(ControlPlaneState::getTableActive(table.controlPlaneName()), hitCondition),
+        new IR::StringLiteral(IR::Type_String::get(), actionPath->path->toString())};
     for (const auto *action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
         auto *actionChoice = new IR::Equ(
             tableActionID,
             new IR::StringLiteral(IR::Type_String::get(), actionType->controlPlaneName()));
-        retProperties.totalHitCondition =
-            new IR::LOr(retProperties.totalHitCondition, actionChoice);
         const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         retProperties.actionRun = CollapseMux::produceOptimizedMux(

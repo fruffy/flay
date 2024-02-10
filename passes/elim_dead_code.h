@@ -29,9 +29,10 @@ class ElimDeadCode : public Transform {
     explicit ElimDeadCode(const P4::ReferenceMap &refMap,
                           const AbstractReachabilityMap &reachabilityMap);
 
-    const IR::Node *postorder(IR::IfStatement *stmt) override;
-    const IR::Node *postorder(IR::SwitchStatement *switchStmt) override;
-    const IR::Node *postorder(IR::MethodCallStatement *stmt) override;
+    const IR::Node *preorder(IR::IfStatement *stmt) override;
+    const IR::Node *preorder(IR::SwitchStatement *switchStmt) override;
+    const IR::Node *preorder(IR::MethodCallStatement *stmt) override;
+    const IR::Node *preorder(IR::Member *member) override;
 };
 
 /// A utility pass to extract information from a freshly parsed P4 program.
