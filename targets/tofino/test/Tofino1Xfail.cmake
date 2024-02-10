@@ -16,17 +16,13 @@ p4tools_add_xfail_reason(
   tna_meter_lpf_wred.p4  # meter_0/meter.execute;: unknown type
   tna_operations.p4  # direct_counter_0/direct_counter.count;: unknown type
   tna_mirror.p4  # Unknown or unimplemented extern method: mirror.emit
-  tna_multicast.p4  # Unknown or unimplemented extern method: ipv4_checksum.update
   tna_port_metadata_extern.p4  # Unable to find var pkt; in the symbolic environment.
   tna_pvs.p4  # Unable to find var vs_0/vs; in the symbolic environment.
   tna_random.p4  # Unknown or unimplemented extern method: rnd1.get
   tna_register.p4  # Unknown or unimplemented extern method: test_reg_action.execute
   tna_resubmit.p4  # Unable to find var pkt; in the symbolic environment.
-  tna_snapshot.p4  # Unknown or unimplemented extern method: ipv4_checksum.update
   tna_symmetric_hash.p4  # Unknown or unimplemented extern method: my_symmetric_hash.ge
-  tna_simple_switch.p4  # srv6_cnt1/cnt1.count;: unknown type
   tna_32q_2pipe.p4  # meter_0/meter.execute;: unknown type
-  tna_action_profile.p4  # error: Unknown or unimplemented extern method: ipv4_checksum.update
   tna_action_selector.p4  # Compiler Bug: No parameter named size
 )
 
@@ -40,14 +36,17 @@ p4tools_add_xfail_reason(
   "flay-tofino1-tna"
   "Unable to find node .* in the reachability map of this execution state"
   bri_with_pdfixed_thrift.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
+  tna_action_profile.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_bridged_md.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_field_slice.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_lpm_match.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
+  tna_multicast.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_pktgen.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_port_metadata.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_ports.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_proxy_hash.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_range_match.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
+  tna_snapshot.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_timestamp.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
   tna_idletimeout.p4  # error: Unable to find node set_bypass_egress in the reachability map of this execution state.
 )
