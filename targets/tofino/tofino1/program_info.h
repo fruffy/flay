@@ -23,7 +23,7 @@ class Tofino1ProgramInfo : public TofinoBaseProgramInfo {
     Tofino1ProgramInfo(const FlayCompilerResult &compilerResult,
                        ordered_map<cstring, const IR::Type_Declaration *> inputBlocks);
 
-    DECLARE_TYPEINFO(Tofino1ProgramInfo);
+    DECLARE_TYPEINFO(Tofino1ProgramInfo, TofinoBaseProgramInfo);
 };
 
 }  // namespace P4Tools::Flay::Tofino
