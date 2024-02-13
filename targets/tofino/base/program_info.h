@@ -37,6 +37,8 @@ class TofinoBaseProgramInfo : public ProgramInfo {
                                                           size_t paramIndex) const;
 
     [[nodiscard]] const FlayCompilerResult &getCompilerResult() const override;
+
+    DECLARE_TYPEINFO(TofinoBaseProgramInfo);
 };
 
 }  // namespace P4Tools::Flay::Tofino
