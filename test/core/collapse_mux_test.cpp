@@ -1,4 +1,5 @@
-#include "backends/p4tools/modules/flay/test/core/collapse_mux.h"
+
+#include "backends/p4tools/modules/flay/core/collapse_mux.h"
 
 #include <gtest/gtest.h>
 
@@ -7,13 +8,15 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "backends/p4tools/common/lib/variables.h"
-#include "backends/p4tools/modules/flay/core/collapse_mux.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
 namespace Test {
 
 namespace {
+
+/// Helper methods to build configurations for Optimization Tests.
+class OptimizationTest : public ::testing::Test {};
 
 // Tests for the optimization of various expressions.
 TEST_F(OptimizationTest, Optimization01) {
