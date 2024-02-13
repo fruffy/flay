@@ -80,10 +80,6 @@ MidEnd FlayCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
         new P4::ConvertEnums(refMap, typeMap, new EnumOn32Bits()),
         // Replace any slices in the left side of assignments and convert them to casts.
         new P4::RemoveLeftSlices(refMap, typeMap),
-        // Flatten nested list expressions.
-        new P4::SimplifySelectList(refMap, typeMap),
-        // Convert tuples into structs.
-        new P4::EliminateTypedef(refMap, typeMap),
         new PassRepeated(
             {new P4::SimplifyControlFlow(refMap, typeMap),
              // Compress member access to struct expressions.
