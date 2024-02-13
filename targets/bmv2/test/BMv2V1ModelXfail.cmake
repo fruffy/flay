@@ -86,6 +86,7 @@ p4tools_add_xfail_reason(
   issue2345-multiple_dependencies.p4
   issue2345-with_nested_if.p4
   issue420.p4
+  predication_issue_3.p4
 )
 
 # We are trying to map a duplicate condition to the reachability map.
