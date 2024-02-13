@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <queue>
 
+#include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay {
@@ -65,6 +66,9 @@ size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEnt
 
 const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {
     const IR::Expression *matchExpression = defaultConfig.computeControlPlaneConstraint();
+    const auto *tableActive = new IR::Equ(ControlPlaneState::getTableActive(tableName),
+                                          new IR::BoolLiteral(tableEntries.size() > 0));
+    matchExpression = new IR::LAnd(matchExpression, tableActive);
     if (tableEntries.size() == 0) {
         return matchExpression;
     }
