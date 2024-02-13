@@ -6,22 +6,14 @@ p4tools_add_xfail_reason(
   "flay-tofino1-tna"
   "Compiler Bug|Unimplemented compiler support"
   tna_counter.p4  # No parameter named n_counters
-  tna_custom_hash.p4  # Unimplemented extern method: hash1.get
-  tna_dkm.p4  # Unimplemented extern method: meter.execute
-  tna_digest.p4  # Unimplemented extern method: digest_a.pack
-  tna_dyn_hashing.p4  # Unimplemented extern method: hash_1.get
-  tna_exact_match.p4  # Unimplemented extern method: meter.execute
   tna_meter_bytecount_adjust.p4  # No parameter named n_meters
   tna_meter_lpf_wred.p4  # No parameter named n_meters
   tna_operations.p4  # No parameter named n_counters
   tna_mirror.p4  # Unimplemented extern method: mirror.emit
   tna_port_metadata_extern.p4  # Unable to find var pkt; in the symbolic environment.
   tna_pvs.p4  # Unable to find var vs_0/vs; in the symbolic environment.
-  tna_random.p4  # Unknown or unimplemented extern method: rnd1.get
-  tna_register.p4  # Unknown or unimplemented extern method: test_reg_action.execute
   tna_resubmit.p4  # No parameter named n_counters
-  tna_symmetric_hash.p4  # Unknown or unimplemented extern method: my_symmetric_hash.ge
-  tna_32q_2pipe.p4  # meter_0/meter.execute;: unknown type
+  tna_32q_2pipe.p4  # No parameter named n_meters
   tna_action_selector.p4  # Compiler Bug: No parameter named size
 )
 

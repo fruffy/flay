@@ -8,6 +8,7 @@
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
 #include "backends/p4tools/modules/flay/targets/tofino/base/table_executor.h"
+#include "backends/p4tools/modules/flay/targets/tofino/constants.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay::Tofino {
@@ -24,6 +25,15 @@ const IR::Expression *TofinoBaseExpressionResolver::processTable(const IR::P4Tab
 
 // Provides implementations of Tofino externs.
 namespace TofinoBaseExterns {
+
+auto ReturnDummyImpl = [](const ExternMethodImpls::ExternInfo &externInfo) {
+    auto returnType =
+        externInfo.originalCall.method->type->checkedTo<IR::Type_Method>()->returnType;
+    auto label = externInfo.externObjectRef.path->toString() + "_" + externInfo.methodName + "_" +
+                 std::to_string(externInfo.originalCall.clone_id);
+    const auto *returnVar = ToolsVariables::getSymbolicVariable(returnType, label);
+    return returnVar;
+};
 
 const ExternMethodImpls EXTERN_METHOD_IMPLS(
     {// -----------------------------------------------------------------------------
@@ -194,11 +204,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// param prio : parser priority for the parsed packet.
      {"ParserPriority.set",
       {"prio"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
 
      // -----------------------------------------------------------------------------
      // HASH ENGINE
@@ -207,25 +213,13 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // extern CRCPolynomial<T> {
      //     CRCPolynomial(T coeff, bool reversed, bool msb, bool extended, T init, T xor);
      // }
-     {"Hash.get",
-      {"data"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+     {"Hash.get", {"data"}, ReturnDummyImpl},
      // -----------------------------------------------------------------------------
      /// Random number generator.
      /// Return a random number with uniform distribution.
      /// @return : random number between 0 and 2**W - 1
      // -----------------------------------------------------------------------------
-     {"Random.get",
-      {},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+     {"Random.get", {}, ReturnDummyImpl},
 
      // -----------------------------------------------------------------------------
      // EXTERN FUNCTIONS
@@ -233,16 +227,18 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      {"*method.max",
       {"t1", "t2"},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
+          auto t1 = externInfo.externArgs->at(0)->expression;
+          auto t2 = externInfo.externArgs->at(1)->expression;
+          auto returnVar = new IR::Mux(new IR::Grt(t1, t2), t1, t2);
+          return returnVar;
       }},
      {"*method.min",
       {"t1", "t2"},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
+          auto t1 = externInfo.externArgs->at(0)->expression;
+          auto t2 = externInfo.externArgs->at(1)->expression;
+          auto returnVar = new IR::Mux(new IR::Lss(t1, t2), t1, t2);
+          return returnVar;
       }},
      {"*method.funnel_shift_right",
       {"dst", "src1", "src2", "shift_amount"},
@@ -265,6 +261,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
                             externInfo.externObjectRef.toString(), externInfo.methodName);
           return nullptr;
       }},
+     /// Phase0
      {"*method.port_metadata_unpack",
       {"pkt"},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
@@ -313,66 +310,18 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      /// Meter
      // -----------------------------------------------------------------------------
-     {"Meter.execute",
-      {"index", "color"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
-     {"Meter.execute",
-      {"index", "color", "adjust_byte_count"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
-     {"Meter.execute",
-      {"index"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
-     {"Meter.execute",
-      {"index", "adjust_byte_count"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+     {"Meter.execute", {"index", "color"}, ReturnDummyImpl},
+     {"Meter.execute", {"index", "color", "adjust_byte_count"}, ReturnDummyImpl},
+     {"Meter.execute", {"index"}, ReturnDummyImpl},
+     {"Meter.execute", {"index", "adjust_byte_count"}, ReturnDummyImpl},
 
      // -----------------------------------------------------------------------------
      /// Direct meter.
      // -----------------------------------------------------------------------------
-     {"DirectMeter.execute",
-      {"color"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
-     {"DirectMeter.execute",
-      {"color", "adjust_byte_count"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
-     {"DirectMeter.execute",
-      {},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
-     {"DirectMeter.execute",
-      {"adjust_byte_count"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+     {"DirectMeter.execute", {"color"}, ReturnDummyImpl},
+     {"DirectMeter.execute", {"color", "adjust_byte_count"}, ReturnDummyImpl},
+     {"DirectMeter.execute", {}, ReturnDummyImpl},
+     {"DirectMeter.execute", {"adjust_byte_count"}, ReturnDummyImpl},
 
      // -----------------------------------------------------------------------------
      /// LPF
@@ -422,45 +371,29 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Register
      /// Return the value of register at specified index.
      // -----------------------------------------------------------------------------
-     {"Register.read",
-      {"index"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+     // TODO: Implement and actually keep track of the writes.
+     {"Register.read", {"index"}, ReturnDummyImpl},
      // -----------------------------------------------------------------------------
      /// Write value to register at specified index.
      // -----------------------------------------------------------------------------
+     // TODO: Implement and actually keep track of the writes.
      {"Register.write",
       {"index", "value"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
 
      // -----------------------------------------------------------------------------
      /// DirectRegister
      /// Return the value of the direct register.
      // -----------------------------------------------------------------------------
-     {"DirectRegister.read",
-      {},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+     // TODO: Implement and actually keep track of the writes.
+     {"DirectRegister.read", {}, ReturnDummyImpl},
      // -----------------------------------------------------------------------------
      /// Write value to a direct register.
      // -----------------------------------------------------------------------------
-     {"DirectRegister.read",
+     // TODO: Implement and actually keep track of the writes.
+     {"DirectRegister.write",
       {"value"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
 
      // -----------------------------------------------------------------------------
      /// Return the value of the parameter.
@@ -496,13 +429,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      //     return rv;
      // }
      // -----------------------------------------------------------------------------
-     {"RegisterAction.execute",
-      {"index"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+     // TODO: support using real apply method to execute.
+     {"RegisterAction.execute", {"index"}, ReturnDummyImpl},
      // -----------------------------------------------------------------------------
      // Apply the implemented abstract method using an index that increments each
      // time. This method is useful for stateful logging.
@@ -546,13 +474,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      //     return rv;
      // }
      // -----------------------------------------------------------------------------
-     {"DirectRegisterAction.execute",
-      {"index"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+     // TODO: support using real apply method to execute.
+     {"DirectRegisterAction.execute", {}, ReturnDummyImpl},
      // -----------------------------------------------------------------------------
      // DirectRegisterAction.apply
      // -----------------------------------------------------------------------------
@@ -649,9 +572,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      // Digest
      // -----------------------------------------------------------------------------
-     {"Digest.pack", {"data"}, [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
+     {"Digest.pack", {"data"}, [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
           return nullptr;
       }}});
 }  // namespace TofinoBaseExterns
