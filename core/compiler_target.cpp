@@ -88,8 +88,6 @@ MidEnd FlayCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
              new P4::LocalCopyPropagation(refMap, typeMap, nullptr,
                                           [](const Visitor::Context * /*context*/,
                                              const IR::Expression * /*expr*/) { return true; })}),
-        // A final type checking pass to make sure everything is well-typed.
-        new P4::TypeChecking(refMap, typeMap, true),
         // Remove loops from parsers by unrolling them as far as the stack indices allow.
         // TODO: Get rid of this pass.
         new P4::ParsersUnroll(true, refMap, typeMap),
