@@ -21,6 +21,8 @@ class FlayCompilerResult : public CompilerResult {
     /// The initial control plane state inferred from this particular P4 program.
     ControlPlaneConstraints defaultControlPlaneConstraints;
 
+    DECLARE_TYPEINFO(FlayCompilerResult);
+
  public:
     explicit FlayCompilerResult(CompilerResult compilerResult, const IR::P4Program &originalProgram,
                                 P4::P4RuntimeAPI p4runtimeApi,

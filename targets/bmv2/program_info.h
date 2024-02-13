@@ -41,6 +41,8 @@ class Bmv2V1ModelProgramInfo : public ProgramInfo {
                                                           size_t paramIndex) const;
 
     [[nodiscard]] const FlayCompilerResult &getCompilerResult() const override;
+
+    DECLARE_TYPEINFO(Bmv2V1ModelProgramInfo);
 };
 
 }  // namespace P4Tools::Flay::V1Model

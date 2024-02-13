@@ -52,6 +52,8 @@ class TableMatchEntry : public ControlPlaneItem {
     bool operator<(const ControlPlaneItem &other) const override;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(TableMatchEntry);
 };
 
 /// The active set of table entries. Sorted by type.
@@ -87,6 +89,8 @@ class TableConfiguration : public ControlPlaneItem {
     size_t deleteTableEntry(const TableMatchEntry &tableMatchEntry);
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(TableConfiguration);
 };
 
 }  // namespace P4Tools::Flay
