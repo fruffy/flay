@@ -67,6 +67,55 @@ TEST_F(OptimizationTest, Optimization03) {
     ASSERT_STREQ("|X(bool)| ? |A(bit<8>)| : |B(bit<8>)|;", stringResult.str().c_str());
 }
 
+TEST_F(OptimizationTest, Optimization04) {
+    const auto *eightBitType = IR::getBitType(8);
+    const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
+    const auto *yVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "Y");
+    const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A");
+    const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B");
+    {
+        const auto *nestedMuxExpression = new IR::Mux(xVar, new IR::Mux(yVar, aVar, bVar), bVar);
+        const auto *optimizedExpression =
+            P4Tools::CollapseMux::optimizeExpression(nestedMuxExpression);
+
+        std::stringstream stringResult;
+        optimizedExpression->dbprint(stringResult);
+
+        ASSERT_STREQ("|X(bool)| && |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|;",
+                     stringResult.str().c_str());
+    }
+    {
+        const auto *nestedMuxExpression = new IR::Mux(xVar, new IR::Mux(yVar, bVar, aVar), bVar);
+        const auto *optimizedExpression =
+            P4Tools::CollapseMux::optimizeExpression(nestedMuxExpression);
+
+        std::stringstream stringResult;
+        optimizedExpression->dbprint(stringResult);
+        ASSERT_STREQ("|X(bool)| || |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|;",
+                     stringResult.str().c_str());
+    }
+    {
+        const auto *nestedMuxExpression = new IR::Mux(xVar, aVar, new IR::Mux(yVar, aVar, bVar));
+        const auto *optimizedExpression =
+            P4Tools::CollapseMux::optimizeExpression(nestedMuxExpression);
+
+        std::stringstream stringResult;
+        optimizedExpression->dbprint(stringResult);
+        ASSERT_STREQ("|X(bool)| || |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|;",
+                     stringResult.str().c_str());
+    }
+    {
+        const auto *nestedMuxExpression = new IR::Mux(xVar, aVar, new IR::Mux(yVar, bVar, aVar));
+        const auto *optimizedExpression =
+            P4Tools::CollapseMux::optimizeExpression(nestedMuxExpression);
+
+        std::stringstream stringResult;
+        optimizedExpression->dbprint(stringResult);
+        ASSERT_STREQ("|X(bool)| || !|Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|;",
+                     stringResult.str().c_str());
+    }
+}
+
 }  // anonymous namespace
 
 }  // namespace Test

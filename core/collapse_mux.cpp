@@ -68,19 +68,13 @@ const IR::Node *CollapseExpression::postorder(IR::LAnd *expr) {
     if (leftOpt.has_value()) {
         if (leftOpt.value()) {
             auto rightOpt = optionalValue(conditionMap, expr->right);
-            if (rightOpt.has_value()) {
-                return IR::getBoolLiteral(rightOpt.value());
-            }
-            return expr->right;
+            return rightOpt.has_value() ? IR::getBoolLiteral(rightOpt.value()) : expr->right;
         }
         return IR::getBoolLiteral(false);
     }
     auto rightOpt = optionalValue(conditionMap, expr->right);
     if (rightOpt.has_value()) {
-        if (rightOpt.value()) {
-            return expr->left;
-        }
-        return IR::getBoolLiteral(false);
+        return rightOpt.value() ? expr->left : IR::getBoolLiteral(false);
     }
     return expr;
 }
@@ -92,17 +86,11 @@ const IR::Node *CollapseExpression::postorder(IR::LOr *expr) {
             return IR::getBoolLiteral(true);
         }
         auto rightOpt = optionalValue(conditionMap, expr->right);
-        if (rightOpt.has_value()) {
-            return IR::getBoolLiteral(rightOpt.value());
-        }
-        return expr->right;
+        return rightOpt.has_value() ? IR::getBoolLiteral(rightOpt.value()) : expr->right;
     }
     auto rightOpt = optionalValue(conditionMap, expr->right);
     if (rightOpt.has_value()) {
-        if (rightOpt.value()) {
-            return IR::getBoolLiteral(true);
-        }
-        return expr->left;
+        return rightOpt.value() ? IR::getBoolLiteral(true) : expr->left;
     }
     return expr;
 }
@@ -117,19 +105,51 @@ const IR::Node *CollapseExpression::postorder(IR::LNot *expr) {
 }
 
 const IR::Node *CollapseExpression::postorder(IR::Mux *mux) {
-    const auto *cond = mux->e0;
-    auto condIt = conditionMap.find(cond);
-    if (condIt != conditionMap.end()) {
-        if (condIt->second) {
-            return mux->e1;
-        }
-        return mux->e2;
+    auto condOpt = optionalValue(conditionMap, mux->e0);
+    if (condOpt.has_value()) {
+        return condOpt.value() ? mux->e1 : mux->e2;
     }
-    if (const auto *boolCond = cond->to<IR::BoolLiteral>()) {
-        return boolCond->value ? mux->e1 : mux->e2;
+    if (mux->e1->equiv(*mux->e2)) {
+        return mux->e1;
     }
     return mux;
 }
+
+class MuxFolder : public Transform {
+ public:
+    MuxFolder() = default;
+
+    const IR::Node *preorder(IR::Mux *mux) override {
+        if (const auto *trueMux = mux->e1->to<IR::Mux>()) {
+            if (mux->e2->equiv(*trueMux->e1)) {
+                mux->e0 = new IR::LOr(mux->e0, trueMux->e0);
+                mux->e1 = trueMux->e2;
+            }
+            if (mux->e2->equiv(*trueMux->e2)) {
+                mux->e0 = new IR::LAnd(mux->e0, trueMux->e0);
+                mux->e1 = trueMux->e1;
+            }
+        }
+        if (const auto *falseMux = mux->e2->to<IR::Mux>()) {
+            if (mux->e1->equiv(*falseMux->e1)) {
+                mux->e0 = new IR::LOr(mux->e0, falseMux->e0);
+                mux->e2 = falseMux->e2;
+            }
+            if (mux->e1->equiv(*falseMux->e2)) {
+                mux->e0 = new IR::LOr(mux->e0, new IR::LNot(falseMux->e0));
+                mux->e2 = falseMux->e1;
+            }
+        }
+        return mux;
+    }
+
+    const IR::Node *postorder(IR::Mux *mux) override {
+        if (mux->e1->equiv(*mux->e2)) {
+            return mux->e1;
+        }
+        return mux;
+    }
+};
 
 const IR::Expression *CollapseMux::produceOptimizedMux(const IR::Expression *cond,
                                                        const IR::Expression *trueExpression,
@@ -145,6 +165,7 @@ const IR::Expression *CollapseMux::optimizeExpression(const IR::Expression *expr
         new P4::ConstantFolding(nullptr, nullptr, false),
         new P4::StrengthReduction(nullptr, nullptr, nullptr),
         new CollapseMux(),
+        new MuxFolder(),
     });
     expr = expr->apply(pass);
     BUG_CHECK(::errorCount() == 0, "Encountered errors while trying to optimize expressions.");
