@@ -50,7 +50,7 @@ TEST_F(OptimizationTest, Optimization02) {
     ASSERT_STREQ("|B(bit<8>)|", stringResult.str().c_str());
 }
 
-TEST_F(OptimizationTest, DISABLED_Optimization03) {
+TEST_F(OptimizationTest, Optimization03) {
     const auto *eightBitType = IR::getBitType(8);
     const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
     const auto *yVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "Y");
