@@ -16,26 +16,26 @@ bool MuxCondComp::operator()(const IR::Expression *s1, const IR::Expression *s2)
 const IR::Node *CollapseMux::preorder(IR::Mux *mux) {
     // TODO: We should not use this prune but it is needed to avoid an infinite loop for an unknown
     // reason.
-    prune();
+    // prune();
     const auto *cond = mux->e0;
     auto condIt = conditionMap.find(cond);
     if (condIt != conditionMap.end()) {
         if (condIt->second) {
-            return mux->e1->apply(CollapseExpression(conditionMap));
+            return mux->e1->apply(CollapseMux(conditionMap));
         }
-        return mux->e2->apply(CollapseExpression(conditionMap));
+        return mux->e2->apply(CollapseMux(conditionMap));
     }
-    mux->e0 = mux->e0->apply(CollapseExpression(conditionMap));
+    mux->e0 = mux->e0->apply(CollapseMux(conditionMap));
     auto conditionMapE1 = conditionMap;
     conditionMapE1.emplace(cond, true);
-    mux->e1 = mux->e1->apply(CollapseExpression(conditionMapE1));
+    mux->e1 = mux->e1->apply(CollapseMux(conditionMapE1));
     auto conditionMapE2 = conditionMap;
     conditionMapE2.emplace(cond, false);
-    mux->e2 = mux->e2->apply(CollapseExpression(conditionMapE2));
+    mux->e2 = mux->e2->apply(CollapseMux(conditionMapE2));
     return mux;
 }
 
-const IR::Node *CollapseExpression::preorder(IR::Expression *expr) {
+const IR::Node *CollapseMux::postorder(IR::Expression *expr) {
     auto it = conditionMap.find(expr);
     if (it != conditionMap.end()) {
         return IR::getBoolLiteral(it->second);
@@ -117,6 +117,8 @@ const IR::Expression *CollapseMux::optimizeExpression(const IR::Expression *expr
 }
 
 CollapseMux::CollapseMux(const std::map<const IR::Expression *, bool, MuxCondComp> &conditionMap)
-    : conditionMap(conditionMap) {}
+    : conditionMap(conditionMap) {
+    visitDagOnce = false;
+}
 
 }  // namespace P4Tools

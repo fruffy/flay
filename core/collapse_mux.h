@@ -25,7 +25,7 @@ class CollapseExpression : public Transform {
         : conditionMap(conditionMap) {}
     CollapseExpression() = default;
 
-    const IR::Node *preorder(IR::Expression *expr) override;
+    // const IR::Node *preorder(IR::Expression *expr) override;
     const IR::Node *preorder(IR::LAnd *expr) override;
     const IR::Node *preorder(IR::LOr *expr) override;
     const IR::Node *preorder(IR::LNot *expr) override;
@@ -40,7 +40,7 @@ class CollapseMux : public Transform {
     CollapseMux() = default;
 
     const IR::Node *preorder(IR::Mux *mux) override;
-    // const IR::Node *preorder(IR::Expression *expr) override;
+    const IR::Node *postorder(IR::Expression *expr) override;
     // const IR::Node *preorder(IR::LAnd *expr) override;
     // const IR::Node *preorder(IR::LOr *expr) override;
     // const IR::Node *preorder(IR::LNot *expr) override;
