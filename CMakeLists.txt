@@ -84,7 +84,7 @@ set(
   ${P4C_SOURCE_DIR}/test/gtest/helpers.cpp
   ${P4C_SOURCE_DIR}/test/gtest/gtestp4c.cpp
 
-  test/core/collapse_mux.cpp
+  test/core/collapse_mux_test.cpp
 )
 
 # Flay libraries.

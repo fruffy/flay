@@ -38,7 +38,7 @@ const IR::Expression *CollapseMux::produceOptimizedMux(const IR::Expression *con
                                                        const IR::Expression *falseExpression) {
     Util::ScopedTimer timer("Mux optimization");
     auto *mux = new IR::Mux(trueExpression->type, cond, trueExpression, falseExpression);
-    return mux->apply(CollapseMux());
+    return optimizeExpression(mux->apply(CollapseMux()));
 }
 
 const IR::Expression *CollapseMux::optimizeExpression(const IR::Expression *expr) {

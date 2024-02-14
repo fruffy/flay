@@ -92,7 +92,7 @@ void ExecutionState::pushExecutionCondition(const IR::Expression *cond) {
 
 void ExecutionState::merge(const ExecutionState &mergeState) {
     const auto *cond = mergeState.getExecutionCondition();
-    cond = cond->apply(CollapseMux());
+    cond = CollapseMux::optimizeExpression(cond);
     const auto &mergeEnv = mergeState.getSymbolicEnv();
     reachabilityMap.mergeReachabilityMapping(mergeState.getReachabilityMap());
 
@@ -116,9 +116,7 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
             const auto *currentExpr = get(ref);
             // Only merge when the current and the merged expression are different.
             if (!currentExpr->equiv(*mergeExpr)) {
-                const IR::Expression *mergedExpr =
-                    CollapseMux::produceOptimizedMux(cond, mergeExpr, currentExpr);
-                set(envTuple.first, mergedExpr);
+                set(envTuple.first, CollapseMux::produceOptimizedMux(cond, mergeExpr, currentExpr));
             }
         }
     }

@@ -80,10 +80,6 @@ MidEnd FlayCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
         new P4::ConvertEnums(refMap, typeMap, new EnumOn32Bits()),
         // Replace any slices in the left side of assignments and convert them to casts.
         new P4::RemoveLeftSlices(refMap, typeMap),
-        // Flatten nested list expressions.
-        new P4::SimplifySelectList(refMap, typeMap),
-        // Convert tuples into structs.
-        new P4::EliminateTypedef(refMap, typeMap),
         new PassRepeated(
             {new P4::SimplifyControlFlow(refMap, typeMap),
              // Compress member access to struct expressions.
@@ -92,8 +88,6 @@ MidEnd FlayCompilerTarget::mkMidEnd(const CompilerOptions &options) const {
              new P4::LocalCopyPropagation(refMap, typeMap, nullptr,
                                           [](const Visitor::Context * /*context*/,
                                              const IR::Expression * /*expr*/) { return true; })}),
-        // A final type checking pass to make sure everything is well-typed.
-        new P4::TypeChecking(refMap, typeMap, true),
         // Remove loops from parsers by unrolling them as far as the stack indices allow.
         // TODO: Get rid of this pass.
         new P4::ParsersUnroll(true, refMap, typeMap),
