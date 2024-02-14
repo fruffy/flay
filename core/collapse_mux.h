@@ -20,15 +20,14 @@ class CollapseExpression : public Transform {
     ConditionMap conditionMap;
 
  public:
-    explicit CollapseExpression(
-        const std::map<const IR::Expression *, bool, MuxCondComp> &conditionMap)
-        : conditionMap(conditionMap) {}
+    explicit CollapseExpression(const ConditionMap &conditionMap) : conditionMap(conditionMap) {}
     CollapseExpression() = default;
 
-    // const IR::Node *preorder(IR::Expression *expr) override;
-    const IR::Node *preorder(IR::LAnd *expr) override;
-    const IR::Node *preorder(IR::LOr *expr) override;
-    const IR::Node *preorder(IR::LNot *expr) override;
+    const IR::Node *postorder(IR::Expression *expr) override;
+    const IR::Node *postorder(IR::LAnd *expr) override;
+    const IR::Node *postorder(IR::LOr *expr) override;
+    const IR::Node *postorder(IR::LNot *expr) override;
+    const IR::Node *postorder(IR::Mux *mux) override;
 };
 
 class CollapseMux : public Transform {
@@ -36,7 +35,7 @@ class CollapseMux : public Transform {
     ConditionMap conditionMap;
 
  public:
-    explicit CollapseMux(const std::map<const IR::Expression *, bool, MuxCondComp> &conditionMap);
+    explicit CollapseMux(const ConditionMap &conditionMap);
     CollapseMux() = default;
 
     const IR::Node *preorder(IR::Mux *mux) override;
