@@ -5,15 +5,12 @@
 p4tools_add_xfail_reason(
   "flay-tofino1-tna"
   "Compiler Bug|Unimplemented compiler support"
-  tna_counter.p4  # No parameter named n_counters
-  tna_meter_bytecount_adjust.p4  # No parameter named n_meters
-  tna_meter_lpf_wred.p4  # No parameter named n_meters
-  tna_operations.p4  # No parameter named n_counters
+  tna_meter_lpf_wred.p4  # Unimplemented extern method: simple_lpf.execute
   tna_mirror.p4  # Unimplemented extern method: mirror.emit
   tna_port_metadata_extern.p4  # Unable to find var pkt; in the symbolic environment.
   tna_pvs.p4  # Unable to find var vs_0/vs; in the symbolic environment.
-  tna_resubmit.p4  # No parameter named n_counters
-  tna_32q_2pipe.p4  # No parameter named n_meters
+  tna_resubmit.p4  # Unable to find var pkt; in the symbolic environment.
+  tna_32q_2pipe.p4  # The Tofno1 architecture requires 6 pipes. Received 12.
   tna_action_selector.p4  # Compiler Bug: No parameter named size
 )
 
