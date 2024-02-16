@@ -145,6 +145,10 @@ add_custom_target(
 
 add_dependencies(p4flay linkflay)
 
+# Utilities for testing.
+add_subdirectory(tools)
+
+
 if(ENABLE_GTESTS)
   add_executable(flay-gtest ${FLAY_GTEST_SOURCES})
   target_link_libraries(

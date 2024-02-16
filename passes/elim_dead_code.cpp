@@ -41,15 +41,18 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     if (reachability.value()) {
         ::warning("%1% true branch will always be executed.", stmt);
         stmt->ifFalse = nullptr;
+        eliminatedNodes.push_back(stmt->ifFalse);
         return stmt;
     }
     stmt->condition = new IR::LNot(stmt->condition);
     if (stmt->ifFalse != nullptr) {
         ::warning("%1% false branch will always be executed.", stmt);
+        eliminatedNodes.push_back(stmt->ifTrue);
         stmt->ifTrue = stmt->ifFalse;
     } else {
         ::warning("%1% true branch can be deleted.", stmt);
         stmt->ifTrue = new IR::EmptyStatement();
+        eliminatedNodes.push_back(stmt);
     }
     stmt->ifFalse = nullptr;
     return stmt;
@@ -88,6 +91,7 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
             break;
         }
         ::warning("%1% can be deleted.", switchCase);
+        eliminatedNodes.push_back(switchCase);
     }
     if (filteredSwitchCases.empty()) {
         return new IR::EmptyStatement();
@@ -142,6 +146,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
 
     const auto *result = new IR::BoolLiteral(member->srcInfo, reachability);
     ::warning("%1% can be replaced with %2%.", member, result->toString());
+    eliminatedNodes.push_back(member);
     return result;
 }
 
@@ -181,7 +186,10 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
 
     // There is no action to execute other than an empty action, remove the table.
     ::warning("Removing %1%", stmt);
+    eliminatedNodes.push_back(stmt);
     return new IR::EmptyStatement();
 }
+
+std::vector<const IR::Node *> ElimDeadCode::getEliminatedNodes() const { return eliminatedNodes; }
 
 }  // namespace P4Tools::Flay

@@ -130,6 +130,10 @@ const IR::P4Program &FlayService::getOriginalProgram() const { return originalPr
 
 const FlayCompilerResult &FlayService::getCompilerResult() const { return compilerResult.get(); }
 
+const std::vector<const IR::Node *> &FlayService::getEliminatedNodes() const {
+    return eliminatedNodes;
+}
+
 std::optional<bool> FlayService::checkForSemanticChange(
     std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) const {
     printInfo("Checking for change in reachability semantics...");
@@ -156,7 +160,10 @@ std::pair<int, bool> FlayService::elimControlPlaneDeadCode(
     }
     printInfo("Change in semantics detected.");
 
-    optimizedProgram = getOriginalProgram().apply(ElimDeadCode(refMap, reachabilityMap));
+    auto elimDeadCode = ElimDeadCode(refMap, reachabilityMap);
+    optimizedProgram = getOriginalProgram().apply(elimDeadCode);
+    // Update the list of eliminated nodes.
+    eliminatedNodes = elimDeadCode.getEliminatedNodes();
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
                                : std::pair{EXIT_FAILURE, hasChanged};
 }
@@ -257,8 +264,9 @@ int FlayServiceWrapper::run() {
     return EXIT_SUCCESS;
 }
 
-[[nodiscard]] const IR::P4Program &FlayServiceWrapper::getOptimizedProgram() const {
-    return flayService.getOptimizedProgram();
+FlayServiceStatistics FlayServiceWrapper::getFlayServiceStatistics() const {
+    return FlayServiceStatistics{&flayService.getOptimizedProgram(),
+                                 flayService.getEliminatedNodes()};
 }
 
 }  // namespace P4Tools::Flay
