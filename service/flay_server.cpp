@@ -67,18 +67,18 @@ AbstractReachabilityMap &FlayService::initializeReachabilityMap(
     return *initializedReachabilityMap;
 }
 
-FlayService::FlayService(const FlayServiceOptions &options, const IR::P4Program &originalProgram,
+FlayService::FlayService(const FlayServiceOptions &options,
                          const FlayCompilerResult &compilerResult,
                          const ReachabilityMap &reachabilityMap,
                          ControlPlaneConstraints initialControlPlaneConstraints)
     : options(options),
-      originalProgram(originalProgram),
-      prunedProgram(&originalProgram),
+      originalProgram(compilerResult.getOriginalProgram()),
+      optimizedProgram(&originalProgram.get()),
       compilerResult(compilerResult),
       reachabilityMap(initializeReachabilityMap(options.mapType, reachabilityMap)),
       controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
     printInfo("Checking whether dead code can be removed with the initial configuration...");
-    originalProgram.apply(P4::ResolveReferences(&refMap));
+    originalProgram.get().apply(P4::ResolveReferences(&refMap));
     if (::errorCount() > 0) {
         return;
     }
@@ -109,7 +109,7 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
         return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
     }
     auto statementCountBefore = countStatements(originalProgram);
-    auto statementCountAfter = countStatements(*prunedProgram);
+    auto statementCountAfter = countStatements(*optimizedProgram);
     float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
                                          static_cast<float>(statementCountBefore));
     printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",
@@ -119,12 +119,12 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
     return grpc::Status::OK;
 }
 
-void FlayService::printPrunedProgram() {
+void FlayService::printoptimizedProgram() {
     P4::ToP4 toP4;
-    prunedProgram->apply(toP4);
+    optimizedProgram->apply(toP4);
 }
 
-const IR::P4Program &FlayService::getPrunedProgram() const { return *prunedProgram; }
+const IR::P4Program &FlayService::getOptimizedProgram() const { return *optimizedProgram; }
 
 const IR::P4Program &FlayService::getOriginalProgram() const { return originalProgram; }
 
@@ -156,7 +156,7 @@ std::pair<int, bool> FlayService::elimControlPlaneDeadCode(
     }
     printInfo("Change in semantics detected.");
 
-    prunedProgram = getOriginalProgram().apply(ElimDeadCode(refMap, reachabilityMap));
+    optimizedProgram = getOriginalProgram().apply(ElimDeadCode(refMap, reachabilityMap));
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
                                : std::pair{EXIT_FAILURE, hasChanged};
 }
@@ -216,26 +216,19 @@ int FlayServiceWrapper::parseControlUpdatesFromPattern(const std::string &patter
 
 void FlayServiceWrapper::recordProgramChange(const FlayService &service) {
     auto statementCountBefore = countStatements(service.originalProgram);
-    auto statementCountAfter = countStatements(*service.prunedProgram);
+    auto statementCountAfter = countStatements(*service.optimizedProgram);
     float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
                                          static_cast<float>(statementCountBefore));
     printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",
               statementCountBefore, statementCountAfter, stmtPct);
 }
 
-int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
-                            const IR::P4Program &originalProgram,
-                            const FlayCompilerResult &compilerResult,
-                            const ReachabilityMap &reachabilityMap,
-                            const ControlPlaneConstraints &initialControlPlaneConstraints) const {
-    // Initialize the flay service, which includes a dead code eliminator.
-    FlayService service(serviceOptions, originalProgram, compilerResult, reachabilityMap,
-                        initialControlPlaneConstraints);
+int FlayServiceWrapper::run() {
     if (::errorCount() > 0) {
         ::error("Encountered errors trying to starting the service.");
         return EXIT_FAILURE;
     }
-    recordProgramChange(service);
+    recordProgramChange(flayService);
 
     /// Keeps track of how often the semantics have changed after an update.
     uint64_t semanticsChangeCounter = 0;
@@ -246,22 +239,26 @@ int FlayServiceWrapper::run(const FlayServiceOptions &serviceOptions,
         SymbolSet symbolSet;
         for (const auto &update : controlPlaneUpdate.updates()) {
             Util::ScopedTimer timer("processWrapperMessage");
-            if (service.updateControlPlaneConstraintsWithEntityMessage(
+            if (flayService.updateControlPlaneConstraintsWithEntityMessage(
                     update.entity(), update.type(), symbolSet) != EXIT_SUCCESS) {
                 return EXIT_FAILURE;
             }
         }
-        auto result = service.elimControlPlaneDeadCode(symbolSet);
+        auto result = flayService.elimControlPlaneDeadCode(symbolSet);
         if (result.first != EXIT_SUCCESS) {
             return EXIT_FAILURE;
         }
         if (result.second) {
-            recordProgramChange(service);
+            recordProgramChange(flayService);
             semanticsChangeCounter++;
         }
     }
 
     return EXIT_SUCCESS;
+}
+
+[[nodiscard]] const IR::P4Program &FlayServiceWrapper::getOptimizedProgram() const {
+    return flayService.getOptimizedProgram();
 }
 
 }  // namespace P4Tools::Flay

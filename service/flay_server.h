@@ -36,9 +36,9 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// The original source P4 program.
     std::reference_wrapper<const IR::P4Program> originalProgram;
 
-    /// The P4 program after pruning. Should be initialized with the initial data plane
+    /// The P4 program after optimizing. Should be initialized with the initial data plane
     /// configuration
-    const IR::P4Program *prunedProgram = nullptr;
+    const IR::P4Program *optimizedProgram = nullptr;
 
     /// The program info object stores the results of the compilation, which includes the P4 program
     /// and any information extracted from the program using static analysis.
@@ -70,7 +70,7 @@ class FlayService final : public p4::v1::P4Runtime::Service {
                                                        SymbolSet &symbolSet);
 
  public:
-    explicit FlayService(const FlayServiceOptions &options, const IR::P4Program &originalProgram,
+    explicit FlayService(const FlayServiceOptions &options,
                          const FlayCompilerResult &compilerResult,
                          const ReachabilityMap &reachabilityMap,
                          ControlPlaneConstraints initialControlPlaneConstraints);
@@ -82,14 +82,14 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     grpc::Status Write(grpc::ServerContext * /*context*/, const p4::v1::WriteRequest *request,
                        p4::v1::WriteResponse * /*response*/) override;
 
-    /// Print the pruned program to stdout;
-    void printPrunedProgram();
+    /// Print the optimized program to stdout;
+    void printoptimizedProgram();
 
     static AbstractReachabilityMap &initializeReachabilityMap(
         ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap);
 
-    /// @returns the pruned program
-    [[nodiscard]] const IR::P4Program &getPrunedProgram() const;
+    /// @returns the optimized program
+    [[nodiscard]] const IR::P4Program &getOptimizedProgram() const;
 
     /// @returns the original program
     [[nodiscard]] const IR::P4Program &getOriginalProgram() const;
@@ -112,8 +112,15 @@ class FlayServiceWrapper {
     /// Helper function to retrieve a list of files matching a pattern.
     static std::vector<std::string> findFiles(const std::string &pattern);
 
+    FlayService flayService;
+
  public:
-    FlayServiceWrapper() = default;
+    FlayServiceWrapper(const FlayServiceOptions &serviceOptions,
+                       const FlayCompilerResult &compilerResult,
+                       const ReachabilityMap &reachabilityMap,
+                       const ControlPlaneConstraints &initialControlPlaneConstraints)
+        : flayService(serviceOptions, compilerResult, reachabilityMap,
+                      initialControlPlaneConstraints) {}
 
     /// Try to parse the provided pattern into update files and convert them to control-plane
     /// updates.
@@ -122,11 +129,10 @@ class FlayServiceWrapper {
     /// Compute some statistics on the changes in the program and print them out.
     static void recordProgramChange(const FlayService &service);
 
-    [[nodiscard]] int run(const FlayServiceOptions &serviceOptions,
-                          const IR::P4Program &originalProgram,
-                          const FlayCompilerResult &compilerResult,
-                          const ReachabilityMap &reachabilityMap,
-                          const ControlPlaneConstraints &initialControlPlaneConstraints) const;
+    [[nodiscard]] int run();
+
+    /// @returns the optimized program after running Flay.
+    [[nodiscard]] const IR::P4Program &getOptimizedProgram() const;
 };
 
 }  // namespace P4Tools::Flay
