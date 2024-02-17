@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "ir/ir-generated.h"
@@ -39,18 +40,18 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     }
 
     if (reachability.value()) {
-        ::warning("%1% true branch will always be executed.", stmt);
+        printInfo("%1% true branch will always be executed.", stmt);
         stmt->ifFalse = nullptr;
         eliminatedNodes.push_back(stmt->ifFalse);
         return stmt;
     }
     stmt->condition = new IR::LNot(stmt->condition);
     if (stmt->ifFalse != nullptr) {
-        ::warning("%1% false branch will always be executed.", stmt);
+        printInfo("%1% false branch will always be executed.", stmt);
         eliminatedNodes.push_back(stmt->ifTrue);
         stmt->ifTrue = stmt->ifFalse;
     } else {
-        ::warning("%1% true branch can be deleted.", stmt);
+        printInfo("%1% true branch can be deleted.", stmt);
         stmt->ifTrue = new IR::EmptyStatement();
         eliminatedNodes.push_back(stmt);
     }
@@ -87,10 +88,10 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
         auto reachability = reachabilityOpt.value();
         if (reachability) {
             filteredSwitchCases.push_back(switchCase);
-            ::warning("%1% is always true.", switchCase);
+            printInfo("%1% is always true.", switchCase);
             break;
         }
-        ::warning("%1% can be deleted.", switchCase);
+        printInfo("%1% can be deleted.", switchCase);
         eliminatedNodes.push_back(switchCase);
     }
     if (filteredSwitchCases.empty()) {
@@ -145,7 +146,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
     ASSIGN_OR_RETURN(auto reachability, condition->getReachability(), member);
 
     const auto *result = new IR::BoolLiteral(member->srcInfo, reachability);
-    ::warning("%1% can be replaced with %2%.", member, result->toString());
+    printInfo("%1% can be replaced with %2%.", member, result->toString());
     eliminatedNodes.push_back(member);
     return result;
 }
@@ -179,13 +180,13 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
         ASSIGN_OR_RETURN(auto reachability, condition->getReachability(), stmt);
 
         if (reachability) {
-            ::warning("%1% will always be executed.", action);
+            printInfo("%1% will always be executed.", action);
             return stmt;
         }
     }
 
     // There is no action to execute other than an empty action, remove the table.
-    ::warning("Removing %1%", stmt);
+    printInfo("Removing %1%", stmt);
     eliminatedNodes.push_back(stmt);
     return new IR::EmptyStatement();
 }
