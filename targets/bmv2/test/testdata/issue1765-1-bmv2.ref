@@ -1,0 +1,4 @@
+Eliminated node at line 336: v6_addresses.apply();
+Eliminated node at line 337: v6_networks.apply();
+Eliminated node at line 340: v4_networks.apply();
+Eliminated node at line 347: if (standard_metadata.instance_type == 1) {

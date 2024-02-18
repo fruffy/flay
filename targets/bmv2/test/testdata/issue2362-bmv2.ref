@@ -1,0 +1,2 @@
+Eliminated node at line 43: sub_table.apply().hit: exact @name("dummy_name") ;
+Eliminated node at line 49: simple_table.apply();

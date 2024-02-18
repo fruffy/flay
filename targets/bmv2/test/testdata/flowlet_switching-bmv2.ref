@@ -1,0 +1,6 @@
+Eliminated node at line 106: send_frame.apply();
+Eliminated node at line 191: flowlet.apply();
+Eliminated node at line 192: if (meta.ingress_metadata.flow_ipg > 32w50000)
+Eliminated node at line 195: ecmp_group.apply();
+Eliminated node at line 196: ecmp_nhop.apply();
+Eliminated node at line 197: forward.apply();

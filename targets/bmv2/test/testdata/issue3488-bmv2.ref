@@ -1,0 +1,4 @@
+Eliminated node at line 158: action1: // Fall-through
+Eliminated node at line 159: action2: {
+Eliminated node at line 163: post_tbl3.apply();
+Eliminated node at line 164: if (meta.dropped) {

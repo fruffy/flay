@@ -1,0 +1,3 @@
+Eliminated node at line 99: log_msg("f() returned a valid header");
+Eliminated node at line 104: log_msg("g() returned a header_union with valid member h");
+Eliminated node at line 109: log_msg("h() returned a header stack with valid element 0");
