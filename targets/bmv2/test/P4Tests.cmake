@@ -27,7 +27,7 @@ list(
   # These tests time out and require fixing.
 )
 
-set (EXTRA_OPTS "--reference-folder ${CMAKE_CURRENT_LIST_DIR}/testdata --overwrite")
+set (EXTRA_OPTS "--reference-folder ${CMAKE_CURRENT_LIST_DIR}/testdata")
 
 p4tools_add_tests(
   TESTS
