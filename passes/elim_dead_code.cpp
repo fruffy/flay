@@ -41,8 +41,10 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
 
     if (reachability.value()) {
         printInfo("%1% true branch will always be executed.", stmt);
+        if (stmt->ifFalse != nullptr) {
+            eliminatedNodes.push_back(stmt->ifFalse);
+        }
         stmt->ifFalse = nullptr;
-        eliminatedNodes.push_back(stmt->ifFalse);
         return stmt;
     }
     stmt->condition = new IR::LNot(stmt->condition);
@@ -52,8 +54,8 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
         stmt->ifTrue = stmt->ifFalse;
     } else {
         printInfo("%1% true branch can be deleted.", stmt);
-        stmt->ifTrue = new IR::EmptyStatement();
         eliminatedNodes.push_back(stmt);
+        stmt->ifTrue = new IR::EmptyStatement(stmt->getSourceInfo());
     }
     stmt->ifFalse = nullptr;
     return stmt;
@@ -95,7 +97,7 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
         eliminatedNodes.push_back(switchCase);
     }
     if (filteredSwitchCases.empty()) {
-        return new IR::EmptyStatement();
+        return new IR::EmptyStatement(switchStmt->getSourceInfo());
     }
     if (filteredSwitchCases.size() == 1 &&
         filteredSwitchCases[0]->label->is<IR::DefaultExpression>()) {
@@ -188,7 +190,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     // There is no action to execute other than an empty action, remove the table.
     printInfo("Removing %1%", stmt);
     eliminatedNodes.push_back(stmt);
-    return new IR::EmptyStatement();
+    return new IR::EmptyStatement(stmt->getSourceInfo());
 }
 
 std::vector<const IR::Node *> ElimDeadCode::getEliminatedNodes() const { return eliminatedNodes; }

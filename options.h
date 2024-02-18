@@ -44,7 +44,7 @@ class FlayOptions : public AbstractP4cToolOptions {
     [[nodiscard]] std::string getConfigurationUpdatePattern() const;
 
  protected:
-    FlayOptions(std::string message = "Remove control-plane dead code from a P4 program.");
+    explicit FlayOptions(std::string message = "Remove control-plane dead code from a P4 program.");
 
  private:
     /// Path to the initial control plane configuration file.

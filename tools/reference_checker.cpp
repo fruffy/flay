@@ -8,6 +8,7 @@
 #include "backends/p4tools/modules/flay/register.h"
 #include "frontends/common/options.h"
 #include "lib/error.h"
+#include "lib/null.h"
 #include "lib/options.h"
 
 namespace P4Tools::Flay {
@@ -31,6 +32,22 @@ class ReferenceCheckerOptions : protected FlayOptions {
 
     /// The architecture to compile for.
     std::string arch;
+
+    /// The arguments to pass to the Flay compiler.
+    CompilerOptions compilerOptions;
+
+    /// @returns the arguments to pass to the compiler. A little hacky because of an API mismatch.
+    [[nodiscard]] std::vector<char *> getCompilerArgs(char *binaryName) const {
+        std::vector<char *> args;
+        args.reserve(compilerArgs.size() + 1);
+        args.push_back(binaryName);
+        // Compiler expects path to executable as first element in argument list.
+        for (const auto &arg : compilerArgs) {
+            args.push_back(
+                const_cast<char *>(arg));  // NOLINT (cppcoreguidelines-pro-type-const-cast)
+        }
+        return args;
+    }
 
  public:
     ReferenceCheckerOptions() : FlayOptions("Checks Flay output against references.") {
@@ -110,6 +127,22 @@ class ReferenceCheckerOptions : protected FlayOptions {
         if (std::getenv("P4TEST_REPLACE") != nullptr) {
             overwriteReferences = true;
         }
+        // If the environment variable P4FLAY_INFO is set, enable information logging.
+        if (std::getenv("P4FLAY_INFO") != nullptr) {
+            enableInformationLogging();
+        }
+        auto compilerString = getCompilerArgs(argv[0]);
+        unprocessedOptions =
+            compilerOptions.process(static_cast<int>(compilerString.size()), compilerString.data());
+        if (unprocessedOptions != nullptr && !unprocessedOptions->empty()) {
+            for (const auto &option : *unprocessedOptions) {
+                ::error("Unprocessed compiler input: %s", option);
+            }
+            return EXIT_FAILURE;
+        }
+        // compilerOptions.target = options.getTarget().c_str();
+        // compilerOptions.arch = options.getArch().c_str();
+        compilerOptions.file = getInputFile().c_str();
         return EXIT_SUCCESS;
     }
 
@@ -130,6 +163,8 @@ class ReferenceCheckerOptions : protected FlayOptions {
     [[nodiscard]] const std::string &getArch() const { return arch; }
 
     [[nodiscard]] const FlayOptions &toFlayOptions() const { return *this; }
+
+    [[nodiscard]] const CompilerOptions &getCompilerOptions() const { return compilerOptions; }
 };
 
 /// Compare the output of Flay with the reference file.
@@ -164,16 +199,20 @@ int compareAgainstReference(const std::stringstream &flayOptimizationOutput,
 }
 
 int run(const ReferenceCheckerOptions &options) {
-    auto compilerOptions = CompilerOptions();
-    compilerOptions.target = options.getTarget().c_str();
-    compilerOptions.arch = options.getArch().c_str();
-    compilerOptions.file = options.getInputFile().c_str();
-
     ASSIGN_OR_RETURN(auto flayServiceStatistics,
-                     Flay::optimizeProgram(compilerOptions, options.toFlayOptions()), EXIT_FAILURE);
+                     Flay::optimizeProgram(options.getCompilerOptions(), options.toFlayOptions()),
+                     EXIT_FAILURE);
     std::stringstream flayOptimizationOutput;
     for (const auto *node : flayServiceStatistics.eliminatedNodes) {
-        flayOptimizationOutput << "Eliminated node: " << node;
+        if (node->getSourceInfo().isValid()) {
+            auto sourceFragment = node->getSourceInfo().toSourceFragment(false).trim();
+            flayOptimizationOutput << "Eliminated node at line "
+                                   << node->getSourceInfo().toPosition().sourceLine << ": "
+                                   << sourceFragment;
+        } else {
+            ::warning("Invalid source information for node %1%. This should be fixed", node);
+            flayOptimizationOutput << "Eliminated node at line (unknown): " << node;
+        }
         if (node != flayServiceStatistics.eliminatedNodes.back()) {
             flayOptimizationOutput << "\n";
         }
@@ -197,30 +236,28 @@ int run(const ReferenceCheckerOptions &options) {
         std::ofstream ofs(referencePath);
         ofs << flayOptimizationOutput << std::endl;
         ofs.close();
-    } else {
-        const auto &referenceFileOpt = options.getReferenceFile();
-        if (referenceFileOpt.has_value()) {
-            auto referenceFile = std::filesystem::absolute(referenceFileOpt.value());
-            return compareAgainstReference(flayOptimizationOutput, referenceFile);
-        }
-        if (options.getReferenceFolder().has_value()) {
-            auto referenceFolder = std::filesystem::absolute(options.getReferenceFolder().value());
-            auto referenceName = options.getInputFile().stem();
-            for (const auto &entry : std::filesystem::directory_iterator(referenceFolder)) {
-                const auto &referenceFile = entry.path();
+        return EXIT_SUCCESS;
+    }
+    const auto &referenceFileOpt = options.getReferenceFile();
+    if (referenceFileOpt.has_value()) {
+        auto referenceFile = std::filesystem::absolute(referenceFileOpt.value());
+        return compareAgainstReference(flayOptimizationOutput, referenceFile);
+    }
+    if (options.getReferenceFolder().has_value()) {
+        auto referenceFolder = std::filesystem::absolute(options.getReferenceFolder().value());
+        auto referenceName = options.getInputFile().stem();
+        for (const auto &entry : std::filesystem::directory_iterator(referenceFolder)) {
+            const auto &referenceFile = entry.path();
 
-                if (referenceFile.extension() == ".ref" && referenceFile.stem() == referenceName) {
-                    return compareAgainstReference(flayOptimizationOutput, referenceFile);
-                }
+            if (referenceFile.extension() == ".ref" && referenceFile.stem() == referenceName) {
+                return compareAgainstReference(flayOptimizationOutput, referenceFile);
             }
-            ::error("Reference file not found in folder.");
-            return EXIT_FAILURE;
         }
-        ::error("Neither a reference file nor a reference folder have been specified.");
+        ::error("Reference file not found in folder.");
         return EXIT_FAILURE;
     }
-
-    return EXIT_SUCCESS;
+    ::error("Neither a reference file nor a reference folder have been specified.");
+    return EXIT_FAILURE;
 }
 
 }  // namespace P4Tools::Flay
