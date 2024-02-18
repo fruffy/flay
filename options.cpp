@@ -16,8 +16,7 @@ const char *FlayOptions::getIncludePath() {
     P4C_UNIMPLEMENTED("getIncludePath not implemented for Flay.");
 }
 
-FlayOptions::FlayOptions()
-    : AbstractP4cToolOptions("Remove control-plane dead code from a P4 program.") {
+FlayOptions::FlayOptions(std::string message) : AbstractP4cToolOptions(std::move(message)) {
     registerOption(
         "--config-file", "controlPlaneConfig",
         [this](const char *arg) {

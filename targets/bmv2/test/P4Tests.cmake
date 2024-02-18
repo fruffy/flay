@@ -27,13 +27,15 @@ list(
   # These tests time out and require fixing.
 )
 
+set (EXTRA_OPTS "--reference-folder ${CMAKE_CURRENT_LIST_DIR}/testdata --overwrite")
+
 p4tools_add_tests(
   TESTS
   "${P4_16_V1_TESTS}"
   TAG
   "flay-bmv2-v1model"
   DRIVER
-  ${FLAY_DRIVER}
+  ${FLAY_REFERENCE_DRIVER}
   TARGET
   "bmv2"
   ARCH
