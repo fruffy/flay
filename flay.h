@@ -3,7 +3,7 @@
 
 #include "backends/p4tools/common/p4ctool.h"
 #include "backends/p4tools/modules/flay/options.h"
-#include "ir/ir.h"
+#include "backends/p4tools/modules/flay/service/flay_server.h"
 
 namespace P4Tools::Flay {
 
@@ -18,9 +18,14 @@ class Flay : public AbstractP4cTool<FlayOptions> {
     virtual ~Flay() = default;
 
     /// Analyse the given program and return an optimized version.
-    static std::optional<const IR::P4Program *> analyse(const std::string &program,
-                                                        const CompilerOptions &compilerOptions,
-                                                        const FlayOptions &flayOptions);
+    static std::optional<FlayServiceStatistics> optimizeProgram(
+        const std::string &program, const CompilerOptions &compilerOptions,
+        const FlayOptions &flayOptions);
+
+    /// Open the program file specified in the compiler options, preprocess it, and return an
+    /// optimized version.
+    static std::optional<FlayServiceStatistics> optimizeProgram(
+        const CompilerOptions &compilerOptions, const FlayOptions &flayOptions);
 };
 
 }  // namespace P4Tools::Flay

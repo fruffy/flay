@@ -23,16 +23,21 @@ class ElimDeadCode : public Transform {
     /// The precomputed reference map.
     std::reference_wrapper<const P4::ReferenceMap> refMap;
 
+    /// The list of eliminated nodes. Used for bookkeeping.
+    std::vector<const IR::Node *> eliminatedNodes;
+
+    const IR::Node *preorder(IR::IfStatement *stmt) override;
+    const IR::Node *preorder(IR::SwitchStatement *switchStmt) override;
+    const IR::Node *preorder(IR::MethodCallStatement *stmt) override;
+    const IR::Node *preorder(IR::Member *member) override;
+
  public:
     ElimDeadCode() = delete;
 
     explicit ElimDeadCode(const P4::ReferenceMap &refMap,
                           const AbstractReachabilityMap &reachabilityMap);
 
-    const IR::Node *preorder(IR::IfStatement *stmt) override;
-    const IR::Node *preorder(IR::SwitchStatement *switchStmt) override;
-    const IR::Node *preorder(IR::MethodCallStatement *stmt) override;
-    const IR::Node *preorder(IR::Member *member) override;
+    [[nodiscard]] std::vector<const IR::Node *> getEliminatedNodes() const;
 };
 
 /// A utility pass to extract information from a freshly parsed P4 program.

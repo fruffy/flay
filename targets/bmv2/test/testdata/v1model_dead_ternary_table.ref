@@ -1,0 +1,3 @@
+Eliminated node: toggle_check_0/toggle_check.apply();
+Eliminated node: if (!(h.ipv4.isValid() && check_l3_0/check_l3)) {
+   }

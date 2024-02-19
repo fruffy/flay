@@ -7,6 +7,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Declare common P4Flay variables.
 set(FLAY_DIR ${P4C_BINARY_DIR}/flay)
 set(FLAY_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4flay")
+set (FLAY_REFERENCE_DRIVER "${flay_BINARY_DIR}/tools/flay_reference_checker")
 
 # ############### Protobuf generation
 set(FLAY_P4RUNTIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf)
@@ -144,6 +145,10 @@ add_custom_target(
 )
 
 add_dependencies(p4flay linkflay)
+
+# Utilities for testing.
+add_subdirectory(tools)
+
 
 if(ENABLE_GTESTS)
   add_executable(flay-gtest ${FLAY_GTEST_SOURCES})

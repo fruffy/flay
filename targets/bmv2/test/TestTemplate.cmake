@@ -45,7 +45,7 @@ function(p4tools_add_test_with_args)
   endif()
 
   file(APPEND ${__testfile} "${driver} --target ${target} --arch ${arch} "
-                            "${test_args} \"$@\" ${p4test}\n"
+                            "${test_args} \"$@\" --file ${p4test}\n"
   )
 
   execute_process(COMMAND chmod +x ${__testfile})

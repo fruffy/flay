@@ -24,10 +24,10 @@ set(FLAY_GRPC_CLIENT_SOURCES client_main.cpp client_options.cpp flay_client.cpp
                              ${P4TOOLS_SOURCE_DIR}/common/lib/logging.cpp
 )
 
-set (FLAY_GRPC_CLIENT_LIBS p4ctoolkit ${LIBGC_LIBRARIES} controlplane-gen grpc++)
-if (HAVE_LIBBACKTRACE)
-set (FLAY_GRPC_CLIENT_LIBS "${FLAY_GRPC_CLIENT_LIBS};-lbacktrace")
-endif ()
+set(FLAY_GRPC_CLIENT_LIBS p4ctoolkit ${LIBGC_LIBRARIES} controlplane-gen grpc++)
+if(HAVE_LIBBACKTRACE)
+  set(FLAY_GRPC_CLIENT_LIBS "${FLAY_GRPC_CLIENT_LIBS};-lbacktrace")
+endif()
 
 add_executable(flay_grpc_client ${FLAY_GRPC_CLIENT_SOURCES} ${P4RUNTIME_GRPC_GEN_SRCS})
 target_link_libraries(flay_grpc_client ${FLAY_GRPC_CLIENT_LIBS})
@@ -36,3 +36,4 @@ target_include_directories(
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${CMAKE_POSITION_INDEPENDENT_CODE_PREV})
+
