@@ -94,7 +94,7 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
         auto &selectState = executionState.clone();
         selectState.addParserId(declId);
         const auto *matchCond = GenEq::equate(selectKeyExpr, selectCaseMatchExpr);
-        selectState.pushExecutionCondition(matchCond);
+        selectState.pushExecutionCondition(new IR::LAnd(notCond, matchCond));
         notCond = new IR::LAnd(notCond, new IR::LNot(matchCond));
         auto subParserStepper =
             ParserStepper(FlayTarget::getStepper(getProgramInfo(), selectState));
