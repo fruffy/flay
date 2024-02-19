@@ -1,0 +1,3 @@
+Eliminated node at line (unknown): { val_0/val = 2;
+  hasReturned = 1; }
+Eliminated node at line 43: simple_table.apply();

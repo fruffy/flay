@@ -172,15 +172,13 @@ class ReferenceCheckerOptions : protected FlayOptions {
 int compareAgainstReference(const std::stringstream &flayOptimizationOutput,
                             const std::filesystem::path &referenceFile) {
     // Construct the command to invoke the diff utility
-    std::string command = "echo \"";
-    command += flayOptimizationOutput.str();
-    command += "\"| diff --color -u ";
-    command += referenceFile.c_str();
-    command += " -";
+    std::stringstream command;
+    command << "echo " << std::quoted(flayOptimizationOutput.str());
+    command << "| diff --color -u " << referenceFile.c_str() << " -";
 
     // Open a pipe to capture the output of the diff command.
-    printInfo("Running diff command: \"%s\"", command.c_str());
-    FILE *pipe = popen(command.c_str(), "r");
+    printInfo("Running diff command: \"%s\"", command.str());
+    FILE *pipe = popen(command.str().c_str(), "r");
     if (pipe == nullptr) {
         ::error("Unable to create pipe to diff command.");
         return EXIT_FAILURE;

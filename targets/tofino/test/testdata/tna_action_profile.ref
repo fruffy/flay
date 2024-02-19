@@ -1,0 +1,5 @@
+Eliminated node at line 177: vid = hdr.vlan_tag.vid;
+Eliminated node at line 183: forward.apply();
+Eliminated node at line (unknown): 
+Eliminated node at line 185: if (!fib.apply().hit) {
+Eliminated node at line 186: fallback.apply();

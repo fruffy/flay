@@ -23,7 +23,7 @@ list(REMOVE_ITEM TNA_TESTS
 )
 
 set (EXTRA_OPTS "-I${CMAKE_CURRENT_LIST_DIR}/p4include -I${CMAKE_CURRENT_LIST_DIR}/programs/opentofino")
-set (EXTRA_OPTS "${EXTRA_OPTS} --reference-folder ${CMAKE_CURRENT_LIST_DIR}/testdata --overwrite")
+set (EXTRA_OPTS "${EXTRA_OPTS} --reference-folder ${CMAKE_CURRENT_LIST_DIR}/testdata")
 
 p4tools_add_tests(
   TESTS

@@ -1,0 +1,2 @@
+Eliminated node at line 73: ipv6_tbl.apply();
+Eliminated node at line 106: if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_REPLICATION)) {

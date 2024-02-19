@@ -1,0 +1,5 @@
+Eliminated node at line 75: rewrite_mac.apply();
+Eliminated node at line 147: port_mapping.apply();
+Eliminated node at line 148: bd.apply();
+Eliminated node at line 150: on_miss: {
+Eliminated node at line 155: nexthop.apply();

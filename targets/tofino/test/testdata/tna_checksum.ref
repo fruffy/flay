@@ -1,0 +1,6 @@
+Eliminated node at line 199: translate.apply();
+Eliminated node at line 201: output_port.apply();
+Eliminated node at line 205: if (hdr.udp.checksum == 0 && ig_md.checksum_upd_udp) {
+Eliminated node at line 237: if (ig_md.checksum_upd_ipv4) {
+Eliminated node at line 251: if (ig_md.checksum_upd_tcp) {
+Eliminated node at line 258: if (ig_md.checksum_upd_udp) {

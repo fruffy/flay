@@ -1,4 +1,4 @@
-set (CONFIG_EXTRA_OPTS "--reference-folder ${CMAKE_CURRENT_LIST_DIR}/testdata/config --overwrite")
+set (CONFIG_EXTRA_OPTS "--reference-folder ${CMAKE_CURRENT_LIST_DIR}/testdata/config")
 
 p4tools_add_test_with_args(
   P4TEST "${CMAKE_CURRENT_LIST_DIR}/programs/v1model_dead_ternary_table.p4"

@@ -1,0 +1,5 @@
+Eliminated node at line (unknown): { dummy/dummy_1 = h.h;
+  retval = 1;
+  h.h = dummy/dummy_1;
+  tmp_0 = retval;
+  tmp = tmp_0; }
