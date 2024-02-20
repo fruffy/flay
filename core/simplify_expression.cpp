@@ -1,4 +1,4 @@
-#include "backends/p4tools/modules/flay/core/collapse_mux.h"
+#include "backends/p4tools/modules/flay/core/simplify_expression.h"
 
 #include <optional>
 #include <utility>
@@ -10,6 +10,11 @@
 
 namespace P4Tools {
 
+/// Simplifies mux expressions by folding the condition of the Mux down into its branches.
+/// For example,
+/// "|X(bool)| ? |X(bool)| ? |A(bit<8>)| : |B(bit<8>)| : |B(bit<8>)|"
+/// turns into
+/// "|X(bool)| ? |A(bit<8>)| : |B(bit<8>)|"
 class FoldMuxConditionDown : public Transform {
  private:
     using ExpressionMap = std::map<const IR::Expression *, bool, IR::IsSemanticallyLessComparator>;
@@ -90,13 +95,12 @@ class FoldMuxConditionDown : public Transform {
     };
 
     const IR::Node *preorder(IR::Mux *mux) override {
-        // TODO: We should not use this prune but it is needed to avoid an infinite loop for an
-        // unknown reason.
+        // TODO: We should not need to use this prune but it is needed to avoid a massive slowdown
+        // for reasons unclear to me.
         prune();
-        const auto *cond = mux->e0;
         mux->e0 = mux->e0->apply(FoldExpression());
-        mux->e1 = mux->e1->apply(FoldExpression({{cond, true}}));
-        mux->e2 = mux->e2->apply(FoldExpression({{cond, false}}));
+        mux->e1 = mux->e1->apply(FoldExpression({{mux->e0, true}}));
+        mux->e2 = mux->e2->apply(FoldExpression({{mux->e0, false}}));
         return mux;
     }
 
@@ -104,6 +108,16 @@ class FoldMuxConditionDown : public Transform {
     FoldMuxConditionDown() { visitDagOnce = false; }
 };
 
+/// Lifts conditions in mux expressions "upward" and converts the conditions into disjunctive or
+/// conjunctive expressions.
+/// For example,
+/// "|X(bool)| ? |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)| : |B(bit<8>)|"
+/// turns into
+/// "|X(bool)| && |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|"
+/// and
+/// "|X(bool)| ? |A(bit<8>)| : |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|"
+/// into
+/// "|X(bool)| || |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|".
 class LiftMuxConditions : public Transform {
  public:
     LiftMuxConditions() = default;
@@ -140,18 +154,18 @@ class LiftMuxConditions : public Transform {
     }
 };
 
-namespace CollapseMux {
+namespace SimplifyExpression {
 
-const IR::Expression *produceOptimizedMux(const IR::Expression *cond,
-                                          const IR::Expression *trueExpression,
-                                          const IR::Expression *falseExpression) {
+const IR::Expression *produceSimplifiedMux(const IR::Expression *cond,
+                                           const IR::Expression *trueExpression,
+                                           const IR::Expression *falseExpression) {
     Util::ScopedTimer timer("Mux optimization");
     auto *mux = new IR::Mux(trueExpression->type, cond, trueExpression, falseExpression);
-    return optimizeExpression(mux->apply(FoldMuxConditionDown()));
+    return simplify(mux->apply(FoldMuxConditionDown()));
 }
 
-const IR::Expression *optimizeExpression(const IR::Expression *expr) {
-    // Lifted from frontends/p4/optimizeExpressions.
+const IR::Expression *simplify(const IR::Expression *expr) {
+    // Lifted from frontends/p4/optimizeExpression.
     auto pass = PassRepeated({
         new P4::ConstantFolding(nullptr, nullptr, false),
         new P4::StrengthReduction(nullptr, nullptr, nullptr),
@@ -159,10 +173,10 @@ const IR::Expression *optimizeExpression(const IR::Expression *expr) {
         new LiftMuxConditions(),
     });
     expr = expr->apply(pass);
-    BUG_CHECK(::errorCount() == 0, "Encountered errors while trying to optimize expressions.");
+    BUG_CHECK(::errorCount() == 0, "Encountered errors while trying to simplify expressions.");
     return expr;
 }
 
-}  // namespace CollapseMux
+}  // namespace SimplifyExpression
 
 }  // namespace P4Tools
