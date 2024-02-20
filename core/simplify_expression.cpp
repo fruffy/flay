@@ -45,14 +45,16 @@ class FoldMuxConditionDown : public Transform {
             if (leftOpt.has_value()) {
                 if (leftOpt.value()) {
                     auto rightOpt = optionalValue(expressionMap, expr->right);
-                    return rightOpt.has_value() ? IR::getBoolLiteral(rightOpt.value())
-                                                : expr->right;
+                    return rightOpt.has_value()
+                               ? IR::getBoolLiteral(rightOpt.value(), expr->getSourceInfo())
+                               : expr->right;
                 }
-                return IR::getBoolLiteral(false);
+                return IR::getBoolLiteral(false, expr->getSourceInfo());
             }
             auto rightOpt = optionalValue(expressionMap, expr->right);
             if (rightOpt.has_value()) {
-                return rightOpt.value() ? expr->left : IR::getBoolLiteral(false);
+                return rightOpt.value() ? expr->left
+                                        : IR::getBoolLiteral(false, expr->getSourceInfo());
             }
             return expr;
         }
@@ -61,14 +63,17 @@ class FoldMuxConditionDown : public Transform {
             auto leftOpt = optionalValue(expressionMap, expr->left);
             if (leftOpt.has_value()) {
                 if (leftOpt.value()) {
-                    return IR::getBoolLiteral(true);
+                    return IR::getBoolLiteral(true, expr->getSourceInfo());
                 }
                 auto rightOpt = optionalValue(expressionMap, expr->right);
-                return rightOpt.has_value() ? IR::getBoolLiteral(rightOpt.value()) : expr->right;
+                return rightOpt.has_value()
+                           ? IR::getBoolLiteral(rightOpt.value(), expr->getSourceInfo())
+                           : expr->right;
             }
             auto rightOpt = optionalValue(expressionMap, expr->right);
             if (rightOpt.has_value()) {
-                return rightOpt.value() ? IR::getBoolLiteral(true) : expr->left;
+                return rightOpt.value() ? IR::getBoolLiteral(true, expr->getSourceInfo())
+                                        : expr->left;
             }
             return expr;
         }
@@ -76,7 +81,7 @@ class FoldMuxConditionDown : public Transform {
         const IR::Node *postorder(IR::LNot *expr) override {
             auto exprIt = expressionMap.find(expr->expr);
             if (exprIt != expressionMap.end()) {
-                return IR::getBoolLiteral(!exprIt->second);
+                return IR::getBoolLiteral(!exprIt->second, expr->getSourceInfo());
             }
 
             return expr;
