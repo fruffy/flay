@@ -12,8 +12,8 @@
 #include "backends/p4tools/common/lib/constants.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/table_utils.h"
-#include "backends/p4tools/modules/flay/core/collapse_mux.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
+#include "backends/p4tools/modules/flay/core/simplify_expression.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/id.h"
 #include "ir/indexed_vector.h"
@@ -182,7 +182,7 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
             new IR::StringLiteral(IR::Type_String::get(), actionType->controlPlaneName()));
         const auto *actionHitCondition = new IR::LAnd(hitCondition, actionChoice);
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
-        retProperties.actionRun = CollapseMux::produceOptimizedMux(
+        retProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
             actionHitCondition,
             new IR::StringLiteral(IR::Type_String::get(), action->controlPlaneName()),
             retProperties.actionRun);
@@ -263,7 +263,7 @@ TableExecutor::ReturnProperties TableExecutor::processConstantTableEntries(
         retProperties.totalHitCondition =
             new IR::LOr(retProperties.totalHitCondition, entryHitCondition);
         // We use controlPlaneName() here. TODO: Clean this up?
-        retProperties.actionRun = CollapseMux::produceOptimizedMux(
+        retProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
             entryHitCondition,
             new IR::StringLiteral(
                 IR::Type_String::get(),

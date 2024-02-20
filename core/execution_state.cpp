@@ -6,9 +6,8 @@
 
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
-#include "backends/p4tools/modules/flay/core/collapse_mux.h"
+#include "backends/p4tools/modules/flay/core/simplify_expression.h"
 #include "backends/p4tools/modules/flay/core/substitute_placeholders.h"
-#include "frontends/p4/optimizeExpressions.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
 #include "lib/exceptions.h"
@@ -87,12 +86,12 @@ bool ExecutionState::hasVisitedParserId(int parserId) const {
 const IR::Expression *ExecutionState::getExecutionCondition() const { return executionCondition; }
 
 void ExecutionState::pushExecutionCondition(const IR::Expression *cond) {
-    executionCondition = P4::optimizeExpression(new IR::LAnd(executionCondition, cond));
+    executionCondition = SimplifyExpression::simplify(new IR::LAnd(executionCondition, cond));
 }
 
 void ExecutionState::merge(const ExecutionState &mergeState) {
     const auto *cond = mergeState.getExecutionCondition();
-    cond = CollapseMux::optimizeExpression(cond);
+    cond = SimplifyExpression::simplify(cond);
     const auto &mergeEnv = mergeState.getSymbolicEnv();
     reachabilityMap.mergeReachabilityMapping(mergeState.getReachabilityMap());
 
@@ -116,7 +115,8 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
             const auto *currentExpr = get(ref);
             // Only merge when the current and the merged expression are different.
             if (!currentExpr->equiv(*mergeExpr)) {
-                set(envTuple.first, CollapseMux::produceOptimizedMux(cond, mergeExpr, currentExpr));
+                set(envTuple.first,
+                    SimplifyExpression::produceSimplifiedMux(cond, mergeExpr, currentExpr));
             }
         }
     }
