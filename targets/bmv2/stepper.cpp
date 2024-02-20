@@ -7,6 +7,7 @@
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
+#include "ir/ir-generated.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay::V1Model {
@@ -35,11 +36,16 @@ void V1ModelFlayStepper::initializeState() {
     // Initialize instance_type with a place holder.
     const auto *instanceTypeVar = new IR::Member(
         thirtyTwoBitType, new IR::PathExpression("*standard_metadata"), "instance_type");
-    executionState.set(
-        instanceTypeVar,
-        new IR::Placeholder(
+    const IR::Expression *instanceTypeValue = nullptr;
+    if (FlayOptions::get().usePlaceholders()) {
+        instanceTypeValue = new IR::Placeholder(
             "standard_metadata.instance_type",
-            IR::getConstant(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL)));
+            IR::getConstant(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
+    } else {
+        instanceTypeValue =
+            new IR::SymbolicVariable(thirtyTwoBitType, "standard_metadata.instance_type");
+    }
+    executionState.set(instanceTypeVar, instanceTypeValue);
     executionState.setPlaceholderValue(
         "standard_metadata.instance_type",
         IR::getConstant(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
