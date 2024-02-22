@@ -11,7 +11,6 @@ p4tools_add_xfail_reason(
   tna_pvs.p4  # Unable to find var vs_0/vs; in the symbolic environment.
   tna_resubmit.p4  # Unable to find var pkt; in the symbolic environment.
   tna_32q_2pipe.p4  # The Tofno1 architecture requires 6 pipes. Received 12.
-  tna_action_selector.p4  # Compiler Bug: No parameter named size
 )
 
 p4tools_add_xfail_reason(
