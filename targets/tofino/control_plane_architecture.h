@@ -307,15 +307,16 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
     static std::optional<ActionProfile> getActionProfile(const IR::ExternBlock *instance) {
         auto decl = instance->node->to<IR::IDeclaration>();
         const IR::CompileTimeValue *size = nullptr;
-        // Deprecated ActionSelector uses `size` as first arg, while new version uses `action_profile`
-        // to specify size.
+        // Deprecated ActionSelector uses `size` as first arg, while new version uses
+        // `action_profile` to specify size.
         if (instance->type->name == ActionSelectorTraits<Arch::TNA>::typeName()) {
             auto firstArgName = instance->getConstructorParameters()->parameters.at(0)->name.name;
             if (firstArgName == "size") {
-                size = instance->getParameterValue(ActionSelectorTraits<Arch::TNA>::sizeParamName());
+                size =
+                    instance->getParameterValue(ActionSelectorTraits<Arch::TNA>::sizeParamName());
             } else {
-                auto actionProfile =
-                    instance->getParameterValue(ActionSelectorTraits<Arch::TNA>::actionProfileName());
+                auto actionProfile = instance->getParameterValue(
+                    ActionSelectorTraits<Arch::TNA>::actionProfileName());
                 size = actionProfile->template to<IR::ExternBlock>()->getParameterValue(
                     ActionProfileTraits<Arch::TNA>::sizeParamName());
             }
