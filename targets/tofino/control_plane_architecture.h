@@ -54,7 +54,7 @@ struct ActionProfileTraits<Arch::TNA> {
     static const cstring name() { return "action profile"; }
     static const cstring propertyName() { return "tna_implementation"; }
     static const cstring typeName() { return "ActionProfile"; }
-    static const cstring sizeParamName() { return "size"; }  // FIXME: this is not correct
+    static const cstring sizeParamName() { return "size"; }
 };
 
 template <>
