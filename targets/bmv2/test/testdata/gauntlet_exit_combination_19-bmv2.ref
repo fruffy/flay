@@ -1,0 +1,1 @@
+Eliminated node at line 43: bit<16> assign = simple_eq || simple_table_2.apply().hit ? 16w2 : 16w3;

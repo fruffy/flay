@@ -43,6 +43,9 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns the configuration update pattern set with --config-update-pattern.
     [[nodiscard]] std::string getConfigurationUpdatePattern() const;
 
+ protected:
+    explicit FlayOptions(std::string message = "Remove control-plane dead code from a P4 program.");
+
  private:
     /// Path to the initial control plane configuration file.
     std::optional<std::filesystem::path> controlPlaneConfig = std::nullopt;
@@ -58,8 +61,6 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// This pattern is converted into a list of configuration updates.
     /// Used for testing.
     std::optional<std::string> configUpdatePattern;
-
-    FlayOptions();
 };
 
 }  // namespace P4Tools

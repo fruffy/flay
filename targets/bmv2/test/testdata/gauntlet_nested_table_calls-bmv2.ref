@@ -1,0 +1,1 @@
+Eliminated node at line 44: h.eth_hdr.eth_type = simple_function((exit_table.apply().hit ? 16w1 : 16w2));

@@ -23,6 +23,7 @@ list(REMOVE_ITEM TNA_TESTS
 )
 
 set (EXTRA_OPTS "-I${CMAKE_CURRENT_LIST_DIR}/p4include -I${CMAKE_CURRENT_LIST_DIR}/programs/opentofino")
+set (EXTRA_OPTS "${EXTRA_OPTS} --reference-folder ${CMAKE_CURRENT_LIST_DIR}/testdata")
 
 p4tools_add_tests(
   TESTS
@@ -30,7 +31,7 @@ p4tools_add_tests(
   TAG
   "flay-tofino1-tna"
   DRIVER
-  ${FLAY_DRIVER}
+  ${FLAY_REFERENCE_DRIVER}
   TARGET
   "tofino1"
   ARCH

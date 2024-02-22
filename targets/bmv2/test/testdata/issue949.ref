@@ -1,0 +1,1 @@
+Eliminated node at line 65: bool didHit = someTable.apply().hit;

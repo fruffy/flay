@@ -1,0 +1,4 @@
+Eliminated node at line 102: test1.apply();
+Eliminated node at line 104: act1: { tbl1.apply(); }
+Eliminated node at line 105: act2: { tbl2.apply(); }
+Eliminated node at line 106: act3: { tbl3.apply(); }

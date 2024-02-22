@@ -1,0 +1,2 @@
+Eliminated node at line 128: if (stdmeta.checksum_error == 1) {
+Eliminated node at line 132: if (stdmeta.parser_error != error.NoError) {

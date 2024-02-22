@@ -1,0 +1,2 @@
+Eliminated node at line 48: if(simple_table.apply().hit && h.eth_hdr.src_addr == h.eth_hdr.dst_addr) {
+Eliminated node at line 48: if(simple_table.apply().hit && h.eth_hdr.src_addr == h.eth_hdr.dst_addr) {

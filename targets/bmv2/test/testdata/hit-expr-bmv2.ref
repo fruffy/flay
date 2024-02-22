@@ -1,0 +1,2 @@
+Eliminated node at line (unknown): 
+Eliminated node at line 34: if (!t.apply().hit) {} // issue #137
