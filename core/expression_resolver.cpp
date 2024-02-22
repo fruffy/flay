@@ -292,10 +292,18 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     for (size_t idx = 0; idx < callArguments->size(); ++idx) {
         const auto *arg = callArguments->at(idx);
         const auto *param = methodParams.at(idx);
-        const auto *computedExpr = computeResult(arg->expression);
-        if (param->direction == IR::Direction::InOut || param->direction == IR::Direction::Out) {
-            auto stateVar = ToolsVariables::convertReference(arg->expression);
-            computedExpr = new IR::InOutReference(stateVar, computedExpr);
+        const IR::Expression *computedExpr;
+        if (arg->expression->is<IR::PathExpression>() &&
+            arg->expression->to<IR::PathExpression>()->path->name.name == "pkt") {
+            // TODO: This is a hack for `port_metadata_unpack` because we currently don't model pkt.
+            computedExpr = nullptr;
+        } else {
+            computedExpr = computeResult(arg->expression);
+            if (param->direction == IR::Direction::InOut ||
+                param->direction == IR::Direction::Out) {
+                auto stateVar = ToolsVariables::convertReference(arg->expression);
+                computedExpr = new IR::InOutReference(stateVar, computedExpr);
+            }
         }
         auto *newArg = arg->clone();
         newArg->expression = computedExpr;
