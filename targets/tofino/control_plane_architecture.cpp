@@ -4,7 +4,7 @@ namespace P4::ControlPlaneAPI::Standard {
 
 P4RuntimeArchHandlerTofino::P4RuntimeArchHandlerTofino(ReferenceMap *refMap, TypeMap *typeMap,
                                                        const IR::ToplevelBlock *evaluatedProgram)
-    : P4RuntimeArchHandlerCommon<Arch::TNA>(refMap, typeMap, evaluatedProgram) {}
+    : refMap(refMap), typeMap(typeMap), evaluatedProgram(evaluatedProgram) {}
 
 P4RuntimeArchHandlerIface *TofinoArchHandlerBuilder::operator()(
     ReferenceMap *refMap, TypeMap *typeMap, const IR::ToplevelBlock *evaluatedProgram) const {
