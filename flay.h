@@ -2,8 +2,8 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_FLAY_H_
 
 #include "backends/p4tools/common/p4ctool.h"
+#include "backends/p4tools/modules/flay/core/flay_service.h"
 #include "backends/p4tools/modules/flay/options.h"
-#include "backends/p4tools/modules/flay/service/flay_server.h"
 
 namespace P4Tools::Flay {
 

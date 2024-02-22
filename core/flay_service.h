@@ -1,37 +1,71 @@
-#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_SERVICE_FLAY_SERVER_H_
-#define BACKENDS_P4TOOLS_MODULES_FLAY_SERVICE_FLAY_SERVER_H_
-
-#include <grpcpp/grpcpp.h>
+#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_FLAY_SERVICE_H_
+#define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_FLAY_SERVICE_H_
 
 #include <functional>
-#include <future>
 #include <vector>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wpedantic"
-#include "control-plane/p4/v1/p4runtime.grpc.pb.h"
-#pragma GCC diagnostic pop
 
 #include "backends/p4tools/modules/flay/core/compiler_target.h"
 #include "backends/p4tools/modules/flay/core/reachability.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
+#include "frontends/p4/toP4/toP4.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#include "p4/v1/p4runtime.pb.h"
+#pragma GCC diagnostic pop
 
 namespace P4Tools::Flay {
 
-enum ReachabilityMapType { Z3_PRECOMPUTED, Z3_DEFAULT };
+class StatementCounter : public Inspector {
+    uint64_t statementCount_ = 0;
+
+ public:
+    bool preorder(const IR::AssignmentStatement * /*statement*/) override {
+        statementCount_++;
+        return false;
+    }
+    bool preorder(const IR::MethodCallStatement * /*statement*/) override {
+        statementCount_++;
+        return false;
+    }
+
+    [[nodiscard]] uint64_t getStatementCount() const { return statementCount_; }
+};
+
+inline uint64_t countStatements(const IR::P4Program &prog) {
+    auto *counter = new StatementCounter();
+    prog.apply(*counter);
+    return counter->getStatementCount();
+}
+
+inline double measureProgramSize(const IR::P4Program &prog) {
+    auto *programStream = new std::stringstream;
+    auto *toP4 = new P4::ToP4(programStream, false);
+    prog.apply(*toP4);
+    return static_cast<double>(programStream->str().length());
+}
+
+inline double measureSizeDifference(const IR::P4Program &programBefore,
+                                    const IR::P4Program &programAfter) {
+    double beforeLength = measureProgramSize(programBefore);
+
+    return (beforeLength - measureProgramSize(programAfter)) * (100.0 / beforeLength);
+}
+
+enum ReachabilityMapType { kz3Precomputed, kZ3Default };
 
 struct FlayServiceOptions {
     /// If useSymbolSet is true, we only check whether the symbols in the set have changed.
     bool useSymbolSet = true;
     /// The type of map to initialize.
-    ReachabilityMapType mapType = ReachabilityMapType::Z3_PRECOMPUTED;
+    ReachabilityMapType mapType = ReachabilityMapType::kz3Precomputed;
 };
 
-class FlayService final : public p4::v1::P4Runtime::Service {
+class FlayServiceBase {
     friend class FlayServiceWrapper;
 
- private:
+ protected:
     // Configuration options for the service.
     FlayServiceOptions options;
 
@@ -56,16 +90,13 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// A map to look up declaration references.
     P4::ReferenceMap refMap;
 
-    /// For exiting the gRPC server (useful for benchmarking).
-    std::promise<void> exitRequested;
-
     /// The list of eliminated and optionally replaced nodes. Used for bookkeeping.
     std::vector<EliminatedReplacedPair> eliminatedNodes;
 
     /// Compute whether the semantics of the program under this control plane configuration have
     /// changed since the last update.
     // @returns std::nullopt if an error occurred during the computation.
-    std::optional<bool> checkForSemanticChange(
+    [[nodiscard]] std::optional<bool> checkForSemanticChange(
         std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) const;
 
     /// Update the internal  control plane constraints with the given entity message.
@@ -75,17 +106,10 @@ class FlayService final : public p4::v1::P4Runtime::Service {
                                                        SymbolSet &symbolSet);
 
  public:
-    explicit FlayService(const FlayServiceOptions &options,
-                         const FlayCompilerResult &compilerResult,
-                         const ReachabilityMap &reachabilityMap,
-                         ControlPlaneConstraints initialControlPlaneConstraints);
-
-    /// Start the Flay gRPC server and listen to incoming requests.
-    bool startServer(const std::string &serverAddress);
-
-    /// Process an incoming gRPC request. This is typically a P4Runtime control plane update.
-    grpc::Status Write(grpc::ServerContext * /*context*/, const p4::v1::WriteRequest *request,
-                       p4::v1::WriteResponse * /*response*/) override;
+    explicit FlayServiceBase(const FlayServiceOptions &options,
+                             const FlayCompilerResult &compilerResult,
+                             const ReachabilityMap &reachabilityMap,
+                             ControlPlaneConstraints initialControlPlaneConstraints);
 
     /// Print the optimized program to stdout;
     void printoptimizedProgram();
@@ -127,7 +151,7 @@ class FlayServiceWrapper {
     /// Helper function to retrieve a list of files matching a pattern.
     static std::vector<std::string> findFiles(const std::string &pattern);
 
-    FlayService flayService;
+    FlayServiceBase flayService;
 
  public:
     FlayServiceWrapper(const FlayServiceOptions &serviceOptions,
@@ -142,7 +166,7 @@ class FlayServiceWrapper {
     int parseControlUpdatesFromPattern(const std::string &pattern);
 
     /// Compute some statistics on the changes in the program and print them out.
-    static void recordProgramChange(const FlayService &service);
+    static void recordProgramChange(const FlayServiceBase &service);
 
     [[nodiscard]] int run();
 
@@ -152,4 +176,4 @@ class FlayServiceWrapper {
 
 }  // namespace P4Tools::Flay
 
-#endif  // BACKENDS_P4TOOLS_MODULES_FLAY_SERVICE_FLAY_SERVER_H_
+#endif  // BACKENDS_P4TOOLS_MODULES_FLAY_CORE_FLAY_SERVICE_H_

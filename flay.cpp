@@ -9,10 +9,13 @@
 #include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/util.h"
+#include "backends/p4tools/modules/flay/core/flay_service.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/register.h"
-#include "backends/p4tools/modules/flay/service/flay_server.h"
+#ifdef FLAY_WITH_GRPC
+#include "backends/p4tools/modules/flay/service/flay_grpc_service.h"
+#endif
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
@@ -23,6 +26,7 @@ void Flay::registerTarget() {
     registerCompilerTargets();
 }
 
+#ifdef FLAY_WITH_GRPC
 int runServer(const FlayOptions &flayOptions, const FlayCompilerResult &flayCompilerResult,
               const ExecutionState &executionState, const ControlPlaneConstraints &constraints) {
     FlayServiceOptions serviceOptions;
@@ -38,6 +42,7 @@ int runServer(const FlayOptions &flayOptions, const FlayCompilerResult &flayComp
     service.startServer(flayOptions.getServerAddress());
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+#endif
 
 std::optional<FlayServiceStatistics> runServiceWrapper(const FlayOptions &flayOptions,
                                                        const FlayCompilerResult &flayCompilerResult,
@@ -87,12 +92,14 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     SymbolicExecutor symbolicExecutor(*programInfo);
     symbolicExecutor.run();
 
+#ifdef FLAY_WITH_GRPC
     printInfo("Starting the service...");
     // If server mode is active, start the server and exit once it has finished.
     if (flayOptions.serverModeActive()) {
         return runServer(flayOptions, flayCompilerResult, symbolicExecutor.getExecutionState(),
                          constraints);
     }
+#endif
 
     RETURN_IF_FALSE(runServiceWrapper(flayOptions, flayCompilerResult,
                                       symbolicExecutor.getExecutionState(), constraints),

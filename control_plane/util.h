@@ -28,7 +28,7 @@ namespace P4Tools::Flay {
 /// false.
 // NOLINTNEXTLINE
 #define ASSIGN_OR_RETURN_IMPL(temporary, targetVariable, inputFunction, returnValue) \
-    auto(temporary) = inputFunction;                                                 \
+    auto temporary = inputFunction;                                                  \
     if (!(temporary)) return returnValue;                                            \
     targetVariable = *(temporary);  // NOLINT
 
@@ -38,7 +38,7 @@ namespace P4Tools::Flay {
 
 #define ASSIGN_OR_RETURN_WITH_MESSAGE_IMPL(temporary, targetVariable, inputFunction, returnValue, \
                                            errorFunction)                                         \
-    auto(temporary) = inputFunction;                                                              \
+    auto temporary = inputFunction;                                                               \
     if (!(temporary)) {                                                                           \
         errorFunction;                                                                            \
         return returnValue;                                                                       \

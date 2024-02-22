@@ -1,4 +1,4 @@
-#include "backends/p4tools/modules/flay/service/flay_server.h"
+#include "backends/p4tools/modules/flay/core/flay_service.h"
 
 #include <glob.h>
 
@@ -14,51 +14,14 @@
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 #include "lib/timer.h"
-#include "p4/v1/p4runtime.pb.h"
 
 namespace P4Tools::Flay {
 
-class StatementCounter : public Inspector {
-    uint64_t statementCount = 0;
-
- public:
-    bool preorder(const IR::AssignmentStatement * /*statement*/) override {
-        statementCount++;
-        return false;
-    }
-    bool preorder(const IR::MethodCallStatement * /*statement*/) override {
-        statementCount++;
-        return false;
-    }
-
-    [[nodiscard]] uint64_t getStatementCount() const { return statementCount; }
-};
-
-uint64_t countStatements(const IR::P4Program &prog) {
-    auto *counter = new StatementCounter();
-    prog.apply(*counter);
-    return counter->getStatementCount();
-}
-
-double measureProgramSize(const IR::P4Program &prog) {
-    auto *programStream = new std::stringstream;
-    auto *toP4 = new P4::ToP4(programStream, false);
-    prog.apply(*toP4);
-    return static_cast<double>(programStream->str().length());
-}
-
-double measureSizeDifference(const IR::P4Program &programBefore,
-                             const IR::P4Program &programAfter) {
-    double beforeLength = measureProgramSize(programBefore);
-
-    return (beforeLength - measureProgramSize(programAfter)) * (100.0 / beforeLength);
-}
-
-AbstractReachabilityMap &FlayService::initializeReachabilityMap(
+AbstractReachabilityMap &FlayServiceBase::initializeReachabilityMap(
     ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap) {
     printInfo("Creating the reachability map...");
     AbstractReachabilityMap *initializedReachabilityMap = nullptr;
-    if (mapType == ReachabilityMapType::Z3_PRECOMPUTED) {
+    if (mapType == ReachabilityMapType::kz3Precomputed) {
         initializedReachabilityMap = new Z3SolverReachabilityMap(reachabilityMap);
     } else {
         auto *solver = new Z3Solver();
@@ -67,10 +30,10 @@ AbstractReachabilityMap &FlayService::initializeReachabilityMap(
     return *initializedReachabilityMap;
 }
 
-FlayService::FlayService(const FlayServiceOptions &options,
-                         const FlayCompilerResult &compilerResult,
-                         const ReachabilityMap &reachabilityMap,
-                         ControlPlaneConstraints initialControlPlaneConstraints)
+FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
+                                 const FlayCompilerResult &compilerResult,
+                                 const ReachabilityMap &reachabilityMap,
+                                 ControlPlaneConstraints initialControlPlaneConstraints)
     : options(options),
       originalProgram(compilerResult.getOriginalProgram()),
       optimizedProgram(&originalProgram.get()),
@@ -85,56 +48,31 @@ FlayService::FlayService(const FlayServiceOptions &options,
     elimControlPlaneDeadCode();
 }
 
-int FlayService::updateControlPlaneConstraintsWithEntityMessage(
+int FlayServiceBase::updateControlPlaneConstraintsWithEntityMessage(
     const p4::v1::Entity &entity, const ::p4::v1::Update_Type &updateType, SymbolSet &symbolSet) {
     return ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
         entity, *getCompilerResult().getP4RuntimeApi().p4Info, controlPlaneConstraints, updateType,
         symbolSet);
 }
 
-grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
-                                const p4::v1::WriteRequest *request,
-                                p4::v1::WriteResponse * /*response*/) {
-    SymbolSet symbolSet;
-    for (const auto &update : request->updates()) {
-        Util::ScopedTimer timer("processMessage");
-        if (ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-                update.entity(), *getCompilerResult().getP4RuntimeApi().p4Info,
-                controlPlaneConstraints, update.type(), symbolSet) != EXIT_SUCCESS) {
-            return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
-        }
-    }
-    auto result = elimControlPlaneDeadCode(symbolSet);
-    if (result.first != EXIT_SUCCESS) {
-        return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
-    }
-    auto statementCountBefore = countStatements(originalProgram);
-    auto statementCountAfter = countStatements(*optimizedProgram);
-    float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
-                                         static_cast<float>(statementCountBefore));
-    printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",
-              statementCountBefore, statementCountAfter, stmtPct);
-
-    P4Tools::printPerformanceReport();
-    return grpc::Status::OK;
-}
-
-void FlayService::printoptimizedProgram() {
+void FlayServiceBase::printoptimizedProgram() {
     P4::ToP4 toP4;
     optimizedProgram->apply(toP4);
 }
 
-const IR::P4Program &FlayService::getOptimizedProgram() const { return *optimizedProgram; }
+const IR::P4Program &FlayServiceBase::getOptimizedProgram() const { return *optimizedProgram; }
 
-const IR::P4Program &FlayService::getOriginalProgram() const { return originalProgram; }
+const IR::P4Program &FlayServiceBase::getOriginalProgram() const { return originalProgram; }
 
-const FlayCompilerResult &FlayService::getCompilerResult() const { return compilerResult.get(); }
+const FlayCompilerResult &FlayServiceBase::getCompilerResult() const {
+    return compilerResult.get();
+}
 
-const std::vector<EliminatedReplacedPair> &FlayService::getEliminatedNodes() const {
+const std::vector<EliminatedReplacedPair> &FlayServiceBase::getEliminatedNodes() const {
     return eliminatedNodes;
 }
 
-std::optional<bool> FlayService::checkForSemanticChange(
+std::optional<bool> FlayServiceBase::checkForSemanticChange(
     std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) const {
     printInfo("Checking for change in reachability semantics...");
     Util::ScopedTimer timer("Check for semantics change");
@@ -145,7 +83,7 @@ std::optional<bool> FlayService::checkForSemanticChange(
     return reachabilityMap.get().recomputeReachability(controlPlaneConstraints);
 }
 
-std::pair<int, bool> FlayService::elimControlPlaneDeadCode(
+std::pair<int, bool> FlayServiceBase::elimControlPlaneDeadCode(
     std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) {
     Util::ScopedTimer timer("Eliminate Dead Code");
 
@@ -166,29 +104,6 @@ std::pair<int, bool> FlayService::elimControlPlaneDeadCode(
     eliminatedNodes = elimDeadCode.getEliminatedNodes();
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
                                : std::pair{EXIT_FAILURE, hasChanged};
-}
-
-bool FlayService::startServer(const std::string &serverAddress) {
-    grpc::ServerBuilder builder;
-    builder.AddListeningPort(serverAddress, grpc::InsecureServerCredentials());
-    builder.RegisterService(this);
-
-    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-    if (!server) {
-        ::error("Failed to start the Flay service.");
-        return false;
-    }
-
-    printInfo("Flay service listening on: %1%", serverAddress);
-
-    auto serveFn = [&]() { server->Wait(); };
-    std::thread servingThread(serveFn);
-
-    auto f = exitRequested.get_future();
-    f.wait();
-    server->Shutdown();
-    servingThread.join();
-    return true;
 }
 
 std::vector<std::string> FlayServiceWrapper::findFiles(const std::string &pattern) {
@@ -221,7 +136,7 @@ int FlayServiceWrapper::parseControlUpdatesFromPattern(const std::string &patter
     return EXIT_SUCCESS;
 }
 
-void FlayServiceWrapper::recordProgramChange(const FlayService &service) {
+void FlayServiceWrapper::recordProgramChange(const FlayServiceBase &service) {
     auto statementCountBefore = countStatements(service.originalProgram);
     auto statementCountAfter = countStatements(*service.optimizedProgram);
     float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
