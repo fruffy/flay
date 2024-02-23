@@ -265,9 +265,15 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      {"*method.port_metadata_unpack",
       {"pkt"},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
+          auto &state = externInfo.state;
+          // TODO: We currently just create a dummy variable, but this is not correct.
+          // (Similar to Lookahead.)
+          const auto *unpackType = externInfo.originalCall.typeArguments->at(0);
+          const auto &externObjectRef = externInfo.externObjectRef;
+          const auto &methodName = externInfo.methodName;
+          auto unpackLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
+                             std::to_string(externInfo.originalCall.clone_id);
+          return state.createSymbolicExpression(unpackType, unpackLabel);
       }},
      {"*method.sizeInBits",
       {"h"},
