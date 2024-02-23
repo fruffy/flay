@@ -130,7 +130,7 @@ const IR::P4Program &FlayService::getOriginalProgram() const { return originalPr
 
 const FlayCompilerResult &FlayService::getCompilerResult() const { return compilerResult.get(); }
 
-const std::vector<const IR::Node *> &FlayService::getEliminatedNodes() const {
+const std::vector<EliminatedReplacedPair> &FlayService::getEliminatedNodes() const {
     return eliminatedNodes;
 }
 

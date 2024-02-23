@@ -14,6 +14,9 @@
 
 namespace P4Tools::Flay {
 
+/// The eliminated and optionally replaced node.
+using EliminatedReplacedPair = std::pair<const IR::Node *, const IR::Node *>;
+
 /// This compiler pass looks up program nodes in the reachability map and deletes nodes which are
 /// not executable according to the computation in the map.
 class ElimDeadCode : public Transform {
@@ -23,8 +26,8 @@ class ElimDeadCode : public Transform {
     /// The precomputed reference map.
     std::reference_wrapper<const P4::ReferenceMap> refMap;
 
-    /// The list of eliminated nodes. Used for bookkeeping.
-    std::vector<const IR::Node *> eliminatedNodes;
+    /// The list of eliminated and optionally replaced nodes. Used for bookkeeping.
+    std::vector<EliminatedReplacedPair> eliminatedNodes;
 
     const IR::Node *preorder(IR::IfStatement *stmt) override;
     const IR::Node *preorder(IR::SwitchStatement *switchStmt) override;
@@ -37,7 +40,7 @@ class ElimDeadCode : public Transform {
     explicit ElimDeadCode(const P4::ReferenceMap &refMap,
                           const AbstractReachabilityMap &reachabilityMap);
 
-    [[nodiscard]] std::vector<const IR::Node *> getEliminatedNodes() const;
+    [[nodiscard]] std::vector<EliminatedReplacedPair> getEliminatedNodes() const;
 };
 
 /// A utility pass to extract information from a freshly parsed P4 program.

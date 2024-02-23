@@ -201,17 +201,25 @@ int run(const ReferenceCheckerOptions &options) {
                      Flay::optimizeProgram(options.getCompilerOptions(), options.toFlayOptions()),
                      EXIT_FAILURE);
     std::stringstream flayOptimizationOutput;
-    for (const auto *node : flayServiceStatistics.eliminatedNodes) {
+    for (const auto &elimRepl : flayServiceStatistics.eliminatedNodes) {
+        auto [node, replaced] = elimRepl;
         if (node->getSourceInfo().isValid()) {
             auto sourceFragment = node->getSourceInfo().toSourceFragment(false).trim();
-            flayOptimizationOutput << "Eliminated node at line "
-                                   << node->getSourceInfo().toPosition().sourceLine << ": "
-                                   << sourceFragment;
+            if (replaced == nullptr) {
+                flayOptimizationOutput << "Eliminated node at line "
+                                       << node->getSourceInfo().toPosition().sourceLine << ": "
+                                       << sourceFragment;
+            } else {
+                // FIXME: any elegant solution to just print first line of `replaced->toString()`?
+                flayOptimizationOutput << "Replaced node at line "
+                                       << node->getSourceInfo().toPosition().sourceLine << ": "
+                                       << sourceFragment << " with " << replaced->toString();
+            }
         } else {
             ::warning("Invalid source information for node %1%. This should be fixed", node);
             flayOptimizationOutput << "Eliminated node at line (unknown): " << node;
         }
-        if (node != flayServiceStatistics.eliminatedNodes.back()) {
+        if (elimRepl != flayServiceStatistics.eliminatedNodes.back()) {
             flayOptimizationOutput << "\n";
         }
     }
