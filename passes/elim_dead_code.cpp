@@ -187,6 +187,18 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
         }
     }
 
+    // Action annotated with `@defaultonly` is ignored before. If no action can be reachable
+    // based on previous analysis, we replace the apply call to the default action call.
+    // Only when the default action has an empty body, we remove the apply.
+    auto *defaultAction = table.getDefaultAction()->checkedTo<IR::MethodCallExpression>();
+    if (defaultAction != nullptr) {
+        auto *decl = refMap.get().getDeclaration(defaultAction->method->to<IR::PathExpression>()->path)->to<IR::P4Action>();
+        if (!decl->body->components.empty()) {
+            printInfo("Replacing table apply with default action %1%", defaultAction);
+            return new IR::MethodCallStatement(stmt->getSourceInfo(), defaultAction);
+        }
+    }
+
     // There is no action to execute other than an empty action, remove the table.
     printInfo("Removing %1%", stmt);
     eliminatedNodes.push_back(stmt);
