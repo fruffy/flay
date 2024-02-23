@@ -292,10 +292,17 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
     for (size_t idx = 0; idx < callArguments->size(); ++idx) {
         const auto *arg = callArguments->at(idx);
         const auto *param = methodParams.at(idx);
-        const auto *computedExpr = computeResult(arg->expression);
-        if (param->direction == IR::Direction::InOut || param->direction == IR::Direction::Out) {
-            auto stateVar = ToolsVariables::convertReference(arg->expression);
-            computedExpr = new IR::InOutReference(stateVar, computedExpr);
+        const IR::Expression *computedExpr;
+        if (param->type->is<IR::Type_Extern>()) {
+            // Parameters of `Type_Extern` will be parsed (if necessary) in the lambda handlers.
+            computedExpr = nullptr;
+        } else {
+            computedExpr = computeResult(arg->expression);
+            if (param->direction == IR::Direction::InOut ||
+                param->direction == IR::Direction::Out) {
+                auto stateVar = ToolsVariables::convertReference(arg->expression);
+                computedExpr = new IR::InOutReference(stateVar, computedExpr);
+            }
         }
         auto *newArg = arg->clone();
         newArg->expression = computedExpr;
