@@ -6,4 +6,3 @@ Eliminated node at line 419: if (wcmp_group_id_valid) {
 Eliminated node at line 422: if (nexthop_id_valid) {
 Eliminated node at line 689: acl_ingress_table.apply();
 Eliminated node at line 521: if (local_metadata.mirror_session_id_valid) {
-Eliminated node at line 448: if (standard_metadata.instance_type == 1) {
