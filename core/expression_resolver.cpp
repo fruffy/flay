@@ -294,7 +294,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
         const auto *param = methodParams.at(idx);
         const IR::Expression *computedExpr;
         if (param->type->is<IR::Type_Extern>()) {
-            // Parameters of `Type_Extern` will be parsed (if necessary) in lambda hanlders.
+            // Parameters of `Type_Extern` will be parsed (if necessary) in the lambda handlers.
             computedExpr = nullptr;
         } else {
             computedExpr = computeResult(arg->expression);
