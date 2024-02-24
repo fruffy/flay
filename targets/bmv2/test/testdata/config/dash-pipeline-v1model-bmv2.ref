@@ -9,9 +9,9 @@ Eliminated node at line 576: if (use_dst_vnet_vni == 1) {
 Eliminated node at line 665: } else if (packet_action == 1) {
 Eliminated node at line 913: if (vip.apply().hit) {
 Eliminated node at line 913: if (vip.apply().hit) {
-Eliminated node at line 919: eni_ether_address_map.apply();
+Replaced node at line 919: eni_ether_address_map.apply(); with deny()
 Eliminated node at line 924: vxlan_decap_pa_validate: {
-Eliminated node at line 951: eni.apply();
+Replaced node at line 951: eni.apply(); with deny()
 Eliminated node at line (unknown): 
 Eliminated node at line 457: if (meta.stage1_dash_acl_group_id != 0) {
 Eliminated node at line 467: if (meta.stage2_dash_acl_group_id != 0) {

@@ -1,1 +1,1 @@
-Eliminated node at line 46: apply { t.apply(); }
+Replaced node at line 46: apply { t.apply(); } with case0()

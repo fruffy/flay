@@ -15,6 +15,7 @@
 
 #include "backends/p4tools/modules/flay/core/compiler_target.h"
 #include "backends/p4tools/modules/flay/core/reachability.h"
+#include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 
 namespace P4Tools::Flay {
 
@@ -58,8 +59,8 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// For exiting the gRPC server (useful for benchmarking).
     std::promise<void> exitRequested;
 
-    /// The list of eliminated nodes. Used for bookkeeping.
-    std::vector<const IR::Node *> eliminatedNodes;
+    /// The list of eliminated and optionally replaced nodes. Used for bookkeeping.
+    std::vector<EliminatedReplacedPair> eliminatedNodes;
 
     /// Compute whether the semantics of the program under this control plane configuration have
     /// changed since the last update.
@@ -98,8 +99,8 @@ class FlayService final : public p4::v1::P4Runtime::Service {
     /// @returns the original program.
     [[nodiscard]] const IR::P4Program &getOriginalProgram() const;
 
-    /// @returns the list of eliminated nodes.
-    [[nodiscard]] const std::vector<const IR::Node *> &getEliminatedNodes() const;
+    /// @returns the list of eliminated (and potential replaced) nodes.
+    [[nodiscard]] const std::vector<EliminatedReplacedPair> &getEliminatedNodes() const;
 
     /// @returns a reference to the compiler result that this program info object was initialized
     /// with.
@@ -114,7 +115,7 @@ struct FlayServiceStatistics {
     // The optimized program.
     const IR::P4Program *optimizedProgram;
     // The nodes eliminated in the program.
-    std::vector<const IR::Node *> eliminatedNodes;
+    std::vector<EliminatedReplacedPair> eliminatedNodes;
 };
 
 /// Wrapper class to simplify benchmarking and the collection of statics.

@@ -1,1 +1,1 @@
-Eliminated node at line 132: guh.apply();
+Replaced node at line 132: guh.apply(); with foo()
