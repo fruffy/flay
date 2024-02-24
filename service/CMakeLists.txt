@@ -1,6 +1,9 @@
 # Anything linking with gRPC requires position independent code.
 set(CMAKE_POSITION_INDEPENDENT_CODE_PREV ${CMAKE_POSITION_INDEPENDENT_CODE_PREV})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+set(P4RUNTIME_GRPC_GEN_SRCS ${P4RUNTIME_DIR}/p4runtime.grpc.pb.cc)
+set(P4RUNTIME_GRPC_GEN_HDRS ${P4RUNTIME_DIR}/p4runtime.grpc.pb.h)
 # Source files for Flay gRPC server.
 add_custom_command(
   OUTPUT ${P4RUNTIME_GRPC_GEN_SRCS} ${P4RUNTIME_GRPC_GEN_HDRS}
@@ -10,7 +13,7 @@ add_custom_command(
   DEPENDS ${P4RUNTIME_RT_PROTO} controlplane grpc_cpp_plugin protoc
   COMMENT "Generating Flay gRPC server."
 )
-set(FLAY_GRPC_SOURCES ${P4RUNTIME_GRPC_GEN_SRCS} flay_server.cpp)
+set(FLAY_GRPC_SOURCES ${P4RUNTIME_GRPC_GEN_SRCS} flay_grpc_service.cpp)
 add_library(flay_grpc STATIC ${FLAY_GRPC_SOURCES})
 target_include_directories(
   flay_grpc SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS} ${GRPC_INCLUDE_DIR}

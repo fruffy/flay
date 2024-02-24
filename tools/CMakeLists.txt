@@ -6,4 +6,4 @@ set(FLAY_REFERENCE_CHECKER_SOURCES reference_checker.cpp
 )
 
 add_executable(flay_reference_checker ${FLAY_REFERENCE_CHECKER_SOURCES})
-target_link_libraries(flay_reference_checker libflay  ${FLAY_LIBS})
+target_link_libraries(flay_reference_checker libflay ${FLAY_LIBS})

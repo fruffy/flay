@@ -4,10 +4,12 @@ project(flay)
 # Add cmake directory to our module path. Also add cmake directory from P4C
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+option(P4TOOLS_FLAY_WITH_GRPC "Build with gRPC support" OFF)
+
 # Declare common P4Flay variables.
 set(FLAY_DIR ${P4C_BINARY_DIR}/flay)
 set(FLAY_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4flay")
-set (FLAY_REFERENCE_DRIVER "${flay_BINARY_DIR}/tools/flay_reference_checker")
+set(FLAY_REFERENCE_DRIVER "${flay_BINARY_DIR}/tools/flay_reference_checker")
 
 # ############### Protobuf generation
 set(FLAY_P4RUNTIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf)
@@ -17,8 +19,6 @@ set(FLAY_P4RUNTIME_INFO_GEN_HDRS ${CMAKE_CURRENT_BINARY_DIR}/control_plane/proto
 
 set(P4RUNTIME_DIR ${P4C_BINARY_DIR}/control-plane/p4/v1)
 set(P4RUNTIME_RT_PROTO ${P4RUNTIME_STD_DIR}/p4/v1/p4runtime.proto)
-set(P4RUNTIME_GRPC_GEN_SRCS ${P4RUNTIME_DIR}/p4runtime.grpc.pb.cc)
-set(P4RUNTIME_GRPC_GEN_HDRS ${P4RUNTIME_DIR}/p4runtime.grpc.pb.h)
 
 add_custom_target(
   flay_runtime_dir ${CMAKE_COMMAND} -E make_directory
@@ -49,9 +49,11 @@ set_source_files_properties(
   PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-array-bounds -Wno-error"
 )
 
-include(GRpc)
-p4c_obtain_grpc()
-add_subdirectory(service)
+if(P4TOOLS_FLAY_WITH_GRPC)
+  include(GRpc)
+  p4c_obtain_grpc()
+  add_subdirectory(service)
+endif()
 
 # Source files for flay.
 set(FLAY_SOURCES
@@ -66,6 +68,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/execution_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/expression_resolver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/externs.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/flay_service.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/parser_stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/program_info.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/reachability.cpp
@@ -79,17 +82,13 @@ set(FLAY_SOURCES
 )
 
 # GTest source files for P4Flay.
-set(
-  FLAY_GTEST_SOURCES
-  #  # XXX These should be in a library.
-  ${P4C_SOURCE_DIR}/test/gtest/helpers.cpp
-  ${P4C_SOURCE_DIR}/test/gtest/gtestp4c.cpp
-
-  test/core/simplify_expression_test.cpp
+set(FLAY_GTEST_SOURCES # # XXX These should be in a library.
+    ${P4C_SOURCE_DIR}/test/gtest/helpers.cpp ${P4C_SOURCE_DIR}/test/gtest/gtestp4c.cpp
+    test/core/simplify_expression_test.cpp
 )
 
 # Flay libraries.
-set(FLAY_LIBS p4tools-common flay_runtime p4tools-control-plane)
+set(FLAY_LIBS p4tools-control-plane p4tools-common flay_runtime)
 
 file(GLOB flay_targets RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/targets
      ${CMAKE_CURRENT_SOURCE_DIR}/targets/*
@@ -127,8 +126,12 @@ endforeach()
 configure_file(register.h.in register.h)
 
 add_p4tools_library(libflay ${FLAY_SOURCES})
-target_link_libraries(libflay flay_grpc)
-add_dependencies(libflay p4tools-common controlplane)
+if(P4TOOLS_FLAY_WITH_GRPC)
+  target_link_libraries(libflay flay_grpc)
+endif()
+target_link_libraries(libflay ${FLAY_LIBS})
+add_dependencies(libflay p4tools-common controlplane flay_runtime p4tools-control-plane)
+target_include_directories(libflay SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS})
 
 add_p4tools_executable(p4flay main.cpp)
 
@@ -149,16 +152,10 @@ add_dependencies(p4flay linkflay)
 # Utilities for testing.
 add_subdirectory(tools)
 
-
 if(ENABLE_GTESTS)
   add_executable(flay-gtest ${FLAY_GTEST_SOURCES})
   target_link_libraries(
-    flay-gtest
-    PRIVATE libflay
-    PRIVATE gtest
-    ${FLAY_LIBS}
-    ${P4C_LIBRARIES}
-    ${P4C_LIB_DEPS}
+    flay-gtest PRIVATE libflay PRIVATE gtest ${FLAY_LIBS} ${P4C_LIBRARIES} ${P4C_LIB_DEPS}
   )
 
   if(ENABLE_TESTING)

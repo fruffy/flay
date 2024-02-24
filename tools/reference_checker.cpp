@@ -8,7 +8,6 @@
 #include "backends/p4tools/modules/flay/register.h"
 #include "frontends/common/options.h"
 #include "lib/error.h"
-#include "lib/null.h"
 #include "lib/options.h"
 
 namespace P4Tools::Flay {
