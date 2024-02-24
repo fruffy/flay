@@ -43,24 +43,30 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns the configuration update pattern set with --config-update-pattern.
     [[nodiscard]] std::string getConfigurationUpdatePattern() const;
 
+    [[nodiscard]] bool usePlaceholders() const;
+
  protected:
-    explicit FlayOptions(std::string message = "Remove control-plane dead code from a P4 program.");
+    explicit FlayOptions(
+        const std::string &message = "Remove control-plane dead code from a P4 program.");
 
  private:
     /// Path to the initial control plane configuration file.
-    std::optional<std::filesystem::path> controlPlaneConfig = std::nullopt;
+    std::optional<std::filesystem::path> controlPlaneConfig_ = std::nullopt;
 
     /// Toggle server mode.
     /// After parsing, Flay can initialize a P4Runtime server which handles control-plane messages.
-    bool serverMode = false;
+    bool serverMode_ = false;
 
     /// Server address for the Flay service.
-    std::string serverAddress = "localhost:50051";
+    std::string serverAddress_ = "localhost:50051";
 
     /// A pattern which can either match a single file or a list of files.
     /// This pattern is converted into a list of configuration updates.
     /// Used for testing.
-    std::optional<std::string> configUpdatePattern;
+    std::optional<std::string> configUpdatePattern_;
+
+    /// Toggle use of placeholder variables to model recirculated or cloned packets.
+    bool usePlaceholders_ = false;
 };
 
 }  // namespace P4Tools

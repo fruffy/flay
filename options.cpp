@@ -16,14 +16,14 @@ const char *FlayOptions::getIncludePath() {
     P4C_UNIMPLEMENTED("getIncludePath not implemented for Flay.");
 }
 
-FlayOptions::FlayOptions(std::string message) : AbstractP4cToolOptions(std::move(message)) {
+FlayOptions::FlayOptions(const std::string &message) : AbstractP4cToolOptions(message) {
     registerOption(
         "--config-file", "controlPlaneConfig",
         [this](const char *arg) {
-            controlPlaneConfig = std::filesystem::path(arg);
-            if (!std::filesystem::exists(controlPlaneConfig.value())) {
+            controlPlaneConfig_ = std::filesystem::path(arg);
+            if (!std::filesystem::exists(controlPlaneConfig_.value())) {
                 ::error("%1% does not exist. Please provide a valid file path.",
-                        controlPlaneConfig.value().c_str());
+                        controlPlaneConfig_.value().c_str());
                 return false;
             }
             return true;
@@ -41,47 +41,57 @@ FlayOptions::FlayOptions(std::string message) : AbstractP4cToolOptions(std::move
     registerOption(
         "--server-mode", nullptr,
         [this](const char *) {
-            serverMode = true;
+            serverMode_ = true;
             return true;
         },
         "Toogle Flay's server mode and start a P4Runtime server.");
     registerOption(
         "--server-address", "serverAddress",
         [this](const char *arg) {
-            if (!serverMode) {
+            if (!serverMode_) {
                 ::warning(
                     "Server mode was not active but a server address was provided. Enabling server "
                     "mode.");
-                serverMode = true;
+                serverMode_ = true;
             }
-            serverAddress = arg;
+            serverAddress_ = arg;
             return true;
         },
         "The address of the Flay service in the format ADDRESS:PORT.");
     registerOption(
         "--config-update-pattern", "configUpdatePattern",
         [this](const char *arg) {
-            configUpdatePattern = arg;
+            configUpdatePattern_ = arg;
             return true;
         },
         "A pattern which can either match a single file or a list of files. Primarily used for "
         "testing.");
+    registerOption(
+        "--use-placeholders", nullptr,
+        [this](const char *) {
+            usePlaceholders_ = true;
+            return true;
+        },
+        "Use placeholders instead of symbolic variables for entities affected by recirculation or "
+        "cloning.");
 }
 
 std::filesystem::path FlayOptions::getControlPlaneConfig() const {
-    return controlPlaneConfig.value();
+    return controlPlaneConfig_.value();
 }
 
-bool FlayOptions::serverModeActive() const { return serverMode; }
+bool FlayOptions::serverModeActive() const { return serverMode_; }
 
-std::string FlayOptions::getServerAddress() const { return serverAddress; }
+std::string FlayOptions::getServerAddress() const { return serverAddress_; }
 
-bool FlayOptions::hasControlPlaneConfig() const { return controlPlaneConfig.has_value(); }
+bool FlayOptions::hasControlPlaneConfig() const { return controlPlaneConfig_.has_value(); }
 
-bool FlayOptions::hasConfigurationUpdatePattern() const { return configUpdatePattern.has_value(); }
+bool FlayOptions::hasConfigurationUpdatePattern() const { return configUpdatePattern_.has_value(); }
 
 std::string FlayOptions::getConfigurationUpdatePattern() const {
-    return configUpdatePattern.value();
+    return configUpdatePattern_.value();
 }
+
+bool FlayOptions::usePlaceholders() const { return usePlaceholders_; }
 
 }  // namespace P4Tools
