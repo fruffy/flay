@@ -1,3 +1,3 @@
 Eliminated node at line 73: ipv6_tbl.apply();
 Eliminated node at line 107: get_multicast_copy_out_bd.apply();
-Eliminated node at line 108: send_frame.apply();
+Replaced node at line 108: send_frame.apply(); with drop()
