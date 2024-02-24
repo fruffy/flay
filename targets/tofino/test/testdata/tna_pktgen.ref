@@ -1,2 +1,2 @@
-Eliminated node at line 119: t.apply();
-Eliminated node at line 121: p.apply();
+Replaced node at line 119: t.apply(); with drop()
+Replaced node at line 121: p.apply(); with drop()

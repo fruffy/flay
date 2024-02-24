@@ -1,8 +1,8 @@
 Eliminated node at line 290: if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_RESUBMIT)) {
 Eliminated node at line 293: } else if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_RECIRC)) {
-Eliminated node at line 297: ipv4_da_lpm.apply();
+Replaced node at line 297: ipv4_da_lpm.apply(); with my_drop()
 Eliminated node at line 299: if (meta.fwd.l2ptr != 0) {
 Eliminated node at line 364: if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_INGRESS_CLONE)) {
 Eliminated node at line 370: } else if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_EGRESS_CLONE)) {
 Eliminated node at line 377: if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_REPLICATION)) {
-Eliminated node at line 382: send_frame.apply();
+Replaced node at line 382: send_frame.apply(); with my_drop()

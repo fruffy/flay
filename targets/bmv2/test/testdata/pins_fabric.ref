@@ -1,8 +1,8 @@
 Eliminated node at line 803: acl_pre_ingress_table.apply();
 Eliminated node at line 554: l3_admit_table.apply();
 Eliminated node at line 418: vrf_table.apply();
-Eliminated node at line 421: ipv4_table.apply();
-Eliminated node at line 423: ipv6_table.apply();
+Replaced node at line 421: ipv4_table.apply(); with drop()
+Replaced node at line 423: ipv6_table.apply(); with drop()
 Eliminated node at line 425: if (wcmp_group_id_valid) {
 Eliminated node at line 428: if (nexthop_id_valid) {
 Eliminated node at line 750: acl_ingress_table.apply();

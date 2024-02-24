@@ -11,13 +11,13 @@ Eliminated node at line 664: meta.dropped = true;
 Eliminated node at line 665: } else if (packet_action == 1) {
 Eliminated node at line 913: if (vip.apply().hit) {
 Eliminated node at line 913: if (vip.apply().hit) {
-Eliminated node at line 916: direction_lookup.apply();
+Replaced node at line 916: direction_lookup.apply(); with set_inbound_direction()
 Eliminated node at line 917: appliance.apply();
 Eliminated node at line 918: meta.eni_addr = (meta.direction == dash_direction_t.OUTBOUND ? hdr.inner_ethernet.src_addr : hdr.inner_ethernet.dst_addr);
-Eliminated node at line 919: eni_ether_address_map.apply();
+Replaced node at line 919: eni_ether_address_map.apply(); with deny()
 Eliminated node at line 921: vxlan_decap(hdr);
 Eliminated node at line 924: vxlan_decap_pa_validate: {
-Eliminated node at line 951: eni.apply();
+Replaced node at line 951: eni.apply(); with deny()
 Eliminated node at line 955: acl_group.apply();
 Eliminated node at line 957: outbound.apply(hdr, meta);
 Eliminated node at line (unknown): 
