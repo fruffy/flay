@@ -275,20 +275,9 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
                              std::to_string(externInfo.originalCall.clone_id);
           return state.createSymbolicExpression(unpackType, unpackLabel);
       }},
-     {"*method.sizeInBits",
-      {"h"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
-     {"*method.sizeInBytes",
-      {"h"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+     /// TODO: maybe create a type size visitor to calculate.
+     {"*method.sizeInBits", {"h"}, ReturnDummyImpl},
+     {"*method.sizeInBytes", {"h"}, ReturnDummyImpl},
 
      // -----------------------------------------------------------------------------
      /// Counter
