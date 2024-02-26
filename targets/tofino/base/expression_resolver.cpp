@@ -7,6 +7,7 @@
 
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/externs.h"
+#include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/targets/tofino/base/table_executor.h"
 #include "backends/p4tools/modules/flay/targets/tofino/constants.h"
 #include "ir/irutils.h"
@@ -424,8 +425,64 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      //     return rv;
      // }
      // -----------------------------------------------------------------------------
-     // TODO: support using real apply method to execute.
-     {"RegisterAction.execute", {"index"}, ReturnDummyImpl},
+     /// TODO: really model register. For now, we only return dummy.
+     {"RegisterAction.execute",
+      {"index"},
+      [](const ExternMethodImpls::ExternInfo &externInfo) {
+          auto &state = externInfo.state;
+          const auto *actionDecl =
+              state.findDecl(&externInfo.externObjectRef)->checkedTo<IR::Declaration_Instance>();
+          const auto *actionType = actionDecl->type->checkedTo<IR::Type_Specialized>();
+          BUG_CHECK(actionType->arguments->size() == 3, "Expected 3 arguments, got %1%",
+                    actionType->arguments->size());
+          const auto *valueType = actionType->arguments->at(0);  // T
+          const auto &components = actionDecl->initializer->components;
+          BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%", components.size());
+          const auto *applyDecl = components.at(0)->checkedTo<IR::Function>();
+          const auto *applyParameters = applyDecl->type->parameters;
+
+          const auto &valueName = applyParameters->parameters.at(0)->name.name;
+          auto valueLabel =
+              externInfo.externObjectRef.path->toString() + "_" + externInfo.methodName + "_" +
+              std::to_string(externInfo.originalCall.clone_id) + "_apply_" + valueName;
+          /// TODO: currently we create symbolic expression as the value, but we should model the
+          /// values stored in register.
+          const auto *valueExpr = state.createSymbolicExpression(valueType, valueLabel);
+
+          if (applyParameters->size() == 2) {
+              BUG_CHECK(applyParameters->getParameter(1)->direction == IR::Direction::Out,
+                        "Direction of second parameter of apply is should be out");
+          }
+          std::vector<const IR::Expression *> arguments = {valueExpr, /*returnExpr=*/nullptr};
+          std::vector<const IR::PathExpression *> paramRefs;
+          for (size_t argIdx = 0; argIdx < applyParameters->size(); ++argIdx) {
+              const auto *parameter = applyParameters->getParameter(argIdx);
+              const auto *paramType = state.resolveType(parameter->type);
+              const auto *argument = arguments.at(argIdx);
+              const auto *paramRef =
+                  new IR::PathExpression(paramType, new IR::Path(parameter->name));
+              paramRefs.push_back(paramRef);
+              if (paramType->is<IR::Type_StructLike>()) {
+                  if (parameter->direction == IR::Direction::Out) {
+                      state.initializeStructLike(FlayTarget::get(), paramRef, false);
+                  } else {
+                      state.assignStructLike(paramRef, argument);
+                  }
+              } else if (paramType->is<IR::Type_Base>()) {
+                  if (parameter->direction == IR::Direction::Out) {
+                      state.set(paramRef, FlayTarget::get().createTargetUninitialized(
+                                              paramType->to<IR::Type_Base>(), false));
+                  } else {
+                      state.set(paramRef, argument);
+                  }
+              } else {
+                  P4C_UNIMPLEMENTED("Unsupported parameter type %1%", paramType->node_type_name());
+              }
+          }
+          auto &applyStepper = FlayTarget::getStepper(externInfo.programInfo.get(), state);
+          applyDecl->body->apply(applyStepper);
+          return state.get(paramRefs.at(1));
+      }},
      // -----------------------------------------------------------------------------
      // Apply the implemented abstract method using an index that increments each
      // time. This method is useful for stateful logging.
@@ -470,7 +527,63 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // }
      // -----------------------------------------------------------------------------
      // TODO: support using real apply method to execute.
-     {"DirectRegisterAction.execute", {}, ReturnDummyImpl},
+     {"DirectRegisterAction.execute",
+      {},
+      [](const ExternMethodImpls::ExternInfo &externInfo) {
+          auto &state = externInfo.state;
+          const auto *actionDecl =
+              state.findDecl(&externInfo.externObjectRef)->checkedTo<IR::Declaration_Instance>();
+          const auto *actionType = actionDecl->type->checkedTo<IR::Type_Specialized>();
+          BUG_CHECK(actionType->arguments->size() == 2, "Expected 2 arguments, got %1%",
+                    actionType->arguments->size());
+          const auto *valueType = actionType->arguments->at(0);  // T
+          const auto &components = actionDecl->initializer->components;
+          BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%", components.size());
+          const auto *applyDecl = components.at(0)->checkedTo<IR::Function>();
+          const auto *applyParameters = applyDecl->type->parameters;
+
+          const auto &valueName = applyParameters->parameters.at(0)->name.name;
+          auto valueLabel =
+              externInfo.externObjectRef.path->toString() + "_" + externInfo.methodName + "_" +
+              std::to_string(externInfo.originalCall.clone_id) + "_apply_" + valueName;
+          /// TODO: currently we create symbolic expression as the value, but we should model the
+          /// values stored in register.
+          const auto *valueExpr = state.createSymbolicExpression(valueType, valueLabel);
+
+          if (applyParameters->size() == 2) {
+              BUG_CHECK(applyParameters->getParameter(1)->direction == IR::Direction::Out,
+                        "Direction of second parameter of apply is should be out");
+          }
+          std::vector<const IR::Expression *> arguments = {valueExpr, /*returnExpr=*/nullptr};
+          std::vector<const IR::PathExpression *> paramRefs;
+          for (size_t argIdx = 0; argIdx < applyParameters->size(); ++argIdx) {
+              const auto *parameter = applyParameters->getParameter(argIdx);
+              const auto *paramType = state.resolveType(parameter->type);
+              const auto *argument = arguments.at(argIdx);
+              const auto *paramRef =
+                  new IR::PathExpression(paramType, new IR::Path(parameter->name));
+              paramRefs.push_back(paramRef);
+              if (paramType->is<IR::Type_StructLike>()) {
+                  if (parameter->direction == IR::Direction::Out) {
+                      state.initializeStructLike(FlayTarget::get(), paramRef, false);
+                  } else {
+                      state.assignStructLike(paramRef, argument);
+                  }
+              } else if (paramType->is<IR::Type_Base>()) {
+                  if (parameter->direction == IR::Direction::Out) {
+                      state.set(paramRef, FlayTarget::get().createTargetUninitialized(
+                                              paramType->to<IR::Type_Base>(), false));
+                  } else {
+                      state.set(paramRef, argument);
+                  }
+              } else {
+                  P4C_UNIMPLEMENTED("Unsupported parameter type %1%", paramType->node_type_name());
+              }
+          }
+          auto &applyStepper = FlayTarget::getStepper(externInfo.programInfo.get(), state);
+          applyDecl->body->apply(applyStepper);
+          return state.get(paramRefs.at(1));
+      }},
      // -----------------------------------------------------------------------------
      // DirectRegisterAction.apply
      // -----------------------------------------------------------------------------
