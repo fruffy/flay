@@ -1,1 +1,1 @@
-Replaced node at line 82: mac_da.apply(); with my_drop()
+Replaced node at line 82: mac_da.apply(); with default_action = my_drop(standard_metadata);

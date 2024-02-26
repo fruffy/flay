@@ -195,7 +195,8 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
         auto decl = getActionDecl(refMap, *defaultAction);
         if (decl.has_value() && !decl.value()->body->components.empty()) {
             printInfo("Replacing table apply with default action %1%", defaultAction);
-            auto *replacement = new IR::MethodCallStatement(stmt->getSourceInfo(), defaultAction);
+            auto *replacement =
+                new IR::MethodCallStatement(defaultAction->getSourceInfo(), defaultAction);
             eliminatedNodes.push_back({stmt, replacement});
             return replacement;
         }

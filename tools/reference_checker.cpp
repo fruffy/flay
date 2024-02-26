@@ -209,10 +209,11 @@ int run(const ReferenceCheckerOptions &options) {
                                        << node->getSourceInfo().toPosition().sourceLine << ": "
                                        << sourceFragment;
             } else {
-                // FIXME: any elegant solution to just print first line of `replaced->toString()`?
+                RETURN_IF_FALSE(replaced->getSourceInfo().isValid(), EXIT_FAILURE);
+                auto replacedFragment = replaced->getSourceInfo().toSourceFragment(false).trim();
                 flayOptimizationOutput << "Replaced node at line "
                                        << node->getSourceInfo().toPosition().sourceLine << ": "
-                                       << sourceFragment << " with " << replaced->toString();
+                                       << sourceFragment << " with " << replacedFragment;
             }
         } else {
             ::warning("Invalid source information for node %1%. This should be fixed", node);

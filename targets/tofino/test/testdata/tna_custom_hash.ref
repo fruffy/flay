@@ -1,3 +1,3 @@
 Eliminated node at line 141: output_port.apply();
-Replaced node at line 145: tbl_hash1.apply(); with apply_hash1()
-Replaced node at line 146: tbl_hash2.apply(); with apply_hash2()
+Replaced node at line 145: tbl_hash1.apply(); with const default_action = apply_hash1();
+Replaced node at line 146: tbl_hash2.apply(); with const default_action = apply_hash2();
