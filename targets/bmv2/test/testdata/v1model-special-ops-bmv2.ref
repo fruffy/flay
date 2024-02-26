@@ -1,4 +1,4 @@
-Replaced node at line 297: ipv4_da_lpm.apply(); with my_drop()
-Replaced node at line 300: mac_da.apply(); with my_drop()
+Replaced node at line 297: ipv4_da_lpm.apply(); based on line 297: default_action = my_drop(standard_metadata);
+Replaced node at line 300: mac_da.apply(); based on line 300: default_action = my_drop(standard_metadata);
 Eliminated node at line 380: get_multicast_copy_out_bd.apply();
-Replaced node at line 382: send_frame.apply(); with my_drop()
+Replaced node at line 382: send_frame.apply(); based on line 382: default_action = my_drop(standard_metadata);

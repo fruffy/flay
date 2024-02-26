@@ -1,4 +1,4 @@
 Eliminated node at line 202: ing_port.apply();
 Eliminated node at line 203: ing_src_ifid.apply();
-Replaced node at line 204: ing_dmac.apply(); with flood()
+Replaced node at line 204: ing_dmac.apply(); based on line 204: const default_action = flood;
 Eliminated node at line 205: if (ig_md.l3 == 1) {

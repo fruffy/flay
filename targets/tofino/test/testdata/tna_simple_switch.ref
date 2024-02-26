@@ -6,7 +6,7 @@ Eliminated node at line 217: validate_ipv6.apply();
 Eliminated node at line 604: rmac_hit : {
 Eliminated node at line 502: NoAction : { ecmp.apply(); }
 Eliminated node at line 506: if (routed) {
-Replaced node at line 305: dmac.apply(); with dmac_miss()
+Replaced node at line 305: dmac.apply(); based on line 305: const default_action = dmac_miss;
 Eliminated node at line 549: lag.apply();
 Eliminated node at line 797: ipv6_rewrite.apply();
 Eliminated node at line 798: srh_rewrite.apply();

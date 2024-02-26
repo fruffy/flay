@@ -5,6 +5,7 @@
 
 #include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
+#include "control-plane/p4RuntimeSerializer.h"
 #include "ir/ir-generated.h"
 
 namespace P4Tools::Flay {

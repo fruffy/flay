@@ -1,2 +1,2 @@
-Replaced node at line 128: forward.apply(); with miss()
+Replaced node at line 128: forward.apply(); based on line 128: const default_action = miss;
 Eliminated node at line 129: alpm_forward.apply();

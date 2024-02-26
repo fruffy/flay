@@ -1,2 +1,2 @@
-Replaced node at line 106: guh.apply(); with hash_drop_decision()
+Replaced node at line 106: guh.apply(); based on line 106: default_action = hash_drop_decision;
 Eliminated node at line 107: debug_table.apply();

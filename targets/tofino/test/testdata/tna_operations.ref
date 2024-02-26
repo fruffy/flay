@@ -1,2 +1,2 @@
-Replaced node at line 130: forward.apply(); with miss()
+Replaced node at line 130: forward.apply(); based on line 130: const default_action = miss;
 Eliminated node at line 131: forward_dst.apply();

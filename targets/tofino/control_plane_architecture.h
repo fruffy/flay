@@ -268,6 +268,10 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
                           const IR::ExternBlock *) override {}
     bool filterAnnotations(cstring) override { return false; }
 
+    google::protobuf::util::JsonPrintOptions getJsonPrintOptions() override {
+        return jsonPrintOptions;
+    }
+
     static std::optional<ActionProfile> getActionProfile(cstring name, const IR::Type_Extern *type,
                                                          int64_t size,
                                                          const IR::IAnnotated *annotations) {
@@ -501,6 +505,9 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
 
     /// The extern instances we've serialized so far. Used for deduplication.
     std::set<p4rt_id_t> serializedInstances;
+
+    // JSON printing options for serialization
+    google::protobuf::util::JsonPrintOptions jsonPrintOptions;
 };
 
 /// The architecture handler builder implementation for Tofino.
