@@ -1,3 +1,3 @@
-Replaced node at line 127: ipv4_da_lpm.apply(); based on line 127: default_action = drop_with_count;
-Replaced node at line 128: mac_da.apply(); based on line 128: default_action = my_drop(standard_metadata);
-Replaced node at line 150: send_frame.apply(); based on line 150: default_action = my_drop(standard_metadata);
+Replaced node at line 127: ipv4_da_lpm.apply(); with default_action = drop_with_count;
+Replaced node at line 128: mac_da.apply(); with default_action = my_drop(standard_metadata);
+Replaced node at line 150: send_frame.apply(); with default_action = my_drop(standard_metadata);

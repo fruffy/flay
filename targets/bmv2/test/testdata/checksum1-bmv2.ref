@@ -1,1 +1,1 @@
-Replaced node at line 132: guh.apply(); based on line 132: default_action = foo;
+Replaced node at line 132: guh.apply(); with default_action = foo;
