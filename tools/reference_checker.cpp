@@ -209,18 +209,11 @@ int run(const ReferenceCheckerOptions &options) {
                                        << node->getSourceInfo().toPosition().sourceLine << ": "
                                        << sourceFragment;
             } else {
-                if (replaced->getSourceInfo().isValid()) {
-                    auto replacedFragment =
-                        replaced->getSourceInfo().toSourceFragment(false).trim();
-                    flayOptimizationOutput << "Replaced node at line "
-                                           << node->getSourceInfo().toPosition().sourceLine << ": "
-                                           << sourceFragment << " with " << replacedFragment;
-                } else {
-                    ::warning("Invalid source information for node %1%. This should be fixed",
-                              node);
-                    flayOptimizationOutput << "Replaced node at line (unknown): " << node
-                                           << " with " << replaced;
-                }
+                RETURN_IF_FALSE(replaced->getSourceInfo().isValid(), EXIT_FAILURE);
+                auto replacedFragment = replaced->getSourceInfo().toSourceFragment(false).trim();
+                flayOptimizationOutput << "Replaced node at line "
+                                       << node->getSourceInfo().toPosition().sourceLine << ": "
+                                       << sourceFragment << " with " << replacedFragment;
             }
         } else {
             ::warning("Invalid source information for node %1%. This should be fixed", node);

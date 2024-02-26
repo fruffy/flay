@@ -1,8 +1,8 @@
 Eliminated node at line 741: acl_pre_ingress_table.apply();
 Eliminated node at line 548: l3_admit_table.apply();
 Eliminated node at line 412: vrf_table.apply();
-Replaced node at line 415: ipv4_table.apply(); with const default_action = drop;
-Replaced node at line 417: ipv6_table.apply(); with const default_action = drop;
+Replaced node at line 415: ipv4_table.apply(); based on line 415: const default_action = drop;
+Replaced node at line 417: ipv6_table.apply(); based on line 417: const default_action = drop;
 Eliminated node at line 419: if (wcmp_group_id_valid) {
 Eliminated node at line 422: if (nexthop_id_valid) {
 Eliminated node at line 689: acl_ingress_table.apply();

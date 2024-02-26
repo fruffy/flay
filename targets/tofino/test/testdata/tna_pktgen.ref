@@ -1,2 +1,2 @@
-Replaced node at line 119: t.apply(); with const default_action = drop();
-Replaced node at line 121: p.apply(); with const default_action = drop();
+Replaced node at line 119: t.apply(); based on line 119: const default_action = drop();
+Replaced node at line 121: p.apply(); based on line 121: const default_action = drop();

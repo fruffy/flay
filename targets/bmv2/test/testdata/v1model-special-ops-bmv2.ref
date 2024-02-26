@@ -1,8 +1,4 @@
-Eliminated node at line 290: if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_RESUBMIT)) {
-Eliminated node at line 293: } else if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_RECIRC)) {
-Replaced node at line 297: ipv4_da_lpm.apply(); with default_action = my_drop(standard_metadata);
-Eliminated node at line 299: if (meta.fwd.l2ptr != 0) {
-Eliminated node at line 364: if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_INGRESS_CLONE)) {
-Eliminated node at line 370: } else if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_EGRESS_CLONE)) {
-Eliminated node at line 377: if ((standard_metadata.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_REPLICATION)) {
-Replaced node at line 382: send_frame.apply(); with default_action = my_drop(standard_metadata);
+Replaced node at line 297: ipv4_da_lpm.apply(); based on line 297: default_action = my_drop(standard_metadata);
+Replaced node at line 300: mac_da.apply(); based on line 300: default_action = my_drop(standard_metadata);
+Eliminated node at line 380: get_multicast_copy_out_bd.apply();
+Replaced node at line 382: send_frame.apply(); based on line 382: default_action = my_drop(standard_metadata);
