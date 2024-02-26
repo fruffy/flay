@@ -435,7 +435,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           const auto *actionType = actionDecl->type->checkedTo<IR::Type_Specialized>();
           BUG_CHECK(actionType->arguments->size() == 3, "Expected 3 arguments, got %1%",
                     actionType->arguments->size());
-          const auto *valueType = actionType->arguments->at(0);   // T
+          const auto *valueType = actionType->arguments->at(0);  // T
           const auto &components = actionDecl->initializer->components;
           BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%", components.size());
           const auto *applyDecl = components.at(0)->checkedTo<IR::Function>();
@@ -536,7 +536,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           const auto *actionType = actionDecl->type->checkedTo<IR::Type_Specialized>();
           BUG_CHECK(actionType->arguments->size() == 2, "Expected 2 arguments, got %1%",
                     actionType->arguments->size());
-          const auto *valueType = actionType->arguments->at(0);   // T
+          const auto *valueType = actionType->arguments->at(0);  // T
           const auto &components = actionDecl->initializer->components;
           BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%", components.size());
           const auto *applyDecl = components.at(0)->checkedTo<IR::Function>();
