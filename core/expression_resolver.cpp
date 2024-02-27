@@ -17,6 +17,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 #include "lib/null.h"
+#include "midend/saturationElim.h"
 
 namespace P4Tools::Flay {
 
@@ -159,9 +160,14 @@ bool ExpressionResolver::preorder(const IR::Operation_Binary *op) {
         newOp->left = left;
         newOp->right = right;
         result = newOp;
-        return false;
+    } else {
+        result = op;
     }
-    result = op;
+
+    // Handle saturating arithmetic expressions by translating them into Mux expressions.
+    if (P4::SaturationElim::isSaturationOperation(result)) {
+        result = P4::SaturationElim::eliminate(result->checkedTo<IR::Operation_Binary>());
+    }
     return false;
 }
 
