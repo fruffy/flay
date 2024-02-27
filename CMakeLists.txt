@@ -40,7 +40,7 @@ add_custom_command(
 add_dependencies(flay_runtime_dir controlplane)
 
 add_library(flay_runtime STATIC ${FLAY_P4RUNTIME_INFO_GEN_SRCS})
-target_include_directories(flay_runtime SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS})
+target_link_libraries(flay_runtime controlplane)
 
 # Silence various warnings as the root issue is out of our control, example
 # https://github.com/protocolbuffers/protobuf/issues/7140
@@ -131,7 +131,6 @@ if(P4TOOLS_FLAY_WITH_GRPC)
 endif()
 target_link_libraries(libflay ${FLAY_LIBS})
 add_dependencies(libflay p4tools-common controlplane flay_runtime p4tools-control-plane)
-target_include_directories(libflay SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS})
 
 add_p4tools_executable(p4flay main.cpp)
 

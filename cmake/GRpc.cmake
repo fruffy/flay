@@ -14,6 +14,7 @@ set(gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF CACHE BOOL "Build grpc_objective_c_pl
 set(gRPC_BUILD_GRPC_PHP_PLUGIN OFF CACHE BOOL "Build grpc_php_plugin")
 set(gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF CACHE BOOL "Build grpc_python_plugin")
 set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "Build grpc_ruby_plugin")
+set(gRPC_ABSL_PROVIDER "module" CACHE STRING "Provider of abseil library")
 set(gRPC_ZLIB_PROVIDER "package" CACHE STRING "Provider of zlib library")
 set(gRPC_CARES_PROVIDER "package" CACHE STRING "Provider of c-ares library")
 set(gRPC_RE2_PROVIDER "module" CACHE STRING "Provider of re2 library")

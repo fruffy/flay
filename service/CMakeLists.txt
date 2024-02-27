@@ -15,9 +15,6 @@ add_custom_command(
 )
 set(FLAY_GRPC_SOURCES ${P4RUNTIME_GRPC_GEN_SRCS} flay_grpc_service.cpp)
 add_library(flay_grpc STATIC ${FLAY_GRPC_SOURCES})
-target_include_directories(
-  flay_grpc SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS} ${GRPC_INCLUDE_DIR}
-)
 target_link_libraries(flay_grpc grpc++ p4tools-control-plane)
 
 # ##################################################################################################
