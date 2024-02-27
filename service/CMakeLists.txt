@@ -15,7 +15,7 @@ add_custom_command(
 )
 set(FLAY_GRPC_SOURCES ${P4RUNTIME_GRPC_GEN_SRCS} flay_grpc_service.cpp)
 add_library(flay_grpc STATIC ${FLAY_GRPC_SOURCES})
-target_link_libraries(flay_grpc grpc++ p4tools-control-plane)
+target_link_libraries(flay_grpc PUBLIC grpc++)
 
 # ##################################################################################################
 # Flay Service Client #
@@ -24,16 +24,17 @@ set(FLAY_GRPC_CLIENT_SOURCES client_main.cpp client_options.cpp flay_client.cpp
                              ${P4TOOLS_SOURCE_DIR}/common/lib/logging.cpp
 )
 
-set(FLAY_GRPC_CLIENT_LIBS p4ctoolkit ${LIBGC_LIBRARIES} controlplane-gen grpc++)
+set(FLAY_GRPC_CLIENT_LIBS
+    PRIVATE p4ctoolkit
+    ${LIBGC_LIBRARIES}
+    PRIVATE controlplane
+    PRIVATE grpc++
+)
 if(HAVE_LIBBACKTRACE)
   set(FLAY_GRPC_CLIENT_LIBS "${FLAY_GRPC_CLIENT_LIBS};-lbacktrace")
 endif()
 
 add_executable(flay_grpc_client ${FLAY_GRPC_CLIENT_SOURCES} ${P4RUNTIME_GRPC_GEN_SRCS})
 target_link_libraries(flay_grpc_client ${FLAY_GRPC_CLIENT_LIBS})
-target_include_directories(
-  flay_grpc_client SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS} ${GRPC_INCLUDE_DIR}
-)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${CMAKE_POSITION_INDEPENDENT_CODE_PREV})
-

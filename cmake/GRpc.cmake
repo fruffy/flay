@@ -15,11 +15,14 @@ set(gRPC_BUILD_GRPC_PHP_PLUGIN OFF CACHE BOOL "Build grpc_php_plugin")
 set(gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF CACHE BOOL "Build grpc_python_plugin")
 set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "Build grpc_ruby_plugin")
 set(gRPC_ABSL_PROVIDER "module" CACHE STRING "Provider of abseil library")
+set(ABSL_ROOT_DIR ${absl_SOURCE_DIR} CACHE PATH "Path to abseil")
+
 set(gRPC_ZLIB_PROVIDER "package" CACHE STRING "Provider of zlib library")
 set(gRPC_CARES_PROVIDER "package" CACHE STRING "Provider of c-ares library")
 set(gRPC_RE2_PROVIDER "module" CACHE STRING "Provider of re2 library")
 set(gRPC_SSL_PROVIDER "package" CACHE STRING "Provider of ssl library")
-set(gRPC_PROTOBUF_PROVIDER "package" CACHE STRING "Provider of protobuf library")
+set(gRPC_PROTOBUF_PROVIDER "module" CACHE STRING "Provider of protobuf library")
+set(PROTOBUF_ROOT_DIR ${protobuf_SOURCE_DIR} CACHE PATH "Path to protobuf")
 set(gRPC_PROTOBUF_PACKAGE_TYPE "MODULE" CACHE STRING "Algorithm for searching protobuf package")
 set(gRPC_USE_PROTO_LITE ON CACHE BOOL "Use protobuf-lite")
 
@@ -29,7 +32,7 @@ set(CMAKE_UNITY_BUILD OFF)
 fetchcontent_declare(
   gRPC
   GIT_REPOSITORY https://github.com/grpc/grpc
-  GIT_TAG v1.53.0
+  GIT_TAG v1.60.0
   GIT_SHALLOW TRUE
   PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/cmake/grpc.patch  || git apply ${CMAKE_CURRENT_SOURCE_DIR}/cmake/grpc.patch  -R --check && echo "Patch does not apply because the patch was already applied."
   GIT_CONFIG core.shallow-submodules=true
