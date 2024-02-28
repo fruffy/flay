@@ -51,7 +51,8 @@ struct ReachabilityExpression {
 };
 
 /// A mapping of P4C-IR nodes to their associated reachability expressions.
-class ReachabilityMap : protected std::map<const IR::Node *, ReachabilityExpression, SourceIdCmp> {
+class ReachabilityMap
+    : protected std::map<const IR::Node *, std::vector<ReachabilityExpression>, SourceIdCmp> {
     friend class Z3SolverReachabilityMap;
 
  private:
@@ -86,8 +87,8 @@ class AbstractReachabilityMap {
 
     /// @returns the reachability expression for the given node.
     /// @returns std::nullopt if no expression can be found.
-    [[nodiscard]] virtual std::optional<const ReachabilityExpression *> getReachabilityExpression(
-        const IR::Node *node) const = 0;
+    [[nodiscard]] virtual std::optional<std::vector<const ReachabilityExpression *>>
+    getReachabilityExpressions(const IR::Node *node) const = 0;
 
     /// Updates the reachability assignment for the given node.
     bool virtual updateReachabilityAssignment(const IR::Node *node,
@@ -123,7 +124,7 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
  public:
     explicit SolverReachabilityMap(AbstractSolver &solver, const ReachabilityMap &map);
 
-    std::optional<const ReachabilityExpression *> getReachabilityExpression(
+    std::optional<std::vector<const ReachabilityExpression *>> getReachabilityExpressions(
         const IR::Node *node) const override;
 
     bool updateReachabilityAssignment(const IR::Node *node,

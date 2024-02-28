@@ -132,11 +132,10 @@ void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expr
 
     if (!reachabilityMap.initializeReachabilityMapping(
             node, new IR::LAnd(getExecutionCondition(), cond))) {
-        // Throw a fatal error if we try to add a duplicate mapping.
-        // This can affect the correctness of the entire mapping.
-        BUG("Reachability mapping for node %1% already exists. Every mapping must be uniquely "
-            "identifiable.",
-            node);
+        // We originally throw a fatal error if we try to add a duplicate mapping.
+        // Since a node may be reached with different stacks, the reachability is a vector now.
+        // But we do want to know when this happened, so still warn here.
+        warning("Reachability mapping for node %1% already exists.", node);
     }
 }
 

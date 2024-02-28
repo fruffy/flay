@@ -40,6 +40,10 @@ class ElimDeadCode : public Transform {
     explicit ElimDeadCode(const P4::ReferenceMap &refMap,
                           const AbstractReachabilityMap &reachabilityMap);
 
+    /// @return true if any of the condition is reachable; false if none of the conditions are
+    /// reachable; std::nullopt if the reachability is ambiguous.
+    std::optional<bool> getAnyReachability(std::vector<const ReachabilityExpression *> condVector);
+
     [[nodiscard]] std::vector<EliminatedReplacedPair> getEliminatedNodes() const;
 };
 
