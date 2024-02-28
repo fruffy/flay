@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 501e2483e..1e654fb0a 100644
+index 06e6453b5..cb436f695 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -465,7 +465,7 @@ function(protobuf_generate_grpc_cpp_with_import_path_correction FILE_LOCATION IM
+@@ -511,7 +511,7 @@ function(protobuf_generate_grpc_cpp_with_import_path_correction FILE_LOCATION IM
    endif()
  
    # Sets the include path for ProtoBuf files
@@ -11,3 +11,16 @@ index 501e2483e..1e654fb0a 100644
    # The absolute path of the expected place for the input proto file
    # For example, health proto has package name grpc.health.v1, it's expected to be:
    #   ${_gRPC_PROTO_SRCS_DIR}/grpc/health/v1/health.proto
+diff --git a/cmake/protobuf.cmake b/cmake/protobuf.cmake
+index fab2eb00e..d9d3c2fe0 100644
+--- a/cmake/protobuf.cmake
++++ b/cmake/protobuf.cmake
+@@ -30,7 +30,7 @@ if(gRPC_PROTOBUF_PROVIDER STREQUAL "module")
+ 
+   if(EXISTS "${PROTOBUF_ROOT_DIR}/CMakeLists.txt")
+     set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "Link static runtime libraries")
+-    add_subdirectory(${PROTOBUF_ROOT_DIR} third_party/protobuf)
++    # add_subdirectory(${PROTOBUF_ROOT_DIR} third_party/protobuf)
+     if(TARGET ${_gRPC_PROTOBUF_LIBRARY_NAME})
+       set(_gRPC_PROTOBUF_LIBRARIES ${_gRPC_PROTOBUF_LIBRARY_NAME})
+     endif()

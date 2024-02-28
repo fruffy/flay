@@ -38,9 +38,8 @@ add_custom_command(
 )
 
 add_dependencies(flay_runtime_dir controlplane)
-
 add_library(flay_runtime STATIC ${FLAY_P4RUNTIME_INFO_GEN_SRCS})
-target_include_directories(flay_runtime SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS})
+target_link_libraries(flay_runtime PRIVATE controlplane)
 
 # Silence various warnings as the root issue is out of our control, example
 # https://github.com/protocolbuffers/protobuf/issues/7140
@@ -88,7 +87,12 @@ set(FLAY_GTEST_SOURCES # # XXX These should be in a library.
 )
 
 # Flay libraries.
-set(FLAY_LIBS p4tools-control-plane p4tools-common flay_runtime)
+set(FLAY_LIBS
+    PRIVATE p4tools-control-plane
+    PRIVATE p4tools-common
+    PRIVATE flay_runtime
+    PRIVATE controlplane
+)
 
 file(GLOB flay_targets RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/targets
      ${CMAKE_CURRENT_SOURCE_DIR}/targets/*
@@ -127,15 +131,15 @@ configure_file(register.h.in register.h)
 
 add_p4tools_library(libflay ${FLAY_SOURCES})
 if(P4TOOLS_FLAY_WITH_GRPC)
-  target_link_libraries(libflay flay_grpc)
+  target_link_libraries(libflay PUBLIC flay_grpc)
 endif()
 target_link_libraries(libflay ${FLAY_LIBS})
-add_dependencies(libflay p4tools-common controlplane flay_runtime p4tools-control-plane)
-target_include_directories(libflay SYSTEM BEFORE PUBLIC ${Protobuf_INCLUDE_DIRS})
 
 add_p4tools_executable(p4flay main.cpp)
 
-target_link_libraries(p4flay libflay ${FLAY_LIBS})
+target_link_libraries(
+  p4flay PRIVATE libflay ${FLAY_LIBS} ${P4C_LIBRARIES} ${P4C_LIB_DEPS} ${CMAKE_THREAD_LIBS_INIT}
+)
 
 # Add some convenience links for invoking flay.
 add_custom_target(
