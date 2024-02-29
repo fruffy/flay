@@ -1,0 +1,2 @@
+Eliminated node at line 57: if (meta.b > 10) {
+Replaced node at line 75: guh.apply(); with default_action = foo;
