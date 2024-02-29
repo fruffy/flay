@@ -31,15 +31,9 @@ bool ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
         symbolMap[symbol.get()].emplace(node);
     }
 
-    auto it = find(node);
-    if (it == end()) {
-        std::vector<ReachabilityExpression> condVector = {ReachabilityExpression(cond)};
-        insert({node, condVector});
-        return true;
-    } else {
-        it->second.push_back(ReachabilityExpression(cond));
-        return false;
-    }
+    auto result = emplace(node, std::vector<ReachabilityExpression>());
+    result.first->second.push_back(ReachabilityExpression(cond));
+    return result.second;
 }
 
 void ReachabilityMap::mergeReachabilityMapping(const ReachabilityMap &otherMap) {

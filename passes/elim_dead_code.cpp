@@ -22,7 +22,7 @@ std::optional<bool> ElimDeadCode::getAnyReachability(
         auto reachability = condition->getReachability();
         if (!reachability) {
             return std::nullopt;
-        } else if (reachability.value() == true) {
+        } else if (reachability.value()) {
             return true;
         }
     }
