@@ -42,9 +42,6 @@ class Z3SolverReachabilityMap
     std::optional<std::vector<const ReachabilityExpression *>> getReachabilityExpressions(
         const IR::Node *node) const override;
 
-    bool updateReachabilityAssignment(const IR::Node *node,
-                                      std::optional<bool> reachability) override;
-
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;
 

@@ -91,10 +91,6 @@ class AbstractReachabilityMap {
     [[nodiscard]] virtual std::optional<std::vector<const ReachabilityExpression *>>
     getReachabilityExpressions(const IR::Node *node) const = 0;
 
-    /// Updates the reachability assignment for the given node.
-    bool virtual updateReachabilityAssignment(const IR::Node *node,
-                                              std::optional<bool> reachability) = 0;
-
     /// Compute reachability for all nodes in the map using the provided control plane constraints.
     std::optional<bool> virtual recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) = 0;
@@ -127,9 +123,6 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
 
     std::optional<std::vector<const ReachabilityExpression *>> getReachabilityExpressions(
         const IR::Node *node) const override;
-
-    bool updateReachabilityAssignment(const IR::Node *node,
-                                      std::optional<bool> reachability) override;
 
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

@@ -97,18 +97,6 @@ Z3SolverReachabilityMap::getReachabilityExpressions(const IR::Node *node) const 
     return std::nullopt;
 }
 
-bool Z3SolverReachabilityMap::updateReachabilityAssignment(const IR::Node *node,
-                                                           std::optional<bool> reachability) {
-    /// FIXME: Do we want to keep this? I cannot find any usage.
-    P4C_UNIMPLEMENTED("This is not implemented since changing to vector");
-    // auto it = find(node);
-    // if (it != end()) {
-    //     it->second.setReachability(reachability);
-    //     return true;
-    // }
-    return false;
-}
-
 std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
