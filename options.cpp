@@ -74,6 +74,14 @@ FlayOptions::FlayOptions(const std::string &message) : AbstractP4cToolOptions(me
         },
         "Use placeholders instead of symbolic variables for entities affected by recirculation or "
         "cloning.");
+    registerOption(
+        "--strict", nullptr,
+        [this](const char *) {
+            strict_ = true;
+            return true;
+        },
+        "In strict mode, Flay will report error upon adding more reachability condition for "
+        "existing nodes");
 }
 
 std::filesystem::path FlayOptions::getControlPlaneConfig() const {
@@ -93,5 +101,7 @@ std::string FlayOptions::getConfigurationUpdatePattern() const {
 }
 
 bool FlayOptions::usePlaceholders() const { return usePlaceholders_; }
+
+bool FlayOptions::isStrict() const { return strict_; }
 
 }  // namespace P4Tools

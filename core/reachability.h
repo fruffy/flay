@@ -63,7 +63,8 @@ class ReachabilityMap
  public:
     /// Initialize the reachability mapping for the given node.
     /// @returns false if the node is already mapped.
-    bool initializeReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
+    bool initializeReachabilityMapping(const IR::Node *node, const IR::Expression *cond,
+                                       bool addIfExist = false);
 
     /// Merge an other reachability map into this reachability map.
     void mergeReachabilityMapping(const ReachabilityMap &otherMap);
