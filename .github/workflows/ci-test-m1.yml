@@ -1,0 +1,68 @@
+name: "test-flay-m1"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+# Cancel any preceding run on the pull request.
+concurrency:
+  group: test-flay-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  # Build and test Flay on M1 Mac.
+  build-and-test-flay-on-mac-m1:
+    name: Build and test Flay on Mac(M1)
+    runs-on: macos-14
+    env:
+      CTEST_PARALLEL_LEVEL: 4
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: test-${{ runner.os }}
+          max-size: 1000M
+
+      - name: Get brew cache dir
+        id: brew-cache
+        run: |
+          echo "dir=$(brew --prefix)" >> $GITHUB_OUTPUT
+
+      - name: Cache Homebrew Packages
+        id: cache-homebrew-packages
+        uses: actions/cache@v4
+        env:
+          cache-name: homebrew-packages
+        with:
+          path: ${{ steps.brew-cache.outputs.dir }}
+          key: ${{ runner.os }}-m1-${{ hashFiles('tools/install_mac_deps.sh') }}
+
+      - name: Pull P4C and link Flay.
+        run: |
+          git clone --recurse-submodules -b fruffy/flay -j2 https://github.com/fruffy/p4c/ $GITHUB_WORKSPACE/../p4c
+          ln -sf $GITHUB_WORKSPACE $GITHUB_WORKSPACE/../p4c/backends/p4tools/modules/
+
+      - name: Install dependencies (MacOS)
+        run: |
+          tools/install_mac_deps.sh
+        working-directory: ../p4c
+
+      - name: Build (MacOS)
+        run: |
+          source ~/.bash_profile
+          ./bootstrap.sh -DENABLE_GC=ON -DCMAKE_BUILD_TYPE=RELEASE \
+              -DCMAKE_UNITY_BUILD=ON -DENABLE_TEST_TOOLS=ON
+          make -C build -j$((`nproc`+1))
+        working-directory: ../p4c
+
+      - name: Run tests (MacOS)
+        run: |
+          source ~/.bash_profile
+          ctest -R flay- --output-on-failure --schedule-random
+        working-directory: ../p4c/build
