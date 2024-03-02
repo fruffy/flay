@@ -71,7 +71,7 @@ class FlayOptions : public AbstractP4cToolOptions {
     bool usePlaceholders_ = false;
 
     /// In strict mode, Flay will report errors instead of warnings for certain unsafe behavior.
-    /// For example,  when adding more than one reachability condition for one IR node. 
+    /// For example, when adding more than one reachability condition for one IR node.
     bool strict_ = false;
 };
 
