@@ -95,13 +95,6 @@ p4tools_add_xfail_reason(
 p4tools_add_xfail_reason(
   "flay-bmv2-v1model"
   "Reachability mapping for node .* already exists"
-  control-hs-index-test2.p4
-  control-hs-index-test3.p4
-  control-hs-index-test4.p4
-  issue1127-bmv2.p4
-  issue2344.p4
-  issue512.p4
-  xor_test.p4
 )
 
 

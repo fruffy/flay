@@ -1,0 +1,3 @@
+Eliminated node at line 19: if (tmp1.a != 10) {
+Eliminated node at line 38: simple_table.apply();
+Eliminated node at line 39: simple_table.apply();

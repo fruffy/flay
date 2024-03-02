@@ -1,0 +1,3 @@
+Eliminated node at line 121: if(hdr.ipv4.isValid()) {
+Eliminated node at line 124: if(hdr.ethernet.isValid()) {
+Eliminated node at line 172: debug.apply();

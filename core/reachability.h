@@ -51,7 +51,8 @@ struct ReachabilityExpression {
 };
 
 /// A mapping of P4C-IR nodes to their associated reachability expressions.
-class ReachabilityMap : protected std::map<const IR::Node *, ReachabilityExpression, SourceIdCmp> {
+class ReachabilityMap
+    : protected std::map<const IR::Node *, std::vector<ReachabilityExpression>, SourceIdCmp> {
     friend class Z3SolverReachabilityMap;
 
  private:
@@ -62,7 +63,8 @@ class ReachabilityMap : protected std::map<const IR::Node *, ReachabilityExpress
  public:
     /// Initialize the reachability mapping for the given node.
     /// @returns false if the node is already mapped.
-    bool initializeReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
+    bool initializeReachabilityMapping(const IR::Node *node, const IR::Expression *cond,
+                                       bool addIfExist = false);
 
     /// Merge an other reachability map into this reachability map.
     void mergeReachabilityMapping(const ReachabilityMap &otherMap);
@@ -86,12 +88,8 @@ class AbstractReachabilityMap {
 
     /// @returns the reachability expression for the given node.
     /// @returns std::nullopt if no expression can be found.
-    [[nodiscard]] virtual std::optional<const ReachabilityExpression *> getReachabilityExpression(
-        const IR::Node *node) const = 0;
-
-    /// Updates the reachability assignment for the given node.
-    bool virtual updateReachabilityAssignment(const IR::Node *node,
-                                              std::optional<bool> reachability) = 0;
+    [[nodiscard]] virtual std::optional<std::vector<const ReachabilityExpression *>>
+    getReachabilityExpressions(const IR::Node *node) const = 0;
 
     /// Compute reachability for all nodes in the map using the provided control plane constraints.
     std::optional<bool> virtual recomputeReachability(
@@ -123,11 +121,8 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
  public:
     explicit SolverReachabilityMap(AbstractSolver &solver, const ReachabilityMap &map);
 
-    std::optional<const ReachabilityExpression *> getReachabilityExpression(
+    std::optional<std::vector<const ReachabilityExpression *>> getReachabilityExpressions(
         const IR::Node *node) const override;
-
-    bool updateReachabilityAssignment(const IR::Node *node,
-                                      std::optional<bool> reachability) override;
 
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

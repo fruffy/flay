@@ -45,6 +45,8 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     [[nodiscard]] bool usePlaceholders() const;
 
+    [[nodiscard]] bool isStrict() const;
+
  protected:
     explicit FlayOptions(
         const std::string &message = "Remove control-plane dead code from a P4 program.");
@@ -67,6 +69,10 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     /// Toggle use of placeholder variables to model recirculated or cloned packets.
     bool usePlaceholders_ = false;
+
+    /// In strict mode, Flay will report errors instead of warnings for certain unsafe behavior.
+    /// For example, when adding more than one reachability condition for one IR node.
+    bool strict_ = false;
 };
 
 }  // namespace P4Tools

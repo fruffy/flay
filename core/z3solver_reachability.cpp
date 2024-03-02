@@ -13,87 +13,88 @@ Z3ReachabilityExpression::Z3ReachabilityExpression(ReachabilityExpression reacha
 const z3::expr &Z3ReachabilityExpression::getZ3Condition() const { return z3Condition; }
 
 std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(const IR::Node *node) {
-    auto it = find(node);
-    if (it == end()) {
+    auto vectorIt = find(node);
+    if (vectorIt == end()) {
         ::error("Reachability mapping for node %1% does not exist.", node);
         return std::nullopt;
     }
-    auto reachabilityCondition = it->second.getZ3Condition();
-    auto reachabilityAssignment = it->second.getReachability();
     bool hasChanged = false;
-    {
-        solver.push();
-        solver.asrt(reachabilityCondition);
-        auto solverResult = solver.checkSat();
-        solver.pop();
-        /// Solver returns unknown, better leave this alone.
-        if (solverResult == std::nullopt) {
-            ::warning("Solver returned unknown result for %1%.", node);
-            return reachabilityAssignment.has_value();
-        }
+    for (auto &it : vectorIt->second) {
+        auto reachabilityCondition = it.getZ3Condition();
+        auto reachabilityAssignment = it.getReachability();
+        {
+            solver.push();
+            solver.asrt(reachabilityCondition);
+            auto solverResult = solver.checkSat();
+            solver.pop();
+            /// Solver returns unknown, better leave this alone.
+            if (solverResult == std::nullopt) {
+                ::warning("Solver returned unknown result for %1%.", node);
+                hasChanged = reachabilityAssignment.has_value();
+                continue;
+            }
 
-        /// There is no way to satisfy the condition. It is always false.
-        if (!solverResult.value()) {
-            it->second.setReachability(false);
-            hasChanged = !reachabilityAssignment.has_value() || reachabilityAssignment.value();
-            return hasChanged;
+            /// There is no way to satisfy the condition. It is always false.
+            if (!solverResult.value()) {
+                it.setReachability(false);
+                hasChanged = !reachabilityAssignment.has_value() || reachabilityAssignment.value();
+                continue;
+            }
+        }
+        {
+            solver.push();
+            solver.asrt(!reachabilityCondition);
+            auto solverResult = solver.checkSat();
+            solver.pop();
+            /// Solver returns unknown, better leave this alone.
+            if (solverResult == std::nullopt) {
+                ::warning("Solver returned unknown result for %1%.", node);
+                hasChanged = reachabilityAssignment.has_value();
+                continue;
+            }
+            /// There is no way to falsify the condition. It is always true.
+            if (!solverResult.value()) {
+                it.setReachability(true);
+                hasChanged = !reachabilityAssignment.has_value() || !reachabilityAssignment.value();
+                continue;
+            }
+
+            if (solverResult.value() && solverResult.value()) {
+                it.setReachability(std::nullopt);
+                hasChanged = reachabilityAssignment.has_value();
+            }
         }
     }
-    {
-        solver.push();
-        solver.asrt(!reachabilityCondition);
-        auto solverResult = solver.checkSat();
-        solver.pop();
-        /// Solver returns unknown, better leave this alone.
-        if (solverResult == std::nullopt) {
-            ::warning("Solver returned unknown result for %1%.", node);
-            return reachabilityAssignment.has_value();
-        }
-        /// There is no way to falsify the condition. It is always true.
-        if (!solverResult.value()) {
-            it->second.setReachability(true);
-            hasChanged = !reachabilityAssignment.has_value() || !reachabilityAssignment.value();
-            return hasChanged;
-        }
-
-        if (solverResult.value() && solverResult.value()) {
-            it->second.setReachability(std::nullopt);
-            hasChanged = reachabilityAssignment.has_value();
-        }
-
-        return hasChanged;
-    }
+    return hasChanged;
 }
 
 Z3SolverReachabilityMap::Z3SolverReachabilityMap(const ReachabilityMap &map)
     : symbolMap(map.getSymbolMap()) {
     Util::ScopedTimer timer("Precomputing Z3 Reachability");
     Z3Translator z3Translator(solver);
-    for (const auto &[node, reachabilityExpression] : map) {
-        reachabilityExpression.getCondition()->apply(z3Translator);
-        this->insert(
-            {node, Z3ReachabilityExpression(reachabilityExpression, z3Translator.getResult())});
+    for (const auto &[node, reachabilityExpressionVector] : map) {
+        std::vector<Z3ReachabilityExpression> result;
+        for (auto &reachabilityExpression : reachabilityExpressionVector) {
+            reachabilityExpression.getCondition()->apply(z3Translator);
+            result.push_back(
+                Z3ReachabilityExpression(reachabilityExpression, z3Translator.getResult()));
+        }
+        this->insert({node, result});
     }
 }
 
-std::optional<const ReachabilityExpression *> Z3SolverReachabilityMap::getReachabilityExpression(
-    const IR::Node *node) const {
-    auto it = find(node);
-    if (it != end()) {
-        return &it->second;
+std::optional<std::vector<const ReachabilityExpression *>>
+Z3SolverReachabilityMap::getReachabilityExpressions(const IR::Node *node) const {
+    auto vectorIt = find(node);
+    if (vectorIt != end()) {
+        BUG_CHECK(!vectorIt->second.empty(), "Reachability vector for node %1% is empty.", node);
+        std::vector<const ReachabilityExpression *> result;
+        for (auto &it : vectorIt->second) {
+            result.push_back(&it);
+        }
+        return result;
     }
-
     return std::nullopt;
-}
-
-bool Z3SolverReachabilityMap::updateReachabilityAssignment(const IR::Node *node,
-                                                           std::optional<bool> reachability) {
-    auto it = find(node);
-    if (it != end()) {
-        it->second.setReachability(reachability);
-        return true;
-    }
-    return false;
 }
 
 std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(

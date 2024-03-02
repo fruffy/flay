@@ -24,7 +24,7 @@ class Z3ReachabilityExpression : public ReachabilityExpression {
 };
 
 class Z3SolverReachabilityMap
-    : private std::map<const IR::Node *, Z3ReachabilityExpression, SourceIdCmp>,
+    : private std::map<const IR::Node *, std::vector<Z3ReachabilityExpression>, SourceIdCmp>,
       public AbstractReachabilityMap {
     /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the
     /// reachability map. This map can we used for incremental re-computation of reachability.
@@ -39,11 +39,8 @@ class Z3SolverReachabilityMap
  public:
     explicit Z3SolverReachabilityMap(const ReachabilityMap &map);
 
-    std::optional<const ReachabilityExpression *> getReachabilityExpression(
+    std::optional<std::vector<const ReachabilityExpression *>> getReachabilityExpressions(
         const IR::Node *node) const override;
-
-    bool updateReachabilityAssignment(const IR::Node *node,
-                                      std::optional<bool> reachability) override;
 
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

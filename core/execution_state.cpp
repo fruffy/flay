@@ -8,6 +8,7 @@
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/simplify_expression.h"
 #include "backends/p4tools/modules/flay/core/substitute_placeholders.h"
+#include "backends/p4tools/modules/flay/options.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
 #include "lib/exceptions.h"
@@ -130,12 +131,13 @@ void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expr
         return;
     }
 
-    if (!reachabilityMap.initializeReachabilityMapping(
-            node, new IR::LAnd(getExecutionCondition(), cond))) {
+    bool isNewNode = reachabilityMap.initializeReachabilityMapping(
+        node, new IR::LAnd(getExecutionCondition(), cond), FlayOptions::get().isStrict());
+    if (!isNewNode && FlayOptions::get().isStrict()) {
         // Throw a fatal error if we try to add a duplicate mapping.
         // This can affect the correctness of the entire mapping.
         BUG("Reachability mapping for node %1% already exists. Every mapping must be uniquely "
-            "identifiable.",
+            "identifiable under strict mode.",
             node);
     }
 }
