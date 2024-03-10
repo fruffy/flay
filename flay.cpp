@@ -67,6 +67,8 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     // These are discovered by CMAKE, which fills out the register.h.in file.
     registerFlayTargets();
 
+    enableInformationLogging();
+
     // Make sure the input result corresponds to the result we expect.
     ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &flayCompilerResult,
                                   compilerResult.to<FlayCompilerResult>(), EXIT_FAILURE,
