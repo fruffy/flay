@@ -42,10 +42,6 @@ jobs:
           git clone --recurse-submodules -b fruffy/flay -j2 https://github.com/fruffy/p4c/ $GITHUB_WORKSPACE/../p4c
           ln -sf $GITHUB_WORKSPACE $GITHUB_WORKSPACE/../p4c/backends/p4tools/modules/
 
-      - name: Install gRPC deps
-        if: ${{ matrix.use_grpc == 'ON' }}
-        run: sudo apt-get install libc-ares-dev libre2-dev # Needed for gRPC.
-
       - name: Build (Ubuntu 22.04)
         run: |
           ENABLE_WERROR=OFF tools/ci-build.sh
