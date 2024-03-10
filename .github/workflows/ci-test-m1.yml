@@ -29,6 +29,12 @@ jobs:
           key: test-${{ runner.os }}
           max-size: 1000M
 
+      - name: Pull P4C and link Flay.
+        run: |
+          git clone --recurse-submodules -b fruffy/flay -j2 https://github.com/fruffy/p4c/ $GITHUB_WORKSPACE/../p4c
+          ln -sf $GITHUB_WORKSPACE $GITHUB_WORKSPACE/../p4c/backends/p4tools/modules/
+          ln -sf $GITHUB_WORKSPACE/../p4c/tools/install_mac_deps.sh $GITHUB_WORKSPACE/install_mac_deps.sh
+
       - name: Get brew cache dir
         id: brew-cache
         run: |
@@ -41,15 +47,12 @@ jobs:
           cache-name: homebrew-packages
         with:
           path: ${{ steps.brew-cache.outputs.dir }}
-          key: ${{ runner.os }}-m1-${{ hashFiles('tools/install_mac_deps.sh') }}
-
-      - name: Pull P4C and link Flay.
-        run: |
-          git clone --recurse-submodules -b fruffy/flay -j2 https://github.com/fruffy/p4c/ $GITHUB_WORKSPACE/../p4c
-          ln -sf $GITHUB_WORKSPACE $GITHUB_WORKSPACE/../p4c/backends/p4tools/modules/
+          key: ${{ runner.os }}-m1-${{ hashFiles('install_mac_deps.sh') }}
 
       - name: Install dependencies (MacOS)
         run: |
+          # TODO: We shouldn't need to do this.
+          python3 -m pip config set global.break-system-packages true
           tools/install_mac_deps.sh
         working-directory: ../p4c
 
