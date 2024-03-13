@@ -9,7 +9,6 @@
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
-#include "ir/node.h"
 #include "ir/solver.h"
 
 namespace P4Tools::Flay {
@@ -21,11 +20,16 @@ using TableKeyReferencePair = std::pair<std::reference_wrapper<const IR::Symboli
                                         std::reference_wrapper<const IR::Literal>>;
 struct IsSemanticallyLessPairComparator {
     bool operator()(const TableKeyPointerPair &s1, const TableKeyPointerPair &s2) const {
-        return s1.first->isSemanticallyLess(*s2.first) || s1.second->isSemanticallyLess(*s2.second);
+        if (!s1.first->equiv(*s2.first)) {
+            return s1.first->isSemanticallyLess(*s2.first);
+        }
+        return s1.second->isSemanticallyLess(*s2.second);
     }
     bool operator()(const TableKeyReferencePair &s1, const TableKeyReferencePair &s2) const {
-        return s1.first.get().isSemanticallyLess(s2.first) ||
-               s1.second.get().isSemanticallyLess(s2.second);
+        if (!s1.first.get().equiv(s2.first)) {
+            return s1.first.get().isSemanticallyLess(s2.first);
+        }
+        return s1.second.get().isSemanticallyLess(s2.second);
     }
 };
 using TableKeySet = std::set<TableKeyReferencePair, IsSemanticallyLessPairComparator>;
