@@ -15,7 +15,7 @@ add_custom_command(
 )
 set(FLAY_GRPC_SOURCES ${P4RUNTIME_GRPC_GEN_SRCS} flay_grpc_service.cpp)
 add_library(flay_grpc STATIC ${FLAY_GRPC_SOURCES})
-target_link_libraries(flay_grpc PUBLIC grpc++)
+target_link_libraries(flay_grpc PUBLIC grpc++ PRIVATE controlplane)
 
 # ##################################################################################################
 # Flay Service Client #
@@ -25,10 +25,13 @@ set(FLAY_GRPC_CLIENT_SOURCES client_main.cpp client_options.cpp flay_client.cpp
 )
 
 set(FLAY_GRPC_CLIENT_LIBS
-    PRIVATE p4ctoolkit
+    PRIVATE
+    p4ctoolkit
     ${LIBGC_LIBRARIES}
-    PRIVATE controlplane
-    PRIVATE grpc++
+    PRIVATE
+    controlplane
+    PRIVATE
+    grpc++
 )
 if(HAVE_LIBBACKTRACE)
   set(FLAY_GRPC_CLIENT_LIBS "${FLAY_GRPC_CLIENT_LIBS};-lbacktrace")
