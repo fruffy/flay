@@ -129,7 +129,7 @@ endforeach()
 # Fill the template
 configure_file(register.h.in register.h)
 
-add_p4tools_library(libflay ${FLAY_SOURCES})
+add_library(libflay STATIC ${FLAY_SOURCES})
 if(P4TOOLS_FLAY_WITH_GRPC)
   target_link_libraries(libflay PUBLIC flay_grpc)
 endif()

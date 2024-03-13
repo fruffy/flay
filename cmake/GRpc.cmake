@@ -18,7 +18,7 @@ set(gRPC_ABSL_PROVIDER "module" CACHE STRING "Provider of abseil library")
 set(ABSL_ROOT_DIR ${absl_SOURCE_DIR} CACHE PATH "Path to abseil")
 
 set(gRPC_ZLIB_PROVIDER "package" CACHE STRING "Provider of zlib library")
-set(gRPC_CARES_PROVIDER "package" CACHE STRING "Provider of c-ares library")
+set(gRPC_CARES_PROVIDER "module" CACHE STRING "Provider of c-ares library")
 set(gRPC_RE2_PROVIDER "module" CACHE STRING "Provider of re2 library")
 set(gRPC_SSL_PROVIDER "package" CACHE STRING "Provider of ssl library")
 set(gRPC_PROTOBUF_PROVIDER "module" CACHE STRING "Provider of protobuf library")

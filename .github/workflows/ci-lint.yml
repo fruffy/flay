@@ -14,8 +14,6 @@ concurrency:
 jobs:
   # Lint Flay on Ubuntu 22.04.
   lint-flay:
-    strategy:
-      fail-fast: false
     runs-on: ubuntu-22.04
     env:
       CTEST_PARALLEL_LEVEL: 4
@@ -34,20 +32,19 @@ jobs:
 
     - name: Build (Ubuntu 22.04)
       run: |
-        sudo apt-get install libc-ares-dev libre2-dev # Needed for gRPC.
         tools/ci-build.sh
       working-directory: ../p4c
 
     - name: Run cpplint on C/C++ files.
-      run: make cpplint
+      run: cmake --build . --target cpplint
       working-directory: ../p4c/build
 
     - name: Run clang-format on C/C++ files.
-      run: make clang-format
+      run: cmake --build . --target clang-format
       working-directory: ../p4c/build
 
     - name: Run black and isort on Python files.
       run: |
-        make black
-        make isort
+        cmake --build . --target black
+        cmake --build . --target isort
       working-directory: ../p4c/build

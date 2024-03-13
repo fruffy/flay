@@ -13,8 +13,8 @@ TableMatchEntry::TableMatchEntry(const Constraint *actionAssignment, int32_t pri
     : actionAssignment(actionAssignment), priority(priority), matchExpression(actionAssignment) {
     // Precompute the match expression in the constructor.
     for (const auto &match : matches) {
-        const auto &symbolicVariable = match.first;
-        const auto &assignment = match.second;
+        const auto &symbolicVariable = match.first.get();
+        const auto &assignment = match.second.get();
         matchExpression =
             new IR::LAnd(matchExpression, new IR::Equ(&symbolicVariable, &assignment));
     }
