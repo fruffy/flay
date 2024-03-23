@@ -29,8 +29,8 @@ add_custom_target(
 # `control_plane` directory
 add_custom_command(
   OUTPUT ${FLAY_P4RUNTIME_INFO_GEN_SRCS} ${FLAY_P4RUNTIME_INFO_GEN_HDRS}
-  COMMAND ${Protobuf_PROTOC_EXECUTABLE} -I${FLAY_P4RUNTIME_DIR} -I ${P4RUNTIME_STD_DIR}
-          -I${P4C_SOURCE_DIR}/control-plane ${PROTOBUF_PROTOC_INCLUDES} --cpp_out
+  COMMAND $<TARGET_FILE:protoc> -I${FLAY_P4RUNTIME_DIR} -I ${P4RUNTIME_STD_DIR}
+          -I${P4C_SOURCE_DIR}/control-plane --proto_path ${Protobuf_INCLUDE_DIR} --cpp_out
           ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf --python_out
           ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf ${FLAY_P4RUNTIME_INFO_PROTO}
   DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO} flay_runtime_dir
@@ -88,10 +88,14 @@ set(FLAY_GTEST_SOURCES # # XXX These should be in a library.
 
 # Flay libraries.
 set(FLAY_LIBS
-    PRIVATE p4tools-control-plane
-    PRIVATE p4tools-common
-    PRIVATE flay_runtime
-    PRIVATE controlplane
+    PRIVATE
+    p4tools-control-plane
+    PRIVATE
+    p4tools-common
+    PRIVATE
+    flay_runtime
+    PRIVATE
+    controlplane
 )
 
 file(GLOB flay_targets RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/targets
