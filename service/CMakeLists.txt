@@ -7,15 +7,15 @@ set(P4RUNTIME_GRPC_GEN_HDRS ${P4RUNTIME_DIR}/p4runtime.grpc.pb.h)
 # Source files for Flay gRPC server.
 add_custom_command(
   OUTPUT ${P4RUNTIME_GRPC_GEN_SRCS} ${P4RUNTIME_GRPC_GEN_HDRS}
-  COMMAND ${Protobuf_PROTOC_EXECUTABLE} -I${P4RUNTIME_STD_DIR} -I${P4C_SOURCE_DIR}/control-plane
-          ${PROTOBUF_PROTOC_INCLUDES} --grpc_out ${P4C_BINARY_DIR}/control-plane
+  COMMAND $<TARGET_FILE:protoc> -I${P4RUNTIME_STD_DIR} -I${P4C_SOURCE_DIR}/control-plane
+          --proto_path ${Protobuf_INCLUDE_DIR} --grpc_out ${P4C_BINARY_DIR}/control-plane
           --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN_EXECUTABLE} ${P4RUNTIME_RT_PROTO}
   DEPENDS ${P4RUNTIME_RT_PROTO} controlplane grpc_cpp_plugin protoc
   COMMENT "Generating Flay gRPC server."
 )
 set(FLAY_GRPC_SOURCES ${P4RUNTIME_GRPC_GEN_SRCS} flay_grpc_service.cpp)
 add_library(flay_grpc STATIC ${FLAY_GRPC_SOURCES})
-target_link_libraries(flay_grpc PUBLIC grpc++ PRIVATE controlplane)
+target_link_libraries(flay_grpc PUBLIC grpc++ PRIVATE controlplane PRIVATE flay_runtime)
 
 # ##################################################################################################
 # Flay Service Client #

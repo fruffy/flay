@@ -158,6 +158,9 @@ std::optional<const IR::Expression *> ExecutionState::getPlaceholderValue(
 }
 
 void ExecutionState::substitutePlaceholders() {
+    if (!FlayOptions::get().usePlaceholders()) {
+        return;
+    }
     Util::ScopedTimer timer("Placeholder Substitution");
     auto substitute = SubstitutePlaceHolders(*this);
     reachabilityMap.substitutePlaceholders(substitute);
