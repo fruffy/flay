@@ -15,7 +15,7 @@ add_custom_command(
 )
 set(FLAY_GRPC_SOURCES ${P4RUNTIME_GRPC_GEN_SRCS} flay_grpc_service.cpp)
 add_library(flay_grpc STATIC ${FLAY_GRPC_SOURCES})
-target_link_libraries(flay_grpc PUBLIC grpc++ PRIVATE controlplane)
+target_link_libraries(flay_grpc PUBLIC grpc++ PRIVATE controlplane PRIVATE flay_runtime)
 
 # ##################################################################################################
 # Flay Service Client #
