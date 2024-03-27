@@ -17,12 +17,13 @@ ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
     : reachabilityMap(reachabilityMap), refMap(refMap) {}
 
 std::optional<bool> ElimDeadCode::getAnyReachability(
-    std::vector<const ReachabilityExpression *> condVector) {
+    const std::vector<const ReachabilityExpression *> &condVector) {
     for (const auto *condition : condVector) {
         auto reachability = condition->getReachability();
         if (!reachability) {
             return std::nullopt;
-        } else if (reachability.value()) {
+        }
+        if (reachability.value()) {
             return true;
         }
     }
@@ -32,6 +33,11 @@ std::optional<bool> ElimDeadCode::getAnyReachability(
 const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     // Only analyze statements with valid source location.
     if (!stmt->srcInfo.isValid()) {
+        return stmt;
+    }
+
+    // Skip if statements within declaration instances for now. These may be registers for example.
+    if (findContext<IR::Declaration_Instance>() != nullptr) {
         return stmt;
     }
 
