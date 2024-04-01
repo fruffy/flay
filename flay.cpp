@@ -59,6 +59,9 @@ std::optional<FlayServiceStatistics> runServiceWrapper(const FlayOptions &flayOp
     }
 
     RETURN_IF_FALSE(serviceWrapper.run() == EXIT_SUCCESS, std::nullopt);
+    if (FlayOptions::get().getOptimizedOutputFile() != std::nullopt) {
+        serviceWrapper.outputOptimizedProgram(FlayOptions::get().getOptimizedOutputFile().value());
+    }
     return serviceWrapper.getFlayServiceStatistics();
 }
 

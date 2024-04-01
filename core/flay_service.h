@@ -114,6 +114,9 @@ class FlayServiceBase {
     /// Print the optimized program to stdout;
     void printoptimizedProgram();
 
+    /// Output the optimized program to file.
+    void outputOptimizedProgram(std::filesystem::path optimizedOutputFile);
+
     static AbstractReachabilityMap &initializeReachabilityMap(
         ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap);
 
@@ -160,6 +163,9 @@ class FlayServiceWrapper {
                        const ControlPlaneConstraints &initialControlPlaneConstraints)
         : flayService(serviceOptions, compilerResult, reachabilityMap,
                       initialControlPlaneConstraints) {}
+
+    /// Output the optimized program to file.
+    void outputOptimizedProgram(std::filesystem::path optimizedOutputFile);
 
     /// Try to parse the provided pattern into update files and convert them to control-plane
     /// updates.
