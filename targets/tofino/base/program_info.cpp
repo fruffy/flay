@@ -20,8 +20,8 @@ TofinoBaseProgramInfo::TofinoBaseProgramInfo(
     ordered_map<cstring, const IR::Type_Declaration *> inputBlocks)
     : ProgramInfo(compilerResult), programmableBlocks(std::move(inputBlocks)) {}
 
-const ordered_map<cstring, const IR::Type_Declaration *>
-    *TofinoBaseProgramInfo::getProgrammableBlocks() const {
+const ordered_map<cstring, const IR::Type_Declaration *> *
+TofinoBaseProgramInfo::getProgrammableBlocks() const {
     return &programmableBlocks;
 }
 

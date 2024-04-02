@@ -44,8 +44,8 @@ Bmv2V1ModelProgramInfo::Bmv2V1ModelProgramInfo(
     }
 }
 
-const ordered_map<cstring, const IR::Type_Declaration *>
-    *Bmv2V1ModelProgramInfo::getProgrammableBlocks() const {
+const ordered_map<cstring, const IR::Type_Declaration *> *
+Bmv2V1ModelProgramInfo::getProgrammableBlocks() const {
     return &programmableBlocks;
 }
 
