@@ -47,6 +47,8 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     [[nodiscard]] bool isStrict() const;
 
+    [[nodiscard]] std::optional<std::filesystem::path> getOptimizedOutputFile() const;
+
  protected:
     explicit FlayOptions(
         const std::string &message = "Remove control-plane dead code from a P4 program.");
@@ -73,6 +75,9 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// In strict mode, Flay will report errors instead of warnings for certain unsafe behavior.
     /// For example, when adding more than one reachability condition for one IR node.
     bool strict_ = false;
+
+    /// The path to the output file of the optimized P4 program.
+    std::optional<std::filesystem::path> optimizedOutputFile_ = std::nullopt;
 };
 
 }  // namespace P4Tools

@@ -3,6 +3,7 @@
 #include <glob.h>
 
 #include <cstdlib>
+#include <fstream>
 #include <optional>
 #include <utility>
 
@@ -10,6 +11,7 @@
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
+#include "backends/p4tools/modules/flay/options.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
@@ -60,6 +62,17 @@ void FlayServiceBase::printoptimizedProgram() {
     optimizedProgram->apply(toP4);
 }
 
+void FlayServiceBase::outputOptimizedProgram(std::filesystem::path optimizedOutputFile) {
+    std::ofstream output(optimizedOutputFile);
+    if (!output.is_open()) {
+        ::error("Could not open file %1% for writing.", optimizedOutputFile.c_str());
+        return;
+    }
+    P4::ToP4 toP4(&output, false);
+    optimizedProgram->apply(toP4);
+    output.close();
+}
+
 const IR::P4Program &FlayServiceBase::getOptimizedProgram() const { return *optimizedProgram; }
 
 const IR::P4Program &FlayServiceBase::getOriginalProgram() const { return originalProgram; }
@@ -104,6 +117,10 @@ std::pair<int, bool> FlayServiceBase::elimControlPlaneDeadCode(
     eliminatedNodes = elimDeadCode.getEliminatedNodes();
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
                                : std::pair{EXIT_FAILURE, hasChanged};
+}
+
+void FlayServiceWrapper::outputOptimizedProgram(std::filesystem::path optimizedOutputFile) {
+    flayService.outputOptimizedProgram(optimizedOutputFile);
 }
 
 std::vector<std::string> FlayServiceWrapper::findFiles(const std::string &pattern) {

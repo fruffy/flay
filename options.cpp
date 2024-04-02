@@ -82,6 +82,13 @@ FlayOptions::FlayOptions(const std::string &message) : AbstractP4cToolOptions(me
         },
         "In strict mode, Flay will report error upon adding more reachability condition for "
         "existing nodes");
+    registerOption(
+        "--optimized-output-file", "optimizedOutputFile",
+        [this](const char *arg) {
+            optimizedOutputFile_ = std::filesystem::path(arg);
+            return true;
+        },
+        "The path to the output file of the optimized P4 program.");
 }
 
 std::filesystem::path FlayOptions::getControlPlaneConfig() const {
@@ -103,5 +110,9 @@ std::string FlayOptions::getConfigurationUpdatePattern() const {
 bool FlayOptions::usePlaceholders() const { return usePlaceholders_; }
 
 bool FlayOptions::isStrict() const { return strict_; }
+
+std::optional<std::filesystem::path> FlayOptions::getOptimizedOutputFile() const {
+    return optimizedOutputFile_;
+}
 
 }  // namespace P4Tools
