@@ -111,6 +111,8 @@ bool FlayOptions::usePlaceholders() const { return usePlaceholders_; }
 
 bool FlayOptions::isStrict() const { return strict_; }
 
-std::optional<std::filesystem::path> FlayOptions::getOptimizedOutputFile() const { return optimizedOutputFile_; }
+std::optional<std::filesystem::path> FlayOptions::getOptimizedOutputFile() const {
+    return optimizedOutputFile_;
+}
 
 }  // namespace P4Tools
