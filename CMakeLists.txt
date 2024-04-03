@@ -14,9 +14,6 @@ set(FLAY_REFERENCE_DRIVER "${flay_BINARY_DIR}/tools/flay_reference_checker")
 # ############### Protobuf generation
 set(FLAY_P4RUNTIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf)
 set(FLAY_P4RUNTIME_INFO_PROTO ${FLAY_P4RUNTIME_DIR}/flaytests.proto)
-set(FLAY_P4RUNTIME_INFO_GEN_SRCS ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf/flaytests.pb.cc)
-set(FLAY_P4RUNTIME_INFO_GEN_HDRS ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf/flaytests.pb.h)
-
 set(P4RUNTIME_DIR ${P4C_BINARY_DIR}/control-plane/p4/v1)
 set(P4RUNTIME_RT_PROTO ${P4RUNTIME_STD_DIR}/p4/v1/p4runtime.proto)
 
@@ -25,27 +22,31 @@ add_custom_target(
                    ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
 )
 
-# Generate source code from .proto using protoc. The output is placed in the build directory inside
-# `control_plane` directory
-add_custom_command(
-  OUTPUT ${FLAY_P4RUNTIME_INFO_GEN_SRCS} ${FLAY_P4RUNTIME_INFO_GEN_HDRS}
-  COMMAND ${Protobuf_PROTOC_EXECUTABLE} -I${FLAY_P4RUNTIME_DIR} -I ${P4RUNTIME_STD_DIR}
-          -I${P4C_SOURCE_DIR}/control-plane --proto_path ${Protobuf_INCLUDE_DIR} --cpp_out
-          ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf --python_out
-          ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf ${FLAY_P4RUNTIME_INFO_PROTO}
-  DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO} flay_runtime_dir
-  COMMENT "Generating Flay Protobuf files."
-)
-
-add_dependencies(flay_runtime_dir controlplane)
-add_library(flay_runtime STATIC ${FLAY_P4RUNTIME_INFO_GEN_SRCS})
+add_library(flay_runtime OBJECT ${FLAY_P4RUNTIME_INFO_PROTO})
+target_include_directories(flay_runtime PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(flay_runtime PRIVATE controlplane)
-
+add_dependencies(flay_runtime flay_runtime_dir)
+protobuf_generate(
+  TARGET flay_runtime
+  LANGUAGE cpp
+  IMPORT_DIRS ${P4RUNTIME_STD_DIR} ${FLAY_P4RUNTIME_DIR} ${Protobuf_INCLUDE_DIRS} ${P4C_SOURCE_DIR}/control-plane
+  PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
+  OUT_VAR P4RUNTIME_GEN_SRCS
+  DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO}
+)
+protobuf_generate(
+  TARGET flay_runtime
+  LANGUAGE python
+  IMPORT_DIRS ${P4RUNTIME_STD_DIR} ${FLAY_P4RUNTIME_DIR} ${Protobuf_INCLUDE_DIRS} ${P4C_SOURCE_DIR}/control-plane
+  PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
+  OUT_VAR FLAY_P4RUNTIME_INFO_GEN_SRCS
+  DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO}
+)
 # Silence various warnings as the root issue is out of our control, example
 # https://github.com/protocolbuffers/protobuf/issues/7140
 set_source_files_properties(
-  ${FLAY_P4RUNTIME_INFO_GEN_SRCS} {$FLAY_P4RUNTIME_INFO_GEN_HDRS}
-  PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-array-bounds -Wno-error"
+  ${FLAY_P4RUNTIME_INFO_GEN_SRCS} PROPERTIES COMPILE_FLAGS
+                                             "-Wno-unused-parameter -Wno-array-bounds -Wno-error"
 )
 
 if(P4TOOLS_FLAY_WITH_GRPC)
@@ -135,14 +136,14 @@ configure_file(register.h.in register.h)
 
 add_library(libflay STATIC ${FLAY_SOURCES})
 if(P4TOOLS_FLAY_WITH_GRPC)
-  target_link_libraries(libflay PUBLIC flay_grpc)
+  target_link_libraries(libflay PUBLIC flay_grpc flay_grpc_service)
 endif()
 target_link_libraries(libflay ${FLAY_LIBS})
 
 add_p4tools_executable(p4flay main.cpp)
 
 target_link_libraries(
-  p4flay PRIVATE libflay ${FLAY_LIBS} ${P4C_LIBRARIES} ${P4C_LIB_DEPS} ${CMAKE_THREAD_LIBS_INIT}
+  p4flay PRIVATE libflay ${FLAY_LIBS} ${P4C_LIBRARIES} ${P4C_LIB_DEPS}
 )
 
 # Add some convenience links for invoking flay.

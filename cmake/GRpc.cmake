@@ -38,6 +38,18 @@ fetchcontent_declare(
   GIT_CONFIG core.shallow-submodules=true
 )
 fetchcontent_makeavailable(gRPC)
+
+# Suppress warnings for all gRPC targets.
+get_all_targets(GRPC_BUILD_TARGETS ${grpc_SOURCE_DIR})
+foreach(target ${GRPC_BUILD_TARGETS})
+    # Do not suppress warnings for Abseil library targets that are aliased.
+    get_target_property(target_type ${target} TYPE)
+    if (NOT ${target_type} STREQUAL "INTERFACE_LIBRARY")
+      set_target_properties(${target} PROPERTIES COMPILE_FLAGS "-Wno-error -w")
+    endif()
+endforeach()
+
+
 # Reset unity builds to the previous state...
 set(CMAKE_UNITY_BUILD ${SAVED_CMAKE_UNITY_BUILD})
 set(FETCHCONTENT_QUIET ${FETCHCONTENT_QUIET_PREV})
