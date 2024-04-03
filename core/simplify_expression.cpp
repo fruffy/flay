@@ -3,6 +3,8 @@
 #include <optional>
 #include <utility>
 
+#include "backends/p4tools/modules/flay/core/collapse_dataplane_variables.h"
+#include "backends/p4tools/modules/flay/options.h"
 #include "frontends/common/constantFolding.h"
 #include "frontends/p4/strengthReduction.h"
 #include "ir/irutils.h"
@@ -177,6 +179,11 @@ const IR::Expression *simplify(const IR::Expression *expr) {
         new FoldMuxConditionDown(),
         new LiftMuxConditions(),
     });
+    if (FlayOptions::get().collapseDataPlaneOperations()) {
+        pass.addPasses({
+            new Flay::DataPlaneVariablePropagator(),
+        });
+    }
     expr = expr->apply(pass);
     BUG_CHECK(::errorCount() == 0, "Encountered errors while trying to simplify expressions.");
     return expr;

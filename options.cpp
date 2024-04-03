@@ -89,6 +89,16 @@ FlayOptions::FlayOptions(const std::string &message) : AbstractP4cToolOptions(me
             return true;
         },
         "The path to the output file of the optimized P4 program.");
+    registerOption(
+        "--preserve-data-plane-variables", nullptr,
+        [this](const char *) {
+            collapseDataPlaneOperations_ = false;
+            return true;
+        },
+        "Preserve arithmetic operations on variables sourced from the data plane (e.g., header "
+        "reads). Flay "
+        "will otherwise collapse these operations only perform live-variable analysis on "
+        "control-plane sourced variables.");
 }
 
 std::filesystem::path FlayOptions::getControlPlaneConfig() const {
@@ -114,5 +124,7 @@ bool FlayOptions::isStrict() const { return strict_; }
 std::optional<std::filesystem::path> FlayOptions::getOptimizedOutputFile() const {
     return optimizedOutputFile_;
 }
+
+bool FlayOptions::collapseDataPlaneOperations() const { return collapseDataPlaneOperations_; }
 
 }  // namespace P4Tools

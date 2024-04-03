@@ -402,18 +402,17 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           // This argument is the structure being written by the extract.
           const auto &extractRef = args->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
           extractRef->type->checkedTo<IR::Type_Header>();
-          const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
           // First, set the validity.
           auto extractLabel =
               externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
-          state.set(headerRefValidity,
-                    ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
+          state.set(ToolsVariables::getHeaderValidity(extractRef),
+                    new IR::DataPlaneVariable(IR::Type_Boolean::get(), extractLabel));
           // Then, set the fields.
           const auto flatFields = state.getFlatFields(extractRef);
           for (const auto &field : flatFields) {
               auto extractFieldLabel = externObjectRef.path->toString() + "_" + methodName + "_" +
                                        extractRef->toString() + "_" + field.toString();
-              state.set(field, ToolsVariables::getSymbolicVariable(field->type, extractFieldLabel));
+              state.set(field, new IR::DataPlaneVariable(field->type, extractFieldLabel));
           }
           return nullptr;
       }},
@@ -428,12 +427,11 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           // This argument is the structure being written by the extract.
           const auto &extractRef = args->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
           extractRef->type->checkedTo<IR::Type_Header>();
-          const auto &headerRefValidity = ToolsVariables::getHeaderValidity(extractRef);
           // First, set the validity.
           auto extractLabel =
               externObjectRef.path->toString() + "_" + methodName + "_" + extractRef->toString();
-          state.set(headerRefValidity,
-                    ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), extractLabel));
+          state.set(ToolsVariables::getHeaderValidity(extractRef),
+                    new IR::DataPlaneVariable(IR::Type_Boolean::get(), extractLabel));
           // Then, set the fields.
           const auto flatFields = state.getFlatFields(extractRef);
           for (const auto &field : flatFields) {
@@ -447,11 +445,10 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
                   assignedType->assignedSize = assignedType->size;
                   auto *typedField = field.clone();
                   typedField->type = assignedType;
-                  state.set(*typedField, ToolsVariables::getSymbolicVariable(typedField->type,
-                                                                             extractFieldLabel));
+                  state.set(*typedField,
+                            new IR::DataPlaneVariable(typedField->type, extractFieldLabel));
               } else {
-                  state.set(field,
-                            ToolsVariables::getSymbolicVariable(field->type, extractFieldLabel));
+                  state.set(field, new IR::DataPlaneVariable(field->type, extractFieldLabel));
               }
           }
           return nullptr;

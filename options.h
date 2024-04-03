@@ -49,6 +49,8 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     [[nodiscard]] std::optional<std::filesystem::path> getOptimizedOutputFile() const;
 
+    [[nodiscard]] bool collapseDataPlaneOperations() const;
+
  protected:
     explicit FlayOptions(
         const std::string &message = "Remove control-plane dead code from a P4 program.");
@@ -78,6 +80,9 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     /// The path to the output file of the optimized P4 program.
     std::optional<std::filesystem::path> optimizedOutputFile_ = std::nullopt;
+
+    /// Collapse arithmetic operations on data plane variables.
+    bool collapseDataPlaneOperations_ = true;
 };
 
 }  // namespace P4Tools
