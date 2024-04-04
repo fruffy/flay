@@ -11,6 +11,14 @@
 #include "ir/irutils.h"
 #include "ir/solver.h"
 
+namespace P4Tools::ControlPlaneState {
+
+/// @returns the symbolic boolean variable indicating whether this particular parser value set has
+/// been configured by the control plane.
+const IR::SymbolicVariable *getParserValueSetConfigured(cstring parserValueSetName);
+
+}  // namespace P4Tools::ControlPlaneState
+
 namespace P4Tools::Flay {
 
 /// The set of concrete mappings of symbolic control plane variables for table match keys.
@@ -96,6 +104,28 @@ class TableConfiguration : public ControlPlaneItem {
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
     DECLARE_TYPEINFO(TableConfiguration);
+};
+
+/// Implements a parser value set as specified in
+/// https://p4.org/p4-spec/docs/P4-16-working-spec.html#sec-value-set.
+/// TODO: Actually implement all the elments in the value set.
+class ParserValueSet : public ControlPlaneItem {
+    cstring name_;
+
+ public:
+    explicit ParserValueSet(cstring name);
+
+    ~ParserValueSet() override = default;
+    ParserValueSet(const ParserValueSet &) = default;
+    ParserValueSet(ParserValueSet &&) = default;
+    ParserValueSet &operator=(const ParserValueSet &) = default;
+    ParserValueSet &operator=(ParserValueSet &&) = default;
+
+    bool operator<(const ControlPlaneItem &other) const override;
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(ParserValueSet);
 };
 
 }  // namespace P4Tools::Flay

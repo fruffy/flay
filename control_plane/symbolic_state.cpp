@@ -167,4 +167,10 @@ bool ControlPlaneStateInitializer::preorder(const IR::P4Table *table) {
     return false;
 }
 
+bool ControlPlaneStateInitializer::preorder(const IR::P4ValueSet *parserValueSet) {
+    defaultConstraints.emplace(parserValueSet->controlPlaneName(),
+                               *new ParserValueSet(parserValueSet->controlPlaneName()));
+    return false;
+}
+
 }  // namespace P4Tools::Flay

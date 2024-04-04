@@ -32,18 +32,7 @@ p4tools_add_xfail_reason(
 p4tools_add_xfail_reason(
   "flay-bmv2-v1model"
   "Unable to find var .* in the symbolic environment"
-  # Most of these are value sets, which we do not support.
-  issue1955.p4 # Unable to find var p1_ipv4_ethertypes/ipv4_ethertypes; in the symbolic environment.
-  pvs-bitstring-bmv2.p4 # Unable to find var pvs_0/pvs; in the symbolic environment.
-  pvs-nested-struct.p4 # Unable to find var pvs_0/pvs; in the symbolic environment.
-  pvs-struct-1-bmv2.p4 # Unable to find var pvs_0/pvs; in the symbolic environment.
-  pvs-struct-2-bmv2.p4 # Unable to find var pvs_0/pvs; in the symbolic environment.
-  pvs-struct-3-bmv2.p4 # Unable to find var pvs_0/pvs; in the symbolic environment.
   union-valid-bmv2.p4 # Unable to find var h.u.*valid; in the symbolic environment.
-  v1model-p4runtime-enumint-types1.p4 # Unable to find var valueset1_0/valueset1; in the symbolic
-                                      # environment.
-  v1model-p4runtime-most-types1.p4 # Unable to find var valueset1_0/valueset1; in the symbolic
-                                   # environment.
   issue3091.p4 # WONTFIX Unable to find var ternary; in the symbolic environment.
 )
 
