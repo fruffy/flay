@@ -63,7 +63,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/control_plane_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/id_to_ir_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/symbolic_state.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/simplify_expression.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/collapse_dataplane_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler_target.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/execution_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/expression_resolver.cpp
@@ -72,6 +72,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/parser_stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/program_info.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/reachability.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/simplify_expression.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/substitute_placeholders.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/symbolic_executor.cpp

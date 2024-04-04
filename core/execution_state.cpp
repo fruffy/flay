@@ -38,8 +38,7 @@ const IR::Expression *ExecutionState::createSymbolicExpression(const IR::Type *i
         }
         if (structType->is<IR::Type_Header>()) {
             cstring labelId = label + "_" + ToolsVariables::VALID;
-            const auto *validity =
-                ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), labelId);
+            const auto *validity = new IR::DataPlaneVariable(IR::Type_Boolean::get(), labelId);
             // TODO: We keep the struct type anonymous because we do not know it.
             return new IR::HeaderExpression(structType, nullptr, fields, validity);
         }
@@ -55,7 +54,7 @@ const IR::Expression *ExecutionState::createSymbolicExpression(const IR::Type *i
         return new IR::HeaderStackExpression(fields, inputType);
     }
     if (resolvedType->is<IR::Type_Base>()) {
-        return ToolsVariables::getSymbolicVariable(resolvedType, label);
+        return new IR::DataPlaneVariable(resolvedType, label);
     }
     P4C_UNIMPLEMENTED("Requesting a symbolic expression for %1% of type %2%", inputType,
                       inputType->node_type_name());

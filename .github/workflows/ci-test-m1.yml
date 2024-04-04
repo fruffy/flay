@@ -18,6 +18,7 @@ jobs:
     runs-on: macos-14
     env:
       CTEST_PARALLEL_LEVEL: 4
+      CMAKE_UNITY_BUILD: ON
     steps:
       - uses: actions/checkout@v3
         with:

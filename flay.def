@@ -24,3 +24,16 @@ class Placeholder : Expression {
 
     dbprint { out << "@" + label +"(" << type << ")@"; }
 }
+
+
+/// Signifies that a particular expression is a variable coming from the data plane.
+class DataPlaneVariable : SymbolicVariable {
+#noconstructor
+
+    /// A data-plane variable always has a type and no source info.
+    DataPlaneVariable(Type type, cstring label) : SymbolicVariable(type, label) {}
+
+    toString { return "@" + label +"(" + type->toString() + ")@"; }
+
+    dbprint { out << "@" + label +"(" << type << ")@"; }
+}
