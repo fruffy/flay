@@ -74,6 +74,7 @@ class ControlPlaneStateInitializer : public Inspector {
 
  private:
     bool preorder(const IR::P4Table *table) override;
+    bool preorder(const IR::P4ValueSet *parserValueSet) override;
 };
 
 }  // namespace P4Tools::Flay

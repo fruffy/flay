@@ -1,7 +1,10 @@
 #include "backends/p4tools/modules/flay/core/parser_stepper.h"
 
+#include <optional>
+
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/common/lib/gen_eq.h"
+#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/declaration.h"
 #include "ir/id.h"
@@ -75,14 +78,16 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
     const IR::Expression *notCond = new IR::BoolLiteral(true);
     std::vector<std::reference_wrapper<const ExecutionState>> accumulatedStates;
     for (const auto *selectCase : selectExpr->selectCases) {
-        // The default label must be last. Always break here.
-        // We handle the default case separately.
+        // The default label must be last. Execute its label.
         if (selectCase->keyset->is<IR::DefaultExpression>()) {
+            const auto *decl =
+                executionState.findDecl(selectCase->state)->checkedTo<IR::ParserState>();
+            decl->apply_visitor_preorder(*this);
             break;
         }
+
         // Actually execute the select expression.
-        const auto *decl =
-            getExecutionState().findDecl(selectCase->state)->checkedTo<IR::ParserState>();
+        const auto *decl = executionState.findDecl(selectCase->state)->checkedTo<IR::ParserState>();
         int declId = decl->clone_id;
         if (executionState.hasVisitedParserId(declId)) {
             P4C_UNIMPLEMENTED(
@@ -90,28 +95,44 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
                 selectCase->state);
             continue;
         }
-        const auto *selectCaseMatchExpr = resolver.computeResult(selectCase->keyset);
+        const IR::Expression *selectCaseMatchExpr = nullptr;
+
+        // We need to handle parser value sets a little differently, because we are converting them
+        // into a struct expression.
+        // We do not resolve the value set in the expression resolver because resolution is only
+        // supported in parser select expressions.
+        std::optional<std::string> parserValueSetName = std::nullopt;
+        if (selectCase->keyset->type->is<IR::Type_Set>() &&
+            selectCase->keyset->is<IR::PathExpression>()) {
+            const auto *p4ValueSet =
+                executionState.findDecl(selectCase->keyset->checkedTo<IR::PathExpression>())
+                    ->checkedTo<IR::P4ValueSet>();
+            // TODO: We should make this an explicit symbolic state variable for control plane
+            // configurations.
+            parserValueSetName = p4ValueSet->controlPlaneName();
+            selectCaseMatchExpr = executionState.createSymbolicExpression(
+                p4ValueSet->elementType, "pvs_" + parserValueSetName.value());
+        } else {
+            selectCaseMatchExpr = resolver.computeResult(selectCase->keyset);
+        }
+
+        const auto *matchCond = GenEq::equate(selectKeyExpr, selectCaseMatchExpr);
+        // If there is a value set it only matches when it is configured.
+        if (parserValueSetName.has_value()) {
+            matchCond = new IR::LAnd(matchCond, ControlPlaneState::getParserValueSetConfigured(
+                                                    parserValueSetName.value()));
+        }
         auto &selectState = executionState.clone();
         selectState.addParserId(declId);
-        const auto *matchCond = GenEq::equate(selectKeyExpr, selectCaseMatchExpr);
         selectState.pushExecutionCondition(new IR::LAnd(notCond, matchCond));
         notCond = new IR::LAnd(notCond, new IR::LNot(matchCond));
         auto subParserStepper =
             ParserStepper(FlayTarget::getStepper(getProgramInfo(), selectState));
         decl->apply(subParserStepper);
-        // Save the state for  later merging.
+        // Save the state for later merging.
         accumulatedStates.emplace_back(selectState);
     }
 
-    // First, run the default label and get the state that would be covered in this case.
-    for (const auto *selectCase : selectExpr->selectCases) {
-        if (selectCase->keyset->is<IR::DefaultExpression>()) {
-            const auto *decl =
-                getExecutionState().findDecl(selectCase->state)->checkedTo<IR::ParserState>();
-            decl->apply_visitor_preorder(*this);
-            break;
-        }
-    }
     // After, merge all the accumulated state.
     for (auto accumulatedState : accumulatedStates) {
         executionState.merge(accumulatedState);

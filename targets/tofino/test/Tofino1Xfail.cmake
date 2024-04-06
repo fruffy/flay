@@ -7,9 +7,8 @@ p4tools_add_xfail_reason(
   "Compiler Bug|Unimplemented compiler support"
   tna_meter_lpf_wred.p4  # Unimplemented extern method: simple_lpf.execute
   tna_mirror.p4  # Unimplemented extern method: mirror.emit
-  tna_pvs.p4  # Unable to find var vs_0/vs; in the symbolic environment.
-  tna_resubmit.p4  # Unable to find var pkt; in the symbolic environment.
-  tna_32q_2pipe.p4  # The Tofno1 architecture requires 6 pipes. Received 12.
+  tna_resubmit.p4  # Unimplemented extern method: resubmit.emit
+  tna_32q_2pipe.p4  # The Tofino1 architecture requires 6 pipes. Received 12.
 )
 
 p4tools_add_xfail_reason(

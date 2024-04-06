@@ -83,21 +83,15 @@ set(FLAY_SOURCES
 )
 
 # GTest source files for P4Flay.
-set(FLAY_GTEST_SOURCES # # XXX These should be in a library.
-    ${P4C_SOURCE_DIR}/test/gtest/helpers.cpp ${P4C_SOURCE_DIR}/test/gtest/gtestp4c.cpp
-    test/core/simplify_expression_test.cpp
+set(FLAY_GTEST_SOURCES
+  ${P4C_SOURCE_DIR}/test/gtest/helpers.cpp
+  ${P4C_SOURCE_DIR}/test/gtest/gtestp4c.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/test/core/simplify_expression_test.cpp
 )
 
 # Flay libraries.
 set(FLAY_LIBS
-    PRIVATE
-    p4tools-control-plane
-    PRIVATE
-    p4tools-common
-    PRIVATE
-    flay_runtime
-    PRIVATE
-    controlplane
+    PRIVATE p4tools-control-plane p4tools-common flay_runtime controlplane ${LIBGC_LIBRARIES}
 )
 
 file(GLOB flay_targets RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/targets
@@ -135,16 +129,16 @@ endforeach()
 # Fill the template
 configure_file(register.h.in register.h)
 
-add_library(libflay STATIC ${FLAY_SOURCES})
+add_library(flay STATIC ${FLAY_SOURCES})
 if(P4TOOLS_FLAY_WITH_GRPC)
-  target_link_libraries(libflay PUBLIC flay_grpc flay_grpc_service)
+  target_link_libraries(flay PUBLIC flay_grpc flay_grpc_service)
 endif()
-target_link_libraries(libflay ${FLAY_LIBS})
+target_link_libraries(flay ${FLAY_LIBS})
 
 add_p4tools_executable(p4flay main.cpp)
 
 target_link_libraries(
-  p4flay PRIVATE libflay ${FLAY_LIBS} ${P4C_LIBRARIES} ${P4C_LIB_DEPS}
+  p4flay PRIVATE flay ${FLAY_LIBS} ${P4C_LIBRARIES} ${P4C_LIB_DEPS}
 )
 
 # Add some convenience links for invoking flay.
@@ -165,7 +159,7 @@ add_subdirectory(tools)
 if(ENABLE_GTESTS)
   add_executable(flay-gtest ${FLAY_GTEST_SOURCES})
   target_link_libraries(
-    flay-gtest PRIVATE libflay PRIVATE gtest ${FLAY_LIBS} ${P4C_LIBRARIES} ${P4C_LIB_DEPS}
+    flay-gtest PRIVATE flay PRIVATE gtest ${FLAY_LIBS} ${P4C_LIBRARIES} ${P4C_LIB_DEPS}
   )
 
   if(ENABLE_TESTING)

@@ -17,7 +17,7 @@ protobuf_generate(
 )
 
 add_library(flay_grpc_service STATIC flay_grpc_service.cpp)
-target_link_libraries(flay_grpc_service PRIVATE grpc++ PRIVATE controlplane)
+target_link_libraries(flay_grpc_service PRIVATE grpc++ PRIVATE controlplane PRIVATE ${LIBGC_LIBRARIES})
 
 # ##################################################################################################
 # Flay Service Client #

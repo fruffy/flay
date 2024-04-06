@@ -4,7 +4,17 @@
 #include <queue>
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
+#include "backends/p4tools/common/lib/variables.h"
 #include "ir/irutils.h"
+
+namespace P4Tools::ControlPlaneState {
+
+const IR::SymbolicVariable *getParserValueSetConfigured(cstring parserValueSetName) {
+    return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(),
+                                               "pvs_configured_" + parserValueSetName);
+}
+
+}  // namespace P4Tools::ControlPlaneState
 
 namespace P4Tools::Flay {
 
@@ -82,6 +92,18 @@ const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const 
     }
 
     return matchExpression;
+}
+
+ParserValueSet::ParserValueSet(cstring name) : name_(name) {}
+
+bool ParserValueSet::operator<(const ControlPlaneItem &other) const {
+    return typeid(*this) == typeid(other) ? name_ < static_cast<const ParserValueSet &>(other).name_
+                                          : typeid(*this).hash_code() < typeid(other).hash_code();
+}
+
+const IR::Expression *ParserValueSet::computeControlPlaneConstraint() const {
+    return new IR::Equ(ControlPlaneState::getParserValueSetConfigured(name_),
+                       IR::getBoolLiteral(false));
 }
 
 }  // namespace P4Tools::Flay
