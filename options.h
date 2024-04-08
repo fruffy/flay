@@ -2,6 +2,7 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_OPTIONS_H_
 
 #include <filesystem>
+#include <optional>
 
 #include "backends/p4tools/common/options.h"
 
@@ -43,13 +44,20 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns the configuration update pattern set with --config-update-pattern.
     [[nodiscard]] std::string getConfigurationUpdatePattern() const;
 
+    /// @returns true when the --use-placeholders option has been set.
     [[nodiscard]] bool usePlaceholders() const;
 
+    /// @returns true when the --strict option has been set.
     [[nodiscard]] bool isStrict() const;
 
+    /// @returns the path set with --optimized-output-file.
     [[nodiscard]] std::optional<std::filesystem::path> getOptimizedOutputFile() const;
 
+    /// @returns false when --preserve-data-plane-variables has been set.
     [[nodiscard]] bool collapseDataPlaneOperations() const;
+
+    /// @returns the path set with --p4-info-file.
+    [[nodiscard]] std::optional<std::string> getP4InfoFilePath() const;
 
  protected:
     explicit FlayOptions(
@@ -83,6 +91,9 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     /// Collapse arithmetic operations on data plane variables.
     bool collapseDataPlaneOperations_ = true;
+
+    // Write the P4Runtime control plane API description to the specified file.
+    std::optional<std::filesystem::path> p4InfoFilePath = std::nullopt;
 };
 
 }  // namespace P4Tools

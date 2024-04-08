@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <functional>
 #include <optional>
-#include <string>
 
 #include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/common/compiler/context.h"
@@ -13,10 +12,13 @@
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/register.h"
+#include "control-plane/p4RuntimeSerializer.h"
+#include "control-plane/p4RuntimeTypes.h"
 #ifdef FLAY_WITH_GRPC
 #include "backends/p4tools/modules/flay/service/flay_grpc_service.h"
 #endif
 #include "lib/error.h"
+#include "lib/nullstream.h"
 
 namespace P4Tools::Flay {
 
@@ -70,12 +72,11 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     // These are discovered by CMAKE, which fills out the register.h.in file.
     registerFlayTargets();
 
-    enableInformationLogging();
-
     // Make sure the input result corresponds to the result we expect.
     ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &flayCompilerResult,
                                   compilerResult.to<FlayCompilerResult>(), EXIT_FAILURE,
                                   ::error("Expected a FlayCompilerResult."));
+
     const auto *programInfo = FlayTarget::produceProgramInfo(compilerResult);
     if (programInfo == nullptr) {
         ::error("Program not supported by target device and architecture.");
@@ -86,6 +87,15 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
         return EXIT_FAILURE;
     }
     const auto &flayOptions = FlayOptions::get();
+
+    if (flayOptions.getP4InfoFilePath().has_value()) {
+        auto *outputFile = openFile(flayOptions.getP4InfoFilePath().value(), true);
+        if (outputFile == nullptr) {
+            return EXIT_FAILURE;
+        }
+        flayCompilerResult.getP4RuntimeApi().serializeP4InfoTo(outputFile,
+                                                               P4::P4RuntimeFormat::TEXT_PROTOBUF);
+    }
 
     printInfo("Computing initial control plane constraints...");
     // Gather the initial control-plane configuration. Also from a file input, if present.

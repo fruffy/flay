@@ -62,7 +62,7 @@ void FlayServiceBase::printoptimizedProgram() {
     optimizedProgram->apply(toP4);
 }
 
-void FlayServiceBase::outputOptimizedProgram(std::filesystem::path optimizedOutputFile) {
+void FlayServiceBase::outputOptimizedProgram(const std::filesystem::path &optimizedOutputFile) {
     std::ofstream output(optimizedOutputFile);
     if (!output.is_open()) {
         ::error("Could not open file %1% for writing.", optimizedOutputFile.c_str());

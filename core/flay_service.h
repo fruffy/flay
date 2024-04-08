@@ -115,7 +115,7 @@ class FlayServiceBase {
     void printoptimizedProgram();
 
     /// Output the optimized program to file.
-    void outputOptimizedProgram(std::filesystem::path optimizedOutputFile);
+    void outputOptimizedProgram(const std::filesystem::path &optimizedOutputFile);
 
     static AbstractReachabilityMap &initializeReachabilityMap(
         ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap);

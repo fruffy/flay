@@ -99,6 +99,17 @@ FlayOptions::FlayOptions(const std::string &message) : AbstractP4cToolOptions(me
         "reads). Flay "
         "will otherwise collapse these operations only perform live-variable analysis on "
         "control-plane sourced variables.");
+    registerOption(
+        "--generate-p4info", "filePath",
+        [this](const char *arg) {
+            p4InfoFilePath = arg;
+            if (p4InfoFilePath.value().extension() != ".txtpb") {
+                ::error("%1% must have a .txtpb extension.", p4InfoFilePath.value().c_str());
+                return false;
+            }
+            return true;
+        },
+        "Write the P4Runtime control plane API description (P4Info) to the specified .txtpb file.");
 }
 
 std::filesystem::path FlayOptions::getControlPlaneConfig() const {
@@ -126,5 +137,7 @@ std::optional<std::filesystem::path> FlayOptions::getOptimizedOutputFile() const
 }
 
 bool FlayOptions::collapseDataPlaneOperations() const { return collapseDataPlaneOperations_; }
+
+std::optional<std::string> FlayOptions::getP4InfoFilePath() const { return p4InfoFilePath; }
 
 }  // namespace P4Tools
