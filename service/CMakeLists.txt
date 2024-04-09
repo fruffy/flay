@@ -11,13 +11,13 @@ protobuf_generate(
   IMPORT_DIRS ${P4RUNTIME_STD_DIR} ${FLAY_P4RUNTIME_DIR} ${Protobuf_INCLUDE_DIRS} ${P4C_SOURCE_DIR}/control-plane
   PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/control-plane
   OUT_VAR FLAY_GRPC_P4RUNTIME_GEN_SRCS
-  DEPENDS ${P4RUNTIME_RT_PROTO}
+  DEPENDS ${P4RUNTIME_RT_PROTO} controlplane
   PLUGIN protoc-gen-grpc=$<TARGET_FILE:grpc_cpp_plugin>
   GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
 )
 
 add_library(flay_grpc_service STATIC flay_grpc_service.cpp)
-target_link_libraries(flay_grpc_service PRIVATE grpc++ PRIVATE controlplane PRIVATE ${LIBGC_LIBRARIES})
+target_link_libraries(flay_grpc_service PRIVATE grpc++ PRIVATE controlplane PRIVATE ${LIBGC_LIBRARIES} PRIVATE flay_grpc)
 
 # ##################################################################################################
 # Flay Service Client #
