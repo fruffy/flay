@@ -120,7 +120,8 @@ std::pair<int, bool> FlayServiceBase::elimControlPlaneDeadCode(
 }
 
 void FlayServiceWrapper::outputOptimizedProgram(std::filesystem::path optimizedOutputFileName) {
-    auto absoluteFilePath = FlayOptions::get().getOptimizedOutputDir().value() / optimizedOutputFileName;
+    auto absoluteFilePath =
+        FlayOptions::get().getOptimizedOutputDir().value() / optimizedOutputFileName;
     flayService.outputOptimizedProgram(absoluteFilePath);
     printInfo("Outputed optimized program to %1%", absoluteFilePath);
 }
@@ -176,7 +177,7 @@ int FlayServiceWrapper::run() {
     if (!controlPlaneUpdates.empty()) {
         printInfo("Processing control plane updates...");
     }
-    for (size_t updateIdx=0; updateIdx < controlPlaneUpdates.size(); updateIdx++) {
+    for (size_t updateIdx = 0; updateIdx < controlPlaneUpdates.size(); updateIdx++) {
         const auto &controlPlaneUpdate = controlPlaneUpdates[updateIdx];
         SymbolSet symbolSet;
         for (const auto &update : controlPlaneUpdate.updates()) {
