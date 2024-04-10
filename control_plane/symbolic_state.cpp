@@ -148,17 +148,53 @@ std::optional<TableEntrySet> ControlPlaneStateInitializer::initializeTableEntrie
     return initialTableEntries;
 }
 
+std::optional<const IR::Expression *> ControlPlaneStateInitializer::computeDefaultActionConstraints(
+    const IR::P4Table *table, const P4::ReferenceMap &refMap) {
+    auto tableName = table->controlPlaneName();
+    const auto *defaultAction = table->getDefaultAction();
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        const auto &actionCall, defaultAction->to<IR::MethodCallExpression>(), std::nullopt,
+        ::error("Action %1% in table %2% is not a method call.", defaultAction, table));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        const auto &methodName, actionCall.method->to<IR::PathExpression>(), std::nullopt,
+        ::error("Action %1% in table %2% is not a path expression.", defaultAction, table));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        auto &decl, refMap.getDeclaration(methodName.path, false), std::nullopt,
+        ::error("Action reference %1% not found in the reference map.", methodName));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(auto &actionDecl, decl.to<IR::P4Action>(), std::nullopt,
+                                  ::error("Action reference %1% is not a P4Action.", methodName));
+
+    const IR::Expression *defaultActionConstraints =
+        new IR::Equ(ControlPlaneState::getTableActionChoice(tableName),
+                    new IR::StringLiteral(IR::Type_String::get(), actionDecl.controlPlaneName()));
+    const auto *arguments = actionCall.arguments;
+    const auto *parameters = actionDecl.parameters;
+    RETURN_IF_FALSE_WITH_MESSAGE(
+        arguments->size() == parameters->parameters.size(), std::nullopt,
+        ::error("Number of arguments does not match number of parameters."));
+
+    for (size_t idx = 0; idx < arguments->size(); ++idx) {
+        const auto *parameter = parameters->parameters.at(idx);
+        const auto *argument = arguments->at(idx);
+        defaultActionConstraints =
+            new IR::LAnd(defaultActionConstraints,
+                         new IR::Equ(ControlPlaneState::getTableActionArgument(
+                                         tableName, actionDecl.controlPlaneName(),
+                                         parameter->controlPlaneName(), parameter->type),
+                                     argument->expression));
+    }
+    return defaultActionConstraints;
+}
+
 bool ControlPlaneStateInitializer::preorder(const IR::P4Table *table) {
     TableUtils::TableProperties properties;
     TableUtils::checkTableImmutability(*table, properties);
     RETURN_IF_FALSE(!properties.tableIsImmutable, false);
-
     auto tableName = table->controlPlaneName();
-    const auto *actionName = TableUtils::getDefaultActionName(*table);
-    auto defaultEntry = TableMatchEntry(
-        new IR::Equ(ControlPlaneState::getTableActionChoice(tableName),
-                    new IR::StringLiteral(IR::Type_String::get(), actionName->path->name.originalName)),
-        0, {});
+
+    ASSIGN_OR_RETURN(auto defaultActionConstraints, computeDefaultActionConstraints(table, refMap_),
+                     false);
+    auto defaultEntry = TableMatchEntry(defaultActionConstraints, 0, {});
 
     ASSIGN_OR_RETURN(auto initialTableEntries, initializeTableEntries(table, refMap_), false);
 

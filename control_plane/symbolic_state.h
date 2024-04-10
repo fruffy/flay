@@ -63,6 +63,11 @@ class ControlPlaneStateInitializer : public Inspector {
     std::optional<TableEntrySet> initializeTableEntries(const IR::P4Table *table,
                                                         const P4::ReferenceMap &refMap);
 
+    /// Compute the constraints imposed by the default action if the table is not configured.
+    /// @returns std::nullopt if an error occurs.
+    std::optional<const IR::Expression *> computeDefaultActionConstraints(
+        const IR::P4Table *table, const P4::ReferenceMap &refMap);
+
  public:
     explicit ControlPlaneStateInitializer(const P4::ReferenceMap &refMap);
 

@@ -46,6 +46,12 @@ class ProtobufDeserializer {
         const p4::v1::FieldMatch &field, cstring tableName,
         const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet);
 
+    /// Retrieve the appropriate symbolic constraint assignments for a field that is not set in the
+    /// message.
+    /// @param symbolSet tracks the symbols used in this conversion.
+    [[nodiscard]] static std::optional<TableKeySet> produceTableMatchForMissingField(
+        cstring tableName, const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet);
+
     /// Convert a P4Runtime TableEntry into a TableMatchEntry.
     /// Returns std::nullopt if the conversion fails.
     /// @param symbolSet tracks the symbols used in this conversion.

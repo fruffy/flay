@@ -52,6 +52,9 @@ class TableMatchEntry : public ControlPlaneItem {
     /// The expression which needs to be true to execute the action.
     const IR::Expression *matchExpression;
 
+    /// Computes an expression from a set of matches.
+    [[nodiscard]] static const IR::Expression *computeMatchExpression(const TableKeySet &matches);
+
  public:
     explicit TableMatchEntry(const Constraint *actionAssignment, int32_t priority,
                              const TableKeySet &matches);

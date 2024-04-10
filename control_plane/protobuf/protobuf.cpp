@@ -59,6 +59,30 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
     return tableKeySet;
 }
 
+std::optional<TableKeySet> ProtobufDeserializer::produceTableMatchForMissingField(
+    cstring tableName, const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet) {
+    TableKeySet tableKeySet;
+    const auto *keyType = IR::getBitType(matchField.bitwidth());
+    const auto *keySymbol = ControlPlaneState::getTableKey(tableName, matchField.name(), keyType);
+    symbolSet.emplace(*keySymbol);
+    switch (matchField.match_type()) {
+        /// We can convert missing ternary and optional fields to 0.
+        case p4::config::v1::MatchField::TERNARY:
+        case p4::config::v1::MatchField::OPTIONAL: {
+            const auto *maskSymbol =
+                ControlPlaneState::getTableTernaryMask(tableName, matchField.name(), keyType);
+            symbolSet.emplace(*maskSymbol);
+            tableKeySet.emplace(*maskSymbol, *IR::getConstant(keyType, 0));
+            break;
+        }
+        default:
+            ::error("Unsupported match type %1%.", matchField.DebugString());
+            return std::nullopt;
+    }
+
+    return tableKeySet;
+}
+
 std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
     const p4::v1::Action &tblAction, cstring tableName, const p4::config::v1::Action &p4Action,
     SymbolSet &symbolSet) {
@@ -112,16 +136,22 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
         tableEntry.match().size() <= p4InfoTable.match_fields().size(), std::nullopt,
         ::error("Table entry %1% has %2% matches, but P4Info has %3%.", tableEntry.DebugString(),
                 tableEntry.match().size(), p4InfoTable.match_fields().size()));
-
+    auto matchMap = std::map<uint32_t, p4::v1::FieldMatch>();
     for (const auto &matchField : tableEntry.match()) {
-        ASSIGN_OR_RETURN(
-            auto &p4InfoMatchField,
-            P4::ControlPlaneAPI::findP4RuntimeMatchField(p4InfoTable, matchField.field_id()),
-            std::nullopt);
-        ASSIGN_OR_RETURN(auto matchSet,
-                         produceTableMatch(matchField, tableName, p4InfoMatchField, symbolSet),
-                         std::nullopt);
+        matchMap.emplace(matchField.field_id(), matchField);
+    }
 
+    for (const auto &p4InfoMatchField : p4InfoTable.match_fields()) {
+        auto matchFieldIt = matchMap.find(p4InfoMatchField.id());
+        std::optional<TableKeySet> matchSetOpt;
+        // If we are missing a match entry, create the dummy entry for supported fields.
+        if (matchFieldIt == matchMap.end()) {
+            matchSetOpt = produceTableMatchForMissingField(tableName, p4InfoMatchField, symbolSet);
+        } else {
+            matchSetOpt =
+                produceTableMatch(matchFieldIt->second, tableName, p4InfoMatchField, symbolSet);
+        }
+        ASSIGN_OR_RETURN(auto matchSet, matchSetOpt, std::nullopt);
         tableKeySet.insert(matchSet.begin(), matchSet.end());
     }
 

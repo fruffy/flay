@@ -20,14 +20,24 @@ namespace P4Tools::Flay {
 
 TableMatchEntry::TableMatchEntry(const Constraint *actionAssignment, int32_t priority,
                                  const TableKeySet &matches)
-    : actionAssignment(actionAssignment), priority(priority), matchExpression(actionAssignment) {
+    : actionAssignment(actionAssignment),
+      priority(priority),
+      matchExpression(computeMatchExpression(matches)) {}
+
+const IR::Expression *TableMatchEntry::computeMatchExpression(const TableKeySet &matches) {
+    const IR::Expression *matchExpression = nullptr;
     // Precompute the match expression in the constructor.
     for (const auto &match : matches) {
         const auto &symbolicVariable = match.first.get();
         const auto &assignment = match.second.get();
-        matchExpression =
-            new IR::LAnd(matchExpression, new IR::Equ(&symbolicVariable, &assignment));
+        if (matchExpression == nullptr) {
+            matchExpression = new IR::Equ(&symbolicVariable, &assignment);
+        } else {
+            matchExpression =
+                new IR::LAnd(matchExpression, new IR::Equ(&symbolicVariable, &assignment));
+        }
     }
+    return matchExpression;
 }
 
 int32_t TableMatchEntry::getPriority() const { return priority; }
@@ -43,6 +53,9 @@ bool TableMatchEntry::operator<(const ControlPlaneItem &other) const {
 }
 
 const IR::Expression *TableMatchEntry::computeControlPlaneConstraint() const {
+    if (matchExpression == nullptr) {
+        return IR::getBoolLiteral(false);
+    }
     return matchExpression;
 }
 
@@ -75,12 +88,11 @@ size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEnt
 }
 
 const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {
-    const IR::Expression *matchExpression = defaultConfig.computeControlPlaneConstraint();
-    const auto *tableActive = new IR::Equ(ControlPlaneState::getTableActive(tableName),
-                                          new IR::BoolLiteral(tableEntries.size() > 0));
-    matchExpression = new IR::LAnd(matchExpression, tableActive);
+    const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(tableName),
+                                              new IR::BoolLiteral(tableEntries.size() > 0));
+    const IR::Expression *matchExpression = defaultConfig.getActionAssignment();
     if (tableEntries.size() == 0) {
-        return matchExpression;
+        return new IR::LAnd(matchExpression, tableConfigured);
     }
     std::priority_queue sortedTableEntries(tableEntries.begin(), tableEntries.end(),
                                            CompareTableMatch());
@@ -91,7 +103,7 @@ const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const 
         sortedTableEntries.pop();
     }
 
-    return matchExpression;
+    return new IR::LAnd(matchExpression, tableConfigured);
 }
 
 ParserValueSet::ParserValueSet(cstring name) : name_(name) {}
