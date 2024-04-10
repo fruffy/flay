@@ -175,7 +175,7 @@ const IR::Expression *simplify(const IR::Expression *expr) {
     // Lifted from frontends/p4/optimizeExpression.
     auto pass = PassRepeated({
         new P4::ConstantFolding(nullptr, nullptr, false),
-        new P4::StrengthReduction(nullptr, nullptr, nullptr),
+        // new P4::StrengthReduction(nullptr, nullptr, nullptr),
         new FoldMuxConditionDown(),
         new LiftMuxConditions(),
     });

@@ -181,14 +181,14 @@ const IR::Node *DataPlaneVariablePropagator::postorder(IR::Operation_Binary *bin
 
 const IR::Node *DataPlaneVariablePropagator::postorder(IR::LAnd *lAnd) {
     if (lAnd->left->is<IR::DataPlaneVariable>() && lAnd->right->is<IR::DataPlaneVariable>()) {
-        return new IR::SymbolicVariable(IR::Type_Boolean::get(), generateRandomString());
+        return getRandomDataPlaneVariable(IR::Type_Boolean::get());
     }
     return lAnd;
 }
 
 const IR::Node *DataPlaneVariablePropagator::postorder(IR::Operation_Relation *relOp) {
     if (hasDataPlaneVariable(relOp->left) || hasDataPlaneVariable(relOp->right)) {
-        return new IR::SymbolicVariable(IR::Type_Boolean::get(), generateRandomString());
+        return getRandomDataPlaneVariable(IR::Type_Boolean::get());
     }
     return relOp;
 }
@@ -214,7 +214,7 @@ const IR::Node *DataPlaneVariablePropagator::preorder(IR::Mux *mux) {
     // massive slowdown for reasons unclear to me.
     prune();
     if (hasDataPlaneVariable(mux->e1) && hasDataPlaneVariable(mux->e2)) {
-        return getRandomDataPlaneVariable(mux->type);
+        return getRandomDataPlaneVariable(mux->e1->type);
     }
     return mux;
 }
