@@ -157,7 +157,7 @@ bool ControlPlaneStateInitializer::preorder(const IR::P4Table *table) {
     const auto *actionName = TableUtils::getDefaultActionName(*table);
     auto defaultEntry = TableMatchEntry(
         new IR::Equ(ControlPlaneState::getTableActionChoice(tableName),
-                    new IR::StringLiteral(IR::Type_String::get(), actionName->path->name)),
+                    new IR::StringLiteral(IR::Type_String::get(), actionName->path->name.originalName)),
         0, {});
 
     ASSIGN_OR_RETURN(auto initialTableEntries, initializeTableEntries(table, refMap_), false);
