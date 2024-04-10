@@ -38,7 +38,7 @@ bool ControlPlaneStateInitializer::computeMatch(const IR::Expression &entryKey,
             ControlPlaneState::getTableMatchLpmPrefix(tableName, fieldName, keyType);
         // TODO: What does default expression mean as a table entry?
         if (entryKey.is<IR::DefaultExpression>()) {
-            keySet.emplace(keySymbol, *IR::getConstant(keyType, 0));
+            // keySet.emplace(keySymbol, *IR::getConstant(keyType, 0));
             keySet.emplace(*lpmPrefixSymbol, *IR::getConstant(keyType, 0));
             return true;
         }
@@ -64,7 +64,7 @@ bool ControlPlaneStateInitializer::computeMatch(const IR::Expression &entryKey,
             ControlPlaneState::getTableTernaryMask(tableName, fieldName, keyType);
         // TODO: What does default expression mean as a table entry?
         if (entryKey.is<IR::DefaultExpression>()) {
-            keySet.emplace(keySymbol, *IR::getConstant(keyType, 0));
+            // keySet.emplace(keySymbol, *IR::getConstant(keyType, 0));
             keySet.emplace(*maskSymbol, *IR::getConstant(keyType, 0));
             return true;
         }
