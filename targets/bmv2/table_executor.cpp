@@ -36,16 +36,18 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
     if (matchType == V1ModelConstants::MATCH_KIND_OPT) {
         // We can recover from taint by simply not adding the optional match.
         // Create a new symbolic variable that corresponds to the key expression.
-        cstring keyName = tableName + "_key_" + fieldName;
-        const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
+        const auto *ctrlPlaneKey =
+            ControlPlaneState::getTableKey(tableName, fieldName, keyExpr->type);
         if (isTainted) {
             return IR::getBoolLiteral(true);
         }
         return new IR::Equ(keyExpr, ctrlPlaneKey);
     }
-    // Action selector entries are not part of the match.
+    // Action selector entries are not part of the match but we still need to create a key.
     if (matchType == V1ModelConstants::MATCH_KIND_SELECTOR) {
-        return IR::getBoolLiteral(true);
+        cstring keyName = tableName + "_selector_" + fieldName;
+        const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
+        return new IR::Equ(keyExpr, ctrlPlaneKey);
     }
     if (matchType == V1ModelConstants::MATCH_KIND_RANGE) {
         // We can recover from taint by matching on the entire possible range.
