@@ -119,8 +119,10 @@ std::pair<int, bool> FlayServiceBase::elimControlPlaneDeadCode(
                                : std::pair{EXIT_FAILURE, hasChanged};
 }
 
-void FlayServiceWrapper::outputOptimizedProgram(std::filesystem::path optimizedOutputFile) {
-    flayService.outputOptimizedProgram(optimizedOutputFile);
+void FlayServiceWrapper::outputOptimizedProgram(std::filesystem::path optimizedOutputFileName) {
+    auto absoluteFilePath = FlayOptions::get().getOptimizedOutputDir().value() / optimizedOutputFileName;
+    flayService.outputOptimizedProgram(absoluteFilePath);
+    printInfo("Outputed optimized program to %1%", absoluteFilePath);
 }
 
 std::vector<std::string> FlayServiceWrapper::findFiles(const std::string &pattern) {
@@ -174,7 +176,8 @@ int FlayServiceWrapper::run() {
     if (!controlPlaneUpdates.empty()) {
         printInfo("Processing control plane updates...");
     }
-    for (const auto &controlPlaneUpdate : controlPlaneUpdates) {
+    for (size_t updateIdx=0; updateIdx < controlPlaneUpdates.size(); updateIdx++) {
+        const auto &controlPlaneUpdate = controlPlaneUpdates[updateIdx];
         SymbolSet symbolSet;
         for (const auto &update : controlPlaneUpdate.updates()) {
             Util::ScopedTimer timer("processWrapperMessage");
@@ -190,6 +193,10 @@ int FlayServiceWrapper::run() {
         if (result.second) {
             recordProgramChange(flayService);
             semanticsChangeCounter++;
+        }
+        if (FlayOptions::get().getOptimizedOutputDir() != std::nullopt) {
+            std::filesystem::path fileName = "optimized." + std::to_string(updateIdx) + ".p4";
+            outputOptimizedProgram(fileName);
         }
     }
 

@@ -83,12 +83,12 @@ FlayOptions::FlayOptions(const std::string &message) : AbstractP4cToolOptions(me
         "In strict mode, Flay will report error upon adding more reachability condition for "
         "existing nodes");
     registerOption(
-        "--optimized-output-file", "optimizedOutputFile",
+        "--optimized-output-dir", "optimizedOutputDir",
         [this](const char *arg) {
-            optimizedOutputFile_ = std::filesystem::path(arg);
+            optimizedOutputDir_ = std::filesystem::path(arg);
             return true;
         },
-        "The path to the output file of the optimized P4 program.");
+        "The path to the output directory of the optimized P4 program(s).");
     registerOption(
         "--preserve-data-plane-variables", nullptr,
         [this](const char *) {
@@ -132,8 +132,8 @@ bool FlayOptions::usePlaceholders() const { return usePlaceholders_; }
 
 bool FlayOptions::isStrict() const { return strict_; }
 
-std::optional<std::filesystem::path> FlayOptions::getOptimizedOutputFile() const {
-    return optimizedOutputFile_;
+std::optional<std::filesystem::path> FlayOptions::getOptimizedOutputDir() const {
+    return optimizedOutputDir_;
 }
 
 bool FlayOptions::collapseDataPlaneOperations() const { return collapseDataPlaneOperations_; }

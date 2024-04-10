@@ -51,7 +51,7 @@ class FlayOptions : public AbstractP4cToolOptions {
     [[nodiscard]] bool isStrict() const;
 
     /// @returns the path set with --optimized-output-file.
-    [[nodiscard]] std::optional<std::filesystem::path> getOptimizedOutputFile() const;
+    [[nodiscard]] std::optional<std::filesystem::path> getOptimizedOutputDir() const;
 
     /// @returns false when --preserve-data-plane-variables has been set.
     [[nodiscard]] bool collapseDataPlaneOperations() const;
@@ -87,7 +87,7 @@ class FlayOptions : public AbstractP4cToolOptions {
     bool strict_ = false;
 
     /// The path to the output file of the optimized P4 program.
-    std::optional<std::filesystem::path> optimizedOutputFile_ = std::nullopt;
+    std::optional<std::filesystem::path> optimizedOutputDir_ = std::nullopt;
 
     /// Collapse arithmetic operations on data plane variables.
     bool collapseDataPlaneOperations_ = true;
