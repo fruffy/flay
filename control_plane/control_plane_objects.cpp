@@ -25,6 +25,9 @@ TableMatchEntry::TableMatchEntry(const Constraint *actionAssignment, int32_t pri
       matchExpression(computeMatchExpression(matches)) {}
 
 const IR::Expression *TableMatchEntry::computeMatchExpression(const TableKeySet &matches) {
+    if (matches.size() == 0) {
+        return IR::getBoolLiteral(false);
+    }
     const IR::Expression *matchExpression = nullptr;
     // Precompute the match expression in the constructor.
     for (const auto &match : matches) {
@@ -53,9 +56,6 @@ bool TableMatchEntry::operator<(const ControlPlaneItem &other) const {
 }
 
 const IR::Expression *TableMatchEntry::computeControlPlaneConstraint() const {
-    if (matchExpression == nullptr) {
-        return IR::getBoolLiteral(false);
-    }
     return matchExpression;
 }
 
