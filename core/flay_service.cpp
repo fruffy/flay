@@ -123,7 +123,7 @@ void FlayServiceWrapper::outputOptimizedProgram(std::filesystem::path optimizedO
     auto absoluteFilePath =
         FlayOptions::get().getOptimizedOutputDir().value() / optimizedOutputFileName;
     flayService.outputOptimizedProgram(absoluteFilePath);
-    printInfo("Outputed optimized program to %1%", absoluteFilePath);
+    printInfo("Wrote optimized program to %1%", absoluteFilePath);
 }
 
 std::vector<std::string> FlayServiceWrapper::findFiles(const std::string &pattern) {
