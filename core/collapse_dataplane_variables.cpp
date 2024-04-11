@@ -30,12 +30,12 @@ const IR::DataPlaneVariable *getRandomDataPlaneVariable(const IR::Type *type) {
 /// These bits are tainted.
 static bitvec computeDataPlaneBits(const IR::Expression *expr) {
     CHECK_NULL(expr);
-    if (expr->is<IR::SymbolicVariable>()) {
-        return {};
-    }
-
     if (expr->is<IR::DataPlaneVariable>()) {
         return {0, static_cast<size_t>(expr->type->width_bits())};
+    }
+
+    if (expr->is<IR::SymbolicVariable>()) {
+        return {};
     }
 
     if (const auto *concatExpr = expr->to<IR::Concat>()) {
@@ -214,7 +214,7 @@ const IR::Node *DataPlaneVariablePropagator::preorder(IR::Mux *mux) {
     // massive slowdown for reasons unclear to me.
     prune();
     if (hasDataPlaneVariable(mux->e1) && hasDataPlaneVariable(mux->e2)) {
-        return getRandomDataPlaneVariable(mux->e1->type);
+        return getRandomDataPlaneVariable(mux->type);
     }
     return mux;
 }
