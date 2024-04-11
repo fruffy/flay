@@ -69,13 +69,15 @@ p4tools_add_xfail_reason(
 
 # When trying to remove dead code we can not find a particular node in the reachability map.
 # Often this happens because the compiler optimizes the expression away and Flay never sees it.
+# TODO: For now, we use a warning, but maybe this should be an error?
 p4tools_add_xfail_reason(
   "flay-bmv2-v1model"
   "error: Unable to find node .* in the reachability map"
-  issue2345-multiple_dependencies.p4
-  issue2345-with_nested_if.p4
-  issue420.p4
-  predication_issue_3.p4
+  # issue2345-multiple_dependencies.p4
+  # issue2345-with_nested_if.p4
+  # issue420.p4
+  # predication_issue_3.p4
+  # dash-pipeline-v1model-bmv2.p4
 )
 
 # We are trying to map a duplicate condition to the reachability map.

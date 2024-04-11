@@ -43,7 +43,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
 
     auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(stmt);
     if (!conditionVectorOpt.has_value()) {
-        ::error(
+        ::warning(
             "Unable to find node %1% in the reachability map of this execution "
             "state. There might "
             "be "
@@ -94,7 +94,7 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
         }
         auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(switchCase);
         if (!conditionVectorOpt.has_value()) {
-            ::error(
+            ::warning(
                 "Unable to find node %1% in the reachability map of this execution state. There "
                 "might be issues with the source information.",
                 switchCase);
@@ -160,7 +160,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
     }
     const auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(member);
     if (!conditionVectorOpt.has_value()) {
-        ::error(
+        ::warning(
             "Unable to find node %1% in the reachability map of this execution state. There "
             "might be issues with the source information.",
             member);
@@ -196,7 +196,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     for (const auto *action : tableActionList) {
         const auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(action);
         if (!conditionVectorOpt.has_value()) {
-            ::error(
+            ::warning(
                 "Unable to find node %1% in the reachability map of this execution state. There "
                 "might be issues with the source information.",
                 action);
