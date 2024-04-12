@@ -167,13 +167,13 @@ TableExecutor::ReturnProperties TableExecutor::processTableActionOptions(
     auto &state = getExecutionState();
 
     // First, we compute the hit condition to trigger this particular action call.
-    const auto *hitCondition = computeKey(key);
+    const auto *hitCondition =
+        new IR::LAnd(ControlPlaneState::getTableActive(table.controlPlaneName()), computeKey(key));
     const auto *actionPath = TableUtils::getDefaultActionName(table);
     /// Pay attention to how we use "toString" for the path name here.
     /// We need to match these choices correctly. TODO: Make this very explicit.
     ReturnProperties retProperties{
-        new IR::LAnd(ControlPlaneState::getTableActive(table.controlPlaneName()), hitCondition),
-        new IR::StringLiteral(IR::Type_String::get(), actionPath->path->toString())};
+        hitCondition, new IR::StringLiteral(IR::Type_String::get(), actionPath->path->toString())};
     for (const auto *action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());

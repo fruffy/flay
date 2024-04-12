@@ -1,8 +1,8 @@
-# Table dash_ingress.appliance
+# Table dash_ingress.metering_update_stage.eni_meter
 updates {
   entity {
     table_entry {
-      table_id: 40418231
+      table_id: 43925284
       # Match field meta.direction
       match {
         field_id: 2
@@ -40,7 +40,7 @@ updates {
   type: MODIFY
   entity {
   table_entry {
-    table_id: 45670434
+    table_id: 44703784
     # Match field hdr.vxlan.vni
     match {
       field_id: 1
@@ -51,7 +51,7 @@ updates {
     # Action dash_ingress.set_outbound_direction
     action {
       action {
-        action_id: 21912829
+        action_id: 17408972
       }
     }
   }
@@ -120,7 +120,7 @@ updates {
   type: MODIFY
   entity {
   table_entry {
-    table_id: 44067785
+    table_id: 44010720
     # Match field meta.eni_id
     match {
       field_id: 1
@@ -146,7 +146,7 @@ updates {
     # Action dash_ingress.outbound.route_vnet
     action {
       action {
-        action_id: 25364446
+        action_id: 21392322
         # Param dst_vnet_id
         params {
           param_id: 1
@@ -203,7 +203,7 @@ updates {
   type: MODIFY
   entity {
   table_entry {
-    table_id: 38547152
+    table_id: 45482818
     # Match field meta.eni_id
     match {
       field_id: 1
@@ -221,7 +221,7 @@ updates {
     # Action dash_ingress.meter_bucket_action
     action {
       action {
-        action_id: 23500411
+        action_id: 21630451
         # Param outbound_bytes_counter
         params {
           param_id: 1

@@ -20,7 +20,7 @@ std::optional<bool> ElimDeadCode::getAnyReachability(
     const std::vector<const ReachabilityExpression *> &condVector) {
     for (const auto *condition : condVector) {
         auto reachability = condition->getReachability();
-        if (!reachability) {
+        if (!reachability.has_value()) {
             return std::nullopt;
         }
         if (reachability.value()) {
@@ -43,7 +43,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
 
     auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(stmt);
     if (!conditionVectorOpt.has_value()) {
-        ::error(
+        ::warning(
             "Unable to find node %1% in the reachability map of this execution "
             "state. There might "
             "be "
@@ -61,7 +61,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     if (reachability.value()) {
         printInfo("%1% true branch will always be executed.", stmt);
         if (stmt->ifFalse != nullptr) {
-            eliminatedNodes.push_back({stmt->ifFalse, nullptr});
+            eliminatedNodes.emplace_back(stmt->ifFalse, nullptr);
         }
         stmt->ifFalse = nullptr;
         return stmt;
@@ -69,11 +69,11 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     stmt->condition = new IR::LNot(stmt->condition);
     if (stmt->ifFalse != nullptr) {
         printInfo("%1% false branch will always be executed.", stmt);
-        eliminatedNodes.push_back({stmt->ifTrue, nullptr});
+        eliminatedNodes.emplace_back(stmt->ifTrue, nullptr);
         stmt->ifTrue = stmt->ifFalse;
     } else {
         printInfo("%1% true branch can be deleted.", stmt);
-        eliminatedNodes.push_back({stmt, nullptr});
+        eliminatedNodes.emplace_back(stmt, nullptr);
         stmt->ifTrue = new IR::EmptyStatement(stmt->getSourceInfo());
     }
     stmt->ifFalse = nullptr;
@@ -94,25 +94,25 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
         }
         auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(switchCase);
         if (!conditionVectorOpt.has_value()) {
-            ::error(
+            ::warning(
                 "Unable to find node %1% in the reachability map of this execution state. There "
                 "might be issues with the source information.",
                 switchCase);
             return switchCase;
         }
-        auto reachabilityOpt = getAnyReachability(conditionVectorOpt.value());
-        if (!reachabilityOpt.has_value()) {
+        auto isreachabilityOpt = getAnyReachability(conditionVectorOpt.value());
+        if (!isreachabilityOpt.has_value()) {
             filteredSwitchCases.push_back(switchCase);
             continue;
         }
-        auto reachability = reachabilityOpt.value();
+        auto reachability = isreachabilityOpt.value();
         if (reachability) {
             filteredSwitchCases.push_back(switchCase);
             printInfo("%1% is always true.", switchCase);
             break;
         }
         printInfo("%1% can be deleted.", switchCase);
-        eliminatedNodes.push_back({switchCase, nullptr});
+        eliminatedNodes.emplace_back(switchCase, nullptr);
     }
     if (filteredSwitchCases.empty()) {
         return new IR::EmptyStatement(switchStmt->getSourceInfo());
@@ -160,7 +160,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
     }
     const auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(member);
     if (!conditionVectorOpt.has_value()) {
-        ::error(
+        ::warning(
             "Unable to find node %1% in the reachability map of this execution state. There "
             "might be issues with the source information.",
             member);
@@ -170,7 +170,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
 
     const auto *result = new IR::BoolLiteral(member->srcInfo, reachability);
     printInfo("%1% can be replaced with %2%.", member, result->toString());
-    eliminatedNodes.push_back({member, nullptr});
+    eliminatedNodes.emplace_back(member, nullptr);
     return result;
 }
 
@@ -196,7 +196,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     for (const auto *action : tableActionList) {
         const auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(action);
         if (!conditionVectorOpt.has_value()) {
-            ::error(
+            ::warning(
                 "Unable to find node %1% in the reachability map of this execution state. There "
                 "might be issues with the source information.",
                 action);
@@ -213,21 +213,21 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     // Action annotated with `@defaultonly` is ignored before. If no action can be reachable
     // based on previous analysis, we replace the apply call to the default action call.
     // Only when the default action has an empty body, we remove the apply.
-    auto *defaultAction = table.getDefaultAction()->to<IR::MethodCallExpression>();
+    const auto *defaultAction = table.getDefaultAction()->to<IR::MethodCallExpression>();
     if (defaultAction != nullptr) {
         auto decl = getActionDecl(refMap, *defaultAction);
         if (decl.has_value() && !decl.value()->body->components.empty()) {
             printInfo("Replacing table apply with default action %1%", defaultAction);
             auto *replacement =
                 new IR::MethodCallStatement(defaultAction->getSourceInfo(), defaultAction);
-            eliminatedNodes.push_back({stmt, replacement});
+            eliminatedNodes.emplace_back(stmt, replacement);
             return replacement;
         }
     }
 
     // There is no action to execute other than an empty action, remove the table.
     printInfo("Removing %1%", stmt);
-    eliminatedNodes.push_back({stmt, nullptr});
+    eliminatedNodes.emplace_back(stmt, nullptr);
     return new IR::EmptyStatement(stmt->getSourceInfo());
 }
 

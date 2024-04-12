@@ -33,30 +33,62 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
     const auto *keyType = IR::getBitType(matchField.bitwidth());
     const auto *keySymbol = ControlPlaneState::getTableKey(tableName, matchField.name(), keyType);
     symbolSet.emplace(*keySymbol);
-    if (field.has_exact()) {
-        auto value = protoValueToBigInt(field.exact().value());
-        tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, value));
-    } else if (field.has_lpm()) {
-        const auto *lpmPrefixSymbol =
-            ControlPlaneState::getTableMatchLpmPrefix(tableName, matchField.name(), keyType);
-        symbolSet.emplace(*lpmPrefixSymbol);
-        auto value = protoValueToBigInt(field.lpm().value());
-        int prefix = field.lpm().prefix_len();
-        tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, value));
-        tableKeySet.emplace(*lpmPrefixSymbol, *IR::getConstant(keyType, prefix));
-    } else if (field.has_ternary()) {
-        const auto *maskSymbol =
-            ControlPlaneState::getTableTernaryMask(tableName, matchField.name(), keyType);
-        symbolSet.emplace(*maskSymbol);
-        auto value = protoValueToBigInt(field.ternary().value());
-        auto mask = protoValueToBigInt(field.ternary().mask());
-        tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, value));
-        tableKeySet.emplace(*maskSymbol, *IR::getConstant(keyType, mask));
-    } else {
-        ::error("Unsupported table match type %1%.", field.DebugString().c_str());
-        return std::nullopt;
+    switch (field.field_match_type_case()) {
+        case p4::v1::FieldMatch::kExact: {
+            auto value = protoValueToBigInt(field.exact().value());
+            tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, value));
+            return tableKeySet;
+        }
+        case p4::v1::FieldMatch::kLpm: {
+            const auto *lpmPrefixSymbol =
+                ControlPlaneState::getTableMatchLpmPrefix(tableName, matchField.name(), keyType);
+            symbolSet.emplace(*lpmPrefixSymbol);
+            auto value = protoValueToBigInt(field.lpm().value());
+            int prefix = field.lpm().prefix_len();
+            tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, value));
+            tableKeySet.emplace(*lpmPrefixSymbol, *IR::getConstant(keyType, prefix));
+            return tableKeySet;
+        }
+        case p4::v1::FieldMatch::kTernary: {
+            const auto *maskSymbol =
+                ControlPlaneState::getTableTernaryMask(tableName, matchField.name(), keyType);
+            symbolSet.emplace(*maskSymbol);
+            auto value = protoValueToBigInt(field.ternary().value());
+            auto mask = protoValueToBigInt(field.ternary().mask());
+            tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, value));
+            tableKeySet.emplace(*maskSymbol, *IR::getConstant(keyType, mask));
+            return tableKeySet;
+        }
+        default:
+            ::error("Unsupported table match type %1%.", field.DebugString().c_str());
     }
-    return tableKeySet;
+    return std::nullopt;
+}
+
+std::optional<TableKeySet> ProtobufDeserializer::produceTableMatchForMissingField(
+    cstring tableName, const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet) {
+    TableKeySet tableKeySet;
+    const auto *keyType = IR::getBitType(matchField.bitwidth());
+    const auto *keySymbol = ControlPlaneState::getTableKey(tableName, matchField.name(), keyType);
+    symbolSet.emplace(*keySymbol);
+    switch (matchField.match_type()) {
+        /// We can convert missing ternary and optional fields to 0.
+        case p4::config::v1::MatchField::TERNARY:
+        case p4::config::v1::MatchField::OPTIONAL: {
+            const auto *keySymbol =
+                ControlPlaneState::getTableKey(tableName, matchField.name(), keyType);
+            const auto *maskSymbol =
+                ControlPlaneState::getTableTernaryMask(tableName, matchField.name(), keyType);
+            symbolSet.emplace(*keySymbol);
+            symbolSet.emplace(*maskSymbol);
+            tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, 0));
+            tableKeySet.emplace(*maskSymbol, *IR::getConstant(keyType, 0));
+            return tableKeySet;
+        }
+        default:
+            ::error("Unsupported match type %1%.", matchField.DebugString());
+    }
+    return std::nullopt;
 }
 
 std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
@@ -112,16 +144,24 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
         tableEntry.match().size() <= p4InfoTable.match_fields().size(), std::nullopt,
         ::error("Table entry %1% has %2% matches, but P4Info has %3%.", tableEntry.DebugString(),
                 tableEntry.match().size(), p4InfoTable.match_fields().size()));
-
+    // Use this map to look up which match fields are present in the control plane entry.
+    // TODO: Cache this somehow?
+    auto matchMap = std::map<uint32_t, p4::v1::FieldMatch>();
     for (const auto &matchField : tableEntry.match()) {
-        ASSIGN_OR_RETURN(
-            auto &p4InfoMatchField,
-            P4::ControlPlaneAPI::findP4RuntimeMatchField(p4InfoTable, matchField.field_id()),
-            std::nullopt);
-        ASSIGN_OR_RETURN(auto matchSet,
-                         produceTableMatch(matchField, tableName, p4InfoMatchField, symbolSet),
-                         std::nullopt);
+        matchMap.emplace(matchField.field_id(), matchField);
+    }
 
+    for (const auto &p4InfoMatchField : p4InfoTable.match_fields()) {
+        auto matchFieldIt = matchMap.find(p4InfoMatchField.id());
+        std::optional<TableKeySet> matchSetOpt;
+        // If we are missing a match entry, create the dummy entry for supported fields.
+        if (matchFieldIt == matchMap.end()) {
+            matchSetOpt = produceTableMatchForMissingField(tableName, p4InfoMatchField, symbolSet);
+        } else {
+            matchSetOpt =
+                produceTableMatch(matchFieldIt->second, tableName, p4InfoMatchField, symbolSet);
+        }
+        ASSIGN_OR_RETURN(auto matchSet, matchSetOpt, std::nullopt);
         tableKeySet.insert(matchSet.begin(), matchSet.end());
     }
 

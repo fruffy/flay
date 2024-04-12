@@ -30,12 +30,12 @@ const IR::DataPlaneVariable *getRandomDataPlaneVariable(const IR::Type *type) {
 /// These bits are tainted.
 static bitvec computeDataPlaneBits(const IR::Expression *expr) {
     CHECK_NULL(expr);
-    if (expr->is<IR::SymbolicVariable>()) {
-        return {};
-    }
-
     if (expr->is<IR::DataPlaneVariable>()) {
         return {0, static_cast<size_t>(expr->type->width_bits())};
+    }
+
+    if (expr->is<IR::SymbolicVariable>()) {
+        return {};
     }
 
     if (const auto *concatExpr = expr->to<IR::Concat>()) {
@@ -181,14 +181,14 @@ const IR::Node *DataPlaneVariablePropagator::postorder(IR::Operation_Binary *bin
 
 const IR::Node *DataPlaneVariablePropagator::postorder(IR::LAnd *lAnd) {
     if (lAnd->left->is<IR::DataPlaneVariable>() && lAnd->right->is<IR::DataPlaneVariable>()) {
-        return new IR::SymbolicVariable(IR::Type_Boolean::get(), generateRandomString());
+        return getRandomDataPlaneVariable(IR::Type_Boolean::get());
     }
     return lAnd;
 }
 
 const IR::Node *DataPlaneVariablePropagator::postorder(IR::Operation_Relation *relOp) {
     if (hasDataPlaneVariable(relOp->left) || hasDataPlaneVariable(relOp->right)) {
-        return new IR::SymbolicVariable(IR::Type_Boolean::get(), generateRandomString());
+        return getRandomDataPlaneVariable(IR::Type_Boolean::get());
     }
     return relOp;
 }

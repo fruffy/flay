@@ -1,29 +1,49 @@
-Eliminated node at line 744: if (meta.is_overlay_ip_v6 == 1) {
-Eliminated node at line 762: if (meta.direction == dash_direction_t.OUTBOUND) {
-Eliminated node at line 833: if (meta.is_overlay_ip_v6 == 1) {
-Eliminated node at line 837: if (meta.is_overlay_ip_v6 == 0) {
-Eliminated node at line 895: if (meta.is_overlay_ip_v6 == 1) {
-Eliminated node at line 545: meta.encap_data.underlay_dip = (underlay_dip == 0 ? meta.encap_data.original_overlay_dip : (IPv4Address)underlay_dip);
-Eliminated node at line 546: meta.encap_data.underlay_sip = (underlay_sip == 0 ? meta.encap_data.original_overlay_sip : (IPv4Address)underlay_sip);
-Eliminated node at line 576: if (use_dst_vnet_vni == 1) {
-Eliminated node at line 665: } else if (packet_action == 1) {
-Eliminated node at line 913: if (vip.apply().hit) {
-Eliminated node at line 913: if (vip.apply().hit) {
-Replaced node at line 919: eni_ether_address_map.apply(); with const default_action = deny;
-Eliminated node at line 924: vxlan_decap_pa_validate: {
-Replaced node at line 951: eni.apply(); with const default_action = deny;
+Eliminated node at line 687: push_action_static_encap(hdr = hdr, meta = meta, encap = dash_encapsulation, vni = tunnel_key, underlay_sip = (underlay_sip == 0 ? hdr.u0_ipv4.src_addr : (IPv4Address)underlay_sip), underlay_dip = (underlay_dip == 0 ? hdr.u0_ipv4.dst_addr : (IPv4Address)underlay_dip), overlay_dmac = hdr.u0_ethernet.dst_addr);
+Eliminated node at line 687: push_action_static_encap(hdr = hdr, meta = meta, encap = dash_encapsulation, vni = tunnel_key, underlay_sip = (underlay_sip == 0 ? hdr.u0_ipv4.src_addr : (IPv4Address)underlay_sip), underlay_dip = (underlay_dip == 0 ? hdr.u0_ipv4.dst_addr : (IPv4Address)underlay_dip), overlay_dmac = hdr.u0_ethernet.dst_addr);
+Eliminated node at line 569: meta.encap_data.vni = (vni == 0 ? meta.encap_data.vni : vni);
+Eliminated node at line 572: meta.encap_data.underlay_sip = (underlay_sip == 0 ? meta.encap_data.underlay_sip : underlay_sip);
+Eliminated node at line 573: meta.encap_data.underlay_dip = (underlay_dip == 0 ? meta.encap_data.underlay_dip : underlay_dip);
+Eliminated node at line 574: meta.overlay_data.dmac = (overlay_dmac == 0 ? meta.overlay_data.dmac : overlay_dmac);
+Eliminated node at line 692: if (use_dst_vnet_vni == 1) {
+Eliminated node at line 569: meta.encap_data.vni = (vni == 0 ? meta.encap_data.vni : vni);
+Eliminated node at line 572: meta.encap_data.underlay_sip = (underlay_sip == 0 ? meta.encap_data.underlay_sip : underlay_sip);
+Eliminated node at line 573: meta.encap_data.underlay_dip = (underlay_dip == 0 ? meta.encap_data.underlay_dip : underlay_dip);
+Eliminated node at line 574: meta.overlay_data.dmac = (overlay_dmac == 0 ? meta.overlay_data.dmac : overlay_dmac);
+Eliminated node at line 569: meta.encap_data.vni = (vni == 0 ? meta.encap_data.vni : vni);
+Eliminated node at line 572: meta.encap_data.underlay_sip = (underlay_sip == 0 ? meta.encap_data.underlay_sip : underlay_sip);
+Eliminated node at line 573: meta.encap_data.underlay_dip = (underlay_dip == 0 ? meta.encap_data.underlay_dip : underlay_dip);
+Eliminated node at line 574: meta.overlay_data.dmac = (overlay_dmac == 0 ? meta.overlay_data.dmac : overlay_dmac);
+Eliminated node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac);
+Eliminated node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac);
+Eliminated node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac);
+Eliminated node at line 1051: if (dash_tunnel_dscp_mode == dash_tunnel_dscp_mode_t.PIPE_MODEL) {
+Eliminated node at line 1056: if (meta.is_overlay_ip_v6 == 1) {
+Eliminated node at line 1074: if (meta.direction == dash_direction_t.OUTBOUND) {
+Eliminated node at line 1134: if (meta.is_overlay_ip_v6 == 1) {
+Eliminated node at line 988: } else if (packet_action == 1) {
+Eliminated node at line 897: if (meta.is_overlay_ip_v6 == 1) {
+Eliminated node at line 901: if (meta.is_overlay_ip_v6 == 0) {
+Eliminated node at line 1152: if (meta.is_fast_path_icmp_flow_redirection_packet) {
+Eliminated node at line 1156: meta.encap_data.underlay_sip = hdr.u0_ipv4.dst_addr;
+Eliminated node at line 1155: if (vip.apply().hit) {
 Eliminated node at line (unknown): 
-Eliminated node at line 457: if (meta.stage1_dash_acl_group_id != 0) {
-Eliminated node at line 467: if (meta.stage2_dash_acl_group_id != 0) {
-Eliminated node at line 477: if (meta.stage3_dash_acl_group_id != 0) {
-Eliminated node at line 636: route_service_tunnel: {
-Eliminated node at line 624: set_tunnel_mapping: {
-Eliminated node at line 629: vxlan_encap(hdr, meta.encap_data.underlay_dmac, meta.encap_data.underlay_smac, meta.encap_data.underlay_dip, meta.encap_data.underlay_sip, meta.encap_data.overlay_dmac, meta.encap_data.vni);
-Eliminated node at line 631: nvgre_encap(hdr, meta.encap_data.underlay_dmac, meta.encap_data.underlay_smac, meta.encap_data.underlay_dip, meta.encap_data.underlay_sip, meta.encap_data.overlay_dmac, meta.encap_data.vni);
+Eliminated node at line 878: if (!eni_ether_address_map.apply().hit) {
+Eliminated node at line 879: if (meta.is_fast_path_icmp_flow_redirection_packet) {
+Eliminated node at line 1170: tunnel_decap_pa_validate: {
+Replaced node at line 1197: eni.apply(); with const default_action = deny;
+Eliminated node at line 1201: if (meta.is_fast_path_icmp_flow_redirection_packet) {
 Eliminated node at line (unknown): 
-Eliminated node at line 457: if (meta.stage1_dash_acl_group_id != 0) {
-Eliminated node at line 467: if (meta.stage2_dash_acl_group_id != 0) {
-Eliminated node at line 477: if (meta.stage3_dash_acl_group_id != 0) {
-Eliminated node at line 963: if (meta.meter_policy_en == 1) {
-Eliminated node at line 969: meta.meter_class = meta.policy_meter_class;
-Eliminated node at line 983: eni_meter.apply();
+Eliminated node at line 533: if (meta.stage1_dash_acl_group_id != 0) {
+Eliminated node at line 543: if (meta.stage2_dash_acl_group_id != 0) {
+Eliminated node at line 553: if (meta.stage3_dash_acl_group_id != 0) {
+Eliminated node at line 762: set_tunnel_mapping: {
+Eliminated node at line (unknown): 
+Eliminated node at line 533: if (meta.stage1_dash_acl_group_id != 0) {
+Eliminated node at line 543: if (meta.stage2_dash_acl_group_id != 0) {
+Eliminated node at line 553: if (meta.stage3_dash_acl_group_id != 0) {
+Eliminated node at line 820: } else if (meta.tunnel_pointer == 1) {
+Eliminated node at line 582: if (meta.tunnel_pointer == 0) {
+Eliminated node at line 587: } else if (meta.encap_data.dash_encapsulation == dash_encapsulation_t.NVGRE) {
+Eliminated node at line 1214: if (meta.eni_data.dscp_mode == dash_tunnel_dscp_mode_t.PIPE_MODEL) {
+Eliminated node at line 957: if (meta.meter_policy_en == 1) {
+Eliminated node at line 963: meta.meter_class = meta.policy_meter_class;

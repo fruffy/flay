@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <optional>
 
+#include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
@@ -45,7 +46,12 @@ bool Bmv2ControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
     }
     if (matchType == V1ModelConstants::MATCH_KIND_OPT) {
         // TODO: What does default expression mean as a table entry?
+        // An optional can either be an exact match or a ternary match.
         if (entryKey.is<IR::DefaultExpression>()) {
+            const auto *maskSymbol =
+                ControlPlaneState::getTableTernaryMask(tableName, fieldName, keySymbol.type);
+            keySet.emplace(keySymbol, *IR::getConstant(keySymbol.type, 0));
+            keySet.emplace(*maskSymbol, *IR::getConstant(keySymbol.type, 0));
             return true;
         }
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,

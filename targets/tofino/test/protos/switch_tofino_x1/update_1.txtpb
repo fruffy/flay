@@ -1,0 +1,58 @@
+updates {
+  entity {
+    # Table pre_ingress_acl
+    table_entry {
+      table_id: 37228837
+      priority: 1
+      # Action pre_ingress_acl_set_vrf
+      action {
+        action {
+          action_id: 18652693
+          # Param vrf
+          params {
+            param_id: 1
+            value: "\x00\x01"
+          }
+        }
+      }
+    }
+  },
+  type: INSERT
+}
+updates {
+  entity {
+    # Table pv_rmac
+    table_entry {
+      table_id: 44143536
+      priority: 1
+      # Action rmac_hit
+      action {
+        action {
+          action_id: 28761423
+        }
+      }
+    }
+  },
+  type: INSERT
+}
+updates {
+  entity {
+    # Table device_to_acl
+    table_entry {
+      table_id: 42969255
+      priority: 1
+      # Action pre_ingress_acl_set_vrf
+      action {
+        action {
+          action_id: 26287449
+          # Param enabled
+          params {
+            param_id: 1
+            value: "\x01"
+          }
+        }
+      }
+    }
+  },
+  type: INSERT
+}
