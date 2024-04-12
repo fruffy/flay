@@ -119,8 +119,11 @@ std::pair<int, bool> FlayServiceBase::elimControlPlaneDeadCode(
                                : std::pair{EXIT_FAILURE, hasChanged};
 }
 
-void FlayServiceWrapper::outputOptimizedProgram(std::filesystem::path optimizedOutputFile) {
-    flayService.outputOptimizedProgram(optimizedOutputFile);
+void FlayServiceWrapper::outputOptimizedProgram(std::filesystem::path optimizedOutputFileName) {
+    auto absoluteFilePath =
+        FlayOptions::get().getOptimizedOutputDir().value() / optimizedOutputFileName;
+    flayService.outputOptimizedProgram(absoluteFilePath);
+    printInfo("Wrote optimized program to %1%", absoluteFilePath);
 }
 
 std::vector<std::string> FlayServiceWrapper::findFiles(const std::string &pattern) {
@@ -148,6 +151,7 @@ int FlayServiceWrapper::parseControlUpdatesFromPattern(const std::string &patter
         if (!entityOpt.has_value()) {
             return EXIT_FAILURE;
         }
+        controlPlaneUpdateFileNames.emplace_back(std::filesystem::path(file).filename());
         controlPlaneUpdates.emplace_back(entityOpt.value());
     }
     return EXIT_SUCCESS;
@@ -168,13 +172,17 @@ int FlayServiceWrapper::run() {
         return EXIT_FAILURE;
     }
     recordProgramChange(flayService);
+    if (FlayOptions::get().getOptimizedOutputDir() != std::nullopt) {
+        outputOptimizedProgram("before_updates.p4");
+    }
 
     /// Keeps track of how often the semantics have changed after an update.
     uint64_t semanticsChangeCounter = 0;
     if (!controlPlaneUpdates.empty()) {
         printInfo("Processing control plane updates...");
     }
-    for (const auto &controlPlaneUpdate : controlPlaneUpdates) {
+    for (size_t updateIdx = 0; updateIdx < controlPlaneUpdates.size(); updateIdx++) {
+        const auto &controlPlaneUpdate = controlPlaneUpdates[updateIdx];
         SymbolSet symbolSet;
         for (const auto &update : controlPlaneUpdate.updates()) {
             Util::ScopedTimer timer("processWrapperMessage");
@@ -190,6 +198,10 @@ int FlayServiceWrapper::run() {
         if (result.second) {
             recordProgramChange(flayService);
             semanticsChangeCounter++;
+        }
+        if (FlayOptions::get().getOptimizedOutputDir() != std::nullopt) {
+            outputOptimizedProgram(std::filesystem::path(controlPlaneUpdateFileNames[updateIdx])
+                                       .replace_extension(".p4"));
         }
     }
 
