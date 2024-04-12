@@ -23,7 +23,6 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
     const auto *keyExpr = keyField->expression;
     const auto matchType = keyField->matchType->toString();
     const auto *nameAnnot = keyField->getAnnotation("name");
-    bool isTainted = false;
     // Some hidden tables do not have any key name annotations.
     BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
               "Non-constant table key without an annotation");
@@ -38,9 +37,6 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
         // Create a new symbolic variable that corresponds to the key expression.
         const auto *ctrlPlaneKey =
             ControlPlaneState::getTableKey(tableName, fieldName, keyExpr->type);
-        if (isTainted) {
-            return IR::getBoolLiteral(true);
-        }
         return new IR::Equ(keyExpr, ctrlPlaneKey);
     }
     // Action selector entries are not part of the match but we still need to create a key.
@@ -53,16 +49,10 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
         // We can recover from taint by matching on the entire possible range.
         const IR::Expression *minKey = nullptr;
         const IR::Expression *maxKey = nullptr;
-        if (isTainted) {
-            minKey = IR::getConstant(keyExpr->type, 0);
-            maxKey = IR::getConstant(keyExpr->type, IR::getMaxBvVal(keyExpr->type));
-            keyExpr = minKey;
-        } else {
-            auto symbolicTableRange =
-                Bmv2ControlPlaneState::getTableRange(tableName, fieldName, keyExpr->type);
-            minKey = symbolicTableRange.first;
-            maxKey = symbolicTableRange.second;
-        }
+        auto symbolicTableRange =
+            Bmv2ControlPlaneState::getTableRange(tableName, fieldName, keyExpr->type);
+        minKey = symbolicTableRange.first;
+        maxKey = symbolicTableRange.second;
         return new IR::LAnd(new IR::LAnd(new IR::Lss(minKey, maxKey), new IR::Leq(minKey, keyExpr)),
                             new IR::Leq(keyExpr, maxKey));
     }

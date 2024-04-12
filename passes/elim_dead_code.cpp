@@ -5,7 +5,6 @@
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/modules/flay/control_plane/util.h"
-#include "ir/ir-generated.h"
 #include "ir/node.h"
 #include "ir/vector.h"
 #include "lib/error.h"
@@ -168,7 +167,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
     }
     ASSIGN_OR_RETURN(auto reachability, getAnyReachability(conditionVectorOpt.value()), member);
 
-    const auto *result = new IR::BoolLiteral(member->srcInfo, reachability);
+    const auto *result = IR::getBoolLiteral(reachability, member->srcInfo);
     printInfo("%1% can be replaced with %2%.", member, result->toString());
     eliminatedNodes.emplace_back(member, nullptr);
     return result;

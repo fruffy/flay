@@ -75,7 +75,7 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
     auto &resolver = stepper.get().createExpressionResolver(getProgramInfo(), getExecutionState());
     const auto *selectKeyExpr = resolver.computeResult(selectExpr->select);
 
-    const IR::Expression *notCond = new IR::BoolLiteral(true);
+    const IR::Expression *notCond = nullptr;
     std::vector<std::reference_wrapper<const ExecutionState>> accumulatedStates;
     for (const auto *selectCase : selectExpr->selectCases) {
         // The default label must be last. Execute its label.
@@ -124,8 +124,13 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
         }
         auto &selectState = executionState.clone();
         selectState.addParserId(declId);
-        selectState.pushExecutionCondition(new IR::LAnd(notCond, matchCond));
-        notCond = new IR::LAnd(notCond, new IR::LNot(matchCond));
+        if (notCond == nullptr) {
+            selectState.pushExecutionCondition(matchCond);
+            notCond = new IR::LNot(matchCond);
+        } else {
+            selectState.pushExecutionCondition(new IR::LAnd(notCond, matchCond));
+            notCond = new IR::LAnd(notCond, new IR::LNot(matchCond));
+        }
         auto subParserStepper =
             ParserStepper(FlayTarget::getStepper(getProgramInfo(), selectState));
         decl->apply(subParserStepper);

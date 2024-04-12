@@ -7,7 +7,6 @@
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
-#include "ir/ir-generated.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay::V1Model {

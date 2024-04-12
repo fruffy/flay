@@ -155,7 +155,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
     auto &resolver = createExpressionResolver(programInfo, executionState);
     const auto *switchExpr = resolver.computeResult(switchStatement->expression);
 
-    const IR::Expression *cond = IR::getBoolLiteral(false);
+    const IR::Expression *cond = nullptr;
     std::vector<const IR::SwitchCase *> accumulatedSwitchCases;
     std::vector<const IR::Expression *> notConds;
     std::vector<std::reference_wrapper<const ExecutionState>> accumulatedStates;
@@ -171,7 +171,11 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             const auto *path = switchCaseLabel->checkedTo<IR::PathExpression>();
             switchCaseLabel = new IR::StringLiteral(IR::Type_String::get(), path->path->toString());
         }
-        cond = new IR::LOr(cond, new IR::Equ(switchExpr, switchCaseLabel));
+        if (cond == nullptr) {
+            cond = new IR::Equ(switchExpr, switchCaseLabel);
+        } else {
+            cond = new IR::LOr(cond, new IR::Equ(switchExpr, switchCaseLabel));
+        }
         // We fall through, so add the statements to execute to a list.
         accumulatedSwitchCases.push_back(switchCase);
         // Nothing to do with this statement. Fall through to the next case.
