@@ -18,7 +18,7 @@
 namespace P4Tools::Flay {
 
 ExecutionState::ExecutionState(const IR::P4Program *program)
-    : AbstractExecutionState(program), executionCondition(IR::getBoolLiteral(true)) {}
+    : AbstractExecutionState(program), executionCondition(nullptr) {}
 
 const IR::PathExpression ExecutionState::PLACEHOLDER_LABEL = IR::PathExpression("*placeholder");
 
@@ -83,10 +83,16 @@ bool ExecutionState::hasVisitedParserId(int parserId) const {
  *  State merging and execution conditions.
  * ============================================================================================= */
 
-const IR::Expression *ExecutionState::getExecutionCondition() const { return executionCondition; }
+const IR::Expression *ExecutionState::getExecutionCondition() const {
+    return (executionCondition != nullptr) ? executionCondition : IR::getBoolLiteral(true);
+}
 
 void ExecutionState::pushExecutionCondition(const IR::Expression *cond) {
-    executionCondition = SimplifyExpression::simplify(new IR::LAnd(executionCondition, cond));
+    if (executionCondition == nullptr) {
+        executionCondition = cond;
+    } else {
+        executionCondition = SimplifyExpression::simplify(new IR::LAnd(executionCondition, cond));
+    }
 }
 
 void ExecutionState::merge(const ExecutionState &mergeState) {

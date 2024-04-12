@@ -89,7 +89,7 @@ size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEnt
 
 const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {
     const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(tableName),
-                                              new IR::BoolLiteral(tableEntries.size() > 0));
+                                              IR::getBoolLiteral(tableEntries.size() > 0));
     const IR::Expression *matchExpression = defaultConfig.getActionAssignment();
     if (tableEntries.size() == 0) {
         return new IR::LAnd(matchExpression, tableConfigured);

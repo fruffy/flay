@@ -10,7 +10,6 @@
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/targets/tofino/tofino1/program_info.h"
 #include "backends/p4tools/modules/flay/targets/tofino/tofino1/stepper.h"
-#include "ir/ir-generated.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"

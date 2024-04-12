@@ -61,10 +61,17 @@ const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
 }
 
 const IR::Expression *TableExecutor::computeKey(const IR::Key *key) const {
-    const IR::Expression *hitCondition = IR::getBoolLiteral(true);
+    if (key->keyElements.empty()) {
+        return IR::getBoolLiteral(false);
+    }
+    const IR::Expression *hitCondition = nullptr;
     for (const auto *keyField : key->keyElements) {
         const auto *matchExpr = computeTargetMatchType(keyField);
-        hitCondition = new IR::LAnd(hitCondition, matchExpr);
+        if (hitCondition == nullptr) {
+            hitCondition = matchExpr;
+        } else {
+            hitCondition = new IR::LAnd(hitCondition, matchExpr);
+        }
     }
     return hitCondition;
 }
@@ -74,7 +81,6 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
     const auto *keyExpr = keyField->expression;
     const auto matchType = keyField->matchType->toString();
     const auto *nameAnnot = keyField->getAnnotation("name");
-    bool isTainted = false;
     // Some hidden tables do not have any key name annotations.
     BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
               "Non-constant table key without an annotation");
@@ -90,14 +96,7 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
     }
     if (matchType == P4Constants::MATCH_KIND_TERNARY) {
         const IR::Expression *ternaryMask = nullptr;
-        // We can recover from taint by inserting a ternary match that is 0.
-        if (isTainted) {
-            ternaryMask = IR::getConstant(keyExpr->type, 0);
-            keyExpr = ternaryMask;
-        } else {
-            ternaryMask =
-                ControlPlaneState::getTableTernaryMask(tableName, fieldName, keyExpr->type);
-        }
+        ternaryMask = ControlPlaneState::getTableTernaryMask(tableName, fieldName, keyExpr->type);
         return new IR::Equ(new IR::BAnd(keyExpr, ternaryMask),
                            new IR::BAnd(ctrlPlaneKey, ternaryMask));
     }
@@ -111,14 +110,7 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
         auto maxReturn = IR::getMaxBvVal(keyWidth);
         auto *prefix = new IR::Sub(IR::getConstant(keyType, keyWidth), maskVar);
         const IR::Expression *lpmMask = nullptr;
-        // We can recover from taint by inserting a ternary match that is 0.
-        if (isTainted) {
-            lpmMask = IR::getConstant(keyExpr->type, 0);
-            maskVar = lpmMask;
-            keyExpr = lpmMask;
-        } else {
-            lpmMask = new IR::Shl(IR::getConstant(keyType, maxReturn), prefix);
-        }
+        lpmMask = new IR::Shl(IR::getConstant(keyType, maxReturn), prefix);
         return new IR::LAnd(
             // This is the actual LPM match under the shifted mask (the prefix).
             new IR::Leq(maskVar, IR::getConstant(keyType, keyWidth)),
@@ -292,8 +284,8 @@ const IR::Expression *TableExecutor::processTable() {
         const auto *actionPath = TableUtils::getDefaultActionName(getP4Table());
         return new IR::StructExpression(
             nullptr,
-            {new IR::NamedExpression("hit", new IR::BoolLiteral(false)),
-             new IR::NamedExpression("miss", new IR::BoolLiteral(true)),
+            {new IR::NamedExpression("hit", IR::getBoolLiteral(false)),
+             new IR::NamedExpression("miss", IR::getBoolLiteral(true)),
              new IR::NamedExpression("action_run", new IR::StringLiteral(IR::Type_String::get(),
                                                                          actionPath->toString())),
              new IR::NamedExpression("table_name",
