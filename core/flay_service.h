@@ -148,6 +148,7 @@ struct FlayServiceStatistics {
 /// Wrapper class to simplify benchmarking and the collection of statics.
 class FlayServiceWrapper {
     /// The series of control plane updates which is applied after Flay service has started.
+    std::vector<std::string> controlPlaneUpdateFileNames;
     std::vector<p4::v1::WriteRequest> controlPlaneUpdates;
 
  private:

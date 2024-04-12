@@ -151,6 +151,7 @@ int FlayServiceWrapper::parseControlUpdatesFromPattern(const std::string &patter
         if (!entityOpt.has_value()) {
             return EXIT_FAILURE;
         }
+        controlPlaneUpdateFileNames.emplace_back(std::filesystem::path(file).filename());
         controlPlaneUpdates.emplace_back(entityOpt.value());
     }
     return EXIT_SUCCESS;
@@ -171,6 +172,9 @@ int FlayServiceWrapper::run() {
         return EXIT_FAILURE;
     }
     recordProgramChange(flayService);
+    if (FlayOptions::get().getOptimizedOutputDir() != std::nullopt) {
+        outputOptimizedProgram("before_updates.p4");
+    }
 
     /// Keeps track of how often the semantics have changed after an update.
     uint64_t semanticsChangeCounter = 0;
@@ -196,8 +200,8 @@ int FlayServiceWrapper::run() {
             semanticsChangeCounter++;
         }
         if (FlayOptions::get().getOptimizedOutputDir() != std::nullopt) {
-            std::filesystem::path fileName = "optimized." + std::to_string(updateIdx) + ".p4";
-            outputOptimizedProgram(fileName);
+            outputOptimizedProgram(std::filesystem::path(controlPlaneUpdateFileNames[updateIdx])
+                                       .replace_extension(".p4"));
         }
     }
 
