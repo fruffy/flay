@@ -1,0 +1,17 @@
+Eliminated node at line 507: tb_lookup_0_0_t.apply();
+Eliminated node at line 508: tb_lookup_0_1_t.apply();
+Eliminated node at line 509: tb_lookup_0_2_t.apply();
+Eliminated node at line 510: tb_lookup_0_3_t.apply();
+Eliminated node at line 511: tb_lookup_1_0_t.apply();
+Eliminated node at line 512: tb_lookup_1_1_t.apply();
+Eliminated node at line 513: tb_lookup_1_2_t.apply();
+Eliminated node at line 514: tb_lookup_1_3_t.apply();
+Eliminated node at line 515: tb_lookup_2_0_t.apply();
+Eliminated node at line 516: tb_lookup_2_1_t.apply();
+Eliminated node at line 517: tb_lookup_2_2_t.apply();
+Eliminated node at line 518: tb_lookup_2_3_t.apply();
+Eliminated node at line 519: tb_lookup_3_0_t.apply();
+Eliminated node at line 520: tb_lookup_3_1_t.apply();
+Eliminated node at line 521: tb_lookup_3_2_t.apply();
+Eliminated node at line 522: tb_lookup_3_3_t.apply();
+Replaced node at line 533: tb_recirc_decision.apply(); with default_action = do_not_recirc;

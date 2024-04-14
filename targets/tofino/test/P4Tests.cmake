@@ -42,3 +42,6 @@ p4tools_add_tests(
 
 # Include the list of failing tests.
 include(${CMAKE_CURRENT_LIST_DIR}/Tofino1Xfail.cmake)
+
+# Research projects using Tofino.
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/programs/research)
