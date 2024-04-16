@@ -184,9 +184,20 @@ void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tabl
             // Synthesize a variable constant here that corresponds to a control plane argument.
             // We get the unique name of the table coupled with the unique name of the action.
             // Getting the unique name is needed to avoid generating duplicate arguments.
-            const auto *actionArg = ControlPlaneState::getTableActionArgument(
-                getP4Table().controlPlaneName(), actionName,
-                parameter->controlPlaneName() + "_default", parameter->type);
+            const IR::Expression *actionArg = nullptr;
+            // TODO: This boolean cast hack is only necessary because the P4Info does not contain
+            // type information. Is there any way we can simplify this?
+            if (parameter->type->is<IR::Type_Boolean>()) {
+                actionArg = ControlPlaneState::getTableActionArgument(
+                    getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
+                    IR::getBitType(1));
+                actionArg = new IR::Equ(actionArg, new IR::Constant(IR::getBitType(1), 1));
+            } else {
+                actionArg = ControlPlaneState::getTableActionArgument(
+                    getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
+                    parameter->type);
+            }
+
             arguments.push_back(new IR::Argument(actionArg));
         }
         state.addReachabilityMapping(action, actionHitCondition);
@@ -226,9 +237,19 @@ void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnPrope
             // Synthesize a variable constant here that corresponds to a control plane argument.
             // We get the unique name of the table coupled with the unique name of the action.
             // Getting the unique name is needed to avoid generating duplicate arguments.
-            const auto *actionArg = ControlPlaneState::getTableActionArgument(
-                getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
-                parameter->type);
+            const IR::Expression *actionArg = nullptr;
+            // TODO: This boolean cast hack is only necessary because the P4Info does not contain
+            // type information. Is there any way we can simplify this?
+            if (parameter->type->is<IR::Type_Boolean>()) {
+                actionArg = ControlPlaneState::getTableActionArgument(
+                    getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
+                    IR::getBitType(1));
+                actionArg = new IR::Equ(actionArg, new IR::Constant(IR::getBitType(1), 1));
+            } else {
+                actionArg = ControlPlaneState::getTableActionArgument(
+                    getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
+                    parameter->type);
+            }
             arguments.push_back(new IR::Argument(actionArg));
         }
         state.addReachabilityMapping(action, actionHitCondition);

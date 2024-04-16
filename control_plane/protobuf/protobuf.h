@@ -37,7 +37,7 @@ class ProtobufDeserializer {
     /// assignments.
     [[nodiscard]] static std::optional<const IR::Expression *> convertTableAction(
         const p4::v1::Action &tblAction, cstring tableName, const p4::config::v1::Action &p4Action,
-        SymbolSet &symbolSet);
+        SymbolSet &symbolSet, bool isDefaultAction);
 
     /// Convert a P4Runtime FieldMatch into the appropriate symbolic constraint
     /// assignments.

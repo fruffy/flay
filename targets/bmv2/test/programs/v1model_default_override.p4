@@ -54,8 +54,8 @@ control ingress(inout Headers h, inout local_metadata_t local_metadata, inout st
     // Ensure ACL on L3 headers.
     bool check_l3 = false;
 
-    action check() {
-        check_l3 = true;
+    action check(bool do_check_l3) {
+        check_l3 = do_check_l3;
     }
 
     table toggle_check {
@@ -70,9 +70,7 @@ control ingress(inout Headers h, inout local_metadata_t local_metadata, inout st
     }
 
     apply {
-        if (h.ethernet.isValid()) {
-            toggle_check.apply();
-        }
+        toggle_check.apply();
 
         if (check_l3) {
             mark_to_drop(s);

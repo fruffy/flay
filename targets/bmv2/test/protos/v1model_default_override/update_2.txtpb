@@ -10,7 +10,7 @@ updates {
           # Param do_check_l3
           params {
             param_id: 1
-            value: "\x01"
+            value: "\x00"
           }
         }
       }

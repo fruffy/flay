@@ -93,8 +93,14 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatchForMissingFiel
 
 std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
     const p4::v1::Action &tblAction, cstring tableName, const p4::config::v1::Action &p4Action,
-    SymbolSet &symbolSet) {
-    const auto *tableActionID = ControlPlaneState::getTableActionChoice(tableName);
+    SymbolSet &symbolSet, bool isDefaultAction) {
+    const IR::SymbolicVariable *tableActionID = nullptr;
+    if (isDefaultAction) {
+        tableActionID =
+            new IR::SymbolicVariable(IR::Type_String::get(), tableName + "_default_action");
+    } else {
+        tableActionID = ControlPlaneState::getTableActionChoice(tableName);
+    }
     symbolSet.emplace(*tableActionID);
     auto actionName = p4Action.preamble().name();
     const auto *actionAssignment = new IR::StringLiteral(IR::Type_String::get(), actionName);
@@ -134,7 +140,8 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
         auto &p4Action, P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, actionId), std::nullopt,
         ::error("ID %1% not found in the P4Info.", actionId));
     ASSIGN_OR_RETURN(const auto *actionExpr,
-                     convertTableAction(tableAction, tableName, p4Action, symbolSet), std::nullopt);
+                     convertTableAction(tableAction, tableName, p4Action, symbolSet, false),
+                     std::nullopt);
     TableKeySet tableKeySet;
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &p4InfoTable, P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId), std::nullopt,
@@ -189,6 +196,18 @@ int ProtobufDeserializer::updateTableEntry(const p4::config::v1::P4Info &p4Info,
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &tableResult, it->second.get().to<TableConfiguration>(), EXIT_FAILURE,
         ::error("Configuration result is not a TableConfiguration.", tableName));
+
+    if (tableEntry.is_default_action()) {
+        auto defaultAction = tableEntry.action().action();
+        ASSIGN_OR_RETURN_WITH_MESSAGE(
+            auto &p4Action,
+            P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, defaultAction.action_id()),
+            EXIT_FAILURE, ::error("ID %1% not found in the P4Info.", defaultAction.action_id()));
+        ASSIGN_OR_RETURN(auto defaultActionExpr,
+                         convertTableAction(defaultAction, tableName, p4Action, symbolSet, true),
+                         EXIT_FAILURE);
+        tableResult.setDefaultTableAction(TableDefaultAction(defaultActionExpr));
+    }
 
     ASSIGN_OR_RETURN(auto *tableMatchEntry,
                      produceTableEntry(tableName, tblId, p4Info, tableEntry, symbolSet),

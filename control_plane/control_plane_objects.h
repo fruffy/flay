@@ -108,7 +108,7 @@ class TableConfiguration : public ControlPlaneItem {
     cstring tableName_;
 
     /// The default behavior of the table when it is not configured.
-    TableDefaultAction defaultConfig_;
+    TableDefaultAction defaultTableAction_;
 
     /// The set of table entries in the configuration.
     TableEntrySet tableEntries_;
@@ -120,7 +120,7 @@ class TableConfiguration : public ControlPlaneItem {
     };
 
  public:
-    explicit TableConfiguration(cstring tableName, TableDefaultAction defaultConfig,
+    explicit TableConfiguration(cstring tableName, TableDefaultAction defaultTableAction,
                                 TableEntrySet tableEntries);
 
     bool operator<(const ControlPlaneItem &other) const override;
@@ -130,6 +130,9 @@ class TableConfiguration : public ControlPlaneItem {
 
     /// Delete an existing table entry.
     size_t deleteTableEntry(const TableMatchEntry &tableMatchEntry);
+
+    /// Set the default action for this table.
+    void setDefaultTableAction(TableDefaultAction defaultTableAction);
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 

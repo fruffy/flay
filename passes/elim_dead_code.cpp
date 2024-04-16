@@ -53,7 +53,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     auto reachability = getAnyReachability(conditionVectorOpt.value());
 
     // Ambiguous condition, we can not simplify.
-    if (!reachability) {
+    if (!reachability.has_value()) {
         return stmt;
     }
 

@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <queue>
+#include <utility>
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
@@ -64,10 +65,10 @@ bool TableConfiguration::CompareTableMatch::operator()(const TableMatchEntry &le
     return left.getPriority() > right.getPriority();
 }
 
-TableConfiguration::TableConfiguration(cstring tableName, TableDefaultAction defaultConfig,
+TableConfiguration::TableConfiguration(cstring tableName, TableDefaultAction defaultTableAction,
                                        TableEntrySet tableEntries)
     : tableName_(tableName),
-      defaultConfig_(std::move(defaultConfig)),
+      defaultTableAction_(std::move(defaultTableAction)),
       tableEntries_(std::move(tableEntries)) {}
 
 bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
@@ -87,11 +88,14 @@ size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEnt
     return tableEntries_.erase(tableMatchEntry);
 }
 
+void TableConfiguration::setDefaultTableAction(TableDefaultAction defaultTableAction) {
+    defaultTableAction_ = std::move(defaultTableAction);
+}
+
 const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {
     const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(tableName_),
                                               IR::getBoolLiteral(tableEntries_.size() > 0));
-    const IR::Expression *matchExpression = defaultConfig_.computeControlPlaneConstraint();
-
+    const IR::Expression *matchExpression = defaultTableAction_.computeControlPlaneConstraint();
     if (tableEntries_.size() == 0) {
         return new IR::LAnd(matchExpression, tableConfigured);
     }
