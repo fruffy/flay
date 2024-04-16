@@ -72,6 +72,32 @@ class TableMatchEntry : public ControlPlaneItem {
     DECLARE_TYPEINFO(TableMatchEntry);
 };
 
+class TableDefaultAction : public ControlPlaneItem {
+    /// The action that will be executed by this entry.
+    const Constraint *actionAssignment_;
+
+ public:
+    explicit TableDefaultAction(const Constraint *actionAssignment)
+        : actionAssignment_(actionAssignment) {}
+
+    /// @returns the action that will be executed by this entry.
+    [[nodiscard]] const Constraint *getActionAssignment() const { return actionAssignment_; }
+
+    bool operator<(const ControlPlaneItem &other) const override {
+        // Table match entries are only compared based on the match expression.
+        return typeid(*this) == typeid(other)
+                   ? actionAssignment_->isSemanticallyLess(
+                         *(dynamic_cast<const TableDefaultAction &>(other)).actionAssignment_)
+                   : typeid(*this).hash_code() < typeid(other).hash_code();
+    }
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override {
+        return actionAssignment_;
+    }
+
+    DECLARE_TYPEINFO(TableDefaultAction);
+};
+
 /// The active set of table entries. Sorted by type.
 using TableEntrySet =
     std::set<std::reference_wrapper<const TableMatchEntry>, std::less<const TableMatchEntry>>;
@@ -79,12 +105,13 @@ using TableEntrySet =
 /// Concrete configuration of a control plane table. May contain arbitrary many table match entries.
 class TableConfiguration : public ControlPlaneItem {
     /// The control plane name of the table that is being configured.
-    cstring tableName;
+    cstring tableName_;
 
     /// The default behavior of the table when it is not configured.
-    TableMatchEntry defaultConfig;
+    TableDefaultAction defaultConfig_;
 
-    TableEntrySet tableEntries;
+    /// The set of table entries in the configuration.
+    TableEntrySet tableEntries_;
 
     /// Second-order sorting function for table entries. Sorts entries by priority.
     class CompareTableMatch {
@@ -93,7 +120,7 @@ class TableConfiguration : public ControlPlaneItem {
     };
 
  public:
-    explicit TableConfiguration(cstring tableName, TableMatchEntry defaultConfig,
+    explicit TableConfiguration(cstring tableName, TableDefaultAction defaultConfig,
                                 TableEntrySet tableEntries);
 
     bool operator<(const ControlPlaneItem &other) const override;

@@ -3,6 +3,7 @@
 
 #include <functional>
 
+#include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
@@ -35,15 +36,16 @@ class TableExecutor {
     };
 
     /// Handle the default action.
-    void processDefaultAction() const;
+    void processDefaultAction(const TableUtils::TableProperties &tableProperties,
+                              ReturnProperties &tableReturnProperties) const;
 
     /// Process all the possible actions in the table for which we could insert an entry.
-    ReturnProperties processTableActionOptions(const IR::SymbolicVariable *tableActionID,
-                                               const IR::Key *key) const;
+    void processTableActionOptions(ReturnProperties &tableReturnProperties) const;
 
     /// If the table has constant table entries and is immutable, process all the entries we could
     /// match.
-    ReturnProperties processConstantTableEntries(const IR::Key *key) const;
+    void processConstantTableEntries(const IR::Key &key,
+                                     ReturnProperties &tableReturnProperties) const;
 
  protected:
     /// @returns the table associated with this executor.

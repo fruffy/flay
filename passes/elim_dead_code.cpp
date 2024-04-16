@@ -201,6 +201,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
                 action);
             return stmt;
         }
+        // We return if a single action is executable for the current table.
         ASSIGN_OR_RETURN(auto reachability, getAnyReachability(conditionVectorOpt.value()), stmt);
 
         if (reachability) {

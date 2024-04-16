@@ -64,37 +64,38 @@ bool TableConfiguration::CompareTableMatch::operator()(const TableMatchEntry &le
     return left.getPriority() > right.getPriority();
 }
 
-TableConfiguration::TableConfiguration(cstring tableName, TableMatchEntry defaultConfig,
+TableConfiguration::TableConfiguration(cstring tableName, TableDefaultAction defaultConfig,
                                        TableEntrySet tableEntries)
-    : tableName(tableName),
-      defaultConfig(std::move(defaultConfig)),
-      tableEntries(std::move(tableEntries)) {}
+    : tableName_(tableName),
+      defaultConfig_(std::move(defaultConfig)),
+      tableEntries_(std::move(tableEntries)) {}
 
 bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
     return typeid(*this) == typeid(other)
-               ? tableName < static_cast<const TableConfiguration &>(other).tableName
+               ? tableName_ < static_cast<const TableConfiguration &>(other).tableName_
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
 int TableConfiguration::addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace) {
     if (replace) {
-        tableEntries.erase(tableMatchEntry);
+        tableEntries_.erase(tableMatchEntry);
     }
-    return tableEntries.emplace(tableMatchEntry).second ? EXIT_SUCCESS : EXIT_FAILURE;
+    return tableEntries_.emplace(tableMatchEntry).second ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEntry) {
-    return tableEntries.erase(tableMatchEntry);
+    return tableEntries_.erase(tableMatchEntry);
 }
 
 const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {
-    const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(tableName),
-                                              IR::getBoolLiteral(tableEntries.size() > 0));
-    const IR::Expression *matchExpression = defaultConfig.getActionAssignment();
-    if (tableEntries.size() == 0) {
+    const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(tableName_),
+                                              IR::getBoolLiteral(tableEntries_.size() > 0));
+    const IR::Expression *matchExpression = defaultConfig_.computeControlPlaneConstraint();
+
+    if (tableEntries_.size() == 0) {
         return new IR::LAnd(matchExpression, tableConfigured);
     }
-    std::priority_queue sortedTableEntries(tableEntries.begin(), tableEntries.end(),
+    std::priority_queue sortedTableEntries(tableEntries_.begin(), tableEntries_.end(),
                                            CompareTableMatch());
     while (!sortedTableEntries.empty()) {
         const auto &tableEntry = sortedTableEntries.top().get();
