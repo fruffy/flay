@@ -1,0 +1,4 @@
+Replaced node at line 237: tbl_do_add_timestamp.apply(); with const default_action = do_add_timestamp;
+Eliminated node at line (unknown): 
+Eliminated node at line 240: if (!do_bytes_count_malicious_egress.apply().hit){
+Replaced node at line 243: do_bytes_count_benign_egress.apply(); with const default_action = bytes_count_benign_egress;

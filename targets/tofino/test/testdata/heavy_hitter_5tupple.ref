@@ -1,0 +1,7 @@
+Replaced node at line 185: tbl_compute_hash.apply(); with const default_action = compute_hash();
+Replaced node at line 186: tbl_update_bloom_filter.apply(); with const default_action = update_bloom_filter();
+Eliminated node at line 188: if (meta.ctr_exceeded == 1){
+Replaced node at line 341: tbl_do_add_timestamp.apply(); with const default_action = do_add_timestamp;
+Eliminated node at line (unknown): 
+Eliminated node at line 344: if (!do_bytes_count_malicious_egress.apply().hit){
+Replaced node at line 347: do_bytes_count_benign_egress.apply(); with const default_action = bytes_count_benign_egress;
