@@ -26,11 +26,11 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/Switcharoo-P4/Switcharoo-P4
   GIT_TAG main
 )
-FetchContent_Declare(
-  scion
-  GIT_REPOSITORY https://github.com/netsys-lab/scion-p4
-  GIT_TAG main
-)
+# FetchContent_Declare(
+#   scion
+#   GIT_REPOSITORY https://github.com/netsys-lab/scion-p4
+#   GIT_TAG main
+# )
 FetchContent_Declare(
   p4sta
   GIT_REPOSITORY https://github.com/ralfkundel/P4STA/
@@ -68,7 +68,7 @@ FetchContent_Declare(
 )
 
 fetchcontent_download_without_build(switcharoo)
-fetchcontent_download_without_build(scion)
+# fetchcontent_download_without_build(scion)
 fetchcontent_download_without_build(p4sta)
 fetchcontent_download_without_build(p4_projects)
 fetchcontent_download_without_build(p4_hh)
@@ -85,11 +85,11 @@ set(FETCHCONTENT_BASE_DIR ${FETCHCONTENT_BASE_DIR_PREV})
 
 set(TNA_RESEARCH_TESTS
   ${switcharoo_SOURCE_DIR}/switcharoo/p4src/switcharoo.p4
-  ${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4
+  # ${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4
   # ${scion_SOURCE_DIR}/tofino-pktgen/p4src/pktgen.p4
   # ${scion_SOURCE_DIR}/tofino-epic-br/p4src/scion.p4
-  ${scion_SOURCE_DIR}/tofino-crypto/aes_1pipe/p4src/aes_1pipe.p4
-  ${scion_SOURCE_DIR}/tofino-crypto/cmac_1pipe/p4src/cmac_1pipe.p4
+  # ${scion_SOURCE_DIR}/tofino-crypto/aes_1pipe/p4src/aes_1pipe.p4
+  # ${scion_SOURCE_DIR}/tofino-crypto/cmac_1pipe/p4src/cmac_1pipe.p4
   ${p4sta_SOURCE_DIR}/stamper_targets/Wedge100B65/PLEASE_COPY/tofino_stamper_v1_2_0.p4
   ${p4_projects_SOURCE_DIR}/RTT-tofino/p4src/RTT.p4
   ${p4_projects_SOURCE_DIR}/PRECISION-tofino/p4src/PRECISION.p4
@@ -140,9 +140,9 @@ p4tools_add_xfail_reason(
   "flay-tofino1-research-tna"
   ".*"
   switcharoo.p4
-  scion.p4
-  aes_1pipe.p4
-  cmac_1pipe.p4
+  # scion.p4
+  # aes_1pipe.p4
+  # cmac_1pipe.p4
   RTT.p4
   PRECISION.p4
   p40f_tofino.p4
