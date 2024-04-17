@@ -135,9 +135,9 @@ std::optional<TableEntrySet> ControlPlaneStateInitializer::initializeTableEntrie
         ASSIGN_OR_RETURN_WITH_MESSAGE(
             auto &actionDecl, refMap.getDeclaration(methodName.path, false), std::nullopt,
             ::error("Action reference %1% not found in the reference map", methodName));
-        auto *actionAssignment = new IR::Equ(
-            ControlPlaneState::getTableActionChoice(table->controlPlaneName()),
-            new IR::StringLiteral(IR::Type_String::get(), actionDecl.controlPlaneName()));
+        auto *actionAssignment =
+            new IR::Equ(ControlPlaneState::getTableActionChoice(table->controlPlaneName()),
+                        IR::getStringLiteral(actionDecl.controlPlaneName()));
         ASSIGN_OR_RETURN(auto entryKeySet, computeEntryKeySet(*table, *entry), std::nullopt);
         ASSIGN_OR_RETURN_WITH_MESSAGE(auto entryPriorityConstant,
                                       entry->priority->to<IR::Constant>(), std::nullopt,
@@ -164,9 +164,12 @@ std::optional<const IR::Expression *> ControlPlaneStateInitializer::computeDefau
     ASSIGN_OR_RETURN_WITH_MESSAGE(auto &actionDecl, decl.to<IR::P4Action>(), std::nullopt,
                                   ::error("Action reference %1% is not a P4Action.", methodName));
 
+    const auto *selectedAction = IR::getStringLiteral(actionDecl.controlPlaneName());
     const IR::Expression *defaultActionConstraints =
-        new IR::Equ(ControlPlaneState::getTableActionChoice(tableName),
-                    new IR::StringLiteral(IR::Type_String::get(), actionDecl.controlPlaneName()));
+        new IR::Equ(selectedAction, ControlPlaneState::getTableActionChoice(tableName));
+    defaultActionConstraints = new IR::LAnd(
+        defaultActionConstraints,
+        new IR::Equ(selectedAction, ControlPlaneState::getDefaultActionVariable(tableName)));
     const auto *arguments = actionCall.arguments;
     const auto *parameters = actionDecl.parameters;
     RETURN_IF_FALSE_WITH_MESSAGE(
@@ -189,17 +192,18 @@ std::optional<const IR::Expression *> ControlPlaneStateInitializer::computeDefau
 bool ControlPlaneStateInitializer::preorder(const IR::P4Table *table) {
     TableUtils::TableProperties properties;
     TableUtils::checkTableImmutability(*table, properties);
-    RETURN_IF_FALSE(!properties.tableIsImmutable, false);
     auto tableName = table->controlPlaneName();
 
     ASSIGN_OR_RETURN(auto defaultActionConstraints, computeDefaultActionConstraints(table, refMap_),
                      false);
-    auto defaultEntry = TableMatchEntry(defaultActionConstraints, 0, {});
-
-    ASSIGN_OR_RETURN(auto initialTableEntries, initializeTableEntries(table, refMap_), false);
+    TableEntrySet initialTableEntries;
+    if (!properties.tableIsImmutable) {
+        ASSIGN_OR_RETURN(initialTableEntries, initializeTableEntries(table, refMap_), false);
+    }
 
     defaultConstraints.insert(
-        {tableName, *new TableConfiguration(tableName, defaultEntry, initialTableEntries)});
+        {tableName, *new TableConfiguration(tableName, TableDefaultAction(defaultActionConstraints),
+                                            initialTableEntries)});
     return false;
 }
 

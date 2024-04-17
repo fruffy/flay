@@ -29,3 +29,15 @@ p4tools_add_test_with_args(
   TAG "flay-bmv2-v1model-config" ALIAS "v1model_entries_table.p4" DRIVER ${FLAY_REFERENCE_DRIVER}
   TARGET "bmv2" ARCH "v1model" CONTROL_PLANE_UPDATES "${CMAKE_CURRENT_LIST_DIR}/protos/v1model_entries_table/update*.txtpb" TEST_ARGS "-I${P4C_BINARY_DIR}/p4include ${CONFIG_EXTRA_OPTS}"
 )
+
+p4tools_add_test_with_args(
+  P4TEST "${CMAKE_CURRENT_LIST_DIR}/programs/v1model_default_override.p4"
+  TAG "flay-bmv2-v1model-config" ALIAS "v1model_default_override_1.p4" DRIVER ${FLAY_REFERENCE_DRIVER}
+  TARGET "bmv2" ARCH "v1model" CONTROL_PLANE_UPDATES "${CMAKE_CURRENT_LIST_DIR}/protos/v1model_default_override/update_1.txtpb" TEST_ARGS "-I${P4C_BINARY_DIR}/p4include --reference-file ${CMAKE_CURRENT_LIST_DIR}/testdata/config/v1model_default_override_1.ref"
+)
+
+p4tools_add_test_with_args(
+  P4TEST "${CMAKE_CURRENT_LIST_DIR}/programs/v1model_default_override.p4"
+TAG "flay-bmv2-v1model-config" ALIAS "v1model_default_override_2.p4" DRIVER ${FLAY_REFERENCE_DRIVER}
+  TARGET "bmv2" ARCH "v1model" CONTROL_PLANE_UPDATES "${CMAKE_CURRENT_LIST_DIR}/protos/v1model_default_override/update_2.txtpb" TEST_ARGS "-I${P4C_BINARY_DIR}/p4include --reference-file ${CMAKE_CURRENT_LIST_DIR}/testdata/config/v1model_default_override_2.ref"
+)

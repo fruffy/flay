@@ -34,10 +34,11 @@ class ProtobufDeserializer {
     [[nodiscard]] static big_int protoValueToBigInt(const std::string &valueString);
 
     /// Convert a P4Runtime TableAction into the appropriate symbolic constraint
-    /// assignments.
+    /// assignments. If @param isDefaultAction is true, then the constraints generated are
+    /// specialized towards overriding a default action in a table.
     [[nodiscard]] static std::optional<const IR::Expression *> convertTableAction(
         const p4::v1::Action &tblAction, cstring tableName, const p4::config::v1::Action &p4Action,
-        SymbolSet &symbolSet);
+        SymbolSet &symbolSet, bool isDefaultAction);
 
     /// Convert a P4Runtime FieldMatch into the appropriate symbolic constraint
     /// assignments.

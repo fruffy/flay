@@ -169,7 +169,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
         // In table mode, we are actually comparing string expressions.
         if (tableMode) {
             const auto *path = switchCaseLabel->checkedTo<IR::PathExpression>();
-            switchCaseLabel = new IR::StringLiteral(IR::Type_String::get(), path->path->toString());
+            switchCaseLabel = IR::getStringLiteral(path->path->toString());
         }
         if (cond == nullptr) {
             cond = new IR::Equ(switchExpr, switchCaseLabel);

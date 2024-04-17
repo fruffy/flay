@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <queue>
+#include <utility>
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
@@ -12,6 +13,10 @@ namespace P4Tools::ControlPlaneState {
 const IR::SymbolicVariable *getParserValueSetConfigured(cstring parserValueSetName) {
     return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(),
                                                "pvs_configured_" + parserValueSetName);
+}
+
+const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName) {
+    return new IR::SymbolicVariable(IR::Type_String::get(), tableName + "_default_action");
 }
 
 }  // namespace P4Tools::ControlPlaneState
@@ -64,37 +69,41 @@ bool TableConfiguration::CompareTableMatch::operator()(const TableMatchEntry &le
     return left.getPriority() > right.getPriority();
 }
 
-TableConfiguration::TableConfiguration(cstring tableName, TableMatchEntry defaultConfig,
+TableConfiguration::TableConfiguration(cstring tableName, TableDefaultAction defaultTableAction,
                                        TableEntrySet tableEntries)
-    : tableName(tableName),
-      defaultConfig(std::move(defaultConfig)),
-      tableEntries(std::move(tableEntries)) {}
+    : tableName_(tableName),
+      defaultTableAction_(std::move(defaultTableAction)),
+      tableEntries_(std::move(tableEntries)) {}
 
 bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
     return typeid(*this) == typeid(other)
-               ? tableName < static_cast<const TableConfiguration &>(other).tableName
+               ? tableName_ < static_cast<const TableConfiguration &>(other).tableName_
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
 int TableConfiguration::addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace) {
     if (replace) {
-        tableEntries.erase(tableMatchEntry);
+        tableEntries_.erase(tableMatchEntry);
     }
-    return tableEntries.emplace(tableMatchEntry).second ? EXIT_SUCCESS : EXIT_FAILURE;
+    return tableEntries_.emplace(tableMatchEntry).second ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEntry) {
-    return tableEntries.erase(tableMatchEntry);
+    return tableEntries_.erase(tableMatchEntry);
+}
+
+void TableConfiguration::setDefaultTableAction(TableDefaultAction defaultTableAction) {
+    defaultTableAction_ = std::move(defaultTableAction);
 }
 
 const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {
-    const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(tableName),
-                                              IR::getBoolLiteral(tableEntries.size() > 0));
-    const IR::Expression *matchExpression = defaultConfig.getActionAssignment();
-    if (tableEntries.size() == 0) {
+    const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(tableName_),
+                                              IR::getBoolLiteral(tableEntries_.size() > 0));
+    const IR::Expression *matchExpression = defaultTableAction_.computeControlPlaneConstraint();
+    if (tableEntries_.size() == 0) {
         return new IR::LAnd(matchExpression, tableConfigured);
     }
-    std::priority_queue sortedTableEntries(tableEntries.begin(), tableEntries.end(),
+    std::priority_queue sortedTableEntries(tableEntries_.begin(), tableEntries_.end(),
                                            CompareTableMatch());
     while (!sortedTableEntries.empty()) {
         const auto &tableEntry = sortedTableEntries.top().get();

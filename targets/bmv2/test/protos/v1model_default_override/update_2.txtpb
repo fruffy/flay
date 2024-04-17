@@ -1,0 +1,21 @@
+updates {
+    entity {
+    # Table ingress.toggle_check
+    table_entry {
+      table_id: 46418392
+      # Action ingress.check
+      action {
+        action {
+          action_id: 31006061
+          # Param do_check_l3
+          params {
+            param_id: 1
+            value: "\x00"
+          }
+        }
+      }
+      is_default_action: true
+    }
+  }
+  type: INSERT
+}

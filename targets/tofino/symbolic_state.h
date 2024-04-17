@@ -3,7 +3,6 @@
 
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
-#include "ir/visitor.h"
 
 namespace P4Tools::Flay::Tofino {
 
