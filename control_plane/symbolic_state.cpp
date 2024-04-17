@@ -1,5 +1,6 @@
 #include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 
+#include <cstdint>
 #include <optional>
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
@@ -139,11 +140,18 @@ std::optional<TableEntrySet> ControlPlaneStateInitializer::initializeTableEntrie
             new IR::Equ(ControlPlaneState::getTableActionChoice(table->controlPlaneName()),
                         IR::getStringLiteral(actionDecl.controlPlaneName()));
         ASSIGN_OR_RETURN(auto entryKeySet, computeEntryKeySet(*table, *entry), std::nullopt);
-        ASSIGN_OR_RETURN_WITH_MESSAGE(auto entryPriorityConstant,
-                                      entry->priority->to<IR::Constant>(), std::nullopt,
-                                      ::error("%1% is not a constant.", entry->priority));
+        std::optional<int32_t> entryPriority;
+        if (entry->priority != nullptr) {
+            ASSIGN_OR_RETURN_WITH_MESSAGE(auto entryPriorityConstant,
+                                          entry->priority->to<IR::Constant>(), std::nullopt,
+                                          ::error("%1% is not a constant.", entry->priority));
+            entryPriority = entryPriorityConstant.asInt();
+        } else {
+            // Assign the lowest priority by default.
+            entryPriority = 0;
+        }
         initialTableEntries.insert(
-            *new TableMatchEntry(actionAssignment, entryPriorityConstant.asInt(), entryKeySet));
+            *new TableMatchEntry(actionAssignment, entryPriority.value(), entryKeySet));
     }
     return initialTableEntries;
 }
@@ -196,10 +204,8 @@ bool ControlPlaneStateInitializer::preorder(const IR::P4Table *table) {
 
     ASSIGN_OR_RETURN(auto defaultActionConstraints, computeDefaultActionConstraints(table, refMap_),
                      false);
-    TableEntrySet initialTableEntries;
-    if (!properties.tableIsImmutable) {
-        ASSIGN_OR_RETURN(initialTableEntries, initializeTableEntries(table, refMap_), false);
-    }
+    ASSIGN_OR_RETURN(TableEntrySet initialTableEntries, initializeTableEntries(table, refMap_),
+                     false);
 
     defaultConstraints.insert(
         {tableName, *new TableConfiguration(tableName, TableDefaultAction(defaultActionConstraints),

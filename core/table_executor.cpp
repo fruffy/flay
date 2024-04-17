@@ -245,59 +245,6 @@ void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnPrope
     }
 }
 
-void TableExecutor::processConstantTableEntries(const IR::Key &key,
-                                                ReturnProperties &tableReturnProperties) const {
-    auto table = getP4Table();
-    auto tableActionList = TableUtils::buildTableActionList(table);
-    auto &state = getExecutionState();
-
-    const auto *entries = table.getEntries();
-
-    // Sometimes, there are no entries. Just return.
-    if (entries == nullptr) {
-        return;
-    }
-
-    auto entryVector = entries->entries;
-
-    // Sort entries if one of the keys contains an LPM match.
-    for (size_t idx = 0; idx < key.keyElements.size(); ++idx) {
-        const auto *keyElement = key.keyElements.at(idx);
-        if (keyElement->matchType->path->toString() == P4Constants::MATCH_KIND_LPM) {
-            std::sort(entryVector.begin(), entryVector.end(), [idx](auto &&PH1, auto &&PH2) {
-                return TableUtils::compareLPMEntries(std::forward<decltype(PH1)>(PH1),
-                                                     std::forward<decltype(PH2)>(PH2), idx);
-            });
-            break;
-        }
-    }
-    for (const auto *entry : entryVector) {
-        // First, compute the condition to match on the table entry.
-        const auto *hitCondition = TableUtils::computeEntryMatch(table, *entry, key);
-
-        // Once we have computed the match, execution the action with its arguments.
-        const auto *action = entry->getAction();
-        const auto *actionCall = action->checkedTo<IR::MethodCallExpression>();
-        const auto *actionType = state.getP4Action(actionCall);
-        auto &actionState = state.clone();
-        actionState.pushExecutionCondition(hitCondition);
-        callAction(getProgramInfo(), actionState, actionType, *actionCall->arguments);
-        // Finally, merge in the state of the action call.
-        // We can only match if other entries have not previously matched!
-        const auto *entryHitCondition =
-            new IR::LAnd(hitCondition, new IR::LNot(tableReturnProperties.totalHitCondition));
-        state.merge(actionState);
-        tableReturnProperties.totalHitCondition =
-            new IR::LOr(tableReturnProperties.totalHitCondition, entryHitCondition);
-        // We use controlPlaneName() here. TODO: Clean this up?
-        tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
-            entryHitCondition,
-            IR::getStringLiteral(
-                actionCall->method->checkedTo<IR::PathExpression>()->path->toString()),
-            tableReturnProperties.actionRun);
-    }
-}
-
 const IR::Expression *TableExecutor::processTable() {
     const auto tableName = getP4Table().controlPlaneName();
     TableUtils::TableProperties properties;
@@ -330,18 +277,6 @@ const IR::Expression *TableExecutor::processTable() {
 
     // First, execute the default action.
     processDefaultAction(properties, tableReturnProperties);
-
-    // If the table is immutable, we can not add control-plane entries.
-    // We can only execute pre-existing entries.
-    if (properties.tableIsImmutable) {
-        processConstantTableEntries(*key, tableReturnProperties);
-        return new IR::StructExpression(
-            nullptr,
-            {new IR::NamedExpression("hit", tableReturnProperties.totalHitCondition),
-             new IR::NamedExpression("miss", new IR::LNot(tableReturnProperties.totalHitCondition)),
-             new IR::NamedExpression("action_run", tableReturnProperties.actionRun),
-             new IR::NamedExpression("table_name", IR::getStringLiteral(tableName))});
-    }
 
     // Execute all other possible action options. Get the combination of all possible hits.
     processTableActionOptions(tableReturnProperties);
