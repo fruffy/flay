@@ -24,6 +24,33 @@
 
 namespace P4Tools::Flay {
 
+namespace {
+
+// Synthesize a list of variables which correspond to a control plane argument.
+// We get the unique name of the table coupled with the unique name of the action.
+// Getting the unique name is needed to avoid generating duplicate arguments.
+IR::Vector<IR::Argument> createActionCallArguments(cstring tableName, cstring actionName,
+                                                   const IR::ParameterList &parameters) {
+    IR::Vector<IR::Argument> arguments;
+    for (const auto *parameter : parameters.parameters) {
+        const IR::Expression *actionArg = nullptr;
+        // TODO: This boolean cast hack is only necessary because the P4Info does not contain
+        // type information. Is there any way we can simplify this?
+        if (parameter->type->is<IR::Type_Boolean>()) {
+            actionArg = ControlPlaneState::getTableActionArgument(
+                tableName, actionName, parameter->controlPlaneName(), IR::getBitType(1));
+            actionArg = new IR::Equ(actionArg, new IR::Constant(IR::getBitType(1), 1));
+        } else {
+            actionArg = ControlPlaneState::getTableActionArgument(
+                tableName, actionName, parameter->controlPlaneName(), parameter->type);
+        }
+        arguments.push_back(new IR::Argument(actionArg));
+    }
+    return arguments;
+}
+
+}  // namespace
+
 TableExecutor::TableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver)
     : table(table), resolver(callingResolver) {}
 
@@ -156,20 +183,20 @@ void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tabl
     if (tableProperties.defaultIsImmutable) {
         return;
     }
-    auto *symbolicDefaultAction = new IR::SymbolicVariable(
-        IR::Type_String::get(), table.controlPlaneName() + "_default_action");
-
+    // If the default action is not immutable, it is possible to change it to any other action
+    // present in the table.
     auto tableActionList = TableUtils::buildTableActionList(table);
     for (const auto *action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
         // Skip the current initial default action from this calculation to avoid duplicating state.
-        if (defaultActionType->controlPlaneName() == actionType->controlPlaneName()) {
+        if (defaultActionType->controlPlaneName() == actionType->controlPlaneName() ||
+            (action->getAnnotation("tableonly") != nullptr)) {
             continue;
         }
-        auto *actionExpr =
-            new IR::StringLiteral(IR::Type_String::get(), actionType->controlPlaneName());
-        auto *actionHitCondition = new IR::Equ(actionExpr, symbolicDefaultAction);
+        const auto *actionExpr = IR::getStringLiteral(actionType->controlPlaneName());
+        auto *actionHitCondition = new IR::Equ(
+            actionExpr, ControlPlaneState::getDefaultActionVariable(table.controlPlaneName()));
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
             actionHitCondition, actionExpr, tableReturnProperties.actionRun);
@@ -179,27 +206,8 @@ void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tabl
         const auto &parameters = actionType->parameters;
         auto &actionState = state.clone();
         actionState.pushExecutionCondition(actionHitCondition);
-        IR::Vector<IR::Argument> arguments;
-        for (const auto *parameter : parameters->parameters) {
-            // Synthesize a variable constant here that corresponds to a control plane argument.
-            // We get the unique name of the table coupled with the unique name of the action.
-            // Getting the unique name is needed to avoid generating duplicate arguments.
-            const IR::Expression *actionArg = nullptr;
-            // TODO: This boolean cast hack is only necessary because the P4Info does not contain
-            // type information. Is there any way we can simplify this?
-            if (parameter->type->is<IR::Type_Boolean>()) {
-                actionArg = ControlPlaneState::getTableActionArgument(
-                    getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
-                    IR::getBitType(1));
-                actionArg = new IR::Equ(actionArg, new IR::Constant(IR::getBitType(1), 1));
-            } else {
-                actionArg = ControlPlaneState::getTableActionArgument(
-                    getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
-                    parameter->type);
-            }
-
-            arguments.push_back(new IR::Argument(actionArg));
-        }
+        auto arguments =
+            createActionCallArguments(table.controlPlaneName(), actionName, *parameters);
         state.addReachabilityMapping(action, actionHitCondition);
         callAction(getProgramInfo(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
@@ -216,15 +224,13 @@ void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnPrope
     for (const auto *action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
-        auto *actionChoice = new IR::Equ(
-            tableActionID,
-            new IR::StringLiteral(IR::Type_String::get(), actionType->controlPlaneName()));
+        auto *actionChoice =
+            new IR::Equ(tableActionID, IR::getStringLiteral(actionType->controlPlaneName()));
         const auto *actionHitCondition =
             new IR::LAnd(tableReturnProperties.totalHitCondition, actionChoice);
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
-            actionHitCondition,
-            new IR::StringLiteral(IR::Type_String::get(), action->controlPlaneName()),
+            actionHitCondition, IR::getStringLiteral(action->controlPlaneName()),
             tableReturnProperties.actionRun);
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();
@@ -232,26 +238,8 @@ void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnPrope
         const auto &parameters = actionType->parameters;
         auto &actionState = state.clone();
         actionState.pushExecutionCondition(actionHitCondition);
-        IR::Vector<IR::Argument> arguments;
-        for (const auto *parameter : parameters->parameters) {
-            // Synthesize a variable constant here that corresponds to a control plane argument.
-            // We get the unique name of the table coupled with the unique name of the action.
-            // Getting the unique name is needed to avoid generating duplicate arguments.
-            const IR::Expression *actionArg = nullptr;
-            // TODO: This boolean cast hack is only necessary because the P4Info does not contain
-            // type information. Is there any way we can simplify this?
-            if (parameter->type->is<IR::Type_Boolean>()) {
-                actionArg = ControlPlaneState::getTableActionArgument(
-                    getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
-                    IR::getBitType(1));
-                actionArg = new IR::Equ(actionArg, new IR::Constant(IR::getBitType(1), 1));
-            } else {
-                actionArg = ControlPlaneState::getTableActionArgument(
-                    getP4Table().controlPlaneName(), actionName, parameter->controlPlaneName(),
-                    parameter->type);
-            }
-            arguments.push_back(new IR::Argument(actionArg));
-        }
+        auto arguments =
+            createActionCallArguments(table.controlPlaneName(), actionName, *parameters);
         state.addReachabilityMapping(action, actionHitCondition);
         callAction(getProgramInfo(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
@@ -306,8 +294,7 @@ void TableExecutor::processConstantTableEntries(const IR::Key &key,
         // We use controlPlaneName() here. TODO: Clean this up?
         tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
             entryHitCondition,
-            new IR::StringLiteral(
-                IR::Type_String::get(),
+            IR::getStringLiteral(
                 actionCall->method->checkedTo<IR::PathExpression>()->path->toString()),
             tableReturnProperties.actionRun);
     }
@@ -330,10 +317,8 @@ const IR::Expression *TableExecutor::processTable() {
             nullptr,
             {new IR::NamedExpression("hit", IR::getBoolLiteral(false)),
              new IR::NamedExpression("miss", IR::getBoolLiteral(true)),
-             new IR::NamedExpression("action_run", new IR::StringLiteral(IR::Type_String::get(),
-                                                                         actionPath->toString())),
-             new IR::NamedExpression("table_name",
-                                     new IR::StringLiteral(IR::Type_String::get(), tableName))});
+             new IR::NamedExpression("action_run", IR::getStringLiteral(actionPath->toString())),
+             new IR::NamedExpression("table_name", IR::getStringLiteral(tableName))});
     }
     key = resolveKey(key);
 
@@ -342,8 +327,8 @@ const IR::Expression *TableExecutor::processTable() {
     /// We need to match these choices correctly. TODO: Make this very explicit.
     const auto *hitCondition =
         new IR::LAnd(ControlPlaneState::getTableActive(tableName), computeKey(key));
-    ReturnProperties tableReturnProperties{
-        hitCondition, new IR::StringLiteral(IR::Type_String::get(), actionPath->path->toString())};
+    ReturnProperties tableReturnProperties{hitCondition,
+                                           IR::getStringLiteral(actionPath->path->toString())};
 
     // First, execute the default action.
     processDefaultAction(properties, tableReturnProperties);
@@ -357,8 +342,7 @@ const IR::Expression *TableExecutor::processTable() {
             {new IR::NamedExpression("hit", tableReturnProperties.totalHitCondition),
              new IR::NamedExpression("miss", new IR::LNot(tableReturnProperties.totalHitCondition)),
              new IR::NamedExpression("action_run", tableReturnProperties.actionRun),
-             new IR::NamedExpression("table_name",
-                                     new IR::StringLiteral(IR::Type_String::get(), tableName))});
+             new IR::NamedExpression("table_name", IR::getStringLiteral(tableName))});
     }
 
     // Execute all other possible action options. Get the combination of all possible hits.
@@ -368,8 +352,7 @@ const IR::Expression *TableExecutor::processTable() {
         {new IR::NamedExpression("hit", tableReturnProperties.totalHitCondition),
          new IR::NamedExpression("miss", new IR::LNot(tableReturnProperties.totalHitCondition)),
          new IR::NamedExpression("action_run", tableReturnProperties.actionRun),
-         new IR::NamedExpression("table_name",
-                                 new IR::StringLiteral(IR::Type_String::get(), tableName))});
+         new IR::NamedExpression("table_name", IR::getStringLiteral(tableName))});
 }
 
 }  // namespace P4Tools::Flay

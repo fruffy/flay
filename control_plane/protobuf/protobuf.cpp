@@ -94,16 +94,12 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatchForMissingFiel
 std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
     const p4::v1::Action &tblAction, cstring tableName, const p4::config::v1::Action &p4Action,
     SymbolSet &symbolSet, bool isDefaultAction) {
-    const IR::SymbolicVariable *tableActionID = nullptr;
-    if (isDefaultAction) {
-        tableActionID =
-            new IR::SymbolicVariable(IR::Type_String::get(), tableName + "_default_action");
-    } else {
-        tableActionID = ControlPlaneState::getTableActionChoice(tableName);
-    }
+    const IR::SymbolicVariable *tableActionID =
+        isDefaultAction ? ControlPlaneState::getDefaultActionVariable(tableName)
+                        : ControlPlaneState::getTableActionChoice(tableName);
     symbolSet.emplace(*tableActionID);
     auto actionName = p4Action.preamble().name();
-    const auto *actionAssignment = new IR::StringLiteral(IR::Type_String::get(), actionName);
+    const auto *actionAssignment = IR::getStringLiteral(actionName);
     const IR::Expression *actionExpr = new IR::Equ(tableActionID, actionAssignment);
     if (tblAction.params().size() != p4Action.params().size()) {
         return actionExpr;

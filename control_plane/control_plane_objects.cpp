@@ -15,6 +15,10 @@ const IR::SymbolicVariable *getParserValueSetConfigured(cstring parserValueSetNa
                                                "pvs_configured_" + parserValueSetName);
 }
 
+const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName) {
+    return new IR::SymbolicVariable(IR::Type_String::get(), tableName + "_default_action");
+}
+
 }  // namespace P4Tools::ControlPlaneState
 
 namespace P4Tools::Flay {

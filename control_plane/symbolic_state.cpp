@@ -8,7 +8,6 @@
 #include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
 #include "backends/p4tools/modules/flay/control_plane/util.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
-#include "ir/ir-generated.h"
 #include "ir/irutils.h"
 #include "lib/error.h"
 
@@ -136,9 +135,9 @@ std::optional<TableEntrySet> ControlPlaneStateInitializer::initializeTableEntrie
         ASSIGN_OR_RETURN_WITH_MESSAGE(
             auto &actionDecl, refMap.getDeclaration(methodName.path, false), std::nullopt,
             ::error("Action reference %1% not found in the reference map", methodName));
-        auto *actionAssignment = new IR::Equ(
-            ControlPlaneState::getTableActionChoice(table->controlPlaneName()),
-            new IR::StringLiteral(IR::Type_String::get(), actionDecl.controlPlaneName()));
+        auto *actionAssignment =
+            new IR::Equ(ControlPlaneState::getTableActionChoice(table->controlPlaneName()),
+                        IR::getStringLiteral(actionDecl.controlPlaneName()));
         ASSIGN_OR_RETURN(auto entryKeySet, computeEntryKeySet(*table, *entry), std::nullopt);
         ASSIGN_OR_RETURN_WITH_MESSAGE(auto entryPriorityConstant,
                                       entry->priority->to<IR::Constant>(), std::nullopt,
@@ -165,14 +164,12 @@ std::optional<const IR::Expression *> ControlPlaneStateInitializer::computeDefau
     ASSIGN_OR_RETURN_WITH_MESSAGE(auto &actionDecl, decl.to<IR::P4Action>(), std::nullopt,
                                   ::error("Action reference %1% is not a P4Action.", methodName));
 
-    auto *selectedAction =
-        new IR::StringLiteral(IR::Type_String::get(), actionDecl.controlPlaneName());
+    const auto *selectedAction = IR::getStringLiteral(actionDecl.controlPlaneName());
     const IR::Expression *defaultActionConstraints =
         new IR::Equ(selectedAction, ControlPlaneState::getTableActionChoice(tableName));
     defaultActionConstraints = new IR::LAnd(
         defaultActionConstraints,
-        new IR::Equ(selectedAction, new IR::SymbolicVariable(IR::Type_String::get(),
-                                                             tableName + "_default_action")));
+        new IR::Equ(selectedAction, ControlPlaneState::getDefaultActionVariable(tableName)));
     const auto *arguments = actionCall.arguments;
     const auto *parameters = actionDecl.parameters;
     RETURN_IF_FALSE_WITH_MESSAGE(

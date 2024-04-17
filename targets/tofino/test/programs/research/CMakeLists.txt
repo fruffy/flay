@@ -157,8 +157,4 @@ p4tools_add_xfail_reason(
   dta_translator.p4
   accturbo.p4
   ddos_aid_4x4_singlepipe_p4_16_modified.p4
-  heavy_hitter_5tupple.p4
-  heavy_hitter_reaction.p4
-  heavy_hitter_srcbased.p4
-  simple_forwarder.p4
 )

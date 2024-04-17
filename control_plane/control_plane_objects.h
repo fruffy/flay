@@ -17,6 +17,10 @@ namespace P4Tools::ControlPlaneState {
 /// been configured by the control plane.
 const IR::SymbolicVariable *getParserValueSetConfigured(cstring parserValueSetName);
 
+/// @returns the symbolic string variable that represents the default action that is active for a
+/// particular table.
+const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName);
+
 }  // namespace P4Tools::ControlPlaneState
 
 namespace P4Tools::Flay {
