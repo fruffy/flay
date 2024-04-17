@@ -84,7 +84,7 @@ set(FETCHCONTENT_BASE_DIR ${FETCHCONTENT_BASE_DIR_PREV})
 # ##################################################################################################
 
 set(TNA_RESEARCH_TESTS
-  ${switcharoo_SOURCE_DIR}/switcharoo/p4src/switcharoo.p4
+  ${switcharoo_SOURCE_DIR}/p4src/switcharoo.p4
   # ${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4
   # ${scion_SOURCE_DIR}/tofino-pktgen/p4src/pktgen.p4
   # ${scion_SOURCE_DIR}/tofino-epic-br/p4src/scion.p4
@@ -139,22 +139,21 @@ p4tools_add_tests(
 p4tools_add_xfail_reason(
   "flay-tofino1-research-tna"
   ".*"
-  switcharoo.p4
+  switcharoo.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
   # scion.p4
   # aes_1pipe.p4
   # cmac_1pipe.p4
-  RTT.p4
-  PRECISION.p4
-  p40f_tofino.p4
+  RTT.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
+  PRECISION.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
+  p40f_tofino.p4 # Unimplemented extern method: parser_counter.set
   SmartCookie-HalfSipHash.p4
-  netassay_iot_j6.p4
-  netassay_tunnel_j7.p4
-  netassay_tunnel_j8.p4
-  netassay_v4_j6.p4
-  UnbiasedRtt.p4
-  IPG-HH.p4
-  unibs_flowrest.p4
-  dta_translator.p4
-  accturbo.p4
-  ddos_aid_4x4_singlepipe_p4_16_modified.p4
+  netassay_iot_j6.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
+  netassay_tunnel_j7.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
+  netassay_tunnel_j8.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
+  netassay_v4_j6.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
+  UnbiasedRtt.p4 #error "Please specify the size of fridge's underlying registers by defining REG_SIZE."
+  IPG-HH.p4 # error: Unexpected type _
+  dta_translator.p4 # Unimplemented extern method: mirror.emit
+  accturbo.p4 # Unimplemented extern method: do_resubmit.emit
+  ddos_aid_4x4_singlepipe_p4_16_modified.p4 # Unimplemented extern method: do_resubmit.emit
 )

@@ -440,6 +440,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%", components.size());
           const auto *applyDecl = components.at(0)->checkedTo<IR::Function>();
           const auto *applyParameters = applyDecl->type->parameters;
+          BUG_CHECK(applyParameters->size() == 1 || applyParameters->size() == 2,
+                    "Expected 1 or 2 parameters, got %1%", applyParameters->size());
 
           const auto &valueName = applyParameters->parameters.at(0)->name.name;
           auto valueLabel =
@@ -448,7 +450,6 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           /// TODO: currently we create symbolic expression as the value, but we should model the
           /// values stored in register.
           const auto *valueExpr = state.createSymbolicExpression(valueType, valueLabel);
-
           if (applyParameters->size() == 2) {
               BUG_CHECK(applyParameters->getParameter(1)->direction == IR::Direction::Out,
                         "Direction of second parameter of apply is should be out");
@@ -481,7 +482,12 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           }
           auto &applyStepper = FlayTarget::getStepper(externInfo.programInfo.get(), state);
           applyDecl->body->apply(applyStepper);
-          return state.get(paramRefs.at(1));
+          if (applyParameters->size() == 2) {
+              return state.get(paramRefs.at(1));
+          }
+          return static_cast<const IR::Expression *>(ToolsVariables::getSymbolicVariable(
+              actionType->arguments->at(2), externInfo.externObjectRef.path->toString() + "_" +
+                                                externInfo.methodName + "_return"));
       }},
      // -----------------------------------------------------------------------------
      // Apply the implemented abstract method using an index that increments each
@@ -541,6 +547,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%", components.size());
           const auto *applyDecl = components.at(0)->checkedTo<IR::Function>();
           const auto *applyParameters = applyDecl->type->parameters;
+          BUG_CHECK(applyParameters->size() == 1 || applyParameters->size() == 2,
+                    "Expected 1 or 2 parameters, got %1%", applyParameters->size());
 
           const auto &valueName = applyParameters->parameters.at(0)->name.name;
           auto valueLabel =
@@ -582,7 +590,12 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           }
           auto &applyStepper = FlayTarget::getStepper(externInfo.programInfo.get(), state);
           applyDecl->body->apply(applyStepper);
-          return state.get(paramRefs.at(1));
+          if (applyParameters->size() == 2) {
+              return state.get(paramRefs.at(1));
+          }
+          return static_cast<const IR::Expression *>(ToolsVariables::getSymbolicVariable(
+              actionType->arguments->at(2), externInfo.externObjectRef.path->toString() + "_" +
+                                                externInfo.methodName + "_return"));
       }},
      // -----------------------------------------------------------------------------
      // DirectRegisterAction.apply
