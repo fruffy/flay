@@ -16,7 +16,9 @@
 namespace P4Tools::Flay {
 
 FlayStepper::FlayStepper(const ProgramInfo &programInfo, ExecutionState &executionState)
-    : programInfo(programInfo), executionState(executionState) {}
+    : programInfo(programInfo), executionState(executionState) {
+    visitDagOnce = false;
+}
 
 const ProgramInfo &FlayStepper::getProgramInfo() const { return programInfo.get(); }
 

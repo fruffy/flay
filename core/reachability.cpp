@@ -23,7 +23,7 @@ ReachabilityExpression::ReachabilityExpression(const IR::Expression *cond)
     : cond(cond), reachabilityAssignment(std::nullopt) {}
 
 bool ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
-                                                    const IR::Expression *cond, bool addIfExist) {
+                                                    const IR::Expression *cond) {
     SymbolCollector collector;
     cond->apply(collector);
     const auto &collectedSymbols = collector.getCollectedSymbols();
@@ -32,16 +32,13 @@ bool ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
     }
 
     auto result = emplace(node, std::vector<ReachabilityExpression>());
-    if (!result.second && !addIfExist) {
-        return false;
-    }
-    result.first->second.push_back(ReachabilityExpression(cond));
+    result.first->second.emplace_back(cond);
     return result.second;
 }
 
 void ReachabilityMap::mergeReachabilityMapping(const ReachabilityMap &otherMap) {
     for (const auto &rechabilityTuple : otherMap) {
-        insert(rechabilityTuple);
+        (*this)[rechabilityTuple.first] = rechabilityTuple.second;
     }
     for (const auto &symbol : otherMap.getSymbolMap()) {
         symbolMap[symbol.first.get()].insert(symbol.second.begin(), symbol.second.end());

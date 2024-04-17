@@ -136,9 +136,9 @@ void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expr
         return;
     }
 
-    bool isNewNode = reachabilityMap.initializeReachabilityMapping(
-        node, new IR::LAnd(getExecutionCondition(), cond), FlayOptions::get().isStrict());
-    if (!isNewNode && FlayOptions::get().isStrict()) {
+    bool notAlreadyInMap = reachabilityMap.initializeReachabilityMapping(
+        node, new IR::LAnd(getExecutionCondition(), cond));
+    if (!notAlreadyInMap && FlayOptions::get().isStrict()) {
         // Throw a fatal error if we try to add a duplicate mapping.
         // This can affect the correctness of the entire mapping.
         BUG("Reachability mapping for node %1% already exists. Every mapping must be uniquely "

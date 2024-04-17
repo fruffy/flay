@@ -23,7 +23,9 @@ namespace P4Tools::Flay {
 
 ExpressionResolver::ExpressionResolver(const ProgramInfo &programInfo,
                                        ExecutionState &executionState)
-    : programInfo(programInfo), executionState(executionState) {}
+    : programInfo(programInfo), executionState(executionState) {
+    visitDagOnce = false;
+}
 
 const ProgramInfo &ExpressionResolver::getProgramInfo() const { return programInfo.get(); }
 
