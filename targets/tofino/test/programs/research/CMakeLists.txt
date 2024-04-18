@@ -40,6 +40,7 @@ FetchContent_Declare(
   p4_projects
   GIT_REPOSITORY https://github.com/Princeton-Cabernet/p4-projects
   GIT_TAG master
+  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch  || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch  -R --check && echo "Patch does not apply because the patch was already applied."
 )
 FetchContent_Declare(
   p4_hh
@@ -146,7 +147,6 @@ p4tools_add_xfail_reason(
   RTT.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
   PRECISION.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
   p40f_tofino.p4 # Unimplemented extern method: parser_counter.set
-  SmartCookie-HalfSipHash.p4
   netassay_iot_j6.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
   netassay_tunnel_j7.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
   netassay_tunnel_j8.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
