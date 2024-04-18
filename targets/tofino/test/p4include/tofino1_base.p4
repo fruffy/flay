@@ -1,10 +1,14 @@
-/* -*- P4_16 -*- */
-
 /**
- * Copyright (c) Intel Corporation
- * SPDX-License-Identifier: CC-BY-ND-4.0
+ * Copyright 2013-2023 Intel Corporation.
+ *
+ * This software and the related documents are Intel copyrighted materials, and your use of them
+ * is governed by the express license under which they were provided to you ("License"). Unless
+ * the License provides otherwise, you may not use, modify, copy, publish, distribute, disclose
+ * or transmit this software or the related documents without Intel's prior written permission.
+ *
+ * This software and the related documents are provided as is, with no express or implied
+ * warranties, other than those that are expressly stated in the License.
  */
-
 
 #ifndef _TOFINO1_P4_BASE_
 #define _TOFINO1_P4_BASE_
@@ -414,10 +418,11 @@ extern Checksum {
     /// @return : Boolean flag indicating whether the checksum is valid or not.
     bool verify();
 
-    /// Subtract all header fields after the current state and
+    /// Subtract all header fields after the call and
     /// return the calculated checksum value.
     /// Marks the end position for residual checksum header.
-    /// All header fields extracted after will be automatically subtracted.
+    /// All header fields extracted after the call will be automatically
+    /// subtracted.
     /// @param residual: The calculated checksum value for added fields.
     void subtract_all_and_deposit<T>(out T residual);
 
@@ -620,7 +625,7 @@ extern Register<T, I> {
     T read(in I index);
 
     /// Write value to register at specified index.
-    void write(in I index, in T value);
+    T write(in I index, in T value);
 }
 
 /// DirectRegister
@@ -637,7 +642,7 @@ extern DirectRegister<T> {
     T read();
 
     /// Write value to a direct register.
-    void write(in T value);
+    T write(in T value);
 }
 
 extern RegisterParam<T> {
