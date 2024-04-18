@@ -43,7 +43,7 @@ class ElimDeadCode : public Transform {
     /// @return true if any of the condition is reachable; false if none of the conditions are
     /// reachable; std::nullopt if the reachability is ambiguous.
     static std::optional<bool> getAnyReachability(
-        const std::vector<const ReachabilityExpression *> &condVector);
+        const std::set<const ReachabilityExpression *> &condVector);
 
     [[nodiscard]] std::vector<EliminatedReplacedPair> getEliminatedNodes() const;
 };

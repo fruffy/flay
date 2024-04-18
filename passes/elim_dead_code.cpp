@@ -16,7 +16,7 @@ ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
     : reachabilityMap(reachabilityMap), refMap(refMap) {}
 
 std::optional<bool> ElimDeadCode::getAnyReachability(
-    const std::vector<const ReachabilityExpression *> &condVector) {
+    const std::set<const ReachabilityExpression *> &condVector) {
     for (const auto *condition : condVector) {
         auto reachability = condition->getReachability();
         if (!reachability.has_value()) {

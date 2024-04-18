@@ -52,7 +52,7 @@ struct ReachabilityExpression {
 
 /// A mapping of P4C-IR nodes to their associated reachability expressions.
 class ReachabilityMap
-    : protected std::map<const IR::Node *, std::vector<ReachabilityExpression>, SourceIdCmp> {
+    : protected std::map<const IR::Node *, std::set<ReachabilityExpression *>, SourceIdCmp> {
     friend class Z3SolverReachabilityMap;
 
  private:
@@ -87,7 +87,7 @@ class AbstractReachabilityMap {
 
     /// @returns the reachability expression for the given node.
     /// @returns std::nullopt if no expression can be found.
-    [[nodiscard]] virtual std::optional<std::vector<const ReachabilityExpression *>>
+    [[nodiscard]] virtual std::optional<std::set<const ReachabilityExpression *>>
     getReachabilityExpressions(const IR::Node *node) const = 0;
 
     /// Compute reachability for all nodes in the map using the provided control plane constraints.
@@ -120,7 +120,7 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
  public:
     explicit SolverReachabilityMap(AbstractSolver &solver, const ReachabilityMap &map);
 
-    std::optional<std::vector<const ReachabilityExpression *>> getReachabilityExpressions(
+    std::optional<std::set<const ReachabilityExpression *>> getReachabilityExpressions(
         const IR::Node *node) const override;
 
     std::optional<bool> recomputeReachability(

@@ -31,14 +31,15 @@ bool ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
         symbolMap[symbol.get()].emplace(node);
     }
 
-    auto result = emplace(node, std::vector<ReachabilityExpression>());
-    result.first->second.emplace_back(cond);
+    auto result = emplace(node, std::set<ReachabilityExpression *>());
+    result.first->second.insert(new ReachabilityExpression(cond));
     return result.second;
 }
 
 void ReachabilityMap::mergeReachabilityMapping(const ReachabilityMap &otherMap) {
     for (const auto &rechabilityTuple : otherMap) {
-        (*this)[rechabilityTuple.first] = rechabilityTuple.second;
+        (*this)[rechabilityTuple.first].insert(rechabilityTuple.second.begin(),
+                                               rechabilityTuple.second.end());
     }
     for (const auto &symbol : otherMap.getSymbolMap()) {
         symbolMap[symbol.first.get()].insert(symbol.second.begin(), symbol.second.end());
@@ -47,9 +48,9 @@ void ReachabilityMap::mergeReachabilityMapping(const ReachabilityMap &otherMap) 
 
 void ReachabilityMap::substitutePlaceholders(Transform &substitute) {
     for (auto &[node, reachabilityExpressionVector] : *this) {
-        for (auto &reachabilityExpression : reachabilityExpressionVector) {
-            reachabilityExpression.setCondition(
-                reachabilityExpression.getCondition()->apply(substitute));
+        for (const auto &reachabilityExpression : reachabilityExpressionVector) {
+            reachabilityExpression->setCondition(
+                reachabilityExpression->getCondition()->apply(substitute));
         }
     }
 }
@@ -66,9 +67,9 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
         return std::nullopt;
     }
     bool hasChanged = false;
-    for (auto &it : vectorIt->second) {
-        const auto *reachabilityCondition = it.getCondition();
-        auto reachabilityAssignment = it.getReachability();
+    for (const auto &it : vectorIt->second) {
+        const auto *reachabilityCondition = it->getCondition();
+        auto reachabilityAssignment = it->getReachability();
 
         std::vector<const Constraint *> mergedConstraints(constraints);
         mergedConstraints.push_back(reachabilityCondition);
@@ -82,7 +83,7 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
 
         /// There is no way to satisfy the condition. It is always false.
         if (!solverResult.value()) {
-            it.setReachability(false);
+            it->setReachability(false);
             hasChanged = !reachabilityAssignment.has_value() || reachabilityAssignment.value();
             continue;
         }
@@ -98,13 +99,13 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
         }
         /// There is no way to falsify the condition. It is always true.
         if (!solverResult1.value()) {
-            it.setReachability(true);
+            it->setReachability(true);
             hasChanged = !reachabilityAssignment.has_value() || !reachabilityAssignment.value();
             continue;
         }
 
         if (solverResult.value() && solverResult1.value()) {
-            it.setReachability(std::nullopt);
+            it->setReachability(std::nullopt);
             hasChanged = reachabilityAssignment.has_value();
         }
     }
@@ -112,14 +113,14 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
     return hasChanged;
 }
 
-std::optional<std::vector<const ReachabilityExpression *>>
+std::optional<std::set<const ReachabilityExpression *>>
 SolverReachabilityMap::getReachabilityExpressions(const IR::Node *node) const {
     auto vectorIt = find(node);
     if (vectorIt != end()) {
         BUG_CHECK(!vectorIt->second.empty(), "Reachability vector for node %1% is empty.", node);
-        std::vector<const ReachabilityExpression *> result;
-        for (auto &it : vectorIt->second) {
-            result.push_back(&it);
+        std::set<const ReachabilityExpression *> result;
+        for (const auto &it : vectorIt->second) {
+            result.emplace(it);
         }
         return result;
     }
