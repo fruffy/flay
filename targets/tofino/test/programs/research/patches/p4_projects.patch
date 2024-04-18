@@ -1,0 +1,59 @@
+diff --git a/SmartCookie/p4src/SmartCookie-HalfSipHash.p4 b/SmartCookie/p4src/SmartCookie-HalfSipHash.p4
+index 9977c02..3799cfe 100644
+--- a/SmartCookie/p4src/SmartCookie-HalfSipHash.p4
++++ b/SmartCookie/p4src/SmartCookie-HalfSipHash.p4
+@@ -566,15 +566,15 @@ control SwitchIngress(
+   
+     // time-delta 
+     
+-    Register<bit<32>,_ >(1) reg_timedelta;
+-    RegisterAction<bit<32>, _, bit<32>>(reg_timedelta) regact_timedelta_write = 
++    Register<bit<32>, bit<8> >(1) reg_timedelta;
++    RegisterAction<bit<32>, bit<8>, bit<32>>(reg_timedelta) regact_timedelta_write =
+     {
+         void apply(inout bit<32> value, out bit<32> ret){
+             value = ig_md.timestamp_minus_servertime;
+             ret = 0;
+         }
+     };
+-    RegisterAction<bit<32>, _, bit<32>>(reg_timedelta) regact_timedelta_read = 
++    RegisterAction<bit<32>, bit<8>, bit<32>>(reg_timedelta) regact_timedelta_read =
+     {
+         void apply(inout bit<32> value, out bit<32> ret){
+             ret = value;
+@@ -604,14 +604,14 @@ control SwitchIngress(
+         
+     
+     // bloom filter for flows
+-	Register<bit<1>,_ >(32w4096) reg_bloom_1;
+-    RegisterAction<bit<1>, _, bit<1>>(reg_bloom_1) regact_bloom_1_get = 
++	Register<bit<1>, bit<12> >(32w4096) reg_bloom_1;
++    RegisterAction<bit<1>, bit<12>, bit<1>>(reg_bloom_1) regact_bloom_1_get =
+     {
+         void apply(inout bit<1> value, out bit<1> ret){
+             ret = value;
+         }
+     };
+-    RegisterAction<bit<1>, _, bit<1>>(reg_bloom_1) regact_bloom_1_set = 
++    RegisterAction<bit<1>, bit<12>, bit<1>>(reg_bloom_1) regact_bloom_1_set =
+     {
+         void apply(inout bit<1> value, out bit<1> ret){
+             value = 1;
+@@ -619,14 +619,14 @@ control SwitchIngress(
+         }
+     };
+ 
+-    Register<bit<1>,_ >(32w4096) reg_bloom_2;
+-    RegisterAction<bit<1>, _, bit<1>>(reg_bloom_2) regact_bloom_2_get = 
++    Register<bit<1>, bit<12> >(32w4096) reg_bloom_2;
++    RegisterAction<bit<1>, bit<12>, bit<1>>(reg_bloom_2) regact_bloom_2_get =
+     {
+         void apply(inout bit<1> value, out bit<1> ret){
+             ret = value;
+         }
+     };
+-    RegisterAction<bit<1>, _, bit<1>>(reg_bloom_2) regact_bloom_2_set = 
++    RegisterAction<bit<1>, bit<12>, bit<1>>(reg_bloom_2) regact_bloom_2_set =
+     {
+         void apply(inout bit<1> value, out bit<1> ret){
+             value = 1;
