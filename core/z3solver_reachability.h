@@ -39,9 +39,6 @@ class Z3SolverReachabilityMap
  public:
     explicit Z3SolverReachabilityMap(const ReachabilityMap &map);
 
-    std::optional<std::set<const ReachabilityExpression *>> getReachabilityExpressions(
-        const IR::Node *node) const override;
-
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;
 
@@ -52,6 +49,8 @@ class Z3SolverReachabilityMap
     std::optional<bool> recomputeReachability(
         const NodeSet &targetNodes,
         const ControlPlaneConstraints &controlPlaneConstraints) override;
+
+    std::optional<bool> isNodeReachable(const IR::Node *node) const override;
 };
 
 }  // namespace P4Tools::Flay

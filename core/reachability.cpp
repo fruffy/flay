@@ -113,17 +113,25 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
     return hasChanged;
 }
 
-std::optional<std::set<const ReachabilityExpression *>>
-SolverReachabilityMap::getReachabilityExpressions(const IR::Node *node) const {
+std::optional<bool> SolverReachabilityMap::isNodeReachable(const IR::Node *node) const {
     auto vectorIt = find(node);
     if (vectorIt != end()) {
         BUG_CHECK(!vectorIt->second.empty(), "Reachability vector for node %1% is empty.", node);
-        std::set<const ReachabilityExpression *> result;
-        for (const auto &it : vectorIt->second) {
-            result.emplace(it);
+        for (const auto &reachabilityNode : vectorIt->second) {
+            auto reachability = reachabilityNode->getReachability();
+            if (!reachability.has_value()) {
+                return std::nullopt;
+            }
+            if (reachability.value()) {
+                return true;
+            }
         }
-        return result;
+        return false;
     }
+    ::warning(
+        "Unable to find node %1% in the reachability map of this execution state. There might be "
+        "issues with the source information.",
+        node);
     return std::nullopt;
 }
 
