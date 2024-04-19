@@ -1,3 +1,707 @@
+diff --git a/Meta4-tofino/P4/netassay_iot_j6.p4 b/Meta4-tofino/P4/netassay_iot_j6.p4
+index 31eb7f1..cd760eb 100644
+--- a/Meta4-tofino/P4/netassay_iot_j6.p4
++++ b/Meta4-tofino/P4/netassay_iot_j6.p4
+@@ -1049,8 +1049,8 @@ control SwitchIngress(inout Parsed_packet headers,
+ 
+     // PRECISION STYLE TABLES
+ 
+-    Register<sip_cip_t,_>(TABLE_SIZE) sip_cip_reg_1; 
+-    RegisterAction<sip_cip_t,_,bit<1>> (sip_cip_reg_1) sip_cip_reg_1_check_action = {
++    Register<sip_cip_t, bit<32>>(TABLE_SIZE) sip_cip_reg_1; 
++    RegisterAction<sip_cip_t, bit<32>, bit<1>> (sip_cip_reg_1) sip_cip_reg_1_check_action = {
+         void apply(inout sip_cip_t value, out bit<1> is_match) {
+             if (value.sip == headers.dns_ip.rdata && value.cip == headers.ipv4.dst) {
+                 is_match = 1;
+@@ -1060,7 +1060,7 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<sip_cip_t,_,void> (sip_cip_reg_1) sip_cip_reg_1_update_action = {
++    RegisterAction<sip_cip_t, bit<32>, void> (sip_cip_reg_1) sip_cip_reg_1_update_action = {
+         void apply(inout sip_cip_t value) {
+             value.sip = headers.dns_ip.rdata;
+             value.cip = headers.ipv4.dst;
+@@ -1068,20 +1068,20 @@ control SwitchIngress(inout Parsed_packet headers,
+     };
+ 
+ 
+-    Register<domainid_t,_>(TABLE_SIZE) domain_reg_1;
+-    RegisterAction<domainid_t,_,bit<32>> (domain_reg_1) domain_reg_1_get_domain_action = {
++    Register<domainid_t, bit<32>>(TABLE_SIZE) domain_reg_1;
++    RegisterAction<domainid_t, bit<32>, bit<32>> (domain_reg_1) domain_reg_1_get_domain_action = {
+         void apply(inout domainid_t value, out bit<32> domain_id) {
+             domain_id = value.domain_id;
+         }
+     };
+-    RegisterAction<domainid_t,_,void> (domain_reg_1) domain_reg_1_update_domain_action = {
++    RegisterAction<domainid_t, bit<32>, void> (domain_reg_1) domain_reg_1_update_domain_action = {
+         void apply(inout domainid_t value) {
+             value.domain_id = ig_md.domain_id_dns;
+         }
+     };
+ 
+-    Register<timestamp_t,_>(TABLE_SIZE) tstamp_reg_1;
+-    RegisterAction<timestamp_t,_,bit<1>> (tstamp_reg_1) tstamp_reg_1_check_tstamp_action = {
++    Register<timestamp_t, bit<32>>(TABLE_SIZE) tstamp_reg_1;
++    RegisterAction<timestamp_t, bit<32>, bit<1>> (tstamp_reg_1) tstamp_reg_1_check_tstamp_action = {
+         void apply(inout timestamp_t value, out bit<1> timed_out) {
+             if (value.timestamp + TIMEOUT < (bit<32>)ig_intr_prsr_md.global_tstamp) {
+                 timed_out = 1;
+@@ -1091,12 +1091,12 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_1) tstamp_reg_1_update_tstamp_action = {
++    RegisterAction<timestamp_t, bit<32>, void> (tstamp_reg_1) tstamp_reg_1_update_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = (bit<32>)ig_intr_prsr_md.global_tstamp;
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_1) tstamp_reg_1_void_tstamp_action = {
++    RegisterAction<timestamp_t, bit<32>, void> (tstamp_reg_1) tstamp_reg_1_void_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = 32w0;
+         }
+@@ -1104,8 +1104,8 @@ control SwitchIngress(inout Parsed_packet headers,
+ 
+ 
+     // Register 2
+-    Register<sip_cip_t,_>(TABLE_SIZE) sip_cip_reg_2; 
+-    RegisterAction<sip_cip_t,_,bit<1>> (sip_cip_reg_2) sip_cip_reg_2_check_action = {
++    Register<sip_cip_t, bit<32>>(TABLE_SIZE) sip_cip_reg_2; 
++    RegisterAction<sip_cip_t, bit<32>, bit<1>> (sip_cip_reg_2) sip_cip_reg_2_check_action = {
+         void apply(inout sip_cip_t value, out bit<1> is_match) {
+             if (value.sip == headers.dns_ip.rdata && value.cip == headers.ipv4.dst) {
+                 is_match = 1;
+@@ -1115,27 +1115,27 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<sip_cip_t,_,void> (sip_cip_reg_2) sip_cip_reg_2_update_action = {
++    RegisterAction<sip_cip_t, bit<32>, void> (sip_cip_reg_2) sip_cip_reg_2_update_action = {
+         void apply(inout sip_cip_t value) {
+             value.sip = headers.dns_ip.rdata;
+             value.cip = headers.ipv4.dst;
+         }
+     };
+ 
+-    Register<domainid_t,_>(TABLE_SIZE) domain_reg_2;
+-    RegisterAction<domainid_t,_,bit<32>> (domain_reg_2) domain_reg_2_get_domain_action = {
++    Register<domainid_t, bit<32>>(TABLE_SIZE) domain_reg_2;
++    RegisterAction<domainid_t, bit<32>, bit<32>> (domain_reg_2) domain_reg_2_get_domain_action = {
+         void apply(inout domainid_t value, out bit<32> domain_id) {
+             domain_id = value.domain_id;
+         }
+     };
+-    RegisterAction<domainid_t,_,void> (domain_reg_2) domain_reg_2_update_domain_action = {
++    RegisterAction<domainid_t, bit<32>, void> (domain_reg_2) domain_reg_2_update_domain_action = {
+         void apply(inout domainid_t value) {
+             value.domain_id = ig_md.domain_id_dns;
+         }
+     };
+ 
+-    Register<timestamp_t,_>(TABLE_SIZE) tstamp_reg_2;
+-    RegisterAction<timestamp_t,_,bit<1>> (tstamp_reg_2) tstamp_reg_2_check_tstamp_action = {
++    Register<timestamp_t, bit<32>>(TABLE_SIZE) tstamp_reg_2;
++    RegisterAction<timestamp_t, bit<32>, bit<1>> (tstamp_reg_2) tstamp_reg_2_check_tstamp_action = {
+         void apply(inout timestamp_t value, out bit<1> timed_out) {
+             if (value.timestamp + TIMEOUT < (bit<32>)ig_intr_prsr_md.global_tstamp) {
+                 timed_out = 1;
+@@ -1145,12 +1145,12 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_2) tstamp_reg_2_update_tstamp_action = {
++    RegisterAction<timestamp_t, bit<32>, void> (tstamp_reg_2) tstamp_reg_2_update_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = (bit<32>)ig_intr_prsr_md.global_tstamp;
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_2) tstamp_reg_2_void_tstamp_action = {
++    RegisterAction<timestamp_t, bit<32>, void> (tstamp_reg_2) tstamp_reg_2_void_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = 32w0;
+         }
+@@ -1190,15 +1190,15 @@ control SwitchIngress(inout Parsed_packet headers,
+ */
+  
+     // REGISTER ARRAY FOR KEEPING TRACK OF OVERFLOW DNS RESPONSES
+-    Register<bit<32>,_>(NUM_KNOWN_DOMAINS) dns_total_queried;
+-    RegisterAction<bit<32>,_, void> (dns_total_queried) dns_total_queried_reg_inc_action = {
++    Register<bit<32>,bit<32>>(NUM_KNOWN_DOMAINS) dns_total_queried;
++    RegisterAction<bit<32>,bit<32>,void> (dns_total_queried) dns_total_queried_reg_inc_action = {
+         void apply(inout bit<32> value) {
+             value = value + 1;
+         }
+     };
+  
+-    Register<bit<32>,_>(NUM_KNOWN_DOMAINS) dns_total_missed;
+-    RegisterAction<bit<32>,_, void> (dns_total_missed) dns_total_missed_reg_inc_action = {
++    Register<bit<32>,bit<32>>(NUM_KNOWN_DOMAINS) dns_total_missed;
++    RegisterAction<bit<32>,bit<32>, void> (dns_total_missed) dns_total_missed_reg_inc_action = {
+         void apply(inout bit<32> value) {
+             value = value + 1;
+         }
+diff --git a/Meta4-tofino/P4/netassay_tunnel_j7.p4 b/Meta4-tofino/P4/netassay_tunnel_j7.p4
+index 0156706..3c21902 100644
+--- a/Meta4-tofino/P4/netassay_tunnel_j7.p4
++++ b/Meta4-tofino/P4/netassay_tunnel_j7.p4
+@@ -941,8 +941,8 @@ control SwitchIngress(inout Parsed_packet headers,
+ 
+     // PRECISION STYLE TABLES
+ 
+-    Register<sip_cip_t,_>(TABLE_SIZE) sip_cip_reg_1; 
+-    RegisterAction<sip_cip_t,_,bit<1>> (sip_cip_reg_1) sip_cip_reg_1_check_action = {
++    Register<sip_cip_t,bit<32>>(TABLE_SIZE) sip_cip_reg_1; 
++    RegisterAction<sip_cip_t,bit<32>,bit<1>> (sip_cip_reg_1) sip_cip_reg_1_check_action = {
+         void apply(inout sip_cip_t value, out bit<1> is_match) {
+             if (value.sip == headers.dns_ip.rdata && value.cip == headers.ipv4.dst) {
+                 is_match = 1;
+@@ -952,15 +952,15 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<sip_cip_t,_,void> (sip_cip_reg_1) sip_cip_reg_1_update_action = {
++    RegisterAction<sip_cip_t,bit<32>,void> (sip_cip_reg_1) sip_cip_reg_1_update_action = {
+         void apply(inout sip_cip_t value) {
+             value.sip = headers.dns_ip.rdata;
+             value.cip = headers.ipv4.dst;
+         }
+     };
+ 
+-    Register<timestamp_t,_>(TABLE_SIZE) tstamp_reg_1;
+-    RegisterAction<timestamp_t,_,bit<1>> (tstamp_reg_1) tstamp_reg_1_check_tstamp_action = {
++    Register<timestamp_t,bit<32>>(TABLE_SIZE) tstamp_reg_1;
++    RegisterAction<timestamp_t,bit<32>,bit<1>> (tstamp_reg_1) tstamp_reg_1_check_tstamp_action = {
+         void apply(inout timestamp_t value, out bit<1> timed_out) {
+             if (value.timestamp + TIMEOUT < (bit<32>)ig_intr_prsr_md.global_tstamp) {
+                 timed_out = 1;
+@@ -970,12 +970,12 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_1) tstamp_reg_1_update_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_1) tstamp_reg_1_update_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = (bit<32>)ig_intr_prsr_md.global_tstamp;
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_1) tstamp_reg_1_void_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_1) tstamp_reg_1_void_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = 32w0;
+         }
+@@ -983,8 +983,8 @@ control SwitchIngress(inout Parsed_packet headers,
+ 
+ 
+     // Register 2
+-    Register<sip_cip_t,_>(TABLE_SIZE) sip_cip_reg_2; 
+-    RegisterAction<sip_cip_t,_,bit<1>> (sip_cip_reg_2) sip_cip_reg_2_check_action = {
++    Register<sip_cip_t,bit<32>>(TABLE_SIZE) sip_cip_reg_2; 
++    RegisterAction<sip_cip_t,bit<32>,bit<1>> (sip_cip_reg_2) sip_cip_reg_2_check_action = {
+         void apply(inout sip_cip_t value, out bit<1> is_match) {
+             if (value.sip == headers.dns_ip.rdata && value.cip == headers.ipv4.dst) {
+                 is_match = 1;
+@@ -994,15 +994,15 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<sip_cip_t,_,void> (sip_cip_reg_2) sip_cip_reg_2_update_action = {
++    RegisterAction<sip_cip_t,bit<32>,void> (sip_cip_reg_2) sip_cip_reg_2_update_action = {
+         void apply(inout sip_cip_t value) {
+             value.sip = headers.dns_ip.rdata;
+             value.cip = headers.ipv4.dst;
+         }
+     };
+ 
+-    Register<timestamp_t,_>(TABLE_SIZE) tstamp_reg_2;
+-    RegisterAction<timestamp_t,_,bit<1>> (tstamp_reg_2) tstamp_reg_2_check_tstamp_action = {
++    Register<timestamp_t,bit<32>>(TABLE_SIZE) tstamp_reg_2;
++    RegisterAction<timestamp_t,bit<32>,bit<1>> (tstamp_reg_2) tstamp_reg_2_check_tstamp_action = {
+         void apply(inout timestamp_t value, out bit<1> timed_out) {
+             if (value.timestamp + TIMEOUT < (bit<32>)ig_intr_prsr_md.global_tstamp) {
+                 timed_out = 1;
+@@ -1012,12 +1012,12 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_2) tstamp_reg_2_update_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_2) tstamp_reg_2_update_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = (bit<32>)ig_intr_prsr_md.global_tstamp;
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_2) tstamp_reg_2_void_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_2) tstamp_reg_2_void_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = 32w0;
+         }
+@@ -1211,8 +1211,8 @@ control SwitchEgress(
+         inout egress_intrinsic_metadata_for_deparser_t ig_intr_dprs_md,
+         inout egress_intrinsic_metadata_for_output_port_t eg_intr_oport_md) {
+ 
+-    Register<ip_counter_t,_>(TABLE_SIZE) client_reg_pair_1;
+-    RegisterAction<ip_counter_t,_,bit<1>> (client_reg_pair_1) client_reg_pair_1_dns_action = {
++    Register<ip_counter_t,bit<32>>(TABLE_SIZE) client_reg_pair_1;
++    RegisterAction<ip_counter_t,bit<32>,bit<1>> (client_reg_pair_1) client_reg_pair_1_dns_action = {
+         void apply(inout ip_counter_t value, out bit<1> is_match) {
+             if (value.cip == hdr.ipv4.dst) {
+                 is_match = 1;
+@@ -1228,7 +1228,7 @@ control SwitchEgress(
+             }
+         }
+     };
+-    RegisterAction<ip_counter_t,_,bit<1>> (client_reg_pair_1) client_reg_pair_1_nondns_action = {
++    RegisterAction<ip_counter_t,bit<32>,bit<1>> (client_reg_pair_1) client_reg_pair_1_nondns_action = {
+         void apply(inout ip_counter_t value, out bit<1> is_match) {
+             if (value.cip == hdr.ipv4.dst) {
+                 is_match = 1;
+@@ -1243,8 +1243,8 @@ control SwitchEgress(
+     };
+ 
+ 
+-    Register<ip_counter_t,_>(TABLE_SIZE) client_reg_pair_2;
+-    RegisterAction<ip_counter_t,_,bit<1>> (client_reg_pair_2) client_reg_pair_2_dns_action = {
++    Register<ip_counter_t,bit<32>>(TABLE_SIZE) client_reg_pair_2;
++    RegisterAction<ip_counter_t,bit<32>,bit<1>> (client_reg_pair_2) client_reg_pair_2_dns_action = {
+         void apply(inout ip_counter_t value, out bit<1> is_match) {
+             if (value.cip == hdr.ipv4.dst) {
+                 is_match = 1;
+@@ -1260,7 +1260,7 @@ control SwitchEgress(
+             }
+         }
+     };
+-    RegisterAction<ip_counter_t,_,bit<1>> (client_reg_pair_2) client_reg_pair_2_nondns_action = {
++    RegisterAction<ip_counter_t,bit<32>,bit<1>> (client_reg_pair_2) client_reg_pair_2_nondns_action = {
+         void apply(inout ip_counter_t value, out bit<1> is_match) {
+             if (value.cip == hdr.ipv4.dst) {
+                 is_match = 1;
+diff --git a/Meta4-tofino/P4/netassay_tunnel_j8.p4 b/Meta4-tofino/P4/netassay_tunnel_j8.p4
+index 906351e..9f3b08a 100644
+--- a/Meta4-tofino/P4/netassay_tunnel_j8.p4
++++ b/Meta4-tofino/P4/netassay_tunnel_j8.p4
+@@ -1280,8 +1280,8 @@ control SwitchIngress(inout Parsed_packet headers,
+ 
+     // PRECISION STYLE TABLES
+ 
+-    Register<sip_cip_t,_>(TABLE_SIZE) sip_cip_reg_1; 
+-    RegisterAction<sip_cip_t,_,bit<1>> (sip_cip_reg_1) sip_cip_reg_1_check_action = {
++    Register<sip_cip_t,bit<32>>(TABLE_SIZE) sip_cip_reg_1; 
++    RegisterAction<sip_cip_t,bit<32>,bit<1>> (sip_cip_reg_1) sip_cip_reg_1_check_action = {
+         void apply(inout sip_cip_t value, out bit<1> is_match) {
+             if (value.sip == headers.dns_ip.rdata && value.cip == headers.ipv4.dst) {
+                 is_match = 1;
+@@ -1291,15 +1291,15 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<sip_cip_t,_,void> (sip_cip_reg_1) sip_cip_reg_1_update_action = {
++    RegisterAction<sip_cip_t,bit<32>,void> (sip_cip_reg_1) sip_cip_reg_1_update_action = {
+         void apply(inout sip_cip_t value) {
+             value.sip = headers.dns_ip.rdata;
+             value.cip = headers.ipv4.dst;
+         }
+     };
+ 
+-    Register<timestamp_t,_>(TABLE_SIZE) tstamp_reg_1;
+-    RegisterAction<timestamp_t,_,bit<1>> (tstamp_reg_1) tstamp_reg_1_check_tstamp_action = {
++    Register<timestamp_t,bit<32>>(TABLE_SIZE) tstamp_reg_1;
++    RegisterAction<timestamp_t,bit<32>,bit<1>> (tstamp_reg_1) tstamp_reg_1_check_tstamp_action = {
+         void apply(inout timestamp_t value, out bit<1> timed_out) {
+             if (value.timestamp + TIMEOUT < (bit<32>)ig_intr_prsr_md.global_tstamp) {
+                 timed_out = 1;
+@@ -1309,12 +1309,12 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_1) tstamp_reg_1_update_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_1) tstamp_reg_1_update_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = (bit<32>)ig_intr_prsr_md.global_tstamp;
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_1) tstamp_reg_1_void_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_1) tstamp_reg_1_void_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = 32w0;
+         }
+@@ -1322,8 +1322,8 @@ control SwitchIngress(inout Parsed_packet headers,
+ 
+ 
+     // Register 2
+-    Register<sip_cip_t,_>(TABLE_SIZE) sip_cip_reg_2; 
+-    RegisterAction<sip_cip_t,_,bit<1>> (sip_cip_reg_2) sip_cip_reg_2_check_action = {
++    Register<sip_cip_t,bit<32>>(TABLE_SIZE) sip_cip_reg_2; 
++    RegisterAction<sip_cip_t,bit<32>,bit<1>> (sip_cip_reg_2) sip_cip_reg_2_check_action = {
+         void apply(inout sip_cip_t value, out bit<1> is_match) {
+             if (value.sip == headers.dns_ip.rdata && value.cip == headers.ipv4.dst) {
+                 is_match = 1;
+@@ -1333,15 +1333,15 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<sip_cip_t,_,void> (sip_cip_reg_2) sip_cip_reg_2_update_action = {
++    RegisterAction<sip_cip_t,bit<32>,void> (sip_cip_reg_2) sip_cip_reg_2_update_action = {
+         void apply(inout sip_cip_t value) {
+             value.sip = headers.dns_ip.rdata;
+             value.cip = headers.ipv4.dst;
+         }
+     };
+ 
+-    Register<timestamp_t,_>(TABLE_SIZE) tstamp_reg_2;
+-    RegisterAction<timestamp_t,_,bit<1>> (tstamp_reg_2) tstamp_reg_2_check_tstamp_action = {
++    Register<timestamp_t,bit<32>>(TABLE_SIZE) tstamp_reg_2;
++    RegisterAction<timestamp_t,bit<32>,bit<1>> (tstamp_reg_2) tstamp_reg_2_check_tstamp_action = {
+         void apply(inout timestamp_t value, out bit<1> timed_out) {
+             if (value.timestamp + TIMEOUT < (bit<32>)ig_intr_prsr_md.global_tstamp) {
+                 timed_out = 1;
+@@ -1351,12 +1351,12 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_2) tstamp_reg_2_update_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_2) tstamp_reg_2_update_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = (bit<32>)ig_intr_prsr_md.global_tstamp;
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_2) tstamp_reg_2_void_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_2) tstamp_reg_2_void_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = 32w0;
+         }
+@@ -1550,8 +1550,8 @@ control SwitchEgress(
+         inout egress_intrinsic_metadata_for_deparser_t ig_intr_dprs_md,
+         inout egress_intrinsic_metadata_for_output_port_t eg_intr_oport_md) {
+ 
+-    Register<ip_counter_t,_>(TABLE_SIZE) client_reg_pair_1;
+-    RegisterAction<ip_counter_t,_,bit<1>> (client_reg_pair_1) client_reg_pair_1_dns_action = {
++    Register<ip_counter_t,bit<32>>(TABLE_SIZE) client_reg_pair_1;
++    RegisterAction<ip_counter_t,bit<32>,bit<1>> (client_reg_pair_1) client_reg_pair_1_dns_action = {
+         void apply(inout ip_counter_t value, out bit<1> is_match) {
+             if (value.cip == hdr.ipv4.dst) {
+                 is_match = 1;
+@@ -1567,7 +1567,7 @@ control SwitchEgress(
+             }
+         }
+     };
+-    RegisterAction<ip_counter_t,_,bit<1>> (client_reg_pair_1) client_reg_pair_1_nondns_action = {
++    RegisterAction<ip_counter_t,bit<32>,bit<1>> (client_reg_pair_1) client_reg_pair_1_nondns_action = {
+         void apply(inout ip_counter_t value, out bit<1> is_match) {
+             if (value.cip == hdr.ipv4.dst) {
+                 is_match = 1;
+@@ -1582,8 +1582,8 @@ control SwitchEgress(
+     };
+ 
+ 
+-    Register<ip_counter_t,_>(TABLE_SIZE) client_reg_pair_2;
+-    RegisterAction<ip_counter_t,_,bit<1>> (client_reg_pair_2) client_reg_pair_2_dns_action = {
++    Register<ip_counter_t,bit<32>>(TABLE_SIZE) client_reg_pair_2;
++    RegisterAction<ip_counter_t,bit<32>,bit<1>> (client_reg_pair_2) client_reg_pair_2_dns_action = {
+         void apply(inout ip_counter_t value, out bit<1> is_match) {
+             if (value.cip == hdr.ipv4.dst) {
+                 is_match = 1;
+@@ -1599,7 +1599,7 @@ control SwitchEgress(
+             }
+         }
+     };
+-    RegisterAction<ip_counter_t,_,bit<1>> (client_reg_pair_2) client_reg_pair_2_nondns_action = {
++    RegisterAction<ip_counter_t,bit<32>,bit<1>> (client_reg_pair_2) client_reg_pair_2_nondns_action = {
+         void apply(inout ip_counter_t value, out bit<1> is_match) {
+             if (value.cip == hdr.ipv4.dst) {
+                 is_match = 1;
+diff --git a/Meta4-tofino/P4/netassay_v4_j6.p4 b/Meta4-tofino/P4/netassay_v4_j6.p4
+index e373e3a..712faf3 100644
+--- a/Meta4-tofino/P4/netassay_v4_j6.p4
++++ b/Meta4-tofino/P4/netassay_v4_j6.p4
+@@ -1058,8 +1058,8 @@ control SwitchIngress(inout Parsed_packet headers,
+ 
+     // PRECISION STYLE TABLES
+ 
+-    Register<sip_cip_t,_>(TABLE_SIZE) sip_cip_reg_1; 
+-    RegisterAction<sip_cip_t,_,bit<1>> (sip_cip_reg_1) sip_cip_reg_1_check_action = {
++    Register<sip_cip_t,bit<32>>(TABLE_SIZE) sip_cip_reg_1; 
++    RegisterAction<sip_cip_t,bit<32>,bit<1>> (sip_cip_reg_1) sip_cip_reg_1_check_action = {
+         void apply(inout sip_cip_t value, out bit<1> is_match) {
+             if (value.sip == headers.dns_ip.rdata && value.cip == headers.ipv4.dst) {
+                 is_match = 1;
+@@ -1069,7 +1069,7 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<sip_cip_t,_,void> (sip_cip_reg_1) sip_cip_reg_1_update_action = {
++    RegisterAction<sip_cip_t,bit<32>,void> (sip_cip_reg_1) sip_cip_reg_1_update_action = {
+         void apply(inout sip_cip_t value) {
+             value.sip = headers.dns_ip.rdata;
+             value.cip = headers.ipv4.dst;
+@@ -1077,20 +1077,20 @@ control SwitchIngress(inout Parsed_packet headers,
+     };
+ 
+ 
+-    Register<domainid_t,_>(TABLE_SIZE) domain_reg_1;
+-    RegisterAction<domainid_t,_,bit<32>> (domain_reg_1) domain_reg_1_get_domain_action = {
++    Register<domainid_t,bit<32>>(TABLE_SIZE) domain_reg_1;
++    RegisterAction<domainid_t,bit<32>,bit<32>> (domain_reg_1) domain_reg_1_get_domain_action = {
+         void apply(inout domainid_t value, out bit<32> domain_id) {
+             domain_id = value.domain_id;
+         }
+     };
+-    RegisterAction<domainid_t,_,void> (domain_reg_1) domain_reg_1_update_domain_action = {
++    RegisterAction<domainid_t,bit<32>,void> (domain_reg_1) domain_reg_1_update_domain_action = {
+         void apply(inout domainid_t value) {
+             value.domain_id = ig_md.domain_id_dns;
+         }
+     };
+ 
+-    Register<timestamp_t,_>(TABLE_SIZE) tstamp_reg_1;
+-    RegisterAction<timestamp_t,_,bit<1>> (tstamp_reg_1) tstamp_reg_1_check_tstamp_action = {
++    Register<timestamp_t,bit<32>>(TABLE_SIZE) tstamp_reg_1;
++    RegisterAction<timestamp_t,bit<32>,bit<1>> (tstamp_reg_1) tstamp_reg_1_check_tstamp_action = {
+         void apply(inout timestamp_t value, out bit<1> timed_out) {
+             if (value.timestamp + TIMEOUT < (bit<32>)ig_intr_prsr_md.global_tstamp) {
+                 timed_out = 1;
+@@ -1100,7 +1100,7 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_1) tstamp_reg_1_update_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_1) tstamp_reg_1_update_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = (bit<32>)ig_intr_prsr_md.global_tstamp;
+         }
+@@ -1108,8 +1108,8 @@ control SwitchIngress(inout Parsed_packet headers,
+ 
+ 
+     // Register 2
+-    Register<sip_cip_t,_>(TABLE_SIZE) sip_cip_reg_2; 
+-    RegisterAction<sip_cip_t,_,bit<1>> (sip_cip_reg_2) sip_cip_reg_2_check_action = {
++    Register<sip_cip_t,bit<32>>(TABLE_SIZE) sip_cip_reg_2; 
++    RegisterAction<sip_cip_t,bit<32>,bit<1>> (sip_cip_reg_2) sip_cip_reg_2_check_action = {
+         void apply(inout sip_cip_t value, out bit<1> is_match) {
+             if (value.sip == headers.dns_ip.rdata && value.cip == headers.ipv4.dst) {
+                 is_match = 1;
+@@ -1119,27 +1119,27 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<sip_cip_t,_,void> (sip_cip_reg_2) sip_cip_reg_2_update_action = {
++    RegisterAction<sip_cip_t,bit<32>,void> (sip_cip_reg_2) sip_cip_reg_2_update_action = {
+         void apply(inout sip_cip_t value) {
+             value.sip = headers.dns_ip.rdata;
+             value.cip = headers.ipv4.dst;
+         }
+     };
+ 
+-    Register<domainid_t,_>(TABLE_SIZE) domain_reg_2;
+-    RegisterAction<domainid_t,_,bit<32>> (domain_reg_2) domain_reg_2_get_domain_action = {
++    Register<domainid_t,bit<32>>(TABLE_SIZE) domain_reg_2;
++    RegisterAction<domainid_t,bit<32>,bit<32>> (domain_reg_2) domain_reg_2_get_domain_action = {
+         void apply(inout domainid_t value, out bit<32> domain_id) {
+             domain_id = value.domain_id;
+         }
+     };
+-    RegisterAction<domainid_t,_,void> (domain_reg_2) domain_reg_2_update_domain_action = {
++    RegisterAction<domainid_t,bit<32>,void> (domain_reg_2) domain_reg_2_update_domain_action = {
+         void apply(inout domainid_t value) {
+             value.domain_id = ig_md.domain_id_dns;
+         }
+     };
+ 
+-    Register<timestamp_t,_>(TABLE_SIZE) tstamp_reg_2;
+-    RegisterAction<timestamp_t,_,bit<1>> (tstamp_reg_2) tstamp_reg_2_check_tstamp_action = {
++    Register<timestamp_t,bit<32>>(TABLE_SIZE) tstamp_reg_2;
++    RegisterAction<timestamp_t,bit<32>,bit<1>> (tstamp_reg_2) tstamp_reg_2_check_tstamp_action = {
+         void apply(inout timestamp_t value, out bit<1> timed_out) {
+             if (value.timestamp + TIMEOUT < (bit<32>)ig_intr_prsr_md.global_tstamp) {
+                 timed_out = 1;
+@@ -1149,7 +1149,7 @@ control SwitchIngress(inout Parsed_packet headers,
+             }
+         }
+     };
+-    RegisterAction<timestamp_t,_,void> (tstamp_reg_2) tstamp_reg_2_update_tstamp_action = {
++    RegisterAction<timestamp_t,bit<32>,void> (tstamp_reg_2) tstamp_reg_2_update_tstamp_action = {
+         void apply(inout timestamp_t value) {
+             value.timestamp = (bit<32>)ig_intr_prsr_md.global_tstamp;
+         }
+@@ -1189,15 +1189,15 @@ control SwitchIngress(inout Parsed_packet headers,
+ */
+  
+     // REGISTER ARRAY FOR KEEPING TRACK OF OVERFLOW DNS RESPONSES
+-    Register<bit<32>,_>(NUM_KNOWN_DOMAINS) dns_total_queried;
+-    RegisterAction<bit<32>,_, void> (dns_total_queried) dns_total_queried_reg_inc_action = {
++    Register<bit<32>,bit<32>>(NUM_KNOWN_DOMAINS) dns_total_queried;
++    RegisterAction<bit<32>,bit<32>, void> (dns_total_queried) dns_total_queried_reg_inc_action = {
+         void apply(inout bit<32> value) {
+             value = value + 1;
+         }
+     };
+  
+-    Register<bit<32>,_>(NUM_KNOWN_DOMAINS) dns_total_missed;
+-    RegisterAction<bit<32>,_, void> (dns_total_missed) dns_total_missed_reg_inc_action = {
++    Register<bit<32>,bit<32>>(NUM_KNOWN_DOMAINS) dns_total_missed;
++    RegisterAction<bit<32>,bit<32>, void> (dns_total_missed) dns_total_missed_reg_inc_action = {
+         void apply(inout bit<32> value) {
+             value = value + 1;
+         }
+@@ -1504,15 +1504,15 @@ control SwitchEgress(
+ 
+ 
+     // REGISTER ARRAY FOR COLLECTING COUNTS ON TRAFFIC WITH KNOWN DOMAINS
+-    Register<bit<32>,_>(NUM_KNOWN_DOMAINS) packet_counts_table;
+-    RegisterAction<bit<32>,_,void> (packet_counts_table) packet_counts_table_reg_inc_action = {
++    Register<bit<32>,bit<16>>(NUM_KNOWN_DOMAINS) packet_counts_table;
++    RegisterAction<bit<32>,bit<16>,void> (packet_counts_table) packet_counts_table_reg_inc_action = {
+         void apply(inout bit<32> value) {
+             value = value + 1;
+         }
+     };
+ 
+-    Register<bit<32>,_>(NUM_KNOWN_DOMAINS) byte_counts_table;
+-    RegisterAction<bit<32>,_,bit<1>> (byte_counts_table) byte_counts_table_reg_inc_action = {
++    Register<bit<32>,bit<16>>(NUM_KNOWN_DOMAINS) byte_counts_table;
++    RegisterAction<bit<32>,bit<16>,bit<1>> (byte_counts_table) byte_counts_table_reg_inc_action = {
+         void apply(inout bit<32> value, out bit<1> overflow) {
+             
+             if (value >= 0x80000000) {
+@@ -1527,8 +1527,8 @@ control SwitchEgress(
+         }
+     };
+ 
+-    Register<bit<32>,_>(NUM_KNOWN_DOMAINS) byte_counts_table_overflow;
+-    RegisterAction<bit<32>,_,void> (byte_counts_table_overflow) byte_counts_table_overflow_reg_inc_action = {
++    Register<bit<32>,bit<16>>(NUM_KNOWN_DOMAINS) byte_counts_table_overflow;
++    RegisterAction<bit<32>,bit<16>,void> (byte_counts_table_overflow) byte_counts_table_overflow_reg_inc_action = {
+         void apply(inout bit<32> value) {
+             value = value + 1;
+         }
+diff --git a/PRECISION-tofino/p4src/PRECISION.p4 b/PRECISION-tofino/p4src/PRECISION.p4
+index 8338537..5b63424 100644
+--- a/PRECISION-tofino/p4src/PRECISION.p4
++++ b/PRECISION-tofino/p4src/PRECISION.p4
+@@ -395,21 +395,21 @@ control SwitchIngress(
+ 
+ // == Register arrays for the stateful data structure
+ 
+-        Register<bit<32>,_>(32w65536) reg_flowid_1_1_R;
+-        Register<bit<32>,_>(32w65536) reg_flowid_1_2_R;
+-        Register<bit<32>,_>(32w65536) reg_flowid_1_3_R;
+-        Register<bit<32>,_>(32w65536) reg_flowid_1_4_R;
+-        Register<bit<32>,_>(32w65536) reg_counter_1_R;
+-        Register<bit<32>,_>(32w65536) reg_flowid_2_1_R;
+-        Register<bit<32>,_>(32w65536) reg_flowid_2_2_R;
+-        Register<bit<32>,_>(32w65536) reg_flowid_2_3_R;
+-        Register<bit<32>,_>(32w65536) reg_flowid_2_4_R;
+-        Register<bit<32>,_>(32w65536) reg_counter_2_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_flowid_1_1_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_flowid_1_2_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_flowid_1_3_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_flowid_1_4_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_counter_1_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_flowid_2_1_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_flowid_2_2_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_flowid_2_3_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_flowid_2_4_R;
++        Register<bit<32>, bit<16>>(32w65536) reg_counter_2_R;
+         
+         
+         // Define read/write actions for each flowID array
+         #define RegAct_FlowID(st,pi) \
+-        RegisterAction<bit<32>, _, bit<8>>(reg_flowid_## st ##_## pi ##_R) stage_## st ##_fid_match_## pi ##_RA= {  \
++        RegisterAction<bit<32>, bit<16>, bit<8>>(reg_flowid_## st ##_## pi ##_R) stage_## st ##_fid_match_## pi ##_RA= {  \
+             void apply(inout bit<32> value, out bit<8> rv) {          \
+                 rv = 0;                                                    \
+                 bit<32> in_value;                                          \
+@@ -419,7 +419,7 @@ control SwitchIngress(
+             }                                                              \
+         };                                                                 \
+         \
+-        RegisterAction<bit<32>, _, bit<8>>(reg_flowid_## st ##_## pi ##_R) stage_## st ##_fid_write_## pi ##_RA= {  \
++        RegisterAction<bit<32>, bit<16>, bit<8>>(reg_flowid_## st ##_## pi ##_R) stage_## st ##_fid_write_## pi ##_RA= {  \
+             void apply(inout bit<32> value, out bit<8> rv) {               \
+                 rv = 0;                                                    \
+                 bit<32> in_value;                                          \
+@@ -469,7 +469,7 @@ control SwitchIngress(
+         
+         // Define stateful actions for matching flow ID
+         #define RegAct_Counter(st) \
+-        RegisterAction<bit<32>, _, bit<32>>(reg_counter_## st  ##_R) stage_## st ##_counter_read = {  \
++        RegisterAction<bit<32>, bit<16>, bit<32>>(reg_counter_## st  ##_R) stage_## st ##_counter_read = {  \
+             void apply(inout bit<32> value, out bit<32> rv) {          \
+                 rv = 0;                                               \
+                 bit<32> in_value;                                     \
+@@ -478,7 +478,7 @@ control SwitchIngress(
+             }                                                                            \
+         };                                                                               \
+         action exec_stage_## st ##_counter_read(){  ig_md.counter_read_## st =stage_## st ##_counter_read.execute(ig_md.stage_## st ##_loc);} \
+-        RegisterAction<bit<32>, _, bit<32>>(reg_counter_## st  ##_R) stage_## st ##_counter_incr = {  \
++        RegisterAction<bit<32>, bit<16>, bit<32>>(reg_counter_## st  ##_R) stage_## st ##_counter_incr = {  \
+             void apply(inout bit<32> value, out bit<32> rv) {          \
+                 rv = 0;                                               \
+                 bit<32> in_value;                                     \
+@@ -512,9 +512,9 @@ control SwitchIngress(
+         
+         // Find out which stage has the minimum count.
+         // We use a 32-bit register here for comparing two 32bit numbers
+-        Register<bit<32>,_>(32w32) dummy_reg1;
+-        Register<bit<32>,_>(32w32) dummy_reg2;
+-        RegisterAction<bit<32>, _, bit<32>>(dummy_reg1) get_min_stage = {
++        Register<bit<32>,bit<5>>(32w32) dummy_reg1;
++        Register<bit<32>,bit<5>>(32w32) dummy_reg2;
++        RegisterAction<bit<32>, bit<5>, bit<32>>(dummy_reg1) get_min_stage = {
+              void apply(inout bit<32> value, out bit<32> rv) {         
+                 rv = 0;                                               
+                 bit<32> in_value;                                     
+diff --git a/RTT-tofino/p4src/RTT.p4 b/RTT-tofino/p4src/RTT.p4
+index 8797980..62a518d 100644
+--- a/RTT-tofino/p4src/RTT.p4
++++ b/RTT-tofino/p4src/RTT.p4
+@@ -413,15 +413,15 @@ control SwitchIngress(
+         #define TS_LEGITIMATE_THRESHOLD (2000*1000*1000)
+         
+         
+-        Register<paired_32bit,_>(32w65536) reg_table_1;
+-        Register<paired_32bit,_>(32w65536) reg_table_2;
++        Register<paired_32bit, bit<16>>(32w65536) reg_table_1;
++        Register<paired_32bit, bit<16>>(32w65536) reg_table_2;
+         //lo:signature, hi:timestamp
+         #define current_entry_matched (in_value.lo==ig_md.pkt_signature)
+         #define timestamp_legitimate  ((TIMESTAMP-in_value.hi)<TS_LEGITIMATE_THRESHOLD)
+ 
+ 
+         //actions for 1st table
+-        RegisterAction<paired_32bit, _, bit<32>>(reg_table_1) table_1_insert= {  
++        RegisterAction<paired_32bit, bit<16>, bit<32>>(reg_table_1) table_1_insert= {
+             void apply(inout paired_32bit value, out bit<32> rv) {          
+                 rv = 0;                                                    
+                 paired_32bit in_value;                                          
+@@ -442,7 +442,7 @@ control SwitchIngress(
+             ig_md.table_read=table_1_insert.execute(ig_md.hashed_location_1);
+         }
+         
+-        RegisterAction<paired_32bit, _, bit<32>>(reg_table_1) table_1_tryRead= {  
++        RegisterAction<paired_32bit, bit<16>, bit<32>>(reg_table_1) table_1_tryRead= {  
+             void apply(inout paired_32bit value, out bit<32> rv) {    
+                 rv=0;
+                 paired_32bit in_value;                                          
+@@ -461,7 +461,7 @@ control SwitchIngress(
+         }
+ 
+         //actions for 2nd table
+-        RegisterAction<paired_32bit, _, bit<32>>(reg_table_2) table_2_insert= {  
++        RegisterAction<paired_32bit, bit<16>, bit<32>>(reg_table_2) table_2_insert= {  
+             void apply(inout paired_32bit value, out bit<32> rv) {          
+                 rv = 0;
+                 paired_32bit in_value;
+@@ -482,7 +482,7 @@ control SwitchIngress(
+             ig_md.table_read=table_2_insert.execute(ig_md.hashed_location_2);
+         }
+         
+-        RegisterAction<paired_32bit, _, bit<32>>(reg_table_2) table_2_tryRead= {  
++        RegisterAction<paired_32bit, bit<16>, bit<32>>(reg_table_2) table_2_tryRead= {  
+             void apply(inout paired_32bit value, out bit<32> rv) {    
+                 rv=0;
+                 paired_32bit in_value;
 diff --git a/SmartCookie/p4src/SmartCookie-HalfSipHash.p4 b/SmartCookie/p4src/SmartCookie-HalfSipHash.p4
 index 9977c02..3799cfe 100644
 --- a/SmartCookie/p4src/SmartCookie-HalfSipHash.p4

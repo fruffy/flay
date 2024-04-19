@@ -1,0 +1,21 @@
+diff --git a/P4-IPG-HH/IPG-HH.p4 b/P4-IPG-HH/IPG-HH.p4
+index f41c41b..544860c 100644
+--- a/P4-IPG-HH/IPG-HH.p4
++++ b/P4-IPG-HH/IPG-HH.p4
+@@ -36,11 +36,11 @@ control SwitchIngress(
+         MathUnit<bit<16>>(MathOp_t.MUL, 1, 16) right_shift;
+ 
+         /****** Register definition ***********************************/
+-        Register <bit<32>, _> (32w2048)  rFlowId      ;
+-        Register <bit<16>, _> (32w2048)  rIPGw        ;
+-        Register <bit<16>, _> (32w2048)  rTSlast      ;
+-        Register <bit<16>, _> (32w2048)  rTau         ;
+-        Register <bit<1>,  _> (32w2048)  rIPGflag     ;
++        Register <bit<32>, bit<10>> (32w2048)  rFlowId      ;
++        Register <bit<16>, bit<10>> (32w2048)  rIPGw        ;
++        Register <bit<16>, bit<10>> (32w2048)  rTSlast      ;
++        Register <bit<16>, bit<10>> (32w2048)  rTau         ;
++        Register <bit<1>,  bit<10>> (32w2048)  rIPGflag     ;
+ 
+        /**********  Calculate Table Index and Set IPG flag for first pkt of a flow ****************/
+         Hash<rSize>(HashAlgorithm_t.CRC32) hTableIndex;
