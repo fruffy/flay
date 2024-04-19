@@ -52,7 +52,7 @@ struct ReachabilityExpression {
 
 /// A mapping of P4C-IR nodes to their associated reachability expressions.
 class ReachabilityMap
-    : protected std::map<const IR::Node *, std::vector<ReachabilityExpression>, SourceIdCmp> {
+    : protected std::map<const IR::Node *, std::set<ReachabilityExpression *>, SourceIdCmp> {
     friend class Z3SolverReachabilityMap;
 
  private:
@@ -63,8 +63,7 @@ class ReachabilityMap
  public:
     /// Initialize the reachability mapping for the given node.
     /// @returns false if the node is already mapped.
-    bool initializeReachabilityMapping(const IR::Node *node, const IR::Expression *cond,
-                                       bool addIfExist = false);
+    bool initializeReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
 
     /// Merge an other reachability map into this reachability map.
     void mergeReachabilityMapping(const ReachabilityMap &otherMap);
@@ -86,11 +85,6 @@ class AbstractReachabilityMap {
     AbstractReachabilityMap() = default;
     virtual ~AbstractReachabilityMap() = default;
 
-    /// @returns the reachability expression for the given node.
-    /// @returns std::nullopt if no expression can be found.
-    [[nodiscard]] virtual std::optional<std::vector<const ReachabilityExpression *>>
-    getReachabilityExpressions(const IR::Node *node) const = 0;
-
     /// Compute reachability for all nodes in the map using the provided control plane constraints.
     std::optional<bool> virtual recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) = 0;
@@ -104,6 +98,11 @@ class AbstractReachabilityMap {
     /// constraints.
     std::optional<bool> virtual recomputeReachability(
         const NodeSet &targetNodes, const ControlPlaneConstraints &controlPlaneConstraints) = 0;
+
+    /// @return false when the node is never reachable,
+    /// true when the node is always reachable, and std::nullopt if the node is sometimes reachable
+    /// or the node could not be found.
+    virtual std::optional<bool> isNodeReachable(const IR::Node *node) const = 0;
 };
 
 class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabilityMap {
@@ -121,9 +120,6 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
  public:
     explicit SolverReachabilityMap(AbstractSolver &solver, const ReachabilityMap &map);
 
-    std::optional<std::vector<const ReachabilityExpression *>> getReachabilityExpressions(
-        const IR::Node *node) const override;
-
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;
 
@@ -134,6 +130,8 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
     std::optional<bool> recomputeReachability(
         const NodeSet &targetNodes,
         const ControlPlaneConstraints &controlPlaneConstraints) override;
+
+    std::optional<bool> isNodeReachable(const IR::Node *node) const override;
 };
 
 }  // namespace P4Tools::Flay

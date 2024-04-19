@@ -24,7 +24,7 @@ class Z3ReachabilityExpression : public ReachabilityExpression {
 };
 
 class Z3SolverReachabilityMap
-    : private std::map<const IR::Node *, std::vector<Z3ReachabilityExpression>, SourceIdCmp>,
+    : private std::map<const IR::Node *, std::set<Z3ReachabilityExpression *>, SourceIdCmp>,
       public AbstractReachabilityMap {
     /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the
     /// reachability map. This map can we used for incremental re-computation of reachability.
@@ -39,9 +39,6 @@ class Z3SolverReachabilityMap
  public:
     explicit Z3SolverReachabilityMap(const ReachabilityMap &map);
 
-    std::optional<std::vector<const ReachabilityExpression *>> getReachabilityExpressions(
-        const IR::Node *node) const override;
-
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;
 
@@ -52,6 +49,8 @@ class Z3SolverReachabilityMap
     std::optional<bool> recomputeReachability(
         const NodeSet &targetNodes,
         const ControlPlaneConstraints &controlPlaneConstraints) override;
+
+    std::optional<bool> isNodeReachable(const IR::Node *node) const override;
 };
 
 }  // namespace P4Tools::Flay

@@ -1,2 +1,2 @@
-Eliminated node at line 128: 12w1: { stub.apply();}
-Eliminated node at line 129: 12w2: {
+Replaced node at line 128: 12w1: { stub.apply();} with const default_action = execute;
+Replaced node at line 131: stub1.apply(); with const default_action = execute_1;

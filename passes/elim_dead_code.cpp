@@ -15,20 +15,6 @@ ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
                            const AbstractReachabilityMap &reachabilityMap)
     : reachabilityMap(reachabilityMap), refMap(refMap) {}
 
-std::optional<bool> ElimDeadCode::getAnyReachability(
-    const std::vector<const ReachabilityExpression *> &condVector) {
-    for (const auto *condition : condVector) {
-        auto reachability = condition->getReachability();
-        if (!reachability.has_value()) {
-            return std::nullopt;
-        }
-        if (reachability.value()) {
-            return true;
-        }
-    }
-    return false;
-}
-
 const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     // Only analyze statements with valid source location.
     if (!stmt->srcInfo.isValid()) {
@@ -40,17 +26,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
         return stmt;
     }
 
-    auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(stmt);
-    if (!conditionVectorOpt.has_value()) {
-        ::warning(
-            "Unable to find node %1% in the reachability map of this execution "
-            "state. There might "
-            "be "
-            "issues with the source information.",
-            stmt);
-        return stmt;
-    }
-    auto reachability = getAnyReachability(conditionVectorOpt.value());
+    auto reachability = reachabilityMap.get().isNodeReachable(stmt);
 
     // Ambiguous condition, we can not simplify.
     if (!reachability.has_value()) {
@@ -91,15 +67,7 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
             filteredSwitchCases.push_back(switchCase);
             break;
         }
-        auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(switchCase);
-        if (!conditionVectorOpt.has_value()) {
-            ::warning(
-                "Unable to find node %1% in the reachability map of this execution state. There "
-                "might be issues with the source information.",
-                switchCase);
-            return switchCase;
-        }
-        auto isreachabilityOpt = getAnyReachability(conditionVectorOpt.value());
+        auto isreachabilityOpt = reachabilityMap.get().isNodeReachable(switchCase);
         if (!isreachabilityOpt.has_value()) {
             filteredSwitchCases.push_back(switchCase);
             continue;
@@ -157,15 +125,8 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
     if (member->member != IR::Type_Table::hit && member->member != IR::Type_Table::miss) {
         return member;
     }
-    const auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(member);
-    if (!conditionVectorOpt.has_value()) {
-        ::warning(
-            "Unable to find node %1% in the reachability map of this execution state. There "
-            "might be issues with the source information.",
-            member);
-        return member;
-    }
-    ASSIGN_OR_RETURN(auto reachability, getAnyReachability(conditionVectorOpt.value()), member);
+
+    ASSIGN_OR_RETURN(auto reachability, reachabilityMap.get().isNodeReachable(member), member);
 
     const auto *result = IR::getBoolLiteral(reachability, member->srcInfo);
     printInfo("%1% can be replaced with %2%.", member, result->toString());
@@ -193,16 +154,8 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     // Filter out any actions which are @defaultonly.
     auto tableActionList = TableUtils::buildTableActionList(table);
     for (const auto *action : tableActionList) {
-        const auto conditionVectorOpt = reachabilityMap.get().getReachabilityExpressions(action);
-        if (!conditionVectorOpt.has_value()) {
-            ::warning(
-                "Unable to find node %1% in the reachability map of this execution state. There "
-                "might be issues with the source information.",
-                action);
-            return stmt;
-        }
         // We return if a single action is executable for the current table.
-        ASSIGN_OR_RETURN(auto reachability, getAnyReachability(conditionVectorOpt.value()), stmt);
+        ASSIGN_OR_RETURN(auto reachability, reachabilityMap.get().isNodeReachable(action), stmt);
 
         if (reachability) {
             printInfo("%1% will always be executed.", action);

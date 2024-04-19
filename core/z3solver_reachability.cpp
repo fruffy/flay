@@ -19,9 +19,9 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(const IR::N
         return std::nullopt;
     }
     bool hasChanged = false;
-    for (auto &it : vectorIt->second) {
-        auto reachabilityCondition = it.getZ3Condition();
-        auto reachabilityAssignment = it.getReachability();
+    for (const auto &it : vectorIt->second) {
+        const auto &reachabilityCondition = it->getZ3Condition();
+        auto reachabilityAssignment = it->getReachability();
         {
             solver.push();
             solver.asrt(reachabilityCondition);
@@ -36,7 +36,7 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(const IR::N
 
             /// There is no way to satisfy the condition. It is always false.
             if (!solverResult.value()) {
-                it.setReachability(false);
+                it->setReachability(false);
                 hasChanged = !reachabilityAssignment.has_value() || reachabilityAssignment.value();
                 continue;
             }
@@ -54,13 +54,13 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(const IR::N
             }
             /// There is no way to falsify the condition. It is always true.
             if (!solverResult.value()) {
-                it.setReachability(true);
+                it->setReachability(true);
                 hasChanged = !reachabilityAssignment.has_value() || !reachabilityAssignment.value();
                 continue;
             }
 
             if (solverResult.value() && solverResult.value()) {
-                it.setReachability(std::nullopt);
+                it->setReachability(std::nullopt);
                 hasChanged = reachabilityAssignment.has_value();
             }
         }
@@ -73,27 +73,35 @@ Z3SolverReachabilityMap::Z3SolverReachabilityMap(const ReachabilityMap &map)
     Util::ScopedTimer timer("Precomputing Z3 Reachability");
     Z3Translator z3Translator(solver);
     for (const auto &[node, reachabilityExpressionVector] : map) {
-        std::vector<Z3ReachabilityExpression> result;
-        for (auto &reachabilityExpression : reachabilityExpressionVector) {
-            reachabilityExpression.getCondition()->apply(z3Translator);
-            result.push_back(
-                Z3ReachabilityExpression(reachabilityExpression, z3Translator.getResult()));
+        std::set<Z3ReachabilityExpression *> result;
+        for (const auto &reachabilityExpression : reachabilityExpressionVector) {
+            reachabilityExpression->getCondition()->apply(z3Translator);
+            result.emplace(
+                new Z3ReachabilityExpression(*reachabilityExpression, z3Translator.getResult()));
         }
-        this->insert({node, result});
+        (*this)[node].insert(result.begin(), result.end());
     }
 }
 
-std::optional<std::vector<const ReachabilityExpression *>>
-Z3SolverReachabilityMap::getReachabilityExpressions(const IR::Node *node) const {
+std::optional<bool> Z3SolverReachabilityMap::isNodeReachable(const IR::Node *node) const {
     auto vectorIt = find(node);
     if (vectorIt != end()) {
         BUG_CHECK(!vectorIt->second.empty(), "Reachability vector for node %1% is empty.", node);
-        std::vector<const ReachabilityExpression *> result;
-        for (auto &it : vectorIt->second) {
-            result.push_back(&it);
+        for (const auto &reachabilityNode : vectorIt->second) {
+            auto reachability = reachabilityNode->getReachability();
+            if (!reachability.has_value()) {
+                return std::nullopt;
+            }
+            if (reachability.value()) {
+                return true;
+            }
         }
-        return result;
+        return false;
     }
+    ::warning(
+        "Unable to find node %1% in the reachability map of this execution state. There might be "
+        "issues with the source information.",
+        node);
     return std::nullopt;
 }
 

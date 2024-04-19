@@ -1,10 +1,8 @@
 
 #include "backends/p4tools/modules/flay/core/table_executor.h"
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdio>
-#include <utility>
 
 #include <boost/multiprecision/cpp_int.hpp>
 
