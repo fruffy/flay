@@ -24,6 +24,7 @@ endmacro(fetchcontent_download_without_build)
 FetchContent_Declare(
   switcharoo
   GIT_REPOSITORY https://github.com/Switcharoo-P4/Switcharoo-P4
+  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  -R --check && echo "Patch does not apply because the patch was already applied."
   GIT_TAG main
 )
 # FetchContent_Declare(
@@ -46,6 +47,7 @@ FetchContent_Declare(
   p4_hh
   GIT_REPOSITORY https://github.com/intrig-unicamp/P4-HH
   GIT_TAG master
+  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_hh.patch  || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_hh.patch  -R --check && echo "Patch does not apply because the patch was already applied."
 )
 FetchContent_Declare(
   flowrest
@@ -140,19 +142,19 @@ p4tools_add_tests(
 p4tools_add_xfail_reason(
   "flay-tofino1-research-tna"
   ".*"
-  switcharoo.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
+  switcharoo.p4 #  Switch<cuckoo_ingress_headers_t, cuckoo_ingress_metadata_t, cuckoo_egress_headers_t, cuckoo_egress_metadata_t, bloom_ingress_headers_t, bloom_ingress_metadata_t, bloom_egress_headers_t, bloom_egress_metadata_t, _, _, _, _, _, _, _, _> main(cuckoo, bloom): The Tofno1 architecture requires 6 pipes. Received 12.
   # scion.p4
   # aes_1pipe.p4
   # cmac_1pipe.p4
-  RTT.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
-  PRECISION.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
+  RTT.p4 # Node @name("SwitchIngress.in_value") paired_32bit in_value_0/in_value of type Declaration_Variable not implemented in the core stepper.
+  PRECISION.p4 # Unimplemented extern method: resubmit.emit
   p40f_tofino.p4 # Unimplemented extern method: parser_counter.set
-  netassay_iot_j6.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
-  netassay_tunnel_j7.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
-  netassay_tunnel_j8.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
-  netassay_v4_j6.p4 # Could not infer a type for parameter index (inferred type is don't care '_')
+  netassay_iot_j6.p4 # Unimplemented extern method: counter.set
+  netassay_tunnel_j7.p4 # Unimplemented extern method: counter.set
+  netassay_tunnel_j8.p4 # Unimplemented extern method: counter.set
+  netassay_v4_j6.p4 # Unimplemented extern method: counter.set
   UnbiasedRtt.p4 #error "Please specify the size of fridge's underlying registers by defining REG_SIZE."
-  IPG-HH.p4 # error: Unexpected type _
+  IPG-HH.p4 # Node @name("SwitchIngress.tmp_1") bit<16> tmp_3 of type Declaration_Variable not implemented in the core stepper.
   dta_translator.p4 # Unimplemented extern method: mirror.emit
   accturbo.p4 # Unimplemented extern method: do_resubmit.emit
   ddos_aid_4x4_singlepipe_p4_16_modified.p4 # Unimplemented extern method: do_resubmit.emit

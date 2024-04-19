@@ -1,0 +1,471 @@
+diff --git a/p4src/bloom_pipe/bloom.p4 b/p4src/bloom_pipe/bloom.p4
+index bf47105..fb8180b 100644
+--- a/p4src/bloom_pipe/bloom.p4
++++ b/p4src/bloom_pipe/bloom.p4
+@@ -12,14 +12,14 @@ control BloomIngress(inout bloom_ingress_headers_t hdr, inout bloom_ingress_meta
+                      in ingress_intrinsic_metadata_t ig_intr_md, in ingress_intrinsic_metadata_from_parser_t ig_prsr_md,
+                      inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md,
+                      inout ingress_intrinsic_metadata_for_tm_t ig_tm_md) {
+-    Register<bit<16>, _>(SWAP_BLOOM_FILTER_SIZE) swap_transient;
+-    Register<bit<16>, _>(SWAP_BLOOM_FILTER_SIZE) swapped_transient;
+-    Register<bloom_filter_t, _>(BLOOM_FILTER_SIZE) ordering_bf;
+-    Register<bit<16>, _>(BLOOM_FILTER_SIZE) flow_count;
++    Register<bit<16>, bit<SWAP_BLOOM_FILTER_HASH_BITS>>(SWAP_BLOOM_FILTER_SIZE) swap_transient;
++    Register<bit<16>, bit<SWAP_BLOOM_FILTER_HASH_BITS>>(SWAP_BLOOM_FILTER_SIZE) swapped_transient;
++    Register<bloom_filter_t, bit<BLOOM_FILTER_HASH_BITS>>(BLOOM_FILTER_SIZE) ordering_bf;
++    Register<bit<16>, bit<BLOOM_FILTER_HASH_BITS>>(BLOOM_FILTER_SIZE) flow_count;
+ 
+     /* SWAP TRANSIENT */ 
+     /* Lookup Actions */
+-    RegisterAction<bit<16>, _, bit<16>>(swap_transient) swap_transient_increment = {
++    RegisterAction<bit<16>, bit<SWAP_BLOOM_FILTER_HASH_BITS>, bit<16>>(swap_transient) swap_transient_increment = {
+         void apply(inout bit<16> value, out bit<16> read_value) {
+             value = value |+| 1;
+         }
+@@ -27,7 +27,7 @@ control BloomIngress(inout bloom_ingress_headers_t hdr, inout bloom_ingress_meta
+ 
+     /* SWAPPED TRANSIENT */ 
+     /* Lookup Actions */
+-    RegisterAction<bit<16>, _, bit<16>>(swapped_transient) swapped_transient_increment = {
++    RegisterAction<bit<16>, bit<SWAP_BLOOM_FILTER_HASH_BITS>, bit<16>>(swapped_transient) swapped_transient_increment = {
+         void apply(inout bit<16> value, out bit<16> read_value) {
+             value = value |+| 1;
+         }
+@@ -35,7 +35,7 @@ control BloomIngress(inout bloom_ingress_headers_t hdr, inout bloom_ingress_meta
+ 
+     /* ORDERING BF */ 
+     /* Lookup Actions */
+-    RegisterAction<bloom_filter_t, _, bit<16>>(ordering_bf) ordering_bf_lookup = {
++    RegisterAction<bloom_filter_t, bit<BLOOM_FILTER_HASH_BITS>, bit<16>>(ordering_bf) ordering_bf_lookup = {
+         void apply(inout bloom_filter_t value, out bit<16> read_value) {
+             if (value.bloom_counter != 0) {
+                 value.bloom_counter = value.bloom_counter |+| 1;
+@@ -46,7 +46,7 @@ control BloomIngress(inout bloom_ingress_headers_t hdr, inout bloom_ingress_meta
+     };
+ 
+     /* Increment/Decrement Actions */
+-    RegisterAction<bloom_filter_t, _, bit<16>>(ordering_bf) ordering_bf_read_and_increment = {
++    RegisterAction<bloom_filter_t, bit<BLOOM_FILTER_HASH_BITS>, bit<16>>(ordering_bf) ordering_bf_read_and_increment = {
+         void apply(inout bloom_filter_t value, out bit<16> read_value) {
+             if (value.bloom_counter == 0) {
+                 value.packet_to_send_out = 0;
+@@ -57,7 +57,7 @@ control BloomIngress(inout bloom_ingress_headers_t hdr, inout bloom_ingress_meta
+         }
+     };
+ 
+-    RegisterAction<bloom_filter_t, _, bit<16>>(ordering_bf) decrement_ordering_bf_and_packet_to_send_out_lookup = {
++    RegisterAction<bloom_filter_t, bit<BLOOM_FILTER_HASH_BITS>, bit<16>>(ordering_bf) decrement_ordering_bf_and_packet_to_send_out_lookup = {
+         void apply(inout bloom_filter_t value, out bit<16> read_value) {
+             read_value = value.packet_to_send_out;
+             if (value.packet_to_send_out == hdr.cuckoo_counter.assigned_counter) {
+@@ -72,14 +72,14 @@ control BloomIngress(inout bloom_ingress_headers_t hdr, inout bloom_ingress_meta
+ 
+     /* FLOW COUNT */ 
+     /* Init/Increment Actions */
+-    RegisterAction<bit<16>, _, bit<16>>(flow_count) flow_count_init = {
++    RegisterAction<bit<16>, bit<BLOOM_FILTER_HASH_BITS>, bit<16>>(flow_count) flow_count_init = {
+         void apply(inout bit<16> value, out bit<16> read_value) {
+             read_value = 0;
+             value = 1;
+         }
+     };
+     
+-    RegisterAction<bit<16>, _, bit<16>>(flow_count) flow_count_read_and_increment = {
++    RegisterAction<bit<16>, bit<BLOOM_FILTER_HASH_BITS>, bit<16>>(flow_count) flow_count_read_and_increment = {
+         void apply(inout bit<16> value, out bit<16> read_value) {
+             read_value = value;
+             value = value + 1;
+@@ -87,79 +87,79 @@ control BloomIngress(inout bloom_ingress_headers_t hdr, inout bloom_ingress_meta
+     };
+ 
+     /* STATS REGISTERS */
+-    RegisterAction<bit<32>, _, bit<32>>(bloom_packets_sent_out) bloom_packets_sent_out_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(bloom_packets_sent_out) bloom_packets_sent_out_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(wait_max_loops_on_bloom) wait_max_loops_on_bloom_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(wait_max_loops_on_bloom) wait_max_loops_on_bloom_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(insert_max_loops_on_bloom) insert_max_loops_on_bloom_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(insert_max_loops_on_bloom) insert_max_loops_on_bloom_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(from_insert_to_lookup_swap) from_insert_to_lookup_swap_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(from_insert_to_lookup_swap) from_insert_to_lookup_swap_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(from_insert_to_lookup_bloom) from_insert_to_lookup_bloom_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(from_insert_to_lookup_bloom) from_insert_to_lookup_bloom_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(wait_counter_on_bloom) wait_counter_on_bloom_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(wait_counter_on_bloom) wait_counter_on_bloom_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(insert_counter_on_bloom) insert_counter_on_bloom_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(insert_counter_on_bloom) insert_counter_on_bloom_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(swap_counter_on_bloom) swap_counter_on_bloom_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(swap_counter_on_bloom) swap_counter_on_bloom_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(swapped_counter_on_bloom) swapped_counter_on_bloom_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(swapped_counter_on_bloom) swapped_counter_on_bloom_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(nop_counter_on_bloom) nop_counter_on_bloom_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(nop_counter_on_bloom) nop_counter_on_bloom_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(lookup_counter_on_bloom) lookup_counter_on_bloom_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(lookup_counter_on_bloom) lookup_counter_on_bloom_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(swap_dropped) swap_dropped_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(swap_dropped) swap_dropped_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(from_nop_to_wait) from_nop_to_wait_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(from_nop_to_wait) from_nop_to_wait_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+diff --git a/p4src/bloom_pipe/common/stats_registers.p4 b/p4src/bloom_pipe/common/stats_registers.p4
+index 0a1bde2..de25cec 100644
+--- a/p4src/bloom_pipe/common/stats_registers.p4
++++ b/p4src/bloom_pipe/common/stats_registers.p4
+@@ -1,19 +1,19 @@
+ #ifndef _BLOOM_REGISTERS_
+ #define _BLOOM_REGISTERS_
+ 
+-Register<bit<32>, _>(1) insert_counter_on_bloom;
+-Register<bit<32>, _>(1) wait_counter_on_bloom;
+-Register<bit<32>, _>(1) wait_max_loops_on_bloom;
+-Register<bit<32>, _>(1) swap_counter_on_bloom;
+-Register<bit<32>, _>(1) swapped_counter_on_bloom;
+-Register<bit<32>, _>(1) lookup_counter_on_bloom;
+-Register<bit<32>, _>(1) nop_counter_on_bloom;
+-Register<bit<32>, _>(1) insert_max_loops_on_bloom;
+-Register<bit<32>, _>(1) from_insert_to_lookup_swap;
+-Register<bit<32>, _>(1) from_insert_to_lookup_bloom;
+-Register<bit<32>, _>(1) from_nop_to_wait;
++Register<bit<32>, bit<1>>(1) insert_counter_on_bloom;
++Register<bit<32>, bit<1>>(1) wait_counter_on_bloom;
++Register<bit<32>, bit<1>>(1) wait_max_loops_on_bloom;
++Register<bit<32>, bit<1>>(1) swap_counter_on_bloom;
++Register<bit<32>, bit<1>>(1) swapped_counter_on_bloom;
++Register<bit<32>, bit<1>>(1) lookup_counter_on_bloom;
++Register<bit<32>, bit<1>>(1) nop_counter_on_bloom;
++Register<bit<32>, bit<1>>(1) insert_max_loops_on_bloom;
++Register<bit<32>, bit<1>>(1) from_insert_to_lookup_swap;
++Register<bit<32>, bit<1>>(1) from_insert_to_lookup_bloom;
++Register<bit<32>, bit<1>>(1) from_nop_to_wait;
+ 
+-Register<bit<32>, _>(1) bloom_packets_sent_out;
+-Register<bit<32>, _>(1) swap_dropped;
++Register<bit<32>, bit<1>>(1) bloom_packets_sent_out;
++Register<bit<32>, bit<1>>(1) swap_dropped;
+ 
+ #endif /* _BLOOM_REGISTERS_ */
+\ No newline at end of file
+diff --git a/p4src/cuckoo_pipe/common/stats_registers.p4 b/p4src/cuckoo_pipe/common/stats_registers.p4
+index dbed16f..f9a9498 100644
+--- a/p4src/cuckoo_pipe/common/stats_registers.p4
++++ b/p4src/cuckoo_pipe/common/stats_registers.p4
+@@ -1,12 +1,12 @@
+ #ifndef _CUCKOO_REGISTERS_
+ #define _CUCKOO_REGISTERS_
+ 
+-Register<bit<32>, _>(1) cuckoo_recirculated_packets;
+-Register<bit<32>, _>(1) insertions_counter;
+-Register<bit<32>, _>(1) expired_entry_table_1;
+-Register<bit<32>, _>(1) expired_entry_table_2;
+-Register<bit<32>, _>(1) valid_entry_table_2;
+-Register<bit<32>, _>(1) table_2_match_counter;
+-Register<bit<32>, _>(1) table_1_match_counter;
+-Register<bit<32>, _>(1) swap_creation;
++Register<bit<32>, bit<1>>(1) cuckoo_recirculated_packets;
++Register<bit<32>, bit<1>>(1) insertions_counter;
++Register<bit<32>, bit<1>>(1) expired_entry_table_1;
++Register<bit<32>, bit<1>>(1) expired_entry_table_2;
++Register<bit<32>, bit<1>>(1) valid_entry_table_2;
++Register<bit<32>, bit<1>>(1) table_2_match_counter;
++Register<bit<32>, bit<1>>(1) table_1_match_counter;
++Register<bit<32>, bit<1>>(1) swap_creation;
+ #endif /* _CUCKOO_REGISTERS_ */
+\ No newline at end of file
+diff --git a/p4src/cuckoo_pipe/cuckoo.p4 b/p4src/cuckoo_pipe/cuckoo.p4
+index 000865e..53ad062 100644
+--- a/p4src/cuckoo_pipe/cuckoo.p4
++++ b/p4src/cuckoo_pipe/cuckoo.p4
+@@ -12,12 +12,12 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+                      in ingress_intrinsic_metadata_t ig_intr_md, in ingress_intrinsic_metadata_from_parser_t ig_prsr_md,
+                      inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md,
+                      inout ingress_intrinsic_metadata_for_tm_t ig_tm_md) {                        
+-    Register<bit<32>, _>(TABLE_SIZE) table_1_1;
+-    Register<bit<32>, _>(TABLE_SIZE) table_1_2;
+-    Register<bit<32>, _>(TABLE_SIZE) table_1_3;
+-    Register<bit<16>, _>(TABLE_SIZE) table_1_4;
+-    Register<bit<32>, _>(TABLE_SIZE) table_1_5;
+-    Register<bit<16>, _>(TABLE_SIZE) table_1_6;
++    Register<bit<32>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_1_1;
++    Register<bit<32>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_1_2;
++    Register<bit<32>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_1_3;
++    Register<bit<16>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_1_4;
++    Register<bit<32>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_1_5;
++    Register<bit<16>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_1_6;
+ 
+     bit<32> table_1_1_entry = 0;
+     bit<32> table_1_2_entry = 0;
+@@ -26,12 +26,12 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+     bit<32> table_1_5_entry = 0;
+     bit<16> table_1_6_entry = 0;
+ 
+-    Register<bit<32>, _>(TABLE_SIZE) table_2_1;
+-    Register<bit<32>, _>(TABLE_SIZE) table_2_2;
+-    Register<bit<32>, _>(TABLE_SIZE) table_2_3;
+-    Register<bit<16>, _>(TABLE_SIZE) table_2_4;
+-    Register<bit<32>, _>(TABLE_SIZE) table_2_5;
+-    Register<bit<16>, _>(TABLE_SIZE) table_2_6;
++    Register<bit<32>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_2_1;
++    Register<bit<32>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_2_2;
++    Register<bit<32>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_2_3;
++    Register<bit<16>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_2_4;
++    Register<bit<32>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_2_5;
++    Register<bit<16>, bit<CUCKOO_HASH_BITS>>(TABLE_SIZE) table_2_6;
+ 
+     bit<32> key_1 = 0;
+     bit<32> key_2 = 0;
+@@ -42,7 +42,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+ 
+     /* TABLE 1 */ 
+     /* Lookup Actions */
+-    RegisterAction<bit<32>, _, bool>(table_1_1) table_1_1_lookup_action = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bool>(table_1_1) table_1_1_lookup_action = {
+         void apply(inout bit<32> value, out bool read_value) {
+             if (hdr.ipv4.src_addr == value) {
+                 read_value = true;
+@@ -52,7 +52,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bool>(table_1_2) table_1_2_lookup_action = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bool>(table_1_2) table_1_2_lookup_action = {
+         void apply(inout bit<32> value, out bool read_value) {
+             if (hdr.ipv4.dst_addr == value) {
+                 read_value = true;
+@@ -63,7 +63,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+     };
+ 
+     /* Swap Actions */
+-    RegisterAction<bit<32>, _, bit<32>>(table_1_1) table_1_1_swap = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bit<32>>(table_1_1) table_1_1_swap = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             read_value = value;
+ 
+@@ -71,7 +71,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(table_1_2) table_1_2_swap = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bit<32>>(table_1_2) table_1_2_swap = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             read_value = value;
+ 
+@@ -79,7 +79,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(table_1_3) table_1_3_swap = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bit<32>>(table_1_3) table_1_3_swap = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             read_value = value;
+ 
+@@ -87,7 +87,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+     
+-    RegisterAction<bit<16>, _, bit<16>>(table_1_4) table_1_4_swap = {
++    RegisterAction<bit<16>, bit<CUCKOO_HASH_BITS>, bit<16>>(table_1_4) table_1_4_swap = {
+         void apply(inout bit<16> value, out bit<16> read_value) {
+             read_value = value;
+ 
+@@ -95,7 +95,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(table_1_5) table_1_5_swap = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bit<32>>(table_1_5) table_1_5_swap = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             bit<32> difference = ig_prsr_md.global_tstamp[31:0] - value;
+             if (difference > ENTRY_TIMEOUT) {
+@@ -108,7 +108,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<16>, _, bit<16>>(table_1_6) table_1_6_swap = {
++    RegisterAction<bit<16>, bit<CUCKOO_HASH_BITS>, bit<16>>(table_1_6) table_1_6_swap = {
+         void apply(inout bit<16> value, out bit<16> read_value) {
+             bit<16> difference = ig_prsr_md.global_tstamp[47:32] - value;
+             if (difference == 0) {
+@@ -123,7 +123,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+ 
+     /* TABLE 2 */
+     /* Lookup Actions */
+-    RegisterAction<bit<32>, _, bool>(table_2_1) table_2_1_lookup_action = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bool>(table_2_1) table_2_1_lookup_action = {
+         void apply(inout bit<32> value, out bool read_value) {
+             if (hdr.ipv4.src_addr == value) {
+                 read_value = true;
+@@ -133,7 +133,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bool>(table_2_2) table_2_2_lookup_action = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bool>(table_2_2) table_2_2_lookup_action = {
+         void apply(inout bit<32> value, out bool read_value) {
+             if (hdr.ipv4.dst_addr == value) {
+                 read_value = true;
+@@ -144,7 +144,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+     };
+ 
+     /* Swap Actions */
+-    RegisterAction<bit<32>, _, bit<32>>(table_2_1) table_2_1_swap = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bit<32>>(table_2_1) table_2_1_swap = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             read_value = value;
+ 
+@@ -152,7 +152,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(table_2_2) table_2_2_swap = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bit<32>>(table_2_2) table_2_2_swap = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             read_value = value;
+ 
+@@ -160,7 +160,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(table_2_3) table_2_3_swap = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bit<32>>(table_2_3) table_2_3_swap = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             read_value = value;
+ 
+@@ -168,7 +168,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<16>, _, bit<16>>(table_2_4) table_2_4_swap = {
++    RegisterAction<bit<16>, bit<CUCKOO_HASH_BITS>, bit<16>>(table_2_4) table_2_4_swap = {
+         void apply(inout bit<16> value, out bit<16> read_value) {
+             read_value = value;
+ 
+@@ -176,7 +176,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(table_2_5) table_2_5_swap = {
++    RegisterAction<bit<32>, bit<CUCKOO_HASH_BITS>, bit<32>>(table_2_5) table_2_5_swap = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             bit<32> difference = ig_prsr_md.global_tstamp[31:0] - value;
+             if (difference > ENTRY_TIMEOUT) {
+@@ -189,7 +189,7 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+         }
+     };
+ 
+-    RegisterAction<bit<16>, _, bit<16>>(table_2_6) table_2_6_swap = {
++    RegisterAction<bit<16>, bit<CUCKOO_HASH_BITS>, bit<16>>(table_2_6) table_2_6_swap = {
+         void apply(inout bit<16> value, out bit<16> read_value) {
+             bit<16> difference = ig_prsr_md.global_tstamp[47:32] - value;
+             if (difference == 0) {
+@@ -203,43 +203,43 @@ control CuckooIngress(inout cuckoo_ingress_headers_t hdr, inout cuckoo_ingress_m
+     };
+ 
+     /* STATS REGISTERS */
+-    RegisterAction<bit<32>, _, bit<32>>(cuckoo_recirculated_packets) cuckoo_recirculated_packets_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(cuckoo_recirculated_packets) cuckoo_recirculated_packets_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(insertions_counter) insertions_counter_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(insertions_counter) insertions_counter_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(expired_entry_table_1) expired_entry_table_1_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(expired_entry_table_1) expired_entry_table_1_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(expired_entry_table_2) expired_entry_table_2_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(expired_entry_table_2) expired_entry_table_2_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(table_2_match_counter) table_2_match_counter_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(table_2_match_counter) table_2_match_counter_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(table_1_match_counter) table_1_match_counter_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(table_1_match_counter) table_1_match_counter_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
+     };
+ 
+-    RegisterAction<bit<32>, _, bit<32>>(swap_creation) swap_creation_increment = {
++    RegisterAction<bit<32>, bit<1>, bit<32>>(swap_creation) swap_creation_increment = {
+         void apply(inout bit<32> value, out bit<32> read_value) {
+             value = value + 1;
+         }
