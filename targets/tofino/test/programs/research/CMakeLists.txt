@@ -150,10 +150,10 @@ p4tools_add_xfail_reason(
   RTT.p4 # Node @name("SwitchIngress.in_value") paired_32bit in_value_0/in_value of type Declaration_Variable not implemented in the core stepper.
   PRECISION.p4 # Unimplemented extern method: resubmit.emit
   p40f_tofino.p4 # Unimplemented extern method: parser_counter.set
-  netassay_iot_j6.p4 # Unimplemented extern method: counter.set
-  netassay_tunnel_j7.p4 # Unimplemented extern method: counter.set
-  netassay_tunnel_j8.p4 # Unimplemented extern method: counter.set
-  netassay_v4_j6.p4 # Unimplemented extern method: counter.set
+  netassay_iot_j6.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
+  netassay_tunnel_j7.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
+  netassay_tunnel_j8.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
+  netassay_v4_j6.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
   UnbiasedRtt.p4 #error "Please specify the size of fridge's underlying registers by defining REG_SIZE."
   IPG-HH.p4 # Node @name("SwitchIngress.tmp_1") bit<16> tmp_3 of type Declaration_Variable not implemented in the core stepper.
   dta_translator.p4 # Unimplemented extern method: mirror.emit
