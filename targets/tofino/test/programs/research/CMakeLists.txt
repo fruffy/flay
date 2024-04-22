@@ -24,7 +24,7 @@ endmacro(fetchcontent_download_without_build)
 FetchContent_Declare(
   switcharoo
   GIT_REPOSITORY https://github.com/Switcharoo-P4/Switcharoo-P4
-  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  -R --check && echo "Patch does not apply because the patch was already applied."
+  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  -R --check && echo "Patch does not apply because the patch was already applied."
   GIT_TAG main
 )
 FetchContent_Declare(
@@ -41,7 +41,9 @@ FetchContent_Declare(
   p4_projects
   GIT_REPOSITORY https://github.com/Princeton-Cabernet/p4-projects
   GIT_TAG master
-  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch  || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch  -R --check && echo "Patch does not apply because the patch was already applied."
+  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch  -R --check && echo "Patch does not apply because the patch was already applied."
+  # TODO: here is a temporal additional patch for P40f_tofino.p4 that reduces the program size and decreases the time processing the program.
+  COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/P40f_tofino.patch || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/P40f_tofino.patch  -R --check && echo "Patch does not apply because the patch was already applied."
 )
 FetchContent_Declare(
   p4_hh
