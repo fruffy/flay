@@ -142,11 +142,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Load the counter with an immediate value or a header field.
      {"ParserCounter.set",
       {"value"},
-      [](const ExternMethodImpls::ExternInfo &externInfo) {
-          //   P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-          //                     externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
-      }},
+      [](const ExternMethodImpls::ExternInfo &externInfo) { return nullptr; }},
      /// Load the counter with a header field.
      /// @param max : Maximum permitted value for counter (pre rotate/mask/add).
      /// @param rotate : Right rotate (circular) the source field by this number of bits.
@@ -165,8 +161,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto label = externInfo.externObjectRef.path->toString() + "_" + externInfo.methodName +
                        "_" + std::to_string(externInfo.originalCall.clone_id);
-          const auto isZero = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), label);
-          return isZero;
+          return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), label);
       }},
      /// @return true if counter value is negative.
      {"ParserCounter.is_negative",
@@ -174,9 +169,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto label = externInfo.externObjectRef.path->toString() + "_" + externInfo.methodName +
                        "_" + std::to_string(externInfo.originalCall.clone_id);
-          const auto isNegative =
-              ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), label);
-          return isNegative;
+          return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), label);
       }},
      /// Add an immediate value to the parser counter.
      /// @param value : Constant to add to the counter.
