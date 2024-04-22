@@ -151,7 +151,6 @@ p4tools_add_xfail_reason(
   # cmac_1pipe.p4
   RTT.p4 # Node @name("SwitchIngress.in_value") paired_32bit in_value_0/in_value of type Declaration_Variable not implemented in the core stepper.
   PRECISION.p4 # Unimplemented extern method: resubmit.emit
-  p40f_tofino.p4 # Unimplemented extern method: parser_counter.set
   netassay_iot_j6.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
   netassay_tunnel_j7.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
   netassay_tunnel_j8.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
