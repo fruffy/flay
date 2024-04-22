@@ -27,11 +27,11 @@ FetchContent_Declare(
   PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  -R --check && echo "Patch does not apply because the patch was already applied."
   GIT_TAG main
 )
-# FetchContent_Declare(
-#   scion
-#   GIT_REPOSITORY https://github.com/netsys-lab/scion-p4
-#   GIT_TAG main
-# )
+FetchContent_Declare(
+  scion
+  GIT_REPOSITORY https://github.com/netsys-lab/scion-p4
+  GIT_TAG main
+)
 FetchContent_Declare(
   p4sta
   GIT_REPOSITORY https://github.com/ralfkundel/P4STA/
@@ -71,7 +71,7 @@ FetchContent_Declare(
 )
 
 fetchcontent_download_without_build(switcharoo)
-# fetchcontent_download_without_build(scion)
+fetchcontent_download_without_build(scion)
 fetchcontent_download_without_build(p4sta)
 fetchcontent_download_without_build(p4_projects)
 fetchcontent_download_without_build(p4_hh)
@@ -88,8 +88,8 @@ set(FETCHCONTENT_BASE_DIR ${FETCHCONTENT_BASE_DIR_PREV})
 
 set(TNA_RESEARCH_TESTS
   ${switcharoo_SOURCE_DIR}/p4src/switcharoo.p4
-  # ${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4
-  # ${scion_SOURCE_DIR}/tofino-pktgen/p4src/pktgen.p4
+  ${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4
+  ${scion_SOURCE_DIR}/tofino-pktgen/p4src/pktgen.p4
   # ${scion_SOURCE_DIR}/tofino-epic-br/p4src/scion.p4
   # ${scion_SOURCE_DIR}/tofino-crypto/aes_1pipe/p4src/aes_1pipe.p4
   # ${scion_SOURCE_DIR}/tofino-crypto/cmac_1pipe/p4src/cmac_1pipe.p4
@@ -143,7 +143,8 @@ p4tools_add_xfail_reason(
   "flay-tofino1-research-tna"
   ".*"
   switcharoo.p4 #  Switch<cuckoo_ingress_headers_t, cuckoo_ingress_metadata_t, cuckoo_egress_headers_t, cuckoo_egress_metadata_t, bloom_ingress_headers_t, bloom_ingress_metadata_t, bloom_egress_headers_t, bloom_egress_metadata_t, _, _, _, _, _, _, _, _> main(cuckoo, bloom): The Tofno1 architecture requires 6 pipes. Received 12.
-  # scion.p4
+  scion.p4 # Unimplemented extern method: hf_counter.set
+  pktgen.p4 # fatal error: t2na.p4: No such file or directory
   # aes_1pipe.p4
   # cmac_1pipe.p4
   RTT.p4 # Node @name("SwitchIngress.in_value") paired_32bit in_value_0/in_value of type Declaration_Variable not implemented in the core stepper.
