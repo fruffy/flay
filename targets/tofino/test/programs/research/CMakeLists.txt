@@ -24,7 +24,7 @@ endmacro(fetchcontent_download_without_build)
 FetchContent_Declare(
   switcharoo
   GIT_REPOSITORY https://github.com/Switcharoo-P4/Switcharoo-P4
-  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  -R --check && echo "Patch does not apply because the patch was already applied."
+  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/switcharoo.patch  -R --check && echo "Patch does not apply because the patch was already applied."
   GIT_TAG main
 )
 FetchContent_Declare(
@@ -41,7 +41,9 @@ FetchContent_Declare(
   p4_projects
   GIT_REPOSITORY https://github.com/Princeton-Cabernet/p4-projects
   GIT_TAG master
-  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch  || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch  -R --check && echo "Patch does not apply because the patch was already applied."
+  PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/p4_projects.patch  -R --check && echo "Patch does not apply because the patch was already applied."
+  # TODO: here is a temporal additional patch for P40f_tofino.p4 that reduces the program size and decreases the time processing the program.
+  COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/P40f_tofino.patch || git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/P40f_tofino.patch  -R --check && echo "Patch does not apply because the patch was already applied."
 )
 FetchContent_Declare(
   p4_hh
@@ -88,7 +90,7 @@ set(FETCHCONTENT_BASE_DIR ${FETCHCONTENT_BASE_DIR_PREV})
 
 set(TNA_RESEARCH_TESTS
   ${switcharoo_SOURCE_DIR}/p4src/switcharoo.p4
-  ${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4
+  # ${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4
   ${scion_SOURCE_DIR}/tofino-pktgen/p4src/pktgen.p4
   # ${scion_SOURCE_DIR}/tofino-epic-br/p4src/scion.p4
   # ${scion_SOURCE_DIR}/tofino-crypto/aes_1pipe/p4src/aes_1pipe.p4
@@ -143,17 +145,16 @@ p4tools_add_xfail_reason(
   "flay-tofino1-research-tna"
   ".*"
   switcharoo.p4 #  Switch<cuckoo_ingress_headers_t, cuckoo_ingress_metadata_t, cuckoo_egress_headers_t, cuckoo_egress_metadata_t, bloom_ingress_headers_t, bloom_ingress_metadata_t, bloom_egress_headers_t, bloom_egress_metadata_t, _, _, _, _, _, _, _, _> main(cuckoo, bloom): The Tofno1 architecture requires 6 pipes. Received 12.
-  scion.p4 # Unimplemented extern method: hf_counter.set
+  # scion.p4 # Timeout
   pktgen.p4 # fatal error: t2na.p4: No such file or directory
   # aes_1pipe.p4
   # cmac_1pipe.p4
   RTT.p4 # Node @name("SwitchIngress.in_value") paired_32bit in_value_0/in_value of type Declaration_Variable not implemented in the core stepper.
   PRECISION.p4 # Unimplemented extern method: resubmit.emit
-  p40f_tofino.p4 # Unimplemented extern method: parser_counter.set
-  netassay_iot_j6.p4 # Unimplemented extern method: counter.set
-  netassay_tunnel_j7.p4 # Unimplemented extern method: counter.set
-  netassay_tunnel_j8.p4 # Unimplemented extern method: counter.set
-  netassay_v4_j6.p4 # Unimplemented extern method: counter.set
+  netassay_iot_j6.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
+  netassay_tunnel_j7.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
+  netassay_tunnel_j8.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
+  netassay_v4_j6.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
   UnbiasedRtt.p4 #error "Please specify the size of fridge's underlying registers by defining REG_SIZE."
   IPG-HH.p4 # Node @name("SwitchIngress.tmp_1") bit<16> tmp_3 of type Declaration_Variable not implemented in the core stepper.
   dta_translator.p4 # Unimplemented extern method: mirror.emit

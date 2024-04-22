@@ -1,0 +1,2 @@
+Replaced node at line 972: result_match.apply(); with default_action = set_result(MAX_OS_LABELS-1, 0);
+Eliminated node at line 977: ipv4_lpm.apply();
