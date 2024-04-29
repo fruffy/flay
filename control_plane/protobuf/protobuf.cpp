@@ -205,6 +205,10 @@ int ProtobufDeserializer::updateTableEntry(const p4::config::v1::P4Info &p4Info,
         tableResult.setDefaultTableAction(TableDefaultAction(defaultActionExpr));
     }
 
+    RETURN_IF_FALSE_WITH_MESSAGE(
+        !p4Table.is_const_table(), EXIT_FAILURE,
+        ::error("Trying to insert an entry into table '%1%', which is a const table.", tableName));
+
     ASSIGN_OR_RETURN(auto *tableMatchEntry,
                      produceTableEntry(tableName, tblId, p4Info, tableEntry, symbolSet),
                      EXIT_FAILURE);

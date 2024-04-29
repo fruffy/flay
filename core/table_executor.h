@@ -42,11 +42,6 @@ class TableExecutor {
     /// Process all the possible actions in the table for which we could insert an entry.
     void processTableActionOptions(ReturnProperties &tableReturnProperties) const;
 
-    /// If the table has constant table entries and is immutable, process all the entries we could
-    /// match.
-    void processConstantTableEntries(const IR::Key &key,
-                                     ReturnProperties &tableReturnProperties) const;
-
  protected:
     /// @returns the table associated with this executor.
     [[nodiscard]] const IR::P4Table &getP4Table() const;
