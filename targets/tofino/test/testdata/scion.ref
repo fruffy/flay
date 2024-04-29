@@ -1,0 +1,17 @@
+Eliminated node at line 1267: if (ig_prsr_md.parser_err != PARSER_ERROR_OK) {
+Eliminated node at line 1272: bool local_destination = tbl_check_local.apply().hit;
+Eliminated node at line 1279: hdr.scion_hop_1.mac = hdr.bridge.hop_field_1.hop_field.mac;
+Eliminated node at line 1330: tbl_select_accelerator.apply();
+Eliminated node at line 1444: if (hdr.scion_common.nextHdr == 0xCB) {
+Eliminated node at line 1483: bool ingress_verification_successful = tbl_ingress_verification.apply().hit;
+Eliminated node at line (unknown): { tmp_41 = tbl_bfd_local_0/tbl_bfd_local.apply().hit;
+  bfd_state_0/bfd_state = !tmp_41; }
+Eliminated node at line 1489: bfd_state = tbl_bfd_remote.apply().hit;
+Eliminated node at line 1500: if (local_destination) {
+Eliminated node at line 1523: forward_local_ipv6:
+Eliminated node at line 1528: hdr.scion_info_field_0.segId = meta.nextSegId;
+Eliminated node at line 1530: hdr.scion_info_field_1.segId = meta.nextSegId;
+Eliminated node at line 1531: } else if (hdr.scion_path_meta.currInf == 2) {
+Eliminated node at line 1536: if(hdr.scion_common.pathType == PathType.SCION) {
+Replaced node at line 1548: tbl_set_local_source.apply(); with default_action = drop();
+Eliminated node at line 1551: if (hdr.scion_common.nextHdr != 0xCB) {
