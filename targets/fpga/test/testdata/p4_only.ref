@@ -1,0 +1,2 @@
+Eliminated node at line 81: if (smeta.parser_error != error.NoError) {
+Eliminated node at line 89: forward.apply();

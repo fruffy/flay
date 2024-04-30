@@ -1,0 +1,2 @@
+Eliminated node at line 173: if (smeta.parser_error != error.NoError) {
+Eliminated node at line 188: filter.apply();
