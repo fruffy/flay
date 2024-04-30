@@ -90,11 +90,6 @@ set(FETCHCONTENT_BASE_DIR ${FETCHCONTENT_BASE_DIR_PREV})
 
 set(TNA_RESEARCH_TESTS
   ${switcharoo_SOURCE_DIR}/p4src/switcharoo.p4
-  # ${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4
-  ${scion_SOURCE_DIR}/tofino-pktgen/p4src/pktgen.p4
-  # ${scion_SOURCE_DIR}/tofino-epic-br/p4src/scion.p4
-  # ${scion_SOURCE_DIR}/tofino-crypto/aes_1pipe/p4src/aes_1pipe.p4
-  # ${scion_SOURCE_DIR}/tofino-crypto/cmac_1pipe/p4src/cmac_1pipe.p4
   ${p4sta_SOURCE_DIR}/stamper_targets/Wedge100B65/PLEASE_COPY/tofino_stamper_v1_2_0.p4
   ${p4_projects_SOURCE_DIR}/RTT-tofino/p4src/RTT.p4
   ${p4_projects_SOURCE_DIR}/PRECISION-tofino/p4src/PRECISION.p4
@@ -139,16 +134,35 @@ p4tools_add_tests(
   "${EXTRA_OPTS} -D__TARGET_TOFINO__=1"
 )
 
+set(TNA_SCION_RESEARCH_TESTS
+  ${scion_SOURCE_DIR}/tofino-pktgen/p4src/pktgen.p4
+  ${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4
+  # ${scion_SOURCE_DIR}/tofino-epic-br/p4src/scion.p4
+  # ${scion_SOURCE_DIR}/tofino-crypto/aes_1pipe/p4src/aes_1pipe.p4
+  # ${scion_SOURCE_DIR}/tofino-crypto/cmac_1pipe/p4src/cmac_1pipe.p4
+)
+
+p4tools_add_tests(
+  TESTS
+  "${TNA_SCION_RESEARCH_TESTS}"
+  TAG
+  "flay-tofino1-research-scion-tna"
+  DRIVER
+  ${FLAY_REFERENCE_DRIVER}
+  TARGET
+  "tofino1"
+  ARCH
+  "tna"
+  TEST_ARGS
+  "${EXTRA_OPTS} -D__TARGET_TOFINO__=1 -DDISABLE_IPV4=1"
+)
+
 
 # Wildcard failing tests for now. TODO:  Classify further.
 p4tools_add_xfail_reason(
   "flay-tofino1-research-tna"
   ".*"
   switcharoo.p4 #  Switch<cuckoo_ingress_headers_t, cuckoo_ingress_metadata_t, cuckoo_egress_headers_t, cuckoo_egress_metadata_t, bloom_ingress_headers_t, bloom_ingress_metadata_t, bloom_egress_headers_t, bloom_egress_metadata_t, _, _, _, _, _, _, _, _> main(cuckoo, bloom): The Tofno1 architecture requires 6 pipes. Received 12.
-  # scion.p4 # Timeout
-  pktgen.p4 # fatal error: t2na.p4: No such file or directory
-  # aes_1pipe.p4
-  # cmac_1pipe.p4
   RTT.p4 # Node @name("SwitchIngress.in_value") paired_32bit in_value_0/in_value of type Declaration_Variable not implemented in the core stepper.
   PRECISION.p4 # Unimplemented extern method: resubmit.emit
   netassay_iot_j6.p4 # Parser state parse_dns_answer; was already visited. We currently do not support parser loops.
@@ -160,4 +174,14 @@ p4tools_add_xfail_reason(
   dta_translator.p4 # Unimplemented extern method: mirror.emit
   accturbo.p4 # Unimplemented extern method: do_resubmit.emit
   ddos_aid_4x4_singlepipe_p4_16_modified.p4 # Unimplemented extern method: do_resubmit.emit
+)
+
+# Wildcard failing tests for now. TODO:  Classify further.
+p4tools_add_xfail_reason(
+  "flay-tofino1-research-scion-tna"
+  ".*"
+  # scion.p4 # Timeout
+  pktgen.p4 # fatal error: t2na.p4: No such file or directory
+  # aes_1pipe.p4
+  # cmac_1pipe.p4
 )
