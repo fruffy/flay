@@ -12,7 +12,7 @@ set(P4TESTS_FOR_FPGA
   # P4Studio tests
   "${CMAKE_CURRENT_LIST_DIR}/programs/esnet/**/*.p4"
   # Custom tests
-  "${CMAKE_CURRENT_LIST_DIR}/programs/common/*.p4"
+  "${CMAKE_CURRENT_LIST_DIR}/programs/*.p4"
 )
 
 p4c_find_tests("${P4TESTS_FOR_FPGA}" XSA_TESTS INCLUDE "${XSA_SEARCH_PATTERNS}" EXCLUDE "")
@@ -33,9 +33,9 @@ p4tools_add_tests(
   DRIVER
   ${FLAY_REFERENCE_DRIVER}
   TARGET
-  "fpga"
-  ARCH
   "xsa"
+  ARCH
+  "fpga"
   TEST_ARGS
   "${EXTRA_OPTS}"
 )

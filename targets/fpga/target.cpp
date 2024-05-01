@@ -58,7 +58,7 @@ std::optional<ControlPlaneConstraints> FpgaBaseFlayTarget::computeControlPlaneCo
  *  XsaFlayTarget implementation
  * ============================================================================================= */
 
-XsaFlayTarget::XsaFlayTarget() : FpgaBaseFlayTarget("xsa", "fpga") {}
+XsaFlayTarget::XsaFlayTarget() : FpgaBaseFlayTarget("fpga", "xsa") {}
 
 void XsaFlayTarget::make() {
     static XsaFlayTarget *INSTANCE = nullptr;

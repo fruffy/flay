@@ -14,6 +14,10 @@ struct standard_metadata_t {
     error   parser_error;
 }
 
+match_kind {
+    range,
+}
+
 extern UserExtern<T, I> {
     UserExtern(bit<16> val);
     void apply(in T extern_in, out I extern_out);
