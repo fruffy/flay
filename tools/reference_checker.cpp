@@ -251,6 +251,11 @@ int run(const ReferenceCheckerOptions &options) {
     }
     if (options.getReferenceFolder().has_value()) {
         auto referenceFolder = std::filesystem::absolute(options.getReferenceFolder().value());
+        if (!std::filesystem::is_directory(referenceFolder)) {
+            ::error("Reference folder %1% does not exist or is not a folder.",
+                    referenceFolder.c_str());
+            return EXIT_FAILURE;
+        }
         auto referenceName = options.getInputFile().stem();
         for (const auto &entry : std::filesystem::directory_iterator(referenceFolder)) {
             const auto &referenceFile = entry.path();

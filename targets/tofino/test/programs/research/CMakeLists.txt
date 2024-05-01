@@ -1,11 +1,3 @@
-message(STATUS "Submodule update")
-execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                RESULT_VARIABLE GIT_SUBMOD_RESULT)
-if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-    message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-endif()
-
 # ##################################################################################################
 # GITHUB REPOSITORIES
 # ##################################################################################################
@@ -131,7 +123,7 @@ p4tools_add_tests(
   ARCH
   "tna"
   TEST_ARGS
-  "${EXTRA_OPTS} -D__TARGET_TOFINO__=1"
+  "${EXTRA_OPTS} -D__TARGET_TOFINO__"
 )
 
 set(TNA_SCION_RESEARCH_TESTS
@@ -154,7 +146,7 @@ p4tools_add_tests(
   ARCH
   "tna"
   TEST_ARGS
-  "${EXTRA_OPTS} -D__TARGET_TOFINO__=1 -DDISABLE_IPV4=1"
+  "${EXTRA_OPTS} -D__TARGET_TOFINO__ -DDISABLE_IPV4"
 )
 
 
