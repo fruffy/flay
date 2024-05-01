@@ -33,9 +33,9 @@ p4tools_add_tests(
   DRIVER
   ${FLAY_REFERENCE_DRIVER}
   TARGET
-  "xsa"
-  ARCH
   "fpga"
+  ARCH
+  "xsa"
   TEST_ARGS
   "${EXTRA_OPTS}"
 )

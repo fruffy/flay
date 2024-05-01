@@ -11,7 +11,7 @@
 namespace P4Tools::Flay::Fpga {
 
 FpgaBaseCompilerTarget::FpgaBaseCompilerTarget(std::string deviceName, std::string archName)
-    : FlayCompilerTarget(std::move(deviceName), std::move(archName)) {};
+    : FlayCompilerTarget(std::move(deviceName), std::move(archName)){};
 
 CompilerResultOrError FpgaBaseCompilerTarget::runCompilerImpl(const IR::P4Program *program) const {
     program = runFrontend(program);
