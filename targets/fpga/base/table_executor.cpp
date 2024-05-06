@@ -6,6 +6,7 @@
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/fpga/constants.h"
+#include "ir/ir-generated.h"
 #include "ir/irutils.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
@@ -38,13 +39,13 @@ const IR::Expression *FpgaBaseTableExecutor::computeTargetMatchType(
         cstring keyName = tableName + "_key_" + fieldName;
         const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
         if (isTainted) {
-            return IR::getBoolLiteral(true);
+            return IR::BoolLiteral::get(true);
         }
         return new IR::Equ(keyExpr, ctrlPlaneKey);
     }
     // Action selector entries are not part of the match.
     if (matchType == FpgaBaseConstants::MATCH_KIND_SELECTOR) {
-        return IR::getBoolLiteral(true);
+        return IR::BoolLiteral::get(true);
     }
     if (matchType == FpgaBaseConstants::MATCH_KIND_RANGE) {
         cstring minName = tableName + "_range_min_" + fieldName;
@@ -53,8 +54,8 @@ const IR::Expression *FpgaBaseTableExecutor::computeTargetMatchType(
         const IR::Expression *minKey = nullptr;
         const IR::Expression *maxKey = nullptr;
         if (isTainted) {
-            minKey = IR::getConstant(keyExpr->type, 0);
-            maxKey = IR::getConstant(keyExpr->type, IR::getMaxBvVal(keyExpr->type));
+            minKey = IR::Constant::get(keyExpr->type, 0);
+            maxKey = IR::Constant::get(keyExpr->type, IR::getMaxBvVal(keyExpr->type));
             keyExpr = minKey;
         } else {
             minKey = ToolsVariables::getSymbolicVariable(keyExpr->type, minName);

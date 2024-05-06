@@ -87,7 +87,7 @@ const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
 
 const IR::Expression *TableExecutor::computeKey(const IR::Key *key) const {
     if (key->keyElements.empty()) {
-        return IR::getBoolLiteral(false);
+        return IR::BoolLiteral::get(false);
     }
     const IR::Expression *hitCondition = nullptr;
     for (const auto *keyField : key->keyElements) {
@@ -133,12 +133,12 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
         // The maxReturn is the maximum vale for the given bit width. This value is shifted by
         // the mask variable to create a mask (and with that, a prefix).
         auto maxReturn = IR::getMaxBvVal(keyWidth);
-        auto *prefix = new IR::Sub(IR::getConstant(keyType, keyWidth), maskVar);
+        auto *prefix = new IR::Sub(IR::Constant::get(keyType, keyWidth), maskVar);
         const IR::Expression *lpmMask = nullptr;
-        lpmMask = new IR::Shl(IR::getConstant(keyType, maxReturn), prefix);
+        lpmMask = new IR::Shl(IR::Constant::get(keyType, maxReturn), prefix);
         return new IR::LAnd(
             // This is the actual LPM match under the shifted mask (the prefix).
-            new IR::Leq(maskVar, IR::getConstant(keyType, keyWidth)),
+            new IR::Leq(maskVar, IR::Constant::get(keyType, keyWidth)),
             // The mask variable shift should not be larger than the key width.
             new IR::Equ(new IR::BAnd(keyExpr, lpmMask), new IR::BAnd(ctrlPlaneKey, lpmMask)));
     }
@@ -192,7 +192,7 @@ void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tabl
             (action->getAnnotation("tableonly") != nullptr)) {
             continue;
         }
-        const auto *actionExpr = IR::getStringLiteral(actionType->controlPlaneName());
+        const auto *actionExpr = IR::StringLiteral::get(actionType->controlPlaneName());
         auto *actionHitCondition = new IR::Equ(
             actionExpr, ControlPlaneState::getDefaultActionVariable(table.controlPlaneName()));
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
@@ -223,12 +223,12 @@ void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnPrope
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
         auto *actionChoice =
-            new IR::Equ(tableActionID, IR::getStringLiteral(actionType->controlPlaneName()));
+            new IR::Equ(tableActionID, IR::StringLiteral::get(actionType->controlPlaneName()));
         const auto *actionHitCondition =
             new IR::LAnd(tableReturnProperties.totalHitCondition, actionChoice);
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
-            actionHitCondition, IR::getStringLiteral(action->controlPlaneName()),
+            actionHitCondition, IR::StringLiteral::get(action->controlPlaneName()),
             tableReturnProperties.actionRun);
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();
@@ -255,15 +255,15 @@ const IR::Expression *TableExecutor::processTable() {
     if (key == nullptr) {
         auto tableActionList = TableUtils::buildTableActionList(table);
         for (const auto *action : tableActionList) {
-            getExecutionState().addReachabilityMapping(action, IR::getBoolLiteral(false));
+            getExecutionState().addReachabilityMapping(action, IR::BoolLiteral::get(false));
         }
         const auto *actionPath = TableUtils::getDefaultActionName(getP4Table());
         return new IR::StructExpression(
             nullptr,
-            {new IR::NamedExpression("hit", IR::getBoolLiteral(false)),
-             new IR::NamedExpression("miss", IR::getBoolLiteral(true)),
-             new IR::NamedExpression("action_run", IR::getStringLiteral(actionPath->toString())),
-             new IR::NamedExpression("table_name", IR::getStringLiteral(tableName))});
+            {new IR::NamedExpression("hit", IR::BoolLiteral::get(false)),
+             new IR::NamedExpression("miss", IR::BoolLiteral::get(true)),
+             new IR::NamedExpression("action_run", IR::StringLiteral::get(actionPath->toString())),
+             new IR::NamedExpression("table_name", IR::StringLiteral::get(tableName))});
     }
     key = resolveKey(key);
 
@@ -273,7 +273,7 @@ const IR::Expression *TableExecutor::processTable() {
     const auto *hitCondition =
         new IR::LAnd(ControlPlaneState::getTableActive(tableName), computeKey(key));
     ReturnProperties tableReturnProperties{hitCondition,
-                                           IR::getStringLiteral(actionPath->path->toString())};
+                                           IR::StringLiteral::get(actionPath->path->toString())};
 
     // First, execute the default action.
     processDefaultAction(properties, tableReturnProperties);
@@ -285,7 +285,7 @@ const IR::Expression *TableExecutor::processTable() {
         {new IR::NamedExpression("hit", tableReturnProperties.totalHitCondition),
          new IR::NamedExpression("miss", new IR::LNot(tableReturnProperties.totalHitCondition)),
          new IR::NamedExpression("action_run", tableReturnProperties.actionRun),
-         new IR::NamedExpression("table_name", IR::getStringLiteral(tableName))});
+         new IR::NamedExpression("table_name", IR::StringLiteral::get(tableName))});
 }
 
 }  // namespace P4Tools::Flay

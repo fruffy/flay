@@ -20,7 +20,7 @@ bool FpgaControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
         const auto *maxKey = ToolsVariables::getSymbolicVariable(keySymbol.type, maxName);
         // TODO: What does default expression mean as a table entry?
         if (entryKey.is<IR::DefaultExpression>()) {
-            keySet.emplace(*minKey, *IR::getConstant(keySymbol.type, 0));
+            keySet.emplace(*minKey, *IR::Constant::get(keySymbol.type, 0));
             keySet.emplace(*maxKey, *IR::getMaxValueConstant(keySymbol.type));
             return true;
         }

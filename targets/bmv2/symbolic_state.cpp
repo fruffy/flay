@@ -22,7 +22,7 @@ bool Bmv2ControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
         const auto *maxKey = ToolsVariables::getSymbolicVariable(keySymbol.type, maxName);
         // TODO: What does default expression mean as a table entry?
         if (entryKey.is<IR::DefaultExpression>()) {
-            keySet.emplace(*minKey, *IR::getConstant(keySymbol.type, 0));
+            keySet.emplace(*minKey, *IR::Constant::get(keySymbol.type, 0));
             keySet.emplace(*maxKey, *IR::getMaxValueConstant(keySymbol.type));
             return true;
         }
@@ -50,8 +50,8 @@ bool Bmv2ControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
         if (entryKey.is<IR::DefaultExpression>()) {
             const auto *maskSymbol =
                 ControlPlaneState::getTableTernaryMask(tableName, fieldName, keySymbol.type);
-            keySet.emplace(keySymbol, *IR::getConstant(keySymbol.type, 0));
-            keySet.emplace(*maskSymbol, *IR::getConstant(keySymbol.type, 0));
+            keySet.emplace(keySymbol, *IR::Constant::get(keySymbol.type, 0));
+            keySet.emplace(*maskSymbol, *IR::Constant::get(keySymbol.type, 0));
             return true;
         }
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,

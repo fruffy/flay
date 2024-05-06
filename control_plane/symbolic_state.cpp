@@ -39,8 +39,8 @@ bool ControlPlaneStateInitializer::computeMatch(const IR::Expression &entryKey,
             ControlPlaneState::getTableMatchLpmPrefix(tableName, fieldName, keyType);
         // TODO: What does default expression mean as a table entry?
         if (entryKey.is<IR::DefaultExpression>()) {
-            keySet.emplace(keySymbol, *IR::getConstant(keyType, 0));
-            keySet.emplace(*lpmPrefixSymbol, *IR::getConstant(keyType, 0));
+            keySet.emplace(keySymbol, *IR::Constant::get(keyType, 0));
+            keySet.emplace(*lpmPrefixSymbol, *IR::Constant::get(keyType, 0));
             return true;
         }
         if (const auto *maskExpr = entryKey.to<IR::Mask>()) {
@@ -57,7 +57,7 @@ bool ControlPlaneStateInitializer::computeMatch(const IR::Expression &entryKey,
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,
                                       ::error("%1% is not a literal.", entryKey));
         keySet.emplace(keySymbol, exactValue);
-        keySet.emplace(*lpmPrefixSymbol, *IR::getConstant(keyType, keyType->width_bits()));
+        keySet.emplace(*lpmPrefixSymbol, *IR::Constant::get(keyType, keyType->width_bits()));
         return true;
     }
     if (matchType == P4Constants::MATCH_KIND_TERNARY) {
@@ -65,8 +65,8 @@ bool ControlPlaneStateInitializer::computeMatch(const IR::Expression &entryKey,
             ControlPlaneState::getTableTernaryMask(tableName, fieldName, keyType);
         // TODO: What does default expression mean as a table entry?
         if (entryKey.is<IR::DefaultExpression>()) {
-            keySet.emplace(keySymbol, *IR::getConstant(keyType, 0));
-            keySet.emplace(*maskSymbol, *IR::getConstant(keyType, 0));
+            keySet.emplace(keySymbol, *IR::Constant::get(keyType, 0));
+            keySet.emplace(*maskSymbol, *IR::Constant::get(keyType, 0));
             return true;
         }
         if (const auto *maskExpr = entryKey.to<IR::Mask>()) {
@@ -124,7 +124,7 @@ std::optional<const IR::Expression *> computeEntryAction(
     const IR::MethodCallExpression &actionCall) {
     const IR::Expression *actionConstraint =
         new IR::Equ(ControlPlaneState::getTableActionChoice(table.controlPlaneName()),
-                    IR::getStringLiteral(actionDecl.controlPlaneName()));
+                    IR::StringLiteral::get(actionDecl.controlPlaneName()));
     RETURN_IF_FALSE_WITH_MESSAGE(
         actionCall.arguments->size() == actionDecl.parameters->parameters.size(), std::nullopt,
         ::error("Entry call %1% in table %2% does not have the right number of arguments.",
@@ -201,7 +201,7 @@ std::optional<const IR::Expression *> ControlPlaneStateInitializer::computeDefau
     ASSIGN_OR_RETURN_WITH_MESSAGE(auto &actionDecl, decl.to<IR::P4Action>(), std::nullopt,
                                   ::error("Action reference %1% is not a P4Action.", methodName));
 
-    const auto *selectedAction = IR::getStringLiteral(actionDecl.controlPlaneName());
+    const auto *selectedAction = IR::StringLiteral::get(actionDecl.controlPlaneName());
     const IR::Expression *defaultActionConstraints =
         new IR::Equ(selectedAction, ControlPlaneState::getTableActionChoice(tableName));
     defaultActionConstraints = new IR::LAnd(

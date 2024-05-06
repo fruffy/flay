@@ -280,7 +280,7 @@ bool ExpressionResolver::preorder(const IR::StructExpression *structExpr) {
     const auto *resolvedType = getExecutionState().resolveType(structExpr->type);
     if (resolvedType->is<IR::Type_Header>()) {
         // TODO: Do not use nullptr here and instead the real type.
-        result = new IR::HeaderExpression(nullptr, components, IR::getBoolLiteral(true));
+        result = new IR::HeaderExpression(nullptr, components, IR::BoolLiteral::get(true));
         return false;
     }
     auto *newStructExpr = structExpr->clone();
@@ -356,7 +356,7 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
                     const auto &headerRefValidity = ToolsVariables::getHeaderValidity(method->expr);
                     auto headerRef = ToolsVariables::convertReference(method->expr);
                     state.initializeStructLike(FlayTarget::get(), headerRef, false);
-                    state.set(headerRefValidity, IR::getBoolLiteral(true));
+                    state.set(headerRefValidity, IR::BoolLiteral::get(true));
                     return false;
                 }
                 if (method->member == "setInvalid") {

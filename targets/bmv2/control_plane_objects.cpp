@@ -17,9 +17,9 @@ const IR::Expression *CloneSession::computeControlPlaneConstraint() const {
     const auto *cloneActive =
         ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "clone_session_active");
     if (!sessionId.has_value()) {
-        return new IR::Equ(cloneActive, IR::getBoolLiteral(false));
+        return new IR::Equ(cloneActive, IR::BoolLiteral::get(false));
     }
-    const auto *sessionIdExpr = IR::getConstant(IR::getBitType(32), sessionId.value());
-    return new IR::LAnd(new IR::Equ(cloneActive, IR::getBoolLiteral(false)), sessionIdExpr);
+    const auto *sessionIdExpr = IR::Constant::get(IR::getBitType(32), sessionId.value());
+    return new IR::LAnd(new IR::Equ(cloneActive, IR::BoolLiteral::get(false)), sessionIdExpr);
 }
 }  // namespace P4Tools::Flay::V1Model

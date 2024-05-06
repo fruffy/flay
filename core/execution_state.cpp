@@ -84,7 +84,7 @@ bool ExecutionState::hasVisitedParserId(int parserId) const {
  * ============================================================================================= */
 
 const IR::Expression *ExecutionState::getExecutionCondition() const {
-    return (executionCondition != nullptr) ? executionCondition : IR::getBoolLiteral(true);
+    return (executionCondition != nullptr) ? executionCondition : IR::BoolLiteral::get(true);
 }
 
 void ExecutionState::pushExecutionCondition(const IR::Expression *cond) {
