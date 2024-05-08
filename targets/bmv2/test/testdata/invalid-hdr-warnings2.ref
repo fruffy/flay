@@ -1,2 +1,6 @@
 Eliminated node at line 37: } else {
 Eliminated node at line 55: if (s2.h1.data == 0 && s2.h2.data == 0) {
+statement_count_before:29
+statement_count_after:24
+cyclomatic_complexity:10
+

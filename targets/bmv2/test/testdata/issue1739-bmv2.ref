@@ -1,2 +1,6 @@
 Eliminated node at line 117: ipv4_sa_filter.apply();
 Replaced node at line 118: ipv4_da_lpm.apply(); with default_action = my_drop(standard_metadata);
+statement_count_before:15
+statement_count_after:14
+cyclomatic_complexity:9
+

@@ -1,1 +1,5 @@
 Eliminated node at line 38: if (p.data[0].isValid()) {
+statement_count_before:1
+statement_count_after:0
+cyclomatic_complexity:0
+

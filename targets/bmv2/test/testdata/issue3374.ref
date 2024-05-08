@@ -1,2 +1,6 @@
 Replaced node at line 128: 12w1: { stub.apply();} with const default_action = execute;
 Replaced node at line 131: stub1.apply(); with const default_action = execute_1;
+statement_count_before:12
+statement_count_after:12
+cyclomatic_complexity:81
+

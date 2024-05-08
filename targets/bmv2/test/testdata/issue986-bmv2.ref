@@ -1,2 +1,6 @@
 Eliminated node at line 43: } else {
 Eliminated node at line 41: t1.apply();
+statement_count_before:4
+statement_count_after:1
+cyclomatic_complexity:7
+

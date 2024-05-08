@@ -1,2 +1,6 @@
 Replaced node at line 127: forward.apply(); with const default_action = miss;
 Eliminated node at line 128: set_dest.apply();
+statement_count_before:13
+statement_count_after:12
+cyclomatic_complexity:7
+

@@ -1,1 +1,5 @@
 Replaced node at line 135: bloom_filter_1_0.apply(); with default_action = check_bloom_filter_1;
+statement_count_before:17
+statement_count_after:17
+cyclomatic_complexity:1
+

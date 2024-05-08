@@ -1,2 +1,6 @@
 Eliminated node at line 91: bit<32> inc = _pred ? 32w1 : 0;
 Eliminated node at line 92: debug.write(0, _pred ? 32w1 : 32w0); // Print _pred
+statement_count_before:18
+statement_count_after:16
+cyclomatic_complexity:2
+

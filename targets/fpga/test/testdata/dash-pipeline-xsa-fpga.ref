@@ -52,3 +52,7 @@ Eliminated node at line 969: if (meta.meter_policy_en == 1) {
 Eliminated node at line 975: meta.meter_class = meta.policy_meter_class;
 Eliminated node at line 983: meter_bucket.apply();
 Eliminated node at line 989: eni_meter.apply();
+statement_count_before:650
+statement_count_after:570
+cyclomatic_complexity:213
+

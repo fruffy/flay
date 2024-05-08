@@ -8,3 +8,7 @@ Eliminated node at line 428: if (nexthop_id_valid) {
 Eliminated node at line 750: acl_ingress_table.apply();
 Eliminated node at line 527: if (local_metadata.mirror_session_id_valid) {
 Eliminated node at line 640: acl_egress_table.apply();
+statement_count_before:191
+statement_count_after:181
+cyclomatic_complexity:75
+

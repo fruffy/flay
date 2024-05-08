@@ -1,2 +1,6 @@
 Eliminated node at line 100: m_table.apply();
 Eliminated node at line 101: m_filter.apply();
+statement_count_before:8
+statement_count_after:6
+cyclomatic_complexity:6
+

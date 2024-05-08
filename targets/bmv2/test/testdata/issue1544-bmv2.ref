@@ -1,1 +1,5 @@
 Replaced node at line 80: mac_da.apply(); with default_action = my_drop(standard_metadata);
+statement_count_before:11
+statement_count_after:11
+cyclomatic_complexity:3
+

@@ -57,3 +57,7 @@ Eliminated node at line 963: meta.meter_class = meta.policy_meter_class;
 Eliminated node at line 971: meter_bucket.apply();
 Eliminated node at line 973: meter_bucket_outbound.count((bit<32>)meta.meter_bucket_index);
 Eliminated node at line 977: eni_meter.apply();
+statement_count_before:654
+statement_count_after:569
+cyclomatic_complexity:228
+

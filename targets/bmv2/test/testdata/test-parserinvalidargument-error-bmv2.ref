@@ -1,1 +1,5 @@
 Eliminated node at line 69: } else if (stdmeta.parser_error == error.PacketTooShort) {
+statement_count_before:13
+statement_count_after:6
+cyclomatic_complexity:7
+

@@ -1,3 +1,7 @@
 Eliminated node at line (unknown): { val_0/val = 2;
   hasReturned = 1; }
 Eliminated node at line 43: simple_table.apply();
+statement_count_before:11
+statement_count_after:8
+cyclomatic_complexity:3
+

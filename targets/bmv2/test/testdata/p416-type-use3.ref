@@ -1,1 +1,5 @@
 Eliminated node at line 176: custom_table.apply();
+statement_count_before:23
+statement_count_after:22
+cyclomatic_complexity:5
+
