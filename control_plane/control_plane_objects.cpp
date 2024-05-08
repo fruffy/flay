@@ -31,7 +31,7 @@ TableMatchEntry::TableMatchEntry(const Constraint *actionAssignment, int32_t pri
 
 const IR::Expression *TableMatchEntry::computeMatchExpression(const TableKeySet &matches) {
     if (matches.size() == 0) {
-        return IR::getBoolLiteral(false);
+        return IR::BoolLiteral::get(false);
     }
     const IR::Expression *matchExpression = nullptr;
     // Precompute the match expression in the constructor.
@@ -98,7 +98,7 @@ void TableConfiguration::setDefaultTableAction(TableDefaultAction defaultTableAc
 
 const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {
     const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(tableName_),
-                                              IR::getBoolLiteral(tableEntries_.size() > 0));
+                                              IR::BoolLiteral::get(tableEntries_.size() > 0));
     const IR::Expression *matchExpression = defaultTableAction_.computeControlPlaneConstraint();
     if (tableEntries_.size() == 0) {
         return new IR::LAnd(matchExpression, tableConfigured);
@@ -124,7 +124,7 @@ bool ParserValueSet::operator<(const ControlPlaneItem &other) const {
 
 const IR::Expression *ParserValueSet::computeControlPlaneConstraint() const {
     return new IR::Equ(ControlPlaneState::getParserValueSetConfigured(name_),
-                       IR::getBoolLiteral(false));
+                       IR::BoolLiteral::get(false));
 }
 
 }  // namespace P4Tools::Flay

@@ -36,7 +36,7 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
     switch (field.field_match_type_case()) {
         case p4::v1::FieldMatch::kExact: {
             auto value = protoValueToBigInt(field.exact().value());
-            tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, value));
+            tableKeySet.emplace(*keySymbol, *IR::Constant::get(keyType, value));
             return tableKeySet;
         }
         case p4::v1::FieldMatch::kLpm: {
@@ -45,8 +45,8 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
             symbolSet.emplace(*lpmPrefixSymbol);
             auto value = protoValueToBigInt(field.lpm().value());
             int prefix = field.lpm().prefix_len();
-            tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, value));
-            tableKeySet.emplace(*lpmPrefixSymbol, *IR::getConstant(keyType, prefix));
+            tableKeySet.emplace(*keySymbol, *IR::Constant::get(keyType, value));
+            tableKeySet.emplace(*lpmPrefixSymbol, *IR::Constant::get(keyType, prefix));
             return tableKeySet;
         }
         case p4::v1::FieldMatch::kTernary: {
@@ -55,8 +55,8 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
             symbolSet.emplace(*maskSymbol);
             auto value = protoValueToBigInt(field.ternary().value());
             auto mask = protoValueToBigInt(field.ternary().mask());
-            tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, value));
-            tableKeySet.emplace(*maskSymbol, *IR::getConstant(keyType, mask));
+            tableKeySet.emplace(*keySymbol, *IR::Constant::get(keyType, value));
+            tableKeySet.emplace(*maskSymbol, *IR::Constant::get(keyType, mask));
             return tableKeySet;
         }
         default:
@@ -81,8 +81,8 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatchForMissingFiel
                 ControlPlaneState::getTableTernaryMask(tableName, matchField.name(), keyType);
             symbolSet.emplace(*keySymbol);
             symbolSet.emplace(*maskSymbol);
-            tableKeySet.emplace(*keySymbol, *IR::getConstant(keyType, 0));
-            tableKeySet.emplace(*maskSymbol, *IR::getConstant(keyType, 0));
+            tableKeySet.emplace(*keySymbol, *IR::Constant::get(keyType, 0));
+            tableKeySet.emplace(*maskSymbol, *IR::Constant::get(keyType, 0));
             return tableKeySet;
         }
         default:
@@ -99,7 +99,7 @@ std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
                         : ControlPlaneState::getTableActionChoice(tableName);
     symbolSet.emplace(*tableActionID);
     auto actionName = p4Action.preamble().name();
-    const auto *actionAssignment = IR::getStringLiteral(actionName);
+    const auto *actionAssignment = IR::StringLiteral::get(actionName);
     const IR::Expression *actionExpr = new IR::Equ(tableActionID, actionAssignment);
     if (tblAction.params().size() != p4Action.params().size()) {
         return actionExpr;
@@ -117,7 +117,8 @@ std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
         const auto *actionArg =
             ControlPlaneState::getTableActionArgument(tableName, actionName, paramName, paramType);
         symbolSet.emplace(*actionArg);
-        const auto *actionVal = IR::getConstant(paramType, protoValueToBigInt(paramConfig.value()));
+        const auto *actionVal =
+            IR::Constant::get(paramType, protoValueToBigInt(paramConfig.value()));
         actionExpr = new IR::LAnd(actionExpr, new IR::Equ(actionArg, actionVal));
     }
     return actionExpr;

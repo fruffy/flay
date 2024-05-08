@@ -45,7 +45,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
          // Use an assignment to set egress_spec to true.
          // This variable will be processed in the deparser.
          const auto *portVar = new IR::Member(nineBitType, metadataLabel, "egress_spec");
-         state.set(portVar, IR::getConstant(nineBitType, V1ModelConstants::DROP_PORT));
+         state.set(portVar, IR::Constant::get(nineBitType, V1ModelConstants::DROP_PORT));
          return nullptr;
      }},
     /* ======================================================================================
@@ -429,18 +429,18 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
              new IR::Equ(sessionID, Bmv2ControlPlaneState::getCloneSessionId(sessionID->type)));
          const IR::Constant *instanceTypeConst = nullptr;
          if (cloneType == V1ModelConstants::CloneType::I2E) {
-             instanceTypeConst = IR::getConstant(instanceBitType,
-                                                 V1ModelConstants::PKT_INSTANCE_TYPE_INGRESS_CLONE);
+             instanceTypeConst = IR::Constant::get(
+                 instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_INGRESS_CLONE);
          } else if (cloneType == V1ModelConstants::CloneType::E2E) {
-             instanceTypeConst =
-                 IR::getConstant(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_EGRESS_CLONE);
+             instanceTypeConst = IR::Constant::get(
+                 instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_EGRESS_CLONE);
          } else {
              P4C_UNIMPLEMENTED("Unsupported clone type %1%.", cloneType);
          }
          // Initialize instance_type with a place holder.
          auto *mux = new IR::Mux(
              isCloned, instanceTypeConst,
-             IR::getConstant(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
+             IR::Constant::get(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
          state.setPlaceholderValue("standard_metadata.instance_type", mux);
          return nullptr;
      }},
@@ -532,18 +532,18 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
              new IR::Equ(sessionID, Bmv2ControlPlaneState::getCloneSessionId(sessionID->type)));
          const IR::Constant *instanceTypeConst = nullptr;
          if (cloneType == V1ModelConstants::CloneType::I2E) {
-             instanceTypeConst = IR::getConstant(instanceBitType,
-                                                 V1ModelConstants::PKT_INSTANCE_TYPE_INGRESS_CLONE);
+             instanceTypeConst = IR::Constant::get(
+                 instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_INGRESS_CLONE);
          } else if (cloneType == V1ModelConstants::CloneType::E2E) {
-             instanceTypeConst =
-                 IR::getConstant(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_EGRESS_CLONE);
+             instanceTypeConst = IR::Constant::get(
+                 instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_EGRESS_CLONE);
          } else {
              P4C_UNIMPLEMENTED("Unsupported clone type %1%.", cloneType);
          }
          // Initialize instance_type with a place holder.
          auto *mux = new IR::Mux(
              isCloned, instanceTypeConst,
-             IR::getConstant(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
+             IR::Constant::get(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
          state.setPlaceholderValue("standard_metadata.instance_type", mux);
          return nullptr;
      }},
@@ -635,7 +635,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
          const auto *hashCalc =
              ToolsVariables::getSymbolicVariable(oneBitType, verifyChecksumLabel);
          state.set(checksumErr,
-                   new IR::Mux(oneBitType, cond, hashCalc, IR::getConstant(oneBitType, 0)));
+                   new IR::Mux(oneBitType, cond, hashCalc, IR::Constant::get(oneBitType, 0)));
          return nullptr;
      }},
     /* ======================================================================================
@@ -665,7 +665,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
          const auto *hashCalc =
              ToolsVariables::getSymbolicVariable(oneBitType, verifyChecksumLabel);
          state.set(checksumErr,
-                   new IR::Mux(oneBitType, cond, hashCalc, IR::getConstant(oneBitType, 0)));
+                   new IR::Mux(oneBitType, cond, hashCalc, IR::Constant::get(oneBitType, 0)));
          return nullptr;
      }},
     /* ======================================================================================

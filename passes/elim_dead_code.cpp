@@ -128,7 +128,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
 
     ASSIGN_OR_RETURN(auto reachability, reachabilityMap.get().isNodeReachable(member), member);
 
-    const auto *result = IR::getBoolLiteral(reachability, member->srcInfo);
+    const auto *result = IR::BoolLiteral::get(reachability, member->srcInfo);
     printInfo("%1% can be replaced with %2%.", member, result->toString());
     eliminatedNodes.emplace_back(member, nullptr);
     return result;

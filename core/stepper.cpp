@@ -171,7 +171,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
         // In table mode, we are actually comparing string expressions.
         if (tableMode) {
             const auto *path = switchCaseLabel->checkedTo<IR::PathExpression>();
-            switchCaseLabel = IR::getStringLiteral(path->path->toString());
+            switchCaseLabel = IR::StringLiteral::get(path->path->toString());
         }
         if (cond == nullptr) {
             cond = new IR::Equ(switchExpr, switchCaseLabel);
@@ -196,7 +196,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
                 finalCond = new IR::LAnd(notCond, finalCond);
             }
             notConds.push_back(new IR::LNot(cond));
-            cond = IR::getBoolLiteral(false);
+            cond = IR::BoolLiteral::get(false);
             caseState.pushExecutionCondition(finalCond);
             // Execute the state with the accumulated statements.
             auto &switchStepper = FlayTarget::getStepper(programInfo, caseState);

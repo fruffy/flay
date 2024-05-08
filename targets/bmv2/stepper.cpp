@@ -39,7 +39,7 @@ void V1ModelFlayStepper::initializeState() {
     if (FlayOptions::get().usePlaceholders()) {
         instanceTypeValue = new IR::Placeholder(
             "standard_metadata.instance_type",
-            IR::getConstant(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
+            IR::Constant::get(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
     } else {
         instanceTypeValue =
             new IR::SymbolicVariable(thirtyTwoBitType, "standard_metadata.instance_type");
@@ -47,7 +47,7 @@ void V1ModelFlayStepper::initializeState() {
     executionState.set(instanceTypeVar, instanceTypeValue);
     executionState.setPlaceholderValue(
         "standard_metadata.instance_type",
-        IR::getConstant(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
+        IR::Constant::get(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
 }
 
 V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::Bmv2V1ModelProgramInfo &programInfo,
