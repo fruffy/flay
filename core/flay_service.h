@@ -69,10 +69,13 @@ class FlayServiceBase {
     // Configuration options for the service.
     FlayServiceOptions options;
 
-    /// The original source P4 program.
+    /// The original source P4 program after the front end.
     std::reference_wrapper<const IR::P4Program> originalProgram;
 
-    /// The P4 program after optimizing. Should be initialized with the initial data plane
+    /// The P4 program after mid end optimizations.
+    std::reference_wrapper<const IR::P4Program> midEndProgram;
+
+    /// The P4 program after Flay optimizing. Should be initialized with the initial data plane
     /// configuration
     const IR::P4Program *optimizedProgram = nullptr;
 
@@ -120,11 +123,14 @@ class FlayServiceBase {
     static AbstractReachabilityMap &initializeReachabilityMap(
         ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap);
 
-    /// @returns the optimized program.
-    [[nodiscard]] const IR::P4Program &getOptimizedProgram() const;
-
     /// @returns the original program.
     [[nodiscard]] const IR::P4Program &getOriginalProgram() const;
+
+    /// @returns the mid-end program.
+    [[nodiscard]] const IR::P4Program &getMidEndProgram() const;
+
+    /// @returns the optimized program.
+    [[nodiscard]] const IR::P4Program &getOptimizedProgram() const;
 
     /// @returns the list of eliminated (and potential replaced) nodes.
     [[nodiscard]] const std::vector<EliminatedReplacedPair> &getEliminatedNodes() const;
@@ -143,18 +149,26 @@ struct FlayServiceStatistics {
     const IR::P4Program *optimizedProgram;
     // The nodes eliminated in the program.
     std::vector<EliminatedReplacedPair> eliminatedNodes;
+    // The number of statements in the original program.
+    uint64_t statementCountBefore;
+    // The number of statements in the optimized program.
+    uint64_t statementCountAfter;
+    // The cyclomatic complexity of the input program.
+    size_t cyclomaticComplexity;
 };
 
-/// Wrapper class to simplify benchmarking and the collection of statics.
+/// Wrapper class to simplify benchmarking and the collection of statistics.
 class FlayServiceWrapper {
     /// The series of control plane updates which is applied after Flay service has started.
     std::vector<std::string> controlPlaneUpdateFileNames;
+    /// The parsed series of control plane updates which is applied after Flay service has started.
     std::vector<p4::v1::WriteRequest> controlPlaneUpdates;
 
  private:
     /// Helper function to retrieve a list of files matching a pattern.
     static std::vector<std::string> findFiles(const std::string &pattern);
 
+    /// The Flay service that is being wrapped.
     FlayServiceBase flayService;
 
  public:
@@ -177,8 +191,8 @@ class FlayServiceWrapper {
 
     [[nodiscard]] int run();
 
-    /// @returns the optimized program after running Flay.
-    [[nodiscard]] FlayServiceStatistics getFlayServiceStatistics() const;
+    /// @compute the service statistics.
+    [[nodiscard]] FlayServiceStatistics computeFlayServiceStatistics() const;
 };
 
 }  // namespace P4Tools::Flay

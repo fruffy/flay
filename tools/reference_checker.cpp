@@ -12,6 +12,8 @@
 
 namespace P4Tools::Flay {
 
+namespace {
+
 class ReferenceCheckerOptions : protected FlayOptions {
     /// The input file to process.
     std::optional<std::filesystem::path> inputFile;
@@ -34,6 +36,9 @@ class ReferenceCheckerOptions : protected FlayOptions {
 
     /// The arguments to pass to the Flay compiler.
     CompilerOptions compilerOptions;
+
+    /// Write a performance report.
+    bool _writePerformanceReport = false;
 
     /// @returns the arguments to pass to the compiler. A little hacky because of an API mismatch.
     [[nodiscard]] std::vector<char *> getCompilerArgs(char *binaryName) const {
@@ -90,6 +95,15 @@ class ReferenceCheckerOptions : protected FlayOptions {
                 return true;
             },
             "Print verbose messages.");
+        registerOption(
+            "--write-performance-report", nullptr,
+            [this](const char *) {
+                enablePerformanceLogging();
+                _writePerformanceReport = true;
+                return true;
+            },
+            "Write a performance report for the file. The report will be written to either the "
+            "location of the reference file or the location of the folder.");
     }
     ~ReferenceCheckerOptions() override = default;
 
@@ -164,6 +178,8 @@ class ReferenceCheckerOptions : protected FlayOptions {
     [[nodiscard]] const FlayOptions &toFlayOptions() const { return *this; }
 
     [[nodiscard]] const CompilerOptions &getCompilerOptions() const { return compilerOptions; }
+
+    [[nodiscard]] bool writePerformanceReport() const { return _writePerformanceReport; }
 };
 
 /// Compare the output of Flay with the reference file.
@@ -195,10 +211,49 @@ int compareAgainstReference(const std::stringstream &flayOptimizationOutput,
     return EXIT_SUCCESS;
 }
 
+std::optional<std::filesystem::path> getFilePath(const ReferenceCheckerOptions &options,
+                                                 const std::filesystem::path &basePath,
+                                                 std::string_view suffix) {
+    auto referenceFolderOpt = options.getReferenceFolder();
+    auto referenceFileOpt = options.getReferenceFile();
+    auto referencePath = basePath;
+    if (referenceFileOpt.has_value()) {
+        // If a reference file is explicitly provided, just overwrite this file.
+        referencePath = referenceFileOpt.value();
+    } else if (referenceFolderOpt.has_value()) {
+        auto referenceFolder = referenceFolderOpt.value();
+        try {
+            std::filesystem::create_directories(referenceFolder);
+        } catch (const std::exception &err) {
+            ::error("Unable to create directory %1%: %2%", referenceFolder.c_str(), err.what());
+            return std::nullopt;
+        }
+        referencePath = referenceFolder / referencePath;
+    } else {
+        ::error("Neither a reference file nor a reference folder have been specified.");
+        return std::nullopt;
+    }
+    return referencePath.replace_extension(suffix);
+}
+
+}  // namespace
+
 int run(const ReferenceCheckerOptions &options) {
     ASSIGN_OR_RETURN(auto flayServiceStatistics,
                      Flay::optimizeProgram(options.getCompilerOptions(), options.toFlayOptions()),
                      EXIT_FAILURE);
+
+    auto referenceFolderOpt = options.getReferenceFolder();
+    auto referenceFileOpt = options.getReferenceFile();
+
+    if (options.writePerformanceReport()) {
+        auto referencePath = getFilePath(options, options.getInputFile().stem(), ".perf");
+        if (!referencePath.has_value()) {
+            return EXIT_FAILURE;
+        }
+        printPerformanceReport(referencePath);
+    }
+
     std::stringstream flayOptimizationOutput;
     for (const auto &elimRepl : flayServiceStatistics.eliminatedNodes) {
         auto [node, replaced] = elimRepl;
@@ -223,34 +278,30 @@ int run(const ReferenceCheckerOptions &options) {
             flayOptimizationOutput << "\n";
         }
     }
+    flayOptimizationOutput << "\nstatement_count_before:"
+                           << flayServiceStatistics.statementCountBefore << "\n";
+    flayOptimizationOutput << "statement_count_after:" << flayServiceStatistics.statementCountAfter
+                           << "\n";
+    flayOptimizationOutput << "cyclomatic_complexity:" << flayServiceStatistics.cyclomaticComplexity
+                           << "\n";
 
     if (options.doOverwriteReferences()) {
-        /// Use the stem of the input file name as test name.
-        auto referencePath = options.getInputFile().stem();
-        auto referenceFolderOpt = options.getReferenceFolder();
-        if (referenceFolderOpt.has_value()) {
-            auto referenceFolder = referenceFolderOpt.value();
-            try {
-                std::filesystem::create_directories(referenceFolder);
-            } catch (const std::exception &err) {
-                ::error("Unable to create directory %1%: %2%", referenceFolder.c_str(), err.what());
-                return EXIT_FAILURE;
-            }
-            referencePath = referenceFolder / referencePath;
+        auto referencePath = getFilePath(options, options.getInputFile().stem(), ".ref");
+        if (!referencePath.has_value()) {
+            return EXIT_FAILURE;
         }
-        referencePath = referencePath.replace_extension(".ref");
-        std::ofstream ofs(referencePath);
+        std::ofstream ofs(referencePath.value());
         ofs << flayOptimizationOutput << std::endl;
+        printInfo("Writing reference file %s", referencePath.value().c_str());
         ofs.close();
         return EXIT_SUCCESS;
     }
-    const auto &referenceFileOpt = options.getReferenceFile();
     if (referenceFileOpt.has_value()) {
         auto referenceFile = std::filesystem::absolute(referenceFileOpt.value());
         return compareAgainstReference(flayOptimizationOutput, referenceFile);
     }
-    if (options.getReferenceFolder().has_value()) {
-        auto referenceFolder = std::filesystem::absolute(options.getReferenceFolder().value());
+    if (referenceFolderOpt.has_value()) {
+        auto referenceFolder = std::filesystem::absolute(referenceFolderOpt.value());
         if (!std::filesystem::is_directory(referenceFolder)) {
             ::error("Reference folder %1% does not exist or is not a folder.",
                     referenceFolder.c_str());

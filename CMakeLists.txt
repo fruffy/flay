@@ -63,6 +63,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/control_plane_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/id_to_ir_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/symbolic_state.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/analysis.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/collapse_dataplane_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler_result.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/execution_state.cpp

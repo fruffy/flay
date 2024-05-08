@@ -10,6 +10,7 @@
 #include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
+#include "backends/p4tools/modules/flay/core/analysis.h"
 #include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
 #include "backends/p4tools/modules/flay/options.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
@@ -38,6 +39,7 @@ FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
                                  ControlPlaneConstraints initialControlPlaneConstraints)
     : options(options),
       originalProgram(compilerResult.getOriginalProgram()),
+      midEndProgram(compilerResult.getProgram()),
       optimizedProgram(&originalProgram.get()),
       compilerResult(compilerResult),
       reachabilityMap(initializeReachabilityMap(options.mapType, reachabilityMap)),
@@ -73,9 +75,11 @@ void FlayServiceBase::outputOptimizedProgram(const std::filesystem::path &optimi
     output.close();
 }
 
+const IR::P4Program &FlayServiceBase::getOriginalProgram() const { return originalProgram; }
+
 const IR::P4Program &FlayServiceBase::getOptimizedProgram() const { return *optimizedProgram; }
 
-const IR::P4Program &FlayServiceBase::getOriginalProgram() const { return originalProgram; }
+const IR::P4Program &FlayServiceBase::getMidEndProgram() const { return midEndProgram; }
 
 const FlayCompilerResult &FlayServiceBase::getCompilerResult() const {
     return compilerResult.get();
@@ -208,9 +212,18 @@ int FlayServiceWrapper::run() {
     return EXIT_SUCCESS;
 }
 
-FlayServiceStatistics FlayServiceWrapper::getFlayServiceStatistics() const {
-    return FlayServiceStatistics{&flayService.getOptimizedProgram(),
-                                 flayService.getEliminatedNodes()};
+FlayServiceStatistics FlayServiceWrapper::computeFlayServiceStatistics() const {
+    auto statementCountBefore = countStatements(flayService.originalProgram);
+    auto statementCountAfter = countStatements(*flayService.optimizedProgram);
+    auto cyclomaticComplexity = computeCyclomaticComplexity(flayService.getMidEndProgram());
+
+    return FlayServiceStatistics{
+        &flayService.getOptimizedProgram(),
+        flayService.getEliminatedNodes(),
+        statementCountBefore,
+        statementCountAfter,
+        cyclomaticComplexity,
+    };
 }
 
 }  // namespace P4Tools::Flay
