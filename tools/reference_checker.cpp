@@ -277,7 +277,6 @@ class FlayClientContext : public BaseCompileContext {};
 
 int main(int argc, char *argv[]) {
     P4Tools::Flay::registerFlayTargets();
-    P4Tools::Flay::registerCompilerTargets();
 
     // Set up the compilation context and the options.
     AutoCompileContext autoP4FlayClientContext(new FlayClientContext);

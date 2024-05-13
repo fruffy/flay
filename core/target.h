@@ -3,9 +3,8 @@
 
 #include <string>
 
-#include "backends/p4tools/common/core/target.h"
+#include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/common/lib/arch_spec.h"
-#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/stepper.h"
@@ -14,7 +13,7 @@
 
 namespace P4Tools::Flay {
 
-class FlayTarget : public Target {
+class FlayTarget : public CompilerTarget {
  public:
     /// @returns the singleton instance for the current target.
     static const FlayTarget &get();
@@ -59,9 +58,10 @@ class FlayTarget : public Target {
     /// @see getArchSpec
     [[nodiscard]] virtual const ArchSpec *getArchSpecImpl() const = 0;
 
-    explicit FlayTarget(std::string deviceName, std::string archName);
+    explicit FlayTarget(const std::string &deviceName, const std::string &archName);
 
  private:
+    [[nodiscard]] MidEnd mkMidEnd(const CompilerOptions &options) const override;
 };
 
 }  // namespace P4Tools::Flay

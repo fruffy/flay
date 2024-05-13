@@ -8,6 +8,7 @@
 
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
+#include "backends/p4tools/modules/flay/targets/fpga/symbolic_state.h"
 #include "backends/p4tools/modules/flay/targets/fpga/xsa/program_info.h"
 #include "backends/p4tools/modules/flay/targets/fpga/xsa/stepper.h"
 #include "ir/ir.h"
@@ -21,8 +22,8 @@ namespace P4Tools::Flay::Fpga {
  *  FpgaBaseFlayTarget implementation
  * ============================================================================================= */
 
-FpgaBaseFlayTarget::FpgaBaseFlayTarget(std::string deviceName, std::string archName)
-    : FlayTarget(std::move(deviceName), std::move(archName)){};
+FpgaBaseFlayTarget::FpgaBaseFlayTarget(const std::string &deviceName, const std::string &archName)
+    : FlayTarget(deviceName, archName){};
 
 std::optional<ControlPlaneConstraints> FpgaBaseFlayTarget::computeControlPlaneConstraintsImpl(
     const FlayCompilerResult &compilerResult, const FlayOptions &options) const {
@@ -52,6 +53,39 @@ std::optional<ControlPlaneConstraints> FpgaBaseFlayTarget::computeControlPlaneCo
     ::error("Control plane file format %1% not supported for this target.",
             confPath.extension().c_str());
     return std::nullopt;
+}
+
+CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const IR::P4Program *program) const {
+    program = runFrontend(program);
+    if (program == nullptr) {
+        return std::nullopt;
+    }
+    // Copy the program after the front end.
+    auto *originalProgram = program->clone();
+
+    /// After the front end, get the P4Runtime API for the pna architecture.
+    /// TODO: We need to implement the P4Runtime handler for Fpga.
+    auto p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "pna");
+    if (::errorCount() > 0) {
+        return std::nullopt;
+    }
+
+    program = runMidEnd(program);
+    if (program == nullptr) {
+        return std::nullopt;
+    }
+
+    // TODO: We only need this because P4Info does not contain information on default actions.
+    P4::ReferenceMap refMap;
+    program->apply(P4::ResolveReferences(&refMap));
+
+    ASSIGN_OR_RETURN(
+        auto initialControlPlaneState,
+        FpgaControlPlaneInitializer(refMap).generateInitialControlPlaneConstraints(program),
+        std::nullopt);
+
+    return {*new FlayCompilerResult{CompilerResult(*program), *originalProgram, p4runtimeApi,
+                                    initialControlPlaneState}};
 }
 
 /* =============================================================================================

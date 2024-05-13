@@ -64,7 +64,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/id_to_ir_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/symbolic_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/collapse_dataplane_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler_target.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler_result.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/execution_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/expression_resolver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/externs.cpp
@@ -112,7 +112,6 @@ foreach(ext ${flay_targets})
       set(include_statements_var
           "${include_statements_var}#include \"backends/p4tools/modules/flay/targets/${ext}/register.h\"\n"
       )
-      set(compiler_targets_var "${compiler_targets_var}    ${ext}_registerCompilerTarget();\n")
       set(flay_targets_var "${flay_targets_var}    ${ext}_registerFlayTarget();\n")
     endif()
   endif()
