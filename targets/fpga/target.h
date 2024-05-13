@@ -12,10 +12,12 @@ namespace P4Tools::Flay::Fpga {
 
 class FpgaBaseFlayTarget : public FlayTarget {
  protected:
-    explicit FpgaBaseFlayTarget(std::string deviceName, std::string archName);
+    explicit FpgaBaseFlayTarget(const std::string &deviceName, const std::string &archName);
 
     [[nodiscard]] std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
         const FlayCompilerResult &compilerResult, const FlayOptions &options) const override;
+
+    CompilerResultOrError runCompilerImpl(const IR::P4Program *program) const override;
 };
 
 class XsaFlayTarget : public FpgaBaseFlayTarget {
@@ -29,14 +31,13 @@ class XsaFlayTarget : public FpgaBaseFlayTarget {
     static void make();
 
  protected:
-    const ProgramInfo *produceProgramInfoImpl(
-        const CompilerResult &compilerResult,
-        const IR::Declaration_Instance *mainDecl) const override;
+    const ProgramInfo *produceProgramInfoImpl(const CompilerResult &compilerResult,
+                                              const IR::Declaration_Instance *mainDecl) const final;
 
-    [[nodiscard]] const ArchSpec *getArchSpecImpl() const override;
+    [[nodiscard]] const ArchSpec *getArchSpecImpl() const final;
 
     [[nodiscard]] FlayStepper &getStepperImpl(const ProgramInfo &programInfo,
-                                              ExecutionState &executionState) const override;
+                                              ExecutionState &executionState) const final;
 };
 
 }  // namespace P4Tools::Flay::Fpga

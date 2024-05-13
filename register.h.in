@@ -5,9 +5,6 @@
 
 namespace P4Tools::Flay {
 
-inline void registerCompilerTargets() {
-@compiler_targets_var@}
-
 inline void registerFlayTargets() {
 @flay_targets_var@}
 

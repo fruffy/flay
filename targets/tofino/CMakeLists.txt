@@ -23,6 +23,5 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/control_plane_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/symbolic_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/target.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tofino.cpp
     PARENT_SCOPE
 )

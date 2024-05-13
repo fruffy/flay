@@ -21,9 +21,8 @@ class V1ModelFlayTarget : public FlayTarget {
     static void make();
 
  protected:
-    const ProgramInfo *produceProgramInfoImpl(
-        const CompilerResult &compilerResult,
-        const IR::Declaration_Instance *mainDecl) const override;
+    const ProgramInfo *produceProgramInfoImpl(const CompilerResult &compilerResult,
+                                              const IR::Declaration_Instance *mainDecl) const final;
 
     [[nodiscard]] std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
         const FlayCompilerResult &compilerResult, const FlayOptions &options) const override;
@@ -32,6 +31,9 @@ class V1ModelFlayTarget : public FlayTarget {
 
     [[nodiscard]] FlayStepper &getStepperImpl(const ProgramInfo &programInfo,
                                               ExecutionState &executionState) const override;
+
+ private:
+    CompilerResultOrError runCompilerImpl(const IR::P4Program *program) const final;
 };
 
 }  // namespace P4Tools::Flay::V1Model

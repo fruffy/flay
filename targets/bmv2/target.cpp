@@ -118,4 +118,36 @@ std::optional<ControlPlaneConstraints> V1ModelFlayTarget::computeControlPlaneCon
     return std::nullopt;
 }
 
+CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const IR::P4Program *program) const {
+    program = runFrontend(program);
+    if (program == nullptr) {
+        return std::nullopt;
+    }
+    // Copy the program after the front end.
+    auto *originalProgram = program->clone();
+
+    /// After the front end, get the P4Runtime API for the V1model architecture.
+    auto p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "v1model");
+    if (::errorCount() > 0) {
+        return std::nullopt;
+    }
+
+    program = runMidEnd(program);
+    if (program == nullptr) {
+        return std::nullopt;
+    }
+
+    // TODO: We only need this because P4Info does not contain information on default actions.
+    P4::ReferenceMap refMap;
+    program->apply(P4::ResolveReferences(&refMap));
+
+    ASSIGN_OR_RETURN(
+        auto initialControlPlaneState,
+        Bmv2ControlPlaneInitializer(refMap).generateInitialControlPlaneConstraints(program),
+        std::nullopt);
+
+    return {*new FlayCompilerResult{CompilerResult(*program), *originalProgram, p4runtimeApi,
+                                    initialControlPlaneState}};
+}
+
 }  // namespace P4Tools::Flay::V1Model

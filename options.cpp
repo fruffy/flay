@@ -2,6 +2,7 @@
 
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/options.h"
+#include "backends/p4tools/modules/flay/toolname.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
@@ -16,7 +17,8 @@ const char *FlayOptions::getIncludePath() {
     P4C_UNIMPLEMENTED("getIncludePath not implemented for Flay.");
 }
 
-FlayOptions::FlayOptions(const std::string &message) : AbstractP4cToolOptions(message) {
+FlayOptions::FlayOptions(const std::string &message)
+    : AbstractP4cToolOptions(Flay::TOOL_NAME, message) {
     registerOption(
         "--config-file", "controlPlaneConfig",
         [this](const char *arg) {

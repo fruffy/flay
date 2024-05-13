@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-#include "backends/p4tools/modules/flay/core/compiler_target.h"
+#include "backends/p4tools/modules/flay/core/compiler_result.h"
 #include "backends/p4tools/modules/flay/core/reachability.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"

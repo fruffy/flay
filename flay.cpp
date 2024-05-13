@@ -12,6 +12,7 @@
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/register.h"
+#include "backends/p4tools/modules/flay/toolname.h"
 #include "control-plane/p4RuntimeSerializer.h"
 #include "control-plane/p4RuntimeTypes.h"
 #ifdef FLAY_WITH_GRPC
@@ -25,7 +26,7 @@ namespace P4Tools::Flay {
 void Flay::registerTarget() {
     // Register all available compiler targets.
     // These are discovered by CMAKE, which fills out the register.h.in file.
-    registerCompilerTargets();
+    registerFlayTargets();
 }
 
 #ifdef FLAY_WITH_GRPC
@@ -125,9 +126,6 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
 std::optional<FlayServiceStatistics> optimizeProgramImpl(
     std::optional<std::reference_wrapper<const std::string>> program,
     const CompilerOptions &compilerOptions, const FlayOptions &flayOptions) {
-    // Register supported compiler targets.
-    registerCompilerTargets();
-
     // Register supported Flay targets.
     registerFlayTargets();
 
@@ -142,12 +140,14 @@ std::optional<FlayServiceStatistics> optimizeProgramImpl(
     if (program.has_value()) {
         // Run the compiler to get an IR and invoke the tool.
         ASSIGN_OR_RETURN(compilerResult,
-                         P4Tools::CompilerTarget::runCompiler(program.value().get()), std::nullopt);
+                         P4Tools::CompilerTarget::runCompiler(TOOL_NAME, program.value().get()),
+                         std::nullopt);
     } else {
         RETURN_IF_FALSE_WITH_MESSAGE(!compilerOptions.file.isNullOrEmpty(), std::nullopt,
                                      ::error("Expected a file input."));
         // Run the compiler to get an IR and invoke the tool.
-        ASSIGN_OR_RETURN(compilerResult, P4Tools::CompilerTarget::runCompiler(), std::nullopt);
+        ASSIGN_OR_RETURN(compilerResult, P4Tools::CompilerTarget::runCompiler(TOOL_NAME),
+                         std::nullopt);
     }
 
     ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &flayCompilerResult,

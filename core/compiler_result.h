@@ -1,9 +1,9 @@
-#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_TARGET_H_
-#define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_TARGET_H_
+#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_RESULT_H_
+#define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_RESULT_H_
 
 #include <functional>
 
-#include "backends/p4tools/common/compiler/compiler_target.h"
+#include "backends/p4tools/common/compiler/compiler_result.h"
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
 #include "control-plane/p4RuntimeSerializer.h"
 
@@ -38,14 +38,6 @@ class FlayCompilerResult : public CompilerResult {
     [[nodiscard]] const ControlPlaneConstraints &getDefaultControlPlaneConstraints() const;
 };
 
-class FlayCompilerTarget : public CompilerTarget {
- protected:
-    explicit FlayCompilerTarget(std::string deviceName, std::string archName);
-
- private:
-    [[nodiscard]] MidEnd mkMidEnd(const CompilerOptions &options) const override;
-};
-
 }  // namespace P4Tools::Flay
 
-#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_TARGET_H_ */
+#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_COMPILER_RESULT_H_ */

@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 
-#include "backends/p4tools/modules/flay/core/compiler_target.h"
+#include "backends/p4tools/modules/flay/core/compiler_result.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 #include "lib/castable.h"
