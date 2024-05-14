@@ -102,11 +102,35 @@ FlayOptions::FlayOptions(const std::string &message)
         "will otherwise collapse these operations only perform live-variable analysis on "
         "control-plane sourced variables.");
     registerOption(
+        "--user-p4info", "filePath",
+        [this](const char *arg) {
+            _userP4Info = arg;
+            if (!std::filesystem::exists(_userP4Info.value())) {
+                ::error("%1% does not exist. Please provide a valid file path.",
+                        _userP4Info.value().c_str());
+                return false;
+            }
+            if (p4InfoFilePath.has_value()) {
+                ::error(
+                    "Both --user-p4info and --generate-p4info are specified. Please specify only "
+                    "one.");
+                return false;
+            }
+            return true;
+        },
+        "Write the P4Runtime control plane API description (P4Info) to the specified .txtpb file.");
+    registerOption(
         "--generate-p4info", "filePath",
         [this](const char *arg) {
             p4InfoFilePath = arg;
             if (p4InfoFilePath.value().extension() != ".txtpb") {
                 ::error("%1% must have a .txtpb extension.", p4InfoFilePath.value().c_str());
+                return false;
+            }
+            if (_userP4Info.has_value()) {
+                ::error(
+                    "Both --user-p4info and --generate-p4info are specified. Please specify only "
+                    "one.");
                 return false;
             }
             return true;
@@ -140,6 +164,10 @@ std::optional<std::filesystem::path> FlayOptions::getOptimizedOutputDir() const 
 
 bool FlayOptions::collapseDataPlaneOperations() const { return collapseDataPlaneOperations_; }
 
-std::optional<std::string> FlayOptions::getP4InfoFilePath() const { return p4InfoFilePath; }
+std::optional<std::filesystem::path> FlayOptions::getP4InfoFilePath() const {
+    return p4InfoFilePath;
+}
+
+std::optional<std::filesystem::path> FlayOptions::userP4Info() const { return _userP4Info; }
 
 }  // namespace P4Tools

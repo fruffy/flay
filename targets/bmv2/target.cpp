@@ -10,10 +10,13 @@
 #include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/stepper.h"
+#include "control-plane/p4RuntimeSerializer.h"
+#include "google/protobuf/text_format.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 #include "lib/ordered_map.h"
+#include "p4/config/v1/p4info.pb.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -126,10 +129,21 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const IR::P4Program *pr
     // Copy the program after the front end.
     auto *originalProgram = program->clone();
 
-    /// After the front end, get the P4Runtime API for the V1model architecture.
-    auto p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "v1model");
-    if (::errorCount() > 0) {
-        return std::nullopt;
+    std::optional<P4::P4RuntimeAPI> p4runtimeApi;
+    auto p4UserInfo = FlayOptions::get().userP4Info();
+    if (p4UserInfo.has_value()) {
+        ASSIGN_OR_RETURN(
+            auto p4Info,
+            ProtobufDeserializer::deserializeProtoObjectFromFile<p4::config::v1::P4Info>(
+                p4UserInfo.value()),
+            std::nullopt);
+        p4runtimeApi = P4::P4RuntimeAPI(p4Info.New(), nullptr);
+    } else {
+        /// After the front end, get the P4Runtime API for the V1model architecture.
+        p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "v1model");
+        if (::errorCount() > 0) {
+            return std::nullopt;
+        }
     }
 
     program = runMidEnd(program);
@@ -146,8 +160,8 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const IR::P4Program *pr
         Bmv2ControlPlaneInitializer(refMap).generateInitialControlPlaneConstraints(program),
         std::nullopt);
 
-    return {*new FlayCompilerResult{CompilerResult(*program), *originalProgram, p4runtimeApi,
-                                    initialControlPlaneState}};
+    return {*new FlayCompilerResult{CompilerResult(*program), *originalProgram,
+                                    p4runtimeApi.value(), initialControlPlaneState}};
 }
 
 }  // namespace P4Tools::Flay::V1Model
