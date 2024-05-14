@@ -15,3 +15,7 @@ Eliminated node at line 1531: } else if (hdr.scion_path_meta.currInf == 2) {
 Eliminated node at line 1536: if(hdr.scion_common.pathType == PathType.SCION) {
 Replaced node at line 1548: tbl_set_local_source.apply(); with default_action = drop();
 Eliminated node at line 1551: if (hdr.scion_common.nextHdr != 0xCB) {
+statement_count_before:596
+statement_count_after:571
+cyclomatic_complexity:134
+

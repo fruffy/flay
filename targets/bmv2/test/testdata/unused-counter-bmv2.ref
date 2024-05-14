@@ -1,1 +1,5 @@
 Replaced node at line 59: apply { t.apply(); } with const default_action = my_action(0);
+statement_count_before:4
+statement_count_after:4
+cyclomatic_complexity:1
+

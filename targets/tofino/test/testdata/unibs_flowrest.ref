@@ -1,2 +1,6 @@
 Replaced node at line 386: flow_action_table.apply(); with const default_action = set_miss_flow_action();
 Eliminated node at line 390: if (hdr.recirc.isValid()){
+statement_count_before:137
+statement_count_after:91
+cyclomatic_complexity:41
+

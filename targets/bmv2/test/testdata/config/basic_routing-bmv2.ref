@@ -3,3 +3,7 @@ Eliminated node at line 147: port_mapping.apply();
 Eliminated node at line 148: bd.apply();
 Eliminated node at line 150: on_miss: {
 Eliminated node at line 155: nexthop.apply();
+statement_count_before:20
+statement_count_after:15
+cyclomatic_complexity:22
+

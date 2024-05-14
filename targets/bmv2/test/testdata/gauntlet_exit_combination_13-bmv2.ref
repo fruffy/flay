@@ -1,1 +1,5 @@
 Eliminated node at line 40: simple_action: {
+statement_count_before:4
+statement_count_after:3
+cyclomatic_complexity:7
+

@@ -34,7 +34,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     }
 
     if (reachability.value()) {
-        printInfo("%1% true branch will always be executed.", stmt);
+        printInfo("---DEAD_CODE--- %1% true branch will always be executed.", stmt);
         if (stmt->ifFalse != nullptr) {
             eliminatedNodes.emplace_back(stmt->ifFalse, nullptr);
         }
@@ -43,11 +43,11 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     }
     stmt->condition = new IR::LNot(stmt->condition);
     if (stmt->ifFalse != nullptr) {
-        printInfo("%1% false branch will always be executed.", stmt);
+        printInfo("---DEAD_CODE--- %1% false branch will always be executed.", stmt);
         eliminatedNodes.emplace_back(stmt->ifTrue, nullptr);
         stmt->ifTrue = stmt->ifFalse;
     } else {
-        printInfo("%1% true branch can be deleted.", stmt);
+        printInfo("---DEAD_CODE--- %1% true branch can be deleted.", stmt);
         eliminatedNodes.emplace_back(stmt, nullptr);
         stmt->ifTrue = new IR::EmptyStatement(stmt->getSourceInfo());
     }
@@ -75,10 +75,10 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
         auto reachability = isreachabilityOpt.value();
         if (reachability) {
             filteredSwitchCases.push_back(switchCase);
-            printInfo("%1% is always true.", switchCase);
+            printInfo("---DEAD_CODE--- %1% is always true.", switchCase);
             break;
         }
-        printInfo("%1% can be deleted.", switchCase);
+        printInfo("---DEAD_CODE--- %1% can be deleted.", switchCase);
         eliminatedNodes.emplace_back(switchCase, nullptr);
     }
     if (filteredSwitchCases.empty()) {
@@ -129,7 +129,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
     ASSIGN_OR_RETURN(auto reachability, reachabilityMap.get().isNodeReachable(member), member);
 
     const auto *result = IR::BoolLiteral::get(reachability, member->srcInfo);
-    printInfo("%1% can be replaced with %2%.", member, result->toString());
+    printInfo("---DEAD_CODE--- %1% can be replaced with %2%.", member, result->toString());
     eliminatedNodes.emplace_back(member, nullptr);
     return result;
 }
@@ -158,7 +158,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
         ASSIGN_OR_RETURN(auto reachability, reachabilityMap.get().isNodeReachable(action), stmt);
 
         if (reachability) {
-            printInfo("%1% will always be executed.", action);
+            printInfo("---DEAD_CODE--- %1% will always be executed.", action);
             return stmt;
         }
     }
@@ -170,7 +170,8 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     if (defaultAction != nullptr) {
         auto decl = getActionDecl(refMap, *defaultAction);
         if (decl.has_value() && !decl.value()->body->components.empty()) {
-            printInfo("Replacing table apply with default action %1%", defaultAction);
+            printInfo("---DEAD_CODE--- Replacing table apply with default action %1%",
+                      defaultAction);
             auto *replacement =
                 new IR::MethodCallStatement(defaultAction->getSourceInfo(), defaultAction);
             eliminatedNodes.emplace_back(stmt, replacement);
@@ -179,7 +180,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     }
 
     // There is no action to execute other than an empty action, remove the table.
-    printInfo("Removing %1%", stmt);
+    printInfo("---DEAD_CODE--- Removing %1%", stmt);
     eliminatedNodes.emplace_back(stmt, nullptr);
     return new IR::EmptyStatement(stmt->getSourceInfo());
 }

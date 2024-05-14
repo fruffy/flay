@@ -1,1 +1,5 @@
 Eliminated node at line 39: if (h.eth_hdr.eth_type == 1) {
+statement_count_before:19
+statement_count_after:18
+cyclomatic_complexity:2
+

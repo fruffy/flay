@@ -6,3 +6,7 @@ Eliminated node at line 686: if (interfaces.apply().hit) {
 Eliminated node at line 437: routes_v4.apply();
 Eliminated node at line 401: acls.apply();
 Eliminated node at line 753: if (std_meta.egress_port == 255) {
+statement_count_before:228
+statement_count_after:195
+cyclomatic_complexity:69
+

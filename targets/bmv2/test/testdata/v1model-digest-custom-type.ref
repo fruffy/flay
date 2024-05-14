@@ -1,3 +1,7 @@
 Eliminated node at line 160: ipv4_lpm.apply();
 Eliminated node at line 161: forward.apply();
 Eliminated node at line 192: send_frame.apply();
+statement_count_before:19
+statement_count_after:16
+cyclomatic_complexity:9
+

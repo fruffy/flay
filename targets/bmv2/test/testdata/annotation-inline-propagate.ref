@@ -1,1 +1,5 @@
 Eliminated node at line 75: if (table1.apply().miss) {
+statement_count_before:4
+statement_count_after:4
+cyclomatic_complexity:3
+

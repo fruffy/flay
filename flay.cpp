@@ -65,7 +65,7 @@ std::optional<FlayServiceStatistics> runServiceWrapper(const FlayOptions &flayOp
     if (FlayOptions::get().getOptimizedOutputDir() != std::nullopt) {
         serviceWrapper.outputOptimizedProgram("optimized.final.p4");
     }
-    return serviceWrapper.getFlayServiceStatistics();
+    return serviceWrapper.computeFlayServiceStatistics();
 }
 
 int Flay::mainImpl(const CompilerResult &compilerResult) {

@@ -1,2 +1,6 @@
 Eliminated node at line 53: indirect_ws.apply();
 Eliminated node at line 54: indirect_ws_1.apply();
+statement_count_before:4
+statement_count_after:2
+cyclomatic_complexity:4
+

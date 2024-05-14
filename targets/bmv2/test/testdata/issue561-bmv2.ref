@@ -1,3 +1,7 @@
 Replaced node at line 306: ipv4_da_lpm.apply(); with default_action = my_drop(standard_metadata);
 Replaced node at line 307: mac_da.apply(); with default_action = my_drop(standard_metadata);
 Replaced node at line 330: send_frame.apply(); with default_action = my_drop(standard_metadata);
+statement_count_before:98
+statement_count_after:98
+cyclomatic_complexity:33
+

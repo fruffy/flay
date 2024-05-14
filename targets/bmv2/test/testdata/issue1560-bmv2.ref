@@ -1,3 +1,7 @@
 Eliminated node at line 160: t0.apply();
 Eliminated node at line 161: t1.apply();
 Eliminated node at line 176: t2.apply();
+statement_count_before:23
+statement_count_after:20
+cyclomatic_complexity:11
+

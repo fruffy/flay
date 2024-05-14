@@ -2,3 +2,7 @@ Replaced node at line 297: ipv4_da_lpm.apply(); with default_action = my_drop(st
 Replaced node at line 300: mac_da.apply(); with default_action = my_drop(standard_metadata);
 Eliminated node at line 380: get_multicast_copy_out_bd.apply();
 Replaced node at line 382: send_frame.apply(); with default_action = my_drop(standard_metadata);
+statement_count_before:56
+statement_count_after:55
+cyclomatic_complexity:24
+

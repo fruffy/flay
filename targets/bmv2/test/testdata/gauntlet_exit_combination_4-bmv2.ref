@@ -1,1 +1,5 @@
 Eliminated node at line 41: exit_action: {
+statement_count_before:4
+statement_count_after:2
+cyclomatic_complexity:6
+

@@ -3,3 +3,7 @@ Eliminated node at line (unknown): { dummy/dummy_1 = h.h;
   h.h = dummy/dummy_1;
   tmp_0 = retval;
   tmp = tmp_0; }
+statement_count_before:12
+statement_count_after:7
+cyclomatic_complexity:1
+

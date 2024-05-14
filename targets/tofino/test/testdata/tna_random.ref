@@ -1,1 +1,5 @@
 Replaced node at line 61: bypass_egress.apply(); with const default_action = set_bypass_egress;
+statement_count_before:10
+statement_count_after:10
+cyclomatic_complexity:3
+

@@ -1,1 +1,5 @@
 
+statement_count_before:5
+statement_count_after:5
+cyclomatic_complexity:1
+

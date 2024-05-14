@@ -12,3 +12,7 @@ Eliminated node at line 510: if(meta.l4_metadata.added_empty_header == 1w0x1){
 Eliminated node at line 541: if(meta.l4_metadata.updateChecksum == 1w0x1){
 Eliminated node at line 856: broadcast_mac.apply();
 Eliminated node at line 867: t_mark_duplicate.apply();
+statement_count_before:156
+statement_count_after:134
+cyclomatic_complexity:71
+

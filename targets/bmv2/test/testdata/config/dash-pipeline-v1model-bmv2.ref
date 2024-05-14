@@ -47,3 +47,7 @@ Eliminated node at line 587: } else if (meta.encap_data.dash_encapsulation == da
 Eliminated node at line 1214: if (meta.eni_data.dscp_mode == dash_tunnel_dscp_mode_t.PIPE_MODEL) {
 Eliminated node at line 957: if (meta.meter_policy_en == 1) {
 Eliminated node at line 963: meta.meter_class = meta.policy_meter_class;
+statement_count_before:654
+statement_count_after:591
+cyclomatic_complexity:228
+
