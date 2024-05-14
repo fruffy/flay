@@ -489,12 +489,12 @@ externs {
       name: "scion_pipe.ScionIngressControl.lag_ecmp"
       alias: "lag_ecmp"
     }
-    info {
-      [type.googleapis.com/barefoot.ActionProfile] {
-        table_ids: 49974363
-        size: 8192
-      }
-    }
+    # info {
+    #   [type.googleapis.com/barefoot.ActionProfile] {
+    #     table_ids: 49974363
+    #     size: 8192
+    #   }
+    # }
   }
 }
 externs {
@@ -506,14 +506,14 @@ externs {
       name: "scion_pipe.ScionIngressControl.lag_ecmp_sel"
       alias: "lag_ecmp_sel"
     }
-    info {
-      [type.googleapis.com/barefoot.ActionSelector] {
-        table_ids: 49974363
-        max_group_size: 1024
-        num_groups: 1024
-        action_profile_id: 2171268264
-      }
-    }
+    # info {
+    #   [type.googleapis.com/barefoot.ActionSelector] {
+    #     table_ids: 49974363
+    #     max_group_size: 1024
+    #     num_groups: 1024
+    #     action_profile_id: 2171268264
+    #   }
+    # }
   }
 }
 externs {
@@ -525,11 +525,11 @@ externs {
       name: "scion_pipe.ScionIngressParser.$PORT_METADATA"
       alias: "$PORT_METADATA"
     }
-    info {
-      [type.googleapis.com/barefoot.PortMetadata] {
-        key_name: "ig_intr_md"
-      }
-    }
+    # info {
+    #   [type.googleapis.com/barefoot.PortMetadata] {
+    #     key_name: "ig_intr_md"
+    #   }
+    # }
   }
 }
 externs {
@@ -541,1187 +541,1187 @@ externs {
       name: "scion_pipe.ScionEgressControl.ScionEgressControl"
       alias: "ScionEgressControl"
     }
-    info {
-      [type.googleapis.com/barefoot.Snapshot] {
-        pipe: "scion_pipe"
-        direction: DIRECTION_EGRESS
-        fields {
-          id: 1
-          name: "hdr.scion_cpu.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 2
-          name: "hdr.scion_cpu.dstAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 3
-          name: "hdr.scion_cpu.srcAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 4
-          name: "hdr.scion_cpu.etherType"
-          bitwidth: 16
-        }
-        fields {
-          id: 5
-          name: "hdr.ethernet.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 6
-          name: "hdr.ethernet.dstAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 7
-          name: "hdr.ethernet.srcAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 8
-          name: "hdr.ethernet.etherType"
-          bitwidth: 16
-        }
-        fields {
-          id: 9
-          name: "hdr.bridge.main.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 10
-          name: "hdr.bridge.main.checkFirstHf"
-          bitwidth: 1
-        }
-        fields {
-          id: 11
-          name: "hdr.bridge.main.checkSecHf"
-          bitwidth: 1
-        }
-        fields {
-          id: 12
-          name: "hdr.bridge.main.rsv1"
-          bitwidth: 2
-        }
-        fields {
-          id: 13
-          name: "hdr.bridge.main.okFirstHf"
-          bitwidth: 1
-        }
-        fields {
-          id: 14
-          name: "hdr.bridge.main.okSecHf"
-          bitwidth: 1
-        }
-        fields {
-          id: 15
-          name: "hdr.bridge.main.rsv2"
-          bitwidth: 2
-        }
-        fields {
-          id: 16
-          name: "hdr.bridge.main.len"
-          bitwidth: 8
-        }
-        fields {
-          id: 17
-          name: "hdr.bridge.main.varLen"
-          bitwidth: 5
-        }
-        fields {
-          id: 18
-          name: "hdr.bridge.main.egressPort"
-          bitwidth: 9
-        }
-        fields {
-          id: 19
-          name: "hdr.bridge.main.switchData"
-          bitwidth: 2
-        }
-        fields {
-          id: 20
-          name: "hdr.bridge.hop_field_1.bridge_fields.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 21
-          name: "hdr.bridge.hop_field_1.bridge_fields.rsv"
-          bitwidth: 16
-        }
-        fields {
-          id: 22
-          name: "hdr.bridge.hop_field_1.bridge_fields.beta"
-          bitwidth: 16
-        }
-        fields {
-          id: 23
-          name: "hdr.bridge.hop_field_1.bridge_fields.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 24
-          name: "hdr.bridge.hop_field_1.hop_field.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 25
-          name: "hdr.bridge.hop_field_1.hop_field.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 26
-          name: "hdr.bridge.hop_field_1.hop_field.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 27
-          name: "hdr.bridge.hop_field_1.hop_field.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 28
-          name: "hdr.bridge.hop_field_1.hop_field.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 29
-          name: "hdr.bridge.hop_field_1.hop_field.reserved"
-          bitwidth: 16
-        }
-        fields {
-          id: 30
-          name: "hdr.bridge.hop_field_1.hop_field.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 31
-          name: "hdr.bridge.hop_field_2.bridge_fields.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 32
-          name: "hdr.bridge.hop_field_2.bridge_fields.rsv"
-          bitwidth: 16
-        }
-        fields {
-          id: 33
-          name: "hdr.bridge.hop_field_2.bridge_fields.beta"
-          bitwidth: 16
-        }
-        fields {
-          id: 34
-          name: "hdr.bridge.hop_field_2.bridge_fields.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 35
-          name: "hdr.bridge.hop_field_2.hop_field.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 36
-          name: "hdr.bridge.hop_field_2.hop_field.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 37
-          name: "hdr.bridge.hop_field_2.hop_field.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 38
-          name: "hdr.bridge.hop_field_2.hop_field.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 39
-          name: "hdr.bridge.hop_field_2.hop_field.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 40
-          name: "hdr.bridge.hop_field_2.hop_field.reserved"
-          bitwidth: 16
-        }
-        fields {
-          id: 41
-          name: "hdr.bridge.hop_field_2.hop_field.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 42
-          name: "hdr.secondEthernet.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 43
-          name: "hdr.secondEthernet.dstAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 44
-          name: "hdr.secondEthernet.srcAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 45
-          name: "hdr.secondEthernet.etherType"
-          bitwidth: 16
-        }
-        fields {
-          id: 46
-          name: "hdr.ipv6.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 47
-          name: "hdr.ipv6.version"
-          bitwidth: 4
-        }
-        fields {
-          id: 48
-          name: "hdr.ipv6.trafficClass"
-          bitwidth: 8
-        }
-        fields {
-          id: 49
-          name: "hdr.ipv6.flowLabel"
-          bitwidth: 20
-        }
-        fields {
-          id: 50
-          name: "hdr.ipv6.payloadLen"
-          bitwidth: 16
-        }
-        fields {
-          id: 51
-          name: "hdr.ipv6.nextHdr"
-          bitwidth: 8
-        }
-        fields {
-          id: 52
-          name: "hdr.ipv6.hopLimit"
-          bitwidth: 8
-        }
-        fields {
-          id: 53
-          name: "hdr.ipv6.srcAddr"
-          bitwidth: 128
-        }
-        fields {
-          id: 54
-          name: "hdr.ipv6.dstAddr"
-          bitwidth: 128
-        }
-        fields {
-          id: 55
-          name: "hdr.udp.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 56
-          name: "hdr.udp.srcPort"
-          bitwidth: 16
-        }
-        fields {
-          id: 57
-          name: "hdr.udp.dstPort"
-          bitwidth: 16
-        }
-        fields {
-          id: 58
-          name: "hdr.udp.len"
-          bitwidth: 16
-        }
-        fields {
-          id: 59
-          name: "hdr.udp.checksum"
-          bitwidth: 16
-        }
-        fields {
-          id: 60
-          name: "hdr.scion_common.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 61
-          name: "hdr.scion_common.version"
-          bitwidth: 4
-        }
-        fields {
-          id: 62
-          name: "hdr.scion_common.qos"
-          bitwidth: 8
-        }
-        fields {
-          id: 63
-          name: "hdr.scion_common.flowID"
-          bitwidth: 20
-        }
-        fields {
-          id: 64
-          name: "hdr.scion_common.nextHdr"
-          bitwidth: 8
-        }
-        fields {
-          id: 65
-          name: "hdr.scion_common.hdrLen"
-          bitwidth: 8
-        }
-        fields {
-          id: 66
-          name: "hdr.scion_common.payloadLen"
-          bitwidth: 16
-        }
-        fields {
-          id: 67
-          name: "hdr.scion_common.pathType"
-          bitwidth: 8
-        }
-        fields {
-          id: 68
-          name: "hdr.scion_common.dt"
-          bitwidth: 2
-        }
-        fields {
-          id: 69
-          name: "hdr.scion_common.dl"
-          bitwidth: 2
-        }
-        fields {
-          id: 70
-          name: "hdr.scion_common.st"
-          bitwidth: 2
-        }
-        fields {
-          id: 71
-          name: "hdr.scion_common.sl"
-          bitwidth: 2
-        }
-        fields {
-          id: 72
-          name: "hdr.scion_common.rsv"
-          bitwidth: 16
-        }
-        fields {
-          id: 73
-          name: "hdr.scion_addr_common.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 74
-          name: "hdr.scion_addr_common.dstISD"
-          bitwidth: 16
-        }
-        fields {
-          id: 75
-          name: "hdr.scion_addr_common.dstAS"
-          bitwidth: 48
-        }
-        fields {
-          id: 76
-          name: "hdr.scion_addr_common.srcISD"
-          bitwidth: 16
-        }
-        fields {
-          id: 77
-          name: "hdr.scion_addr_common.srcAS"
-          bitwidth: 48
-        }
-        fields {
-          id: 78
-          name: "hdr.scion_addr_dst_host_32.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 79
-          name: "hdr.scion_addr_dst_host_32.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 80
-          name: "hdr.scion_addr_dst_host_32_2.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 81
-          name: "hdr.scion_addr_dst_host_32_2.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 82
-          name: "hdr.scion_addr_dst_host_32_3.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 83
-          name: "hdr.scion_addr_dst_host_32_3.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 84
-          name: "hdr.scion_addr_dst_host_128.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 85
-          name: "hdr.scion_addr_dst_host_128.host"
-          bitwidth: 128
-        }
-        fields {
-          id: 86
-          name: "hdr.scion_addr_src_host_32.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 87
-          name: "hdr.scion_addr_src_host_32.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 88
-          name: "hdr.scion_addr_src_host_32_2.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 89
-          name: "hdr.scion_addr_src_host_32_2.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 90
-          name: "hdr.scion_addr_src_host_32_3.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 91
-          name: "hdr.scion_addr_src_host_32_3.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 92
-          name: "hdr.scion_addr_src_host_128.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 93
-          name: "hdr.scion_addr_src_host_128.host"
-          bitwidth: 128
-        }
-        fields {
-          id: 94
-          name: "hdr.scion_path_meta.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 95
-          name: "hdr.scion_path_meta.currInf"
-          bitwidth: 2
-        }
-        fields {
-          id: 96
-          name: "hdr.scion_path_meta.currHF"
-          bitwidth: 6
-        }
-        fields {
-          id: 97
-          name: "hdr.scion_path_meta.rsv"
-          bitwidth: 6
-        }
-        fields {
-          id: 98
-          name: "hdr.scion_path_meta.seg0Len"
-          bitwidth: 6
-        }
-        fields {
-          id: 99
-          name: "hdr.scion_path_meta.seg1Len"
-          bitwidth: 6
-        }
-        fields {
-          id: 100
-          name: "hdr.scion_path_meta.seg2Len"
-          bitwidth: 6
-        }
-        fields {
-          id: 101
-          name: "hdr.scion_info_field_0.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 102
-          name: "hdr.scion_info_field_0.rsv0"
-          bitwidth: 6
-        }
-        fields {
-          id: 103
-          name: "hdr.scion_info_field_0.peering"
-          bitwidth: 1
-        }
-        fields {
-          id: 104
-          name: "hdr.scion_info_field_0.direction"
-          bitwidth: 1
-        }
-        fields {
-          id: 105
-          name: "hdr.scion_info_field_0.rsv1"
-          bitwidth: 8
-        }
-        fields {
-          id: 106
-          name: "hdr.scion_info_field_0.segId"
-          bitwidth: 16
-        }
-        fields {
-          id: 107
-          name: "hdr.scion_info_field_0.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 108
-          name: "hdr.scion_info_field_1.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 109
-          name: "hdr.scion_info_field_1.rsv0"
-          bitwidth: 6
-        }
-        fields {
-          id: 110
-          name: "hdr.scion_info_field_1.peering"
-          bitwidth: 1
-        }
-        fields {
-          id: 111
-          name: "hdr.scion_info_field_1.direction"
-          bitwidth: 1
-        }
-        fields {
-          id: 112
-          name: "hdr.scion_info_field_1.rsv1"
-          bitwidth: 8
-        }
-        fields {
-          id: 113
-          name: "hdr.scion_info_field_1.segId"
-          bitwidth: 16
-        }
-        fields {
-          id: 114
-          name: "hdr.scion_info_field_1.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 115
-          name: "hdr.scion_info_field_2.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 116
-          name: "hdr.scion_info_field_2.rsv0"
-          bitwidth: 6
-        }
-        fields {
-          id: 117
-          name: "hdr.scion_info_field_2.peering"
-          bitwidth: 1
-        }
-        fields {
-          id: 118
-          name: "hdr.scion_info_field_2.direction"
-          bitwidth: 1
-        }
-        fields {
-          id: 119
-          name: "hdr.scion_info_field_2.rsv1"
-          bitwidth: 8
-        }
-        fields {
-          id: 120
-          name: "hdr.scion_info_field_2.segId"
-          bitwidth: 16
-        }
-        fields {
-          id: 121
-          name: "hdr.scion_info_field_2.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 122
-          name: "hdr.scion_hop_0.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 123
-          name: "hdr.scion_hop_0.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 124
-          name: "hdr.scion_hop_0.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 125
-          name: "hdr.scion_hop_0.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 126
-          name: "hdr.scion_hop_0.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 127
-          name: "hdr.scion_hop_0.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 128
-          name: "hdr.scion_hop_1.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 129
-          name: "hdr.scion_hop_1.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 130
-          name: "hdr.scion_hop_1.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 131
-          name: "hdr.scion_hop_1.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 132
-          name: "hdr.scion_hop_1.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 133
-          name: "hdr.scion_hop_1.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 134
-          name: "hdr.scion_hop_2.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 135
-          name: "hdr.scion_hop_2.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 136
-          name: "hdr.scion_hop_2.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 137
-          name: "hdr.scion_hop_2.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 138
-          name: "hdr.scion_hop_2.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 139
-          name: "hdr.scion_hop_2.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 140
-          name: "hdr.scion_hop_3.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 141
-          name: "hdr.scion_hop_3.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 142
-          name: "hdr.scion_hop_3.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 143
-          name: "hdr.scion_hop_3.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 144
-          name: "hdr.scion_hop_3.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 145
-          name: "hdr.scion_hop_3.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 146
-          name: "hdr.scion_hop_4.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 147
-          name: "hdr.scion_hop_4.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 148
-          name: "hdr.scion_hop_4.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 149
-          name: "hdr.scion_hop_4.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 150
-          name: "hdr.scion_hop_4.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 151
-          name: "hdr.scion_hop_4.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 152
-          name: "hdr.scion_hop_5.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 153
-          name: "hdr.scion_hop_5.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 154
-          name: "hdr.scion_hop_5.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 155
-          name: "hdr.scion_hop_5.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 156
-          name: "hdr.scion_hop_5.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 157
-          name: "hdr.scion_hop_5.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 158
-          name: "hdr.scion_hop_6.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 159
-          name: "hdr.scion_hop_6.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 160
-          name: "hdr.scion_hop_6.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 161
-          name: "hdr.scion_hop_6.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 162
-          name: "hdr.scion_hop_6.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 163
-          name: "hdr.scion_hop_6.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 164
-          name: "hdr.scion_hop_7.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 165
-          name: "hdr.scion_hop_7.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 166
-          name: "hdr.scion_hop_7.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 167
-          name: "hdr.scion_hop_7.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 168
-          name: "hdr.scion_hop_7.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 169
-          name: "hdr.scion_hop_7.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 170
-          name: "hdr.scion_hop_field_0.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 171
-          name: "hdr.scion_hop_field_0.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 172
-          name: "hdr.scion_hop_field_0.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 173
-          name: "hdr.scion_hop_field_0.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 174
-          name: "hdr.scion_hop_field_0.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 175
-          name: "hdr.scion_hop_field_0.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 176
-          name: "hdr.scion_hop_field_1.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 177
-          name: "hdr.scion_hop_field_1.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 178
-          name: "hdr.scion_hop_field_1.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 179
-          name: "hdr.scion_hop_field_1.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 180
-          name: "hdr.scion_hop_field_1.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 181
-          name: "hdr.scion_hop_field_1.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 182
-          name: "hdr.scion_hop_by_hop.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 183
-          name: "hdr.scion_hop_by_hop.nextHdr"
-          bitwidth: 8
-        }
-        fields {
-          id: 184
-          name: "hdr.scion_hop_by_hop.extLen"
-          bitwidth: 8
-        }
-        fields {
-          id: 185
-          name: "hdr.scion_hop_by_hop.optType"
-          bitwidth: 8
-        }
-        fields {
-          id: 186
-          name: "hdr.scion_hop_by_hop.optDataLen"
-          bitwidth: 8
-        }
-        fields {
-          id: 232
-          name: "eg_md.nextHdr"
-          bitwidth: 8
-        }
-        fields {
-          id: 233
-          name: "eg_md.currHF"
-          bitwidth: 8
-        }
-        fields {
-          id: 234
-          name: "eg_md.currHF2"
-          bitwidth: 8
-        }
-        fields {
-          id: 235
-          name: "eg_md.direction"
-          bitwidth: 1
-        }
-        fields {
-          id: 236
-          name: "eg_md.skipScion"
-          bitwidth: 1
-        }
-        fields {
-          id: 237
-          name: "eg_md.segLen"
-          bitwidth: 6
-        }
-        fields {
-          id: 238
-          name: "eg_md.recirculation"
-          bitwidth: 1
-        }
-        fields {
-          id: 239
-          name: "eg_md.segId"
-          bitwidth: 16
-        }
-        fields {
-          id: 240
-          name: "eg_md.nextSegId"
-          bitwidth: 16
-        }
-        fields {
-          id: 241
-          name: "eg_md.ingress"
-          bitwidth: 16
-        }
-        fields {
-          id: 242
-          name: "eg_md.egress"
-          bitwidth: 16
-        }
-        fields {
-          id: 243
-          name: "eg_md.nextINF"
-          bitwidth: 2
-        }
-        fields {
-          id: 244
-          name: "eg_md.seg1Len"
-          bitwidth: 6
-        }
-        fields {
-          id: 245
-          name: "eg_md.udp_checksum_tmp"
-          bitwidth: 16
-        }
-        fields {
-          id: 246
-          name: "eg_md.payload_len"
-          bitwidth: 16
-        }
-        fields {
-          id: 247
-          name: "eg_intr_md._pad0"
-          bitwidth: 7
-        }
-        fields {
-          id: 248
-          name: "eg_intr_md.egress_port"
-          bitwidth: 9
-        }
-        fields {
-          id: 249
-          name: "eg_intr_md._pad1"
-          bitwidth: 5
-        }
-        fields {
-          id: 250
-          name: "eg_intr_md.enq_qdepth"
-          bitwidth: 19
-        }
-        fields {
-          id: 251
-          name: "eg_intr_md._pad2"
-          bitwidth: 6
-        }
-        fields {
-          id: 252
-          name: "eg_intr_md.enq_congest_stat"
-          bitwidth: 2
-        }
-        fields {
-          id: 253
-          name: "eg_intr_md._pad3"
-          bitwidth: 14
-        }
-        fields {
-          id: 254
-          name: "eg_intr_md.enq_tstamp"
-          bitwidth: 18
-        }
-        fields {
-          id: 255
-          name: "eg_intr_md._pad4"
-          bitwidth: 5
-        }
-        fields {
-          id: 256
-          name: "eg_intr_md.deq_qdepth"
-          bitwidth: 19
-        }
-        fields {
-          id: 257
-          name: "eg_intr_md._pad5"
-          bitwidth: 6
-        }
-        fields {
-          id: 258
-          name: "eg_intr_md.deq_congest_stat"
-          bitwidth: 2
-        }
-        fields {
-          id: 259
-          name: "eg_intr_md.app_pool_congest_stat"
-          bitwidth: 8
-        }
-        fields {
-          id: 260
-          name: "eg_intr_md._pad6"
-          bitwidth: 14
-        }
-        fields {
-          id: 261
-          name: "eg_intr_md.deq_timedelta"
-          bitwidth: 18
-        }
-        fields {
-          id: 262
-          name: "eg_intr_md.egress_rid"
-          bitwidth: 16
-        }
-        fields {
-          id: 263
-          name: "eg_intr_md._pad7"
-          bitwidth: 7
-        }
-        fields {
-          id: 264
-          name: "eg_intr_md.egress_rid_first"
-          bitwidth: 1
-        }
-        fields {
-          id: 265
-          name: "eg_intr_md._pad8"
-          bitwidth: 3
-        }
-        fields {
-          id: 266
-          name: "eg_intr_md.egress_qid"
-          bitwidth: 5
-        }
-        fields {
-          id: 267
-          name: "eg_intr_md._pad9"
-          bitwidth: 5
-        }
-        fields {
-          id: 268
-          name: "eg_intr_md.egress_cos"
-          bitwidth: 3
-        }
-        fields {
-          id: 269
-          name: "eg_intr_md._pad10"
-          bitwidth: 7
-        }
-        fields {
-          id: 270
-          name: "eg_intr_md.deflection_flag"
-          bitwidth: 1
-        }
-        fields {
-          id: 271
-          name: "eg_intr_md.pkt_length"
-          bitwidth: 16
-        }
-        fields {
-          id: 272
-          name: "eg_intr_md_from_prsr.global_tstamp"
-          bitwidth: 48
-        }
-        fields {
-          id: 273
-          name: "eg_intr_md_from_prsr.global_ver"
-          bitwidth: 32
-        }
-        fields {
-          id: 274
-          name: "eg_intr_md_from_prsr.parser_err"
-          bitwidth: 16
-        }
-        fields {
-          id: 275
-          name: "eg_intr_dprs_md.drop_ctl"
-          bitwidth: 3
-        }
-        fields {
-          id: 276
-          name: "eg_intr_dprs_md.mirror_type"
-          bitwidth: 3
-        }
-        fields {
-          id: 277
-          name: "eg_intr_dprs_md.coalesce_flush"
-          bitwidth: 1
-        }
-        fields {
-          id: 278
-          name: "eg_intr_dprs_md.coalesce_length"
-          bitwidth: 7
-        }
-        fields {
-          id: 279
-          name: "eg_intr_oport_md.capture_tstamp_on_tx"
-          bitwidth: 1
-        }
-        fields {
-          id: 280
-          name: "eg_intr_oport_md.update_delay_on_tx"
-          bitwidth: 1
-        }
-      }
-    }
+    # info {
+    #   [type.googleapis.com/barefoot.Snapshot] {
+    #     pipe: "scion_pipe"
+    #     direction: DIRECTION_EGRESS
+    #     fields {
+    #       id: 1
+    #       name: "hdr.scion_cpu.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 2
+    #       name: "hdr.scion_cpu.dstAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 3
+    #       name: "hdr.scion_cpu.srcAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 4
+    #       name: "hdr.scion_cpu.etherType"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 5
+    #       name: "hdr.ethernet.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 6
+    #       name: "hdr.ethernet.dstAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 7
+    #       name: "hdr.ethernet.srcAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 8
+    #       name: "hdr.ethernet.etherType"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 9
+    #       name: "hdr.bridge.main.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 10
+    #       name: "hdr.bridge.main.checkFirstHf"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 11
+    #       name: "hdr.bridge.main.checkSecHf"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 12
+    #       name: "hdr.bridge.main.rsv1"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 13
+    #       name: "hdr.bridge.main.okFirstHf"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 14
+    #       name: "hdr.bridge.main.okSecHf"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 15
+    #       name: "hdr.bridge.main.rsv2"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 16
+    #       name: "hdr.bridge.main.len"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 17
+    #       name: "hdr.bridge.main.varLen"
+    #       bitwidth: 5
+    #     }
+    #     fields {
+    #       id: 18
+    #       name: "hdr.bridge.main.egressPort"
+    #       bitwidth: 9
+    #     }
+    #     fields {
+    #       id: 19
+    #       name: "hdr.bridge.main.switchData"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 20
+    #       name: "hdr.bridge.hop_field_1.bridge_fields.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 21
+    #       name: "hdr.bridge.hop_field_1.bridge_fields.rsv"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 22
+    #       name: "hdr.bridge.hop_field_1.bridge_fields.beta"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 23
+    #       name: "hdr.bridge.hop_field_1.bridge_fields.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 24
+    #       name: "hdr.bridge.hop_field_1.hop_field.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 25
+    #       name: "hdr.bridge.hop_field_1.hop_field.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 26
+    #       name: "hdr.bridge.hop_field_1.hop_field.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 27
+    #       name: "hdr.bridge.hop_field_1.hop_field.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 28
+    #       name: "hdr.bridge.hop_field_1.hop_field.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 29
+    #       name: "hdr.bridge.hop_field_1.hop_field.reserved"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 30
+    #       name: "hdr.bridge.hop_field_1.hop_field.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 31
+    #       name: "hdr.bridge.hop_field_2.bridge_fields.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 32
+    #       name: "hdr.bridge.hop_field_2.bridge_fields.rsv"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 33
+    #       name: "hdr.bridge.hop_field_2.bridge_fields.beta"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 34
+    #       name: "hdr.bridge.hop_field_2.bridge_fields.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 35
+    #       name: "hdr.bridge.hop_field_2.hop_field.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 36
+    #       name: "hdr.bridge.hop_field_2.hop_field.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 37
+    #       name: "hdr.bridge.hop_field_2.hop_field.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 38
+    #       name: "hdr.bridge.hop_field_2.hop_field.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 39
+    #       name: "hdr.bridge.hop_field_2.hop_field.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 40
+    #       name: "hdr.bridge.hop_field_2.hop_field.reserved"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 41
+    #       name: "hdr.bridge.hop_field_2.hop_field.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 42
+    #       name: "hdr.secondEthernet.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 43
+    #       name: "hdr.secondEthernet.dstAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 44
+    #       name: "hdr.secondEthernet.srcAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 45
+    #       name: "hdr.secondEthernet.etherType"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 46
+    #       name: "hdr.ipv6.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 47
+    #       name: "hdr.ipv6.version"
+    #       bitwidth: 4
+    #     }
+    #     fields {
+    #       id: 48
+    #       name: "hdr.ipv6.trafficClass"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 49
+    #       name: "hdr.ipv6.flowLabel"
+    #       bitwidth: 20
+    #     }
+    #     fields {
+    #       id: 50
+    #       name: "hdr.ipv6.payloadLen"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 51
+    #       name: "hdr.ipv6.nextHdr"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 52
+    #       name: "hdr.ipv6.hopLimit"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 53
+    #       name: "hdr.ipv6.srcAddr"
+    #       bitwidth: 128
+    #     }
+    #     fields {
+    #       id: 54
+    #       name: "hdr.ipv6.dstAddr"
+    #       bitwidth: 128
+    #     }
+    #     fields {
+    #       id: 55
+    #       name: "hdr.udp.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 56
+    #       name: "hdr.udp.srcPort"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 57
+    #       name: "hdr.udp.dstPort"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 58
+    #       name: "hdr.udp.len"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 59
+    #       name: "hdr.udp.checksum"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 60
+    #       name: "hdr.scion_common.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 61
+    #       name: "hdr.scion_common.version"
+    #       bitwidth: 4
+    #     }
+    #     fields {
+    #       id: 62
+    #       name: "hdr.scion_common.qos"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 63
+    #       name: "hdr.scion_common.flowID"
+    #       bitwidth: 20
+    #     }
+    #     fields {
+    #       id: 64
+    #       name: "hdr.scion_common.nextHdr"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 65
+    #       name: "hdr.scion_common.hdrLen"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 66
+    #       name: "hdr.scion_common.payloadLen"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 67
+    #       name: "hdr.scion_common.pathType"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 68
+    #       name: "hdr.scion_common.dt"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 69
+    #       name: "hdr.scion_common.dl"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 70
+    #       name: "hdr.scion_common.st"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 71
+    #       name: "hdr.scion_common.sl"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 72
+    #       name: "hdr.scion_common.rsv"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 73
+    #       name: "hdr.scion_addr_common.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 74
+    #       name: "hdr.scion_addr_common.dstISD"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 75
+    #       name: "hdr.scion_addr_common.dstAS"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 76
+    #       name: "hdr.scion_addr_common.srcISD"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 77
+    #       name: "hdr.scion_addr_common.srcAS"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 78
+    #       name: "hdr.scion_addr_dst_host_32.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 79
+    #       name: "hdr.scion_addr_dst_host_32.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 80
+    #       name: "hdr.scion_addr_dst_host_32_2.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 81
+    #       name: "hdr.scion_addr_dst_host_32_2.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 82
+    #       name: "hdr.scion_addr_dst_host_32_3.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 83
+    #       name: "hdr.scion_addr_dst_host_32_3.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 84
+    #       name: "hdr.scion_addr_dst_host_128.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 85
+    #       name: "hdr.scion_addr_dst_host_128.host"
+    #       bitwidth: 128
+    #     }
+    #     fields {
+    #       id: 86
+    #       name: "hdr.scion_addr_src_host_32.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 87
+    #       name: "hdr.scion_addr_src_host_32.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 88
+    #       name: "hdr.scion_addr_src_host_32_2.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 89
+    #       name: "hdr.scion_addr_src_host_32_2.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 90
+    #       name: "hdr.scion_addr_src_host_32_3.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 91
+    #       name: "hdr.scion_addr_src_host_32_3.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 92
+    #       name: "hdr.scion_addr_src_host_128.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 93
+    #       name: "hdr.scion_addr_src_host_128.host"
+    #       bitwidth: 128
+    #     }
+    #     fields {
+    #       id: 94
+    #       name: "hdr.scion_path_meta.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 95
+    #       name: "hdr.scion_path_meta.currInf"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 96
+    #       name: "hdr.scion_path_meta.currHF"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 97
+    #       name: "hdr.scion_path_meta.rsv"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 98
+    #       name: "hdr.scion_path_meta.seg0Len"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 99
+    #       name: "hdr.scion_path_meta.seg1Len"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 100
+    #       name: "hdr.scion_path_meta.seg2Len"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 101
+    #       name: "hdr.scion_info_field_0.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 102
+    #       name: "hdr.scion_info_field_0.rsv0"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 103
+    #       name: "hdr.scion_info_field_0.peering"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 104
+    #       name: "hdr.scion_info_field_0.direction"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 105
+    #       name: "hdr.scion_info_field_0.rsv1"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 106
+    #       name: "hdr.scion_info_field_0.segId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 107
+    #       name: "hdr.scion_info_field_0.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 108
+    #       name: "hdr.scion_info_field_1.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 109
+    #       name: "hdr.scion_info_field_1.rsv0"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 110
+    #       name: "hdr.scion_info_field_1.peering"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 111
+    #       name: "hdr.scion_info_field_1.direction"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 112
+    #       name: "hdr.scion_info_field_1.rsv1"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 113
+    #       name: "hdr.scion_info_field_1.segId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 114
+    #       name: "hdr.scion_info_field_1.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 115
+    #       name: "hdr.scion_info_field_2.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 116
+    #       name: "hdr.scion_info_field_2.rsv0"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 117
+    #       name: "hdr.scion_info_field_2.peering"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 118
+    #       name: "hdr.scion_info_field_2.direction"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 119
+    #       name: "hdr.scion_info_field_2.rsv1"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 120
+    #       name: "hdr.scion_info_field_2.segId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 121
+    #       name: "hdr.scion_info_field_2.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 122
+    #       name: "hdr.scion_hop_0.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 123
+    #       name: "hdr.scion_hop_0.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 124
+    #       name: "hdr.scion_hop_0.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 125
+    #       name: "hdr.scion_hop_0.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 126
+    #       name: "hdr.scion_hop_0.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 127
+    #       name: "hdr.scion_hop_0.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 128
+    #       name: "hdr.scion_hop_1.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 129
+    #       name: "hdr.scion_hop_1.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 130
+    #       name: "hdr.scion_hop_1.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 131
+    #       name: "hdr.scion_hop_1.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 132
+    #       name: "hdr.scion_hop_1.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 133
+    #       name: "hdr.scion_hop_1.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 134
+    #       name: "hdr.scion_hop_2.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 135
+    #       name: "hdr.scion_hop_2.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 136
+    #       name: "hdr.scion_hop_2.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 137
+    #       name: "hdr.scion_hop_2.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 138
+    #       name: "hdr.scion_hop_2.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 139
+    #       name: "hdr.scion_hop_2.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 140
+    #       name: "hdr.scion_hop_3.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 141
+    #       name: "hdr.scion_hop_3.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 142
+    #       name: "hdr.scion_hop_3.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 143
+    #       name: "hdr.scion_hop_3.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 144
+    #       name: "hdr.scion_hop_3.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 145
+    #       name: "hdr.scion_hop_3.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 146
+    #       name: "hdr.scion_hop_4.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 147
+    #       name: "hdr.scion_hop_4.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 148
+    #       name: "hdr.scion_hop_4.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 149
+    #       name: "hdr.scion_hop_4.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 150
+    #       name: "hdr.scion_hop_4.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 151
+    #       name: "hdr.scion_hop_4.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 152
+    #       name: "hdr.scion_hop_5.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 153
+    #       name: "hdr.scion_hop_5.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 154
+    #       name: "hdr.scion_hop_5.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 155
+    #       name: "hdr.scion_hop_5.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 156
+    #       name: "hdr.scion_hop_5.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 157
+    #       name: "hdr.scion_hop_5.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 158
+    #       name: "hdr.scion_hop_6.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 159
+    #       name: "hdr.scion_hop_6.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 160
+    #       name: "hdr.scion_hop_6.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 161
+    #       name: "hdr.scion_hop_6.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 162
+    #       name: "hdr.scion_hop_6.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 163
+    #       name: "hdr.scion_hop_6.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 164
+    #       name: "hdr.scion_hop_7.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 165
+    #       name: "hdr.scion_hop_7.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 166
+    #       name: "hdr.scion_hop_7.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 167
+    #       name: "hdr.scion_hop_7.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 168
+    #       name: "hdr.scion_hop_7.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 169
+    #       name: "hdr.scion_hop_7.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 170
+    #       name: "hdr.scion_hop_field_0.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 171
+    #       name: "hdr.scion_hop_field_0.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 172
+    #       name: "hdr.scion_hop_field_0.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 173
+    #       name: "hdr.scion_hop_field_0.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 174
+    #       name: "hdr.scion_hop_field_0.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 175
+    #       name: "hdr.scion_hop_field_0.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 176
+    #       name: "hdr.scion_hop_field_1.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 177
+    #       name: "hdr.scion_hop_field_1.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 178
+    #       name: "hdr.scion_hop_field_1.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 179
+    #       name: "hdr.scion_hop_field_1.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 180
+    #       name: "hdr.scion_hop_field_1.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 181
+    #       name: "hdr.scion_hop_field_1.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 182
+    #       name: "hdr.scion_hop_by_hop.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 183
+    #       name: "hdr.scion_hop_by_hop.nextHdr"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 184
+    #       name: "hdr.scion_hop_by_hop.extLen"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 185
+    #       name: "hdr.scion_hop_by_hop.optType"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 186
+    #       name: "hdr.scion_hop_by_hop.optDataLen"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 232
+    #       name: "eg_md.nextHdr"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 233
+    #       name: "eg_md.currHF"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 234
+    #       name: "eg_md.currHF2"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 235
+    #       name: "eg_md.direction"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 236
+    #       name: "eg_md.skipScion"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 237
+    #       name: "eg_md.segLen"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 238
+    #       name: "eg_md.recirculation"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 239
+    #       name: "eg_md.segId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 240
+    #       name: "eg_md.nextSegId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 241
+    #       name: "eg_md.ingress"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 242
+    #       name: "eg_md.egress"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 243
+    #       name: "eg_md.nextINF"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 244
+    #       name: "eg_md.seg1Len"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 245
+    #       name: "eg_md.udp_checksum_tmp"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 246
+    #       name: "eg_md.payload_len"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 247
+    #       name: "eg_intr_md._pad0"
+    #       bitwidth: 7
+    #     }
+    #     fields {
+    #       id: 248
+    #       name: "eg_intr_md.egress_port"
+    #       bitwidth: 9
+    #     }
+    #     fields {
+    #       id: 249
+    #       name: "eg_intr_md._pad1"
+    #       bitwidth: 5
+    #     }
+    #     fields {
+    #       id: 250
+    #       name: "eg_intr_md.enq_qdepth"
+    #       bitwidth: 19
+    #     }
+    #     fields {
+    #       id: 251
+    #       name: "eg_intr_md._pad2"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 252
+    #       name: "eg_intr_md.enq_congest_stat"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 253
+    #       name: "eg_intr_md._pad3"
+    #       bitwidth: 14
+    #     }
+    #     fields {
+    #       id: 254
+    #       name: "eg_intr_md.enq_tstamp"
+    #       bitwidth: 18
+    #     }
+    #     fields {
+    #       id: 255
+    #       name: "eg_intr_md._pad4"
+    #       bitwidth: 5
+    #     }
+    #     fields {
+    #       id: 256
+    #       name: "eg_intr_md.deq_qdepth"
+    #       bitwidth: 19
+    #     }
+    #     fields {
+    #       id: 257
+    #       name: "eg_intr_md._pad5"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 258
+    #       name: "eg_intr_md.deq_congest_stat"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 259
+    #       name: "eg_intr_md.app_pool_congest_stat"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 260
+    #       name: "eg_intr_md._pad6"
+    #       bitwidth: 14
+    #     }
+    #     fields {
+    #       id: 261
+    #       name: "eg_intr_md.deq_timedelta"
+    #       bitwidth: 18
+    #     }
+    #     fields {
+    #       id: 262
+    #       name: "eg_intr_md.egress_rid"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 263
+    #       name: "eg_intr_md._pad7"
+    #       bitwidth: 7
+    #     }
+    #     fields {
+    #       id: 264
+    #       name: "eg_intr_md.egress_rid_first"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 265
+    #       name: "eg_intr_md._pad8"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 266
+    #       name: "eg_intr_md.egress_qid"
+    #       bitwidth: 5
+    #     }
+    #     fields {
+    #       id: 267
+    #       name: "eg_intr_md._pad9"
+    #       bitwidth: 5
+    #     }
+    #     fields {
+    #       id: 268
+    #       name: "eg_intr_md.egress_cos"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 269
+    #       name: "eg_intr_md._pad10"
+    #       bitwidth: 7
+    #     }
+    #     fields {
+    #       id: 270
+    #       name: "eg_intr_md.deflection_flag"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 271
+    #       name: "eg_intr_md.pkt_length"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 272
+    #       name: "eg_intr_md_from_prsr.global_tstamp"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 273
+    #       name: "eg_intr_md_from_prsr.global_ver"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 274
+    #       name: "eg_intr_md_from_prsr.parser_err"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 275
+    #       name: "eg_intr_dprs_md.drop_ctl"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 276
+    #       name: "eg_intr_dprs_md.mirror_type"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 277
+    #       name: "eg_intr_dprs_md.coalesce_flush"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 278
+    #       name: "eg_intr_dprs_md.coalesce_length"
+    #       bitwidth: 7
+    #     }
+    #     fields {
+    #       id: 279
+    #       name: "eg_intr_oport_md.capture_tstamp_on_tx"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 280
+    #       name: "eg_intr_oport_md.update_delay_on_tx"
+    #       bitwidth: 1
+    #     }
+    #   }
+    # }
   }
   instances {
     preamble {
@@ -1730,1164 +1730,1164 @@ externs {
       alias: "ScionIngressControl"
     }
     info {
-      [type.googleapis.com/barefoot.Snapshot] {
-        pipe: "scion_pipe"
-        fields {
-          id: 1
-          name: "hdr.scion_cpu.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 2
-          name: "hdr.scion_cpu.dstAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 3
-          name: "hdr.scion_cpu.srcAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 4
-          name: "hdr.scion_cpu.etherType"
-          bitwidth: 16
-        }
-        fields {
-          id: 5
-          name: "hdr.ethernet.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 6
-          name: "hdr.ethernet.dstAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 7
-          name: "hdr.ethernet.srcAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 8
-          name: "hdr.ethernet.etherType"
-          bitwidth: 16
-        }
-        fields {
-          id: 9
-          name: "hdr.bridge.main.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 10
-          name: "hdr.bridge.main.checkFirstHf"
-          bitwidth: 1
-        }
-        fields {
-          id: 11
-          name: "hdr.bridge.main.checkSecHf"
-          bitwidth: 1
-        }
-        fields {
-          id: 12
-          name: "hdr.bridge.main.rsv1"
-          bitwidth: 2
-        }
-        fields {
-          id: 13
-          name: "hdr.bridge.main.okFirstHf"
-          bitwidth: 1
-        }
-        fields {
-          id: 14
-          name: "hdr.bridge.main.okSecHf"
-          bitwidth: 1
-        }
-        fields {
-          id: 15
-          name: "hdr.bridge.main.rsv2"
-          bitwidth: 2
-        }
-        fields {
-          id: 16
-          name: "hdr.bridge.main.len"
-          bitwidth: 8
-        }
-        fields {
-          id: 17
-          name: "hdr.bridge.main.varLen"
-          bitwidth: 5
-        }
-        fields {
-          id: 18
-          name: "hdr.bridge.main.egressPort"
-          bitwidth: 9
-        }
-        fields {
-          id: 19
-          name: "hdr.bridge.main.switchData"
-          bitwidth: 2
-        }
-        fields {
-          id: 20
-          name: "hdr.bridge.hop_field_1.bridge_fields.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 21
-          name: "hdr.bridge.hop_field_1.bridge_fields.rsv"
-          bitwidth: 16
-        }
-        fields {
-          id: 22
-          name: "hdr.bridge.hop_field_1.bridge_fields.beta"
-          bitwidth: 16
-        }
-        fields {
-          id: 23
-          name: "hdr.bridge.hop_field_1.bridge_fields.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 24
-          name: "hdr.bridge.hop_field_1.hop_field.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 25
-          name: "hdr.bridge.hop_field_1.hop_field.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 26
-          name: "hdr.bridge.hop_field_1.hop_field.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 27
-          name: "hdr.bridge.hop_field_1.hop_field.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 28
-          name: "hdr.bridge.hop_field_1.hop_field.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 29
-          name: "hdr.bridge.hop_field_1.hop_field.reserved"
-          bitwidth: 16
-        }
-        fields {
-          id: 30
-          name: "hdr.bridge.hop_field_1.hop_field.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 31
-          name: "hdr.bridge.hop_field_2.bridge_fields.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 32
-          name: "hdr.bridge.hop_field_2.bridge_fields.rsv"
-          bitwidth: 16
-        }
-        fields {
-          id: 33
-          name: "hdr.bridge.hop_field_2.bridge_fields.beta"
-          bitwidth: 16
-        }
-        fields {
-          id: 34
-          name: "hdr.bridge.hop_field_2.bridge_fields.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 35
-          name: "hdr.bridge.hop_field_2.hop_field.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 36
-          name: "hdr.bridge.hop_field_2.hop_field.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 37
-          name: "hdr.bridge.hop_field_2.hop_field.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 38
-          name: "hdr.bridge.hop_field_2.hop_field.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 39
-          name: "hdr.bridge.hop_field_2.hop_field.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 40
-          name: "hdr.bridge.hop_field_2.hop_field.reserved"
-          bitwidth: 16
-        }
-        fields {
-          id: 41
-          name: "hdr.bridge.hop_field_2.hop_field.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 42
-          name: "hdr.secondEthernet.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 43
-          name: "hdr.secondEthernet.dstAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 44
-          name: "hdr.secondEthernet.srcAddr"
-          bitwidth: 48
-        }
-        fields {
-          id: 45
-          name: "hdr.secondEthernet.etherType"
-          bitwidth: 16
-        }
-        fields {
-          id: 46
-          name: "hdr.ipv6.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 47
-          name: "hdr.ipv6.version"
-          bitwidth: 4
-        }
-        fields {
-          id: 48
-          name: "hdr.ipv6.trafficClass"
-          bitwidth: 8
-        }
-        fields {
-          id: 49
-          name: "hdr.ipv6.flowLabel"
-          bitwidth: 20
-        }
-        fields {
-          id: 50
-          name: "hdr.ipv6.payloadLen"
-          bitwidth: 16
-        }
-        fields {
-          id: 51
-          name: "hdr.ipv6.nextHdr"
-          bitwidth: 8
-        }
-        fields {
-          id: 52
-          name: "hdr.ipv6.hopLimit"
-          bitwidth: 8
-        }
-        fields {
-          id: 53
-          name: "hdr.ipv6.srcAddr"
-          bitwidth: 128
-        }
-        fields {
-          id: 54
-          name: "hdr.ipv6.dstAddr"
-          bitwidth: 128
-        }
-        fields {
-          id: 55
-          name: "hdr.udp.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 56
-          name: "hdr.udp.srcPort"
-          bitwidth: 16
-        }
-        fields {
-          id: 57
-          name: "hdr.udp.dstPort"
-          bitwidth: 16
-        }
-        fields {
-          id: 58
-          name: "hdr.udp.len"
-          bitwidth: 16
-        }
-        fields {
-          id: 59
-          name: "hdr.udp.checksum"
-          bitwidth: 16
-        }
-        fields {
-          id: 60
-          name: "hdr.scion_common.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 61
-          name: "hdr.scion_common.version"
-          bitwidth: 4
-        }
-        fields {
-          id: 62
-          name: "hdr.scion_common.qos"
-          bitwidth: 8
-        }
-        fields {
-          id: 63
-          name: "hdr.scion_common.flowID"
-          bitwidth: 20
-        }
-        fields {
-          id: 64
-          name: "hdr.scion_common.nextHdr"
-          bitwidth: 8
-        }
-        fields {
-          id: 65
-          name: "hdr.scion_common.hdrLen"
-          bitwidth: 8
-        }
-        fields {
-          id: 66
-          name: "hdr.scion_common.payloadLen"
-          bitwidth: 16
-        }
-        fields {
-          id: 67
-          name: "hdr.scion_common.pathType"
-          bitwidth: 8
-        }
-        fields {
-          id: 68
-          name: "hdr.scion_common.dt"
-          bitwidth: 2
-        }
-        fields {
-          id: 69
-          name: "hdr.scion_common.dl"
-          bitwidth: 2
-        }
-        fields {
-          id: 70
-          name: "hdr.scion_common.st"
-          bitwidth: 2
-        }
-        fields {
-          id: 71
-          name: "hdr.scion_common.sl"
-          bitwidth: 2
-        }
-        fields {
-          id: 72
-          name: "hdr.scion_common.rsv"
-          bitwidth: 16
-        }
-        fields {
-          id: 73
-          name: "hdr.scion_addr_common.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 74
-          name: "hdr.scion_addr_common.dstISD"
-          bitwidth: 16
-        }
-        fields {
-          id: 75
-          name: "hdr.scion_addr_common.dstAS"
-          bitwidth: 48
-        }
-        fields {
-          id: 76
-          name: "hdr.scion_addr_common.srcISD"
-          bitwidth: 16
-        }
-        fields {
-          id: 77
-          name: "hdr.scion_addr_common.srcAS"
-          bitwidth: 48
-        }
-        fields {
-          id: 78
-          name: "hdr.scion_addr_dst_host_32.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 79
-          name: "hdr.scion_addr_dst_host_32.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 80
-          name: "hdr.scion_addr_dst_host_32_2.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 81
-          name: "hdr.scion_addr_dst_host_32_2.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 82
-          name: "hdr.scion_addr_dst_host_32_3.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 83
-          name: "hdr.scion_addr_dst_host_32_3.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 84
-          name: "hdr.scion_addr_dst_host_128.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 85
-          name: "hdr.scion_addr_dst_host_128.host"
-          bitwidth: 128
-        }
-        fields {
-          id: 86
-          name: "hdr.scion_addr_src_host_32.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 87
-          name: "hdr.scion_addr_src_host_32.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 88
-          name: "hdr.scion_addr_src_host_32_2.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 89
-          name: "hdr.scion_addr_src_host_32_2.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 90
-          name: "hdr.scion_addr_src_host_32_3.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 91
-          name: "hdr.scion_addr_src_host_32_3.host"
-          bitwidth: 32
-        }
-        fields {
-          id: 92
-          name: "hdr.scion_addr_src_host_128.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 93
-          name: "hdr.scion_addr_src_host_128.host"
-          bitwidth: 128
-        }
-        fields {
-          id: 94
-          name: "hdr.scion_path_meta.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 95
-          name: "hdr.scion_path_meta.currInf"
-          bitwidth: 2
-        }
-        fields {
-          id: 96
-          name: "hdr.scion_path_meta.currHF"
-          bitwidth: 6
-        }
-        fields {
-          id: 97
-          name: "hdr.scion_path_meta.rsv"
-          bitwidth: 6
-        }
-        fields {
-          id: 98
-          name: "hdr.scion_path_meta.seg0Len"
-          bitwidth: 6
-        }
-        fields {
-          id: 99
-          name: "hdr.scion_path_meta.seg1Len"
-          bitwidth: 6
-        }
-        fields {
-          id: 100
-          name: "hdr.scion_path_meta.seg2Len"
-          bitwidth: 6
-        }
-        fields {
-          id: 101
-          name: "hdr.scion_info_field_0.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 102
-          name: "hdr.scion_info_field_0.rsv0"
-          bitwidth: 6
-        }
-        fields {
-          id: 103
-          name: "hdr.scion_info_field_0.peering"
-          bitwidth: 1
-        }
-        fields {
-          id: 104
-          name: "hdr.scion_info_field_0.direction"
-          bitwidth: 1
-        }
-        fields {
-          id: 105
-          name: "hdr.scion_info_field_0.rsv1"
-          bitwidth: 8
-        }
-        fields {
-          id: 106
-          name: "hdr.scion_info_field_0.segId"
-          bitwidth: 16
-        }
-        fields {
-          id: 107
-          name: "hdr.scion_info_field_0.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 108
-          name: "hdr.scion_info_field_1.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 109
-          name: "hdr.scion_info_field_1.rsv0"
-          bitwidth: 6
-        }
-        fields {
-          id: 110
-          name: "hdr.scion_info_field_1.peering"
-          bitwidth: 1
-        }
-        fields {
-          id: 111
-          name: "hdr.scion_info_field_1.direction"
-          bitwidth: 1
-        }
-        fields {
-          id: 112
-          name: "hdr.scion_info_field_1.rsv1"
-          bitwidth: 8
-        }
-        fields {
-          id: 113
-          name: "hdr.scion_info_field_1.segId"
-          bitwidth: 16
-        }
-        fields {
-          id: 114
-          name: "hdr.scion_info_field_1.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 115
-          name: "hdr.scion_info_field_2.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 116
-          name: "hdr.scion_info_field_2.rsv0"
-          bitwidth: 6
-        }
-        fields {
-          id: 117
-          name: "hdr.scion_info_field_2.peering"
-          bitwidth: 1
-        }
-        fields {
-          id: 118
-          name: "hdr.scion_info_field_2.direction"
-          bitwidth: 1
-        }
-        fields {
-          id: 119
-          name: "hdr.scion_info_field_2.rsv1"
-          bitwidth: 8
-        }
-        fields {
-          id: 120
-          name: "hdr.scion_info_field_2.segId"
-          bitwidth: 16
-        }
-        fields {
-          id: 121
-          name: "hdr.scion_info_field_2.timestamp"
-          bitwidth: 32
-        }
-        fields {
-          id: 122
-          name: "hdr.scion_hop_0.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 123
-          name: "hdr.scion_hop_0.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 124
-          name: "hdr.scion_hop_0.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 125
-          name: "hdr.scion_hop_0.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 126
-          name: "hdr.scion_hop_0.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 127
-          name: "hdr.scion_hop_0.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 128
-          name: "hdr.scion_hop_1.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 129
-          name: "hdr.scion_hop_1.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 130
-          name: "hdr.scion_hop_1.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 131
-          name: "hdr.scion_hop_1.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 132
-          name: "hdr.scion_hop_1.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 133
-          name: "hdr.scion_hop_1.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 134
-          name: "hdr.scion_hop_2.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 135
-          name: "hdr.scion_hop_2.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 136
-          name: "hdr.scion_hop_2.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 137
-          name: "hdr.scion_hop_2.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 138
-          name: "hdr.scion_hop_2.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 139
-          name: "hdr.scion_hop_2.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 140
-          name: "hdr.scion_hop_3.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 141
-          name: "hdr.scion_hop_3.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 142
-          name: "hdr.scion_hop_3.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 143
-          name: "hdr.scion_hop_3.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 144
-          name: "hdr.scion_hop_3.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 145
-          name: "hdr.scion_hop_3.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 146
-          name: "hdr.scion_hop_4.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 147
-          name: "hdr.scion_hop_4.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 148
-          name: "hdr.scion_hop_4.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 149
-          name: "hdr.scion_hop_4.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 150
-          name: "hdr.scion_hop_4.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 151
-          name: "hdr.scion_hop_4.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 152
-          name: "hdr.scion_hop_5.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 153
-          name: "hdr.scion_hop_5.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 154
-          name: "hdr.scion_hop_5.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 155
-          name: "hdr.scion_hop_5.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 156
-          name: "hdr.scion_hop_5.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 157
-          name: "hdr.scion_hop_5.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 158
-          name: "hdr.scion_hop_6.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 159
-          name: "hdr.scion_hop_6.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 160
-          name: "hdr.scion_hop_6.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 161
-          name: "hdr.scion_hop_6.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 162
-          name: "hdr.scion_hop_6.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 163
-          name: "hdr.scion_hop_6.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 164
-          name: "hdr.scion_hop_7.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 165
-          name: "hdr.scion_hop_7.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 166
-          name: "hdr.scion_hop_7.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 167
-          name: "hdr.scion_hop_7.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 168
-          name: "hdr.scion_hop_7.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 169
-          name: "hdr.scion_hop_7.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 170
-          name: "hdr.scion_hop_field_0.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 171
-          name: "hdr.scion_hop_field_0.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 172
-          name: "hdr.scion_hop_field_0.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 173
-          name: "hdr.scion_hop_field_0.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 174
-          name: "hdr.scion_hop_field_0.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 175
-          name: "hdr.scion_hop_field_0.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 176
-          name: "hdr.scion_hop_field_1.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 177
-          name: "hdr.scion_hop_field_1.routerAlerts"
-          bitwidth: 8
-        }
-        fields {
-          id: 178
-          name: "hdr.scion_hop_field_1.expTime"
-          bitwidth: 8
-        }
-        fields {
-          id: 179
-          name: "hdr.scion_hop_field_1.inIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 180
-          name: "hdr.scion_hop_field_1.egIf"
-          bitwidth: 16
-        }
-        fields {
-          id: 181
-          name: "hdr.scion_hop_field_1.mac"
-          bitwidth: 48
-        }
-        fields {
-          id: 182
-          name: "hdr.scion_hop_by_hop.$valid"
-          bitwidth: 1
-        }
-        fields {
-          id: 183
-          name: "hdr.scion_hop_by_hop.nextHdr"
-          bitwidth: 8
-        }
-        fields {
-          id: 184
-          name: "hdr.scion_hop_by_hop.extLen"
-          bitwidth: 8
-        }
-        fields {
-          id: 185
-          name: "hdr.scion_hop_by_hop.optType"
-          bitwidth: 8
-        }
-        fields {
-          id: 186
-          name: "hdr.scion_hop_by_hop.optDataLen"
-          bitwidth: 8
-        }
-        fields {
-          id: 187
-          name: "meta.nextHdr"
-          bitwidth: 8
-        }
-        fields {
-          id: 188
-          name: "meta.currHF"
-          bitwidth: 8
-        }
-        fields {
-          id: 189
-          name: "meta.currHF2"
-          bitwidth: 8
-        }
-        fields {
-          id: 190
-          name: "meta.direction"
-          bitwidth: 1
-        }
-        fields {
-          id: 191
-          name: "meta.skipScion"
-          bitwidth: 1
-        }
-        fields {
-          id: 192
-          name: "meta.segLen"
-          bitwidth: 6
-        }
-        fields {
-          id: 193
-          name: "meta.recirculation"
-          bitwidth: 1
-        }
-        fields {
-          id: 194
-          name: "meta.segId"
-          bitwidth: 16
-        }
-        fields {
-          id: 195
-          name: "meta.nextSegId"
-          bitwidth: 16
-        }
-        fields {
-          id: 196
-          name: "meta.ingress"
-          bitwidth: 16
-        }
-        fields {
-          id: 197
-          name: "meta.egress"
-          bitwidth: 16
-        }
-        fields {
-          id: 198
-          name: "meta.nextINF"
-          bitwidth: 2
-        }
-        fields {
-          id: 199
-          name: "meta.seg1Len"
-          bitwidth: 6
-        }
-        fields {
-          id: 200
-          name: "meta.udp_checksum_tmp"
-          bitwidth: 16
-        }
-        fields {
-          id: 201
-          name: "meta.payload_len"
-          bitwidth: 16
-        }
-        fields {
-          id: 202
-          name: "ig_intr_md.resubmit_flag"
-          bitwidth: 1
-        }
-        fields {
-          id: 203
-          name: "ig_intr_md._pad1"
-          bitwidth: 1
-        }
-        fields {
-          id: 204
-          name: "ig_intr_md.packet_version"
-          bitwidth: 2
-        }
-        fields {
-          id: 205
-          name: "ig_intr_md._pad2"
-          bitwidth: 3
-        }
-        fields {
-          id: 206
-          name: "ig_intr_md.ingress_port"
-          bitwidth: 9
-        }
-        fields {
-          id: 207
-          name: "ig_intr_md.ingress_mac_tstamp"
-          bitwidth: 48
-        }
-        fields {
-          id: 208
-          name: "ig_prsr_md.global_tstamp"
-          bitwidth: 48
-        }
-        fields {
-          id: 209
-          name: "ig_prsr_md.global_ver"
-          bitwidth: 32
-        }
-        fields {
-          id: 210
-          name: "ig_prsr_md.parser_err"
-          bitwidth: 16
-        }
-        fields {
-          id: 211
-          name: "ig_dprsr_md.drop_ctl"
-          bitwidth: 3
-        }
-        fields {
-          id: 212
-          name: "ig_dprsr_md.digest_type"
-          bitwidth: 3
-        }
-        fields {
-          id: 213
-          name: "ig_dprsr_md.resubmit_type"
-          bitwidth: 3
-        }
-        fields {
-          id: 214
-          name: "ig_dprsr_md.mirror_type"
-          bitwidth: 3
-        }
-        fields {
-          id: 215
-          name: "ig_tm_md.ucast_egress_port"
-          bitwidth: 9
-        }
-        fields {
-          id: 216
-          name: "ig_tm_md.bypass_egress"
-          bitwidth: 1
-        }
-        fields {
-          id: 217
-          name: "ig_tm_md.deflect_on_drop"
-          bitwidth: 1
-        }
-        fields {
-          id: 218
-          name: "ig_tm_md.ingress_cos"
-          bitwidth: 3
-        }
-        fields {
-          id: 219
-          name: "ig_tm_md.qid"
-          bitwidth: 5
-        }
-        fields {
-          id: 220
-          name: "ig_tm_md.icos_for_copy_to_cpu"
-          bitwidth: 3
-        }
-        fields {
-          id: 221
-          name: "ig_tm_md.copy_to_cpu"
-          bitwidth: 1
-        }
-        fields {
-          id: 222
-          name: "ig_tm_md.packet_color"
-          bitwidth: 2
-        }
-        fields {
-          id: 223
-          name: "ig_tm_md.disable_ucast_cutthru"
-          bitwidth: 1
-        }
-        fields {
-          id: 224
-          name: "ig_tm_md.enable_mcast_cutthru"
-          bitwidth: 1
-        }
-        fields {
-          id: 225
-          name: "ig_tm_md.mcast_grp_a"
-          bitwidth: 16
-        }
-        fields {
-          id: 226
-          name: "ig_tm_md.mcast_grp_b"
-          bitwidth: 16
-        }
-        fields {
-          id: 227
-          name: "ig_tm_md.level1_mcast_hash"
-          bitwidth: 13
-        }
-        fields {
-          id: 228
-          name: "ig_tm_md.level2_mcast_hash"
-          bitwidth: 13
-        }
-        fields {
-          id: 229
-          name: "ig_tm_md.level1_exclusion_id"
-          bitwidth: 16
-        }
-        fields {
-          id: 230
-          name: "ig_tm_md.level2_exclusion_id"
-          bitwidth: 9
-        }
-        fields {
-          id: 231
-          name: "ig_tm_md.rid"
-          bitwidth: 16
-        }
-      }
+    #   [type.googleapis.com/barefoot.Snapshot] {
+    #     pipe: "scion_pipe"
+    #     fields {
+    #       id: 1
+    #       name: "hdr.scion_cpu.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 2
+    #       name: "hdr.scion_cpu.dstAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 3
+    #       name: "hdr.scion_cpu.srcAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 4
+    #       name: "hdr.scion_cpu.etherType"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 5
+    #       name: "hdr.ethernet.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 6
+    #       name: "hdr.ethernet.dstAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 7
+    #       name: "hdr.ethernet.srcAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 8
+    #       name: "hdr.ethernet.etherType"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 9
+    #       name: "hdr.bridge.main.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 10
+    #       name: "hdr.bridge.main.checkFirstHf"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 11
+    #       name: "hdr.bridge.main.checkSecHf"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 12
+    #       name: "hdr.bridge.main.rsv1"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 13
+    #       name: "hdr.bridge.main.okFirstHf"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 14
+    #       name: "hdr.bridge.main.okSecHf"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 15
+    #       name: "hdr.bridge.main.rsv2"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 16
+    #       name: "hdr.bridge.main.len"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 17
+    #       name: "hdr.bridge.main.varLen"
+    #       bitwidth: 5
+    #     }
+    #     fields {
+    #       id: 18
+    #       name: "hdr.bridge.main.egressPort"
+    #       bitwidth: 9
+    #     }
+    #     fields {
+    #       id: 19
+    #       name: "hdr.bridge.main.switchData"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 20
+    #       name: "hdr.bridge.hop_field_1.bridge_fields.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 21
+    #       name: "hdr.bridge.hop_field_1.bridge_fields.rsv"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 22
+    #       name: "hdr.bridge.hop_field_1.bridge_fields.beta"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 23
+    #       name: "hdr.bridge.hop_field_1.bridge_fields.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 24
+    #       name: "hdr.bridge.hop_field_1.hop_field.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 25
+    #       name: "hdr.bridge.hop_field_1.hop_field.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 26
+    #       name: "hdr.bridge.hop_field_1.hop_field.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 27
+    #       name: "hdr.bridge.hop_field_1.hop_field.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 28
+    #       name: "hdr.bridge.hop_field_1.hop_field.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 29
+    #       name: "hdr.bridge.hop_field_1.hop_field.reserved"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 30
+    #       name: "hdr.bridge.hop_field_1.hop_field.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 31
+    #       name: "hdr.bridge.hop_field_2.bridge_fields.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 32
+    #       name: "hdr.bridge.hop_field_2.bridge_fields.rsv"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 33
+    #       name: "hdr.bridge.hop_field_2.bridge_fields.beta"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 34
+    #       name: "hdr.bridge.hop_field_2.bridge_fields.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 35
+    #       name: "hdr.bridge.hop_field_2.hop_field.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 36
+    #       name: "hdr.bridge.hop_field_2.hop_field.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 37
+    #       name: "hdr.bridge.hop_field_2.hop_field.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 38
+    #       name: "hdr.bridge.hop_field_2.hop_field.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 39
+    #       name: "hdr.bridge.hop_field_2.hop_field.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 40
+    #       name: "hdr.bridge.hop_field_2.hop_field.reserved"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 41
+    #       name: "hdr.bridge.hop_field_2.hop_field.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 42
+    #       name: "hdr.secondEthernet.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 43
+    #       name: "hdr.secondEthernet.dstAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 44
+    #       name: "hdr.secondEthernet.srcAddr"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 45
+    #       name: "hdr.secondEthernet.etherType"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 46
+    #       name: "hdr.ipv6.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 47
+    #       name: "hdr.ipv6.version"
+    #       bitwidth: 4
+    #     }
+    #     fields {
+    #       id: 48
+    #       name: "hdr.ipv6.trafficClass"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 49
+    #       name: "hdr.ipv6.flowLabel"
+    #       bitwidth: 20
+    #     }
+    #     fields {
+    #       id: 50
+    #       name: "hdr.ipv6.payloadLen"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 51
+    #       name: "hdr.ipv6.nextHdr"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 52
+    #       name: "hdr.ipv6.hopLimit"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 53
+    #       name: "hdr.ipv6.srcAddr"
+    #       bitwidth: 128
+    #     }
+    #     fields {
+    #       id: 54
+    #       name: "hdr.ipv6.dstAddr"
+    #       bitwidth: 128
+    #     }
+    #     fields {
+    #       id: 55
+    #       name: "hdr.udp.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 56
+    #       name: "hdr.udp.srcPort"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 57
+    #       name: "hdr.udp.dstPort"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 58
+    #       name: "hdr.udp.len"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 59
+    #       name: "hdr.udp.checksum"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 60
+    #       name: "hdr.scion_common.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 61
+    #       name: "hdr.scion_common.version"
+    #       bitwidth: 4
+    #     }
+    #     fields {
+    #       id: 62
+    #       name: "hdr.scion_common.qos"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 63
+    #       name: "hdr.scion_common.flowID"
+    #       bitwidth: 20
+    #     }
+    #     fields {
+    #       id: 64
+    #       name: "hdr.scion_common.nextHdr"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 65
+    #       name: "hdr.scion_common.hdrLen"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 66
+    #       name: "hdr.scion_common.payloadLen"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 67
+    #       name: "hdr.scion_common.pathType"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 68
+    #       name: "hdr.scion_common.dt"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 69
+    #       name: "hdr.scion_common.dl"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 70
+    #       name: "hdr.scion_common.st"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 71
+    #       name: "hdr.scion_common.sl"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 72
+    #       name: "hdr.scion_common.rsv"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 73
+    #       name: "hdr.scion_addr_common.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 74
+    #       name: "hdr.scion_addr_common.dstISD"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 75
+    #       name: "hdr.scion_addr_common.dstAS"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 76
+    #       name: "hdr.scion_addr_common.srcISD"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 77
+    #       name: "hdr.scion_addr_common.srcAS"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 78
+    #       name: "hdr.scion_addr_dst_host_32.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 79
+    #       name: "hdr.scion_addr_dst_host_32.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 80
+    #       name: "hdr.scion_addr_dst_host_32_2.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 81
+    #       name: "hdr.scion_addr_dst_host_32_2.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 82
+    #       name: "hdr.scion_addr_dst_host_32_3.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 83
+    #       name: "hdr.scion_addr_dst_host_32_3.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 84
+    #       name: "hdr.scion_addr_dst_host_128.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 85
+    #       name: "hdr.scion_addr_dst_host_128.host"
+    #       bitwidth: 128
+    #     }
+    #     fields {
+    #       id: 86
+    #       name: "hdr.scion_addr_src_host_32.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 87
+    #       name: "hdr.scion_addr_src_host_32.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 88
+    #       name: "hdr.scion_addr_src_host_32_2.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 89
+    #       name: "hdr.scion_addr_src_host_32_2.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 90
+    #       name: "hdr.scion_addr_src_host_32_3.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 91
+    #       name: "hdr.scion_addr_src_host_32_3.host"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 92
+    #       name: "hdr.scion_addr_src_host_128.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 93
+    #       name: "hdr.scion_addr_src_host_128.host"
+    #       bitwidth: 128
+    #     }
+    #     fields {
+    #       id: 94
+    #       name: "hdr.scion_path_meta.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 95
+    #       name: "hdr.scion_path_meta.currInf"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 96
+    #       name: "hdr.scion_path_meta.currHF"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 97
+    #       name: "hdr.scion_path_meta.rsv"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 98
+    #       name: "hdr.scion_path_meta.seg0Len"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 99
+    #       name: "hdr.scion_path_meta.seg1Len"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 100
+    #       name: "hdr.scion_path_meta.seg2Len"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 101
+    #       name: "hdr.scion_info_field_0.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 102
+    #       name: "hdr.scion_info_field_0.rsv0"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 103
+    #       name: "hdr.scion_info_field_0.peering"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 104
+    #       name: "hdr.scion_info_field_0.direction"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 105
+    #       name: "hdr.scion_info_field_0.rsv1"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 106
+    #       name: "hdr.scion_info_field_0.segId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 107
+    #       name: "hdr.scion_info_field_0.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 108
+    #       name: "hdr.scion_info_field_1.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 109
+    #       name: "hdr.scion_info_field_1.rsv0"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 110
+    #       name: "hdr.scion_info_field_1.peering"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 111
+    #       name: "hdr.scion_info_field_1.direction"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 112
+    #       name: "hdr.scion_info_field_1.rsv1"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 113
+    #       name: "hdr.scion_info_field_1.segId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 114
+    #       name: "hdr.scion_info_field_1.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 115
+    #       name: "hdr.scion_info_field_2.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 116
+    #       name: "hdr.scion_info_field_2.rsv0"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 117
+    #       name: "hdr.scion_info_field_2.peering"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 118
+    #       name: "hdr.scion_info_field_2.direction"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 119
+    #       name: "hdr.scion_info_field_2.rsv1"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 120
+    #       name: "hdr.scion_info_field_2.segId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 121
+    #       name: "hdr.scion_info_field_2.timestamp"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 122
+    #       name: "hdr.scion_hop_0.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 123
+    #       name: "hdr.scion_hop_0.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 124
+    #       name: "hdr.scion_hop_0.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 125
+    #       name: "hdr.scion_hop_0.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 126
+    #       name: "hdr.scion_hop_0.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 127
+    #       name: "hdr.scion_hop_0.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 128
+    #       name: "hdr.scion_hop_1.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 129
+    #       name: "hdr.scion_hop_1.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 130
+    #       name: "hdr.scion_hop_1.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 131
+    #       name: "hdr.scion_hop_1.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 132
+    #       name: "hdr.scion_hop_1.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 133
+    #       name: "hdr.scion_hop_1.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 134
+    #       name: "hdr.scion_hop_2.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 135
+    #       name: "hdr.scion_hop_2.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 136
+    #       name: "hdr.scion_hop_2.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 137
+    #       name: "hdr.scion_hop_2.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 138
+    #       name: "hdr.scion_hop_2.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 139
+    #       name: "hdr.scion_hop_2.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 140
+    #       name: "hdr.scion_hop_3.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 141
+    #       name: "hdr.scion_hop_3.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 142
+    #       name: "hdr.scion_hop_3.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 143
+    #       name: "hdr.scion_hop_3.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 144
+    #       name: "hdr.scion_hop_3.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 145
+    #       name: "hdr.scion_hop_3.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 146
+    #       name: "hdr.scion_hop_4.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 147
+    #       name: "hdr.scion_hop_4.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 148
+    #       name: "hdr.scion_hop_4.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 149
+    #       name: "hdr.scion_hop_4.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 150
+    #       name: "hdr.scion_hop_4.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 151
+    #       name: "hdr.scion_hop_4.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 152
+    #       name: "hdr.scion_hop_5.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 153
+    #       name: "hdr.scion_hop_5.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 154
+    #       name: "hdr.scion_hop_5.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 155
+    #       name: "hdr.scion_hop_5.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 156
+    #       name: "hdr.scion_hop_5.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 157
+    #       name: "hdr.scion_hop_5.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 158
+    #       name: "hdr.scion_hop_6.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 159
+    #       name: "hdr.scion_hop_6.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 160
+    #       name: "hdr.scion_hop_6.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 161
+    #       name: "hdr.scion_hop_6.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 162
+    #       name: "hdr.scion_hop_6.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 163
+    #       name: "hdr.scion_hop_6.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 164
+    #       name: "hdr.scion_hop_7.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 165
+    #       name: "hdr.scion_hop_7.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 166
+    #       name: "hdr.scion_hop_7.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 167
+    #       name: "hdr.scion_hop_7.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 168
+    #       name: "hdr.scion_hop_7.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 169
+    #       name: "hdr.scion_hop_7.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 170
+    #       name: "hdr.scion_hop_field_0.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 171
+    #       name: "hdr.scion_hop_field_0.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 172
+    #       name: "hdr.scion_hop_field_0.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 173
+    #       name: "hdr.scion_hop_field_0.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 174
+    #       name: "hdr.scion_hop_field_0.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 175
+    #       name: "hdr.scion_hop_field_0.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 176
+    #       name: "hdr.scion_hop_field_1.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 177
+    #       name: "hdr.scion_hop_field_1.routerAlerts"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 178
+    #       name: "hdr.scion_hop_field_1.expTime"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 179
+    #       name: "hdr.scion_hop_field_1.inIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 180
+    #       name: "hdr.scion_hop_field_1.egIf"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 181
+    #       name: "hdr.scion_hop_field_1.mac"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 182
+    #       name: "hdr.scion_hop_by_hop.$valid"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 183
+    #       name: "hdr.scion_hop_by_hop.nextHdr"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 184
+    #       name: "hdr.scion_hop_by_hop.extLen"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 185
+    #       name: "hdr.scion_hop_by_hop.optType"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 186
+    #       name: "hdr.scion_hop_by_hop.optDataLen"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 187
+    #       name: "meta.nextHdr"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 188
+    #       name: "meta.currHF"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 189
+    #       name: "meta.currHF2"
+    #       bitwidth: 8
+    #     }
+    #     fields {
+    #       id: 190
+    #       name: "meta.direction"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 191
+    #       name: "meta.skipScion"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 192
+    #       name: "meta.segLen"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 193
+    #       name: "meta.recirculation"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 194
+    #       name: "meta.segId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 195
+    #       name: "meta.nextSegId"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 196
+    #       name: "meta.ingress"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 197
+    #       name: "meta.egress"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 198
+    #       name: "meta.nextINF"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 199
+    #       name: "meta.seg1Len"
+    #       bitwidth: 6
+    #     }
+    #     fields {
+    #       id: 200
+    #       name: "meta.udp_checksum_tmp"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 201
+    #       name: "meta.payload_len"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 202
+    #       name: "ig_intr_md.resubmit_flag"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 203
+    #       name: "ig_intr_md._pad1"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 204
+    #       name: "ig_intr_md.packet_version"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 205
+    #       name: "ig_intr_md._pad2"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 206
+    #       name: "ig_intr_md.ingress_port"
+    #       bitwidth: 9
+    #     }
+    #     fields {
+    #       id: 207
+    #       name: "ig_intr_md.ingress_mac_tstamp"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 208
+    #       name: "ig_prsr_md.global_tstamp"
+    #       bitwidth: 48
+    #     }
+    #     fields {
+    #       id: 209
+    #       name: "ig_prsr_md.global_ver"
+    #       bitwidth: 32
+    #     }
+    #     fields {
+    #       id: 210
+    #       name: "ig_prsr_md.parser_err"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 211
+    #       name: "ig_dprsr_md.drop_ctl"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 212
+    #       name: "ig_dprsr_md.digest_type"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 213
+    #       name: "ig_dprsr_md.resubmit_type"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 214
+    #       name: "ig_dprsr_md.mirror_type"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 215
+    #       name: "ig_tm_md.ucast_egress_port"
+    #       bitwidth: 9
+    #     }
+    #     fields {
+    #       id: 216
+    #       name: "ig_tm_md.bypass_egress"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 217
+    #       name: "ig_tm_md.deflect_on_drop"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 218
+    #       name: "ig_tm_md.ingress_cos"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 219
+    #       name: "ig_tm_md.qid"
+    #       bitwidth: 5
+    #     }
+    #     fields {
+    #       id: 220
+    #       name: "ig_tm_md.icos_for_copy_to_cpu"
+    #       bitwidth: 3
+    #     }
+    #     fields {
+    #       id: 221
+    #       name: "ig_tm_md.copy_to_cpu"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 222
+    #       name: "ig_tm_md.packet_color"
+    #       bitwidth: 2
+    #     }
+    #     fields {
+    #       id: 223
+    #       name: "ig_tm_md.disable_ucast_cutthru"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 224
+    #       name: "ig_tm_md.enable_mcast_cutthru"
+    #       bitwidth: 1
+    #     }
+    #     fields {
+    #       id: 225
+    #       name: "ig_tm_md.mcast_grp_a"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 226
+    #       name: "ig_tm_md.mcast_grp_b"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 227
+    #       name: "ig_tm_md.level1_mcast_hash"
+    #       bitwidth: 13
+    #     }
+    #     fields {
+    #       id: 228
+    #       name: "ig_tm_md.level2_mcast_hash"
+    #       bitwidth: 13
+    #     }
+    #     fields {
+    #       id: 229
+    #       name: "ig_tm_md.level1_exclusion_id"
+    #       bitwidth: 16
+    #     }
+    #     fields {
+    #       id: 230
+    #       name: "ig_tm_md.level2_exclusion_id"
+    #       bitwidth: 9
+    #     }
+    #     fields {
+    #       id: 231
+    #       name: "ig_tm_md.rid"
+    #       bitwidth: 16
+    #     }
+    #   }
     }
   }
 }
