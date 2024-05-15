@@ -79,7 +79,7 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const IR::P4Program 
             ProtobufDeserializer::deserializeProtoObjectFromFile<p4::config::v1::P4Info>(
                 p4UserInfo.value()),
             std::nullopt);
-        p4runtimeApi = P4::P4RuntimeAPI(p4Info.New(), nullptr);
+        p4runtimeApi = P4::P4RuntimeAPI(new p4::config::v1::P4Info(p4Info), nullptr);
     } else {
         /// After the front end, get the P4Runtime API for the V1model architecture.
         p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "tofino");

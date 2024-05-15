@@ -6,7 +6,7 @@ pkg_info {
 tables {
   preamble {
     id: 49974363
-    name: "scion_pipe.ScionIngressControl.tbl_select_accelerator"
+    name: "ScionIngressControl.tbl_select_accelerator"
     alias: "tbl_select_accelerator"
   }
   match_fields {
@@ -29,7 +29,7 @@ tables {
 tables {
   preamble {
     id: 37399587
-    name: "scion_pipe.ScionIngressControl.tbl_ingress_verification"
+    name: "ScionIngressControl.tbl_ingress_verification"
     alias: "tbl_ingress_verification"
   }
   match_fields {
@@ -52,7 +52,7 @@ tables {
 tables {
   preamble {
     id: 33566143
-    name: "scion_pipe.ScionIngressControl.tbl_ingress_interface"
+    name: "ScionIngressControl.tbl_ingress_interface"
     alias: "tbl_ingress_interface"
   }
   match_fields {
@@ -72,7 +72,7 @@ tables {
 tables {
   preamble {
     id: 37408808
-    name: "scion_pipe.ScionIngressControl.tbl_check_local"
+    name: "ScionIngressControl.tbl_check_local"
     alias: "tbl_check_local"
   }
   match_fields {
@@ -95,7 +95,7 @@ tables {
 tables {
   preamble {
     id: 40282566
-    name: "scion_pipe.ScionIngressControl.tbl_bfd_remote"
+    name: "ScionIngressControl.tbl_bfd_remote"
     alias: "tbl_bfd_remote"
   }
   match_fields {
@@ -112,7 +112,7 @@ tables {
 tables {
   preamble {
     id: 45611482
-    name: "scion_pipe.ScionIngressControl.tbl_bfd_local"
+    name: "ScionIngressControl.tbl_bfd_local"
     alias: "tbl_bfd_local"
   }
   match_fields {
@@ -147,7 +147,7 @@ tables {
 tables {
   preamble {
     id: 38270129
-    name: "scion_pipe.ScionIngressControl.tbl_deliver_local"
+    name: "ScionIngressControl.tbl_deliver_local"
     alias: "tbl_deliver_local"
   }
   match_fields {
@@ -196,7 +196,7 @@ tables {
 tables {
   preamble {
     id: 48549864
-    name: "scion_pipe.ScionIngressControl.tbl_deliver_local_empty"
+    name: "ScionIngressControl.tbl_deliver_local_empty"
     alias: "tbl_deliver_local_empty"
   }
   match_fields {
@@ -245,7 +245,7 @@ tables {
 tables {
   preamble {
     id: 36003445
-    name: "scion_pipe.ScionIngressControl.tbl_set_local_source"
+    name: "ScionIngressControl.tbl_set_local_source"
     alias: "tbl_set_local_source"
   }
   match_fields {
@@ -270,7 +270,7 @@ tables {
 tables {
   preamble {
     id: 41317658
-    name: "scion_pipe.ScionIngressControl.tbl_forward"
+    name: "ScionIngressControl.tbl_forward"
     alias: "tbl_forward"
   }
   match_fields {
@@ -631,7 +631,7 @@ externs {
   instances {
     preamble {
       id: 2171268264
-      name: "scion_pipe.ScionIngressControl.lag_ecmp"
+      name: "ScionIngressControl.lag_ecmp"
       alias: "lag_ecmp"
     }
     # info {
@@ -648,7 +648,7 @@ externs {
   instances {
     preamble {
       id: 2190854167
-      name: "scion_pipe.ScionIngressControl.lag_ecmp_sel"
+      name: "ScionIngressControl.lag_ecmp_sel"
       alias: "lag_ecmp_sel"
     }
     # info {
@@ -667,7 +667,7 @@ externs {
   instances {
     preamble {
       id: 2430323494
-      name: "scion_pipe.ScionIngressParser.$PORT_METADATA"
+      name: "ScionIngressParser.$PORT_METADATA"
       alias: "$PORT_METADATA"
     }
     # info {
@@ -683,7 +683,7 @@ externs {
   instances {
     preamble {
       id: 2440182274
-      name: "scion_pipe.ScionIngressControl.ScionIngressControl"
+      name: "ScionIngressControl.ScionIngressControl"
       alias: "ScionIngressControl"
     }
     # info {
@@ -1915,7 +1915,7 @@ externs {
   instances {
     preamble {
       id: 2438111031
-      name: "scion_pipe.ScionEgressControl.ScionEgressControl"
+      name: "ScionEgressControl.ScionEgressControl"
       alias: "ScionEgressControl"
     }
     # info {

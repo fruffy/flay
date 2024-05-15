@@ -1,15 +1,15 @@
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 37408808
-      action {
-        action {
-        }
-      }
-    }
-  }
-}
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 37408808
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
@@ -37,31 +37,31 @@ updates {
   }
 }
 
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 37399587
-      action {
-        action {
-        }
-      }
-    }
-  }
-}
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 37399587
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 33566143
-      action {
-        action {
-        }
-      }
-    }
-  }
-}
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 33566143
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
@@ -217,18 +217,18 @@ updates {
   }
 }
 
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 49974363
-      action {
-        action {
-        }
-      }
-    }
-  }
-}
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 49974363
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
@@ -244,6 +244,7 @@ updates {
       }
       action {
         action {
+          action_id: 33325013
           params {
             param_id: 65540
             value: "\000\000\000\000"
@@ -254,31 +255,31 @@ updates {
   }
 }
 
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 38270129
-      action {
-        action {
-        }
-      }
-    }
-  }
-}
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 38270129
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 48549864
-      action {
-        action {
-        }
-      }
-    }
-  }
-}
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 48549864
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
@@ -656,18 +657,18 @@ updates {
   }
 }
 
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 41317658
-      action {
-        action {
-        }
-      }
-    }
-  }
-}
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 41317658
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
@@ -741,18 +742,18 @@ updates {
   }
 }
 
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 36003445
-      action {
-        action {
-        }
-      }
-    }
-  }
-}
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 36003445
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
