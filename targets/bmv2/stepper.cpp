@@ -30,7 +30,7 @@ void V1ModelFlayStepper::initializeState() {
         blockIdx++;
     }
 
-    const auto *thirtyTwoBitType = IR::getBitType(32);
+    const auto *thirtyTwoBitType = IR::Type_Bits::get(32);
 
     // Initialize instance_type with a place holder.
     const auto *instanceTypeVar = new IR::Member(

@@ -103,7 +103,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
                                externInfo.methodName + "_" +
                                std::to_string(externInfo.originalCall.clone_id);
           const auto *hashCalc =
-              ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
+              ToolsVariables::getSymbolicVariable(IR::Type_Bits::get(16), checksumLabel);
           return hashCalc;
       }},
      /// Calculate the checksum for a  given list of fields.
@@ -117,7 +117,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
                                externInfo.methodName + "_" +
                                std::to_string(externInfo.originalCall.clone_id);
           const auto hashCalc =
-              ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
+              ToolsVariables::getSymbolicVariable(IR::Type_Bits::get(16), checksumLabel);
           return hashCalc;
       }},
      {"Checksum.update",
@@ -128,7 +128,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
                                externInfo.methodName + "_" +
                                std::to_string(externInfo.originalCall.clone_id);
           const auto hashCalc =
-              ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
+              ToolsVariables::getSymbolicVariable(IR::Type_Bits::get(16), checksumLabel);
           return hashCalc;
       }},
 

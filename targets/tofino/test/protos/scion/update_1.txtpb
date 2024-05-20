@@ -1,968 +1,789 @@
-
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 37408808
-    }
-  }
-}
-
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 37408808
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
   entity {
     table_entry {
       table_id: 37408808
-      key {
-        fields {
-          field_id: 2
-          exact {
-            value: "\377\000\000\000\000\001"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000\001"
-          }
+      match {
+        field_id: 2
+        exact {
+          value: "\377\000\000\000\000\001"
         }
       }
-      data {
-        action_id: 21257015
+      match {
+        field_id: 1
+        exact {
+          value: "\000\001"
+        }
+      }
+      action {
+        action {
+          action_id: 21257015
+        }
       }
     }
   }
 }
 
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 37399587
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
+
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 33566143
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
-  type: DELETE
+  type: INSERT
   entity {
     table_entry {
       table_id: 37399587
+      match {
+        field_id: 2
+        exact {
+          value: "\001\010"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\006a"
+        }
+      }
+      action {
+        action {
+          action_id: 21257015
+        }
+      }
     }
   }
 }
 
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 37399587
+      match {
+        field_id: 2
+        exact {
+          value: "\001\020"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\006a"
+        }
+      }
+      action {
+        action {
+          action_id: 21257015
+        }
+      }
+    }
+  }
+}
 
 updates {
-  type: DELETE
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 37399587
+      match {
+        field_id: 2
+        exact {
+          value: "\001\020"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\000\000"
+        }
+      }
+      action {
+        action {
+          action_id: 21257015
+        }
+      }
+    }
+  }
+}
+
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 37399587
+      match {
+        field_id: 2
+        exact {
+          value: "\000\204"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\000\000"
+        }
+      }
+      action {
+        action {
+          action_id: 21257015
+        }
+      }
+    }
+  }
+}
+
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 37399587
+      match {
+        field_id: 2
+        exact {
+          value: "\000\202"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\000\006"
+        }
+      }
+      action {
+        action {
+          action_id: 21257015
+        }
+      }
+    }
+  }
+}
+
+updates {
+  type: INSERT
   entity {
     table_entry {
       table_id: 33566143
-    }
-  }
-}
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 37399587
-      key {
-        fields {
-          field_id: 2
-          exact {
-            value: "\001\010"
-          }
+      match {
+        field_id: 1
+        exact {
+          value: "\001\010"
         }
-        fields {
-          field_id: 1
-          exact {
+      }
+      action {
+        action {
+          action_id: 20796300
+          params {
+            param_id: 1
             value: "\006a"
           }
         }
       }
-      data {
-        action_id: 21257015
-      }
     }
   }
 }
 
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 37399587
-      key {
-        fields {
-          field_id: 2
-          exact {
-            value: "\001\020"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\006a"
-          }
-        }
-      }
-      data {
-        action_id: 21257015
-      }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 37399587
-      key {
-        fields {
-          field_id: 2
-          exact {
-            value: "\001\020"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000\000"
-          }
-        }
-      }
-      data {
-        action_id: 21257015
-      }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 37399587
-      key {
-        fields {
-          field_id: 2
-          exact {
-            value: "\000\204"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000\000"
-          }
-        }
-      }
-      data {
-        action_id: 21257015
-      }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 37399587
-      key {
-        fields {
-          field_id: 2
-          exact {
-            value: "\000\202"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000\006"
-          }
-        }
-      }
-      data {
-        action_id: 21257015
-      }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 33566143
-      key {
-        fields {
-          field_id: 1
-          exact {
-            value: "\001\010"
-          }
-        }
-      }
-      data {
-        action_id: 20796300
-        fields {
-          field_id: 1
-          stream: "\006a"
-        }
-      }
-    }
-  }
-}
-
-
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 49974363
-    }
-  }
-}
-
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 2190854167
-    }
-  }
-}
-
-
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 2171268264
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 2171268264
-      key {
-        fields {
-          field_id: 65539
-          exact {
-            value: "\000\000\000\000"
-          }
-        }
-      }
-      data {
-        action_id: 33325013
-        fields {
-          field_id: 2
-          stream: "\002\000\000\001\001\001"
-        }
-        fields {
-          field_id: 1
-          stream: "\000\002"
-        }
-        fields {
-          field_id: 3
-          stream: "\002\000\000\001\001\001"
-        }
-      }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 2190854167
-      key {
-        fields {
-          field_id: 65540
-          exact {
-            value: "\000\000\000\000"
-          }
-        }
-      }
-      data {
-        fields {
-          field_id: 65539
-          int_arr_val {
-            val: 0
-          }
-        }
-        fields {
-          field_id: 65564
-          bool_arr_val {
-            val: true
-          }
-        }
-        fields {
-          field_id: 65565
-          stream: "\000\000\000@"
-        }
-      }
-    }
-  }
-}
-
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 49974363
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
   entity {
     table_entry {
       table_id: 49974363
-      key {
-        fields {
-          field_id: 1
-          ternary {
-            value: "\000\000"
-            mask: "\000\000"
-          }
+      match {
+        field_id: 1
+        ternary {
+          value: "\000\000"
+          mask: "\000\000"
         }
       }
-      data {
-        fields {
-          field_id: 65540
-          stream: "\000\000\000\000"
-        }
-      }
-    }
-  }
-}
-
-
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 38270129
-    }
-  }
-}
-
-
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 48549864
-    }
-  }
-}
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 48549864
-      key {
-        fields {
-          field_id: 4
-          ternary {
-            value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-            mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+      action {
+        action {
+          action_id: 33325013
+          params {
+            param_id: 65540
+            value: "\000\000\000\000"
           }
-        }
-        fields {
-          field_id: 3
-          ternary {
-            value: "\n\002\001\002"
-            mask: "\377\377\377\377"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000"
-          }
-        }
-        fields {
-          field_id: 2
-          exact {
-            value: "\000"
-          }
-        }
-      }
-      data {
-        action_id: 18771031
-        fields {
-          field_id: 2
-          stream: "\002\000\000\001\001\001"
-        }
-        fields {
-          field_id: 3
-          stream: "y\032"
-        }
-        fields {
-          field_id: 1
-          stream: "\001\020"
         }
       }
     }
   }
 }
 
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 38270129
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
+
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 48549864
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
   entity {
     table_entry {
       table_id: 48549864
-      key {
-        fields {
-          field_id: 4
-          ternary {
-            value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-            mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-          }
-        }
-        fields {
-          field_id: 3
-          ternary {
-            value: "\n\002\001\003"
-            mask: "\377\377\377\377"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000"
-          }
-        }
-        fields {
-          field_id: 2
-          exact {
-            value: "\000"
-          }
+      match {
+        field_id: 4
+        ternary {
+          value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+          mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
         }
       }
-      data {
-        action_id: 18771031
-        fields {
-          field_id: 2
-          stream: "\002\000\000\001\001\004"
-        }
-        fields {
-          field_id: 3
-          stream: "y\034"
-        }
-        fields {
-          field_id: 1
-          stream: "\001\020"
+      match {
+        field_id: 3
+        ternary {
+          value: "\n\002\001\002"
+          mask: "\377\377\377\377"
         }
       }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 48549864
-      key {
-        fields {
-          field_id: 4
-          ternary {
-            value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-            mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-          }
-        }
-        fields {
-          field_id: 3
-          ternary {
-            value: "\n\002\001\004"
-            mask: "\377\377\377\377"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000"
-          }
-        }
-        fields {
-          field_id: 2
-          exact {
-            value: "\000"
-          }
+      match {
+        field_id: 1
+        exact {
+          value: "\000"
         }
       }
-      data {
-        action_id: 18771031
-        fields {
-          field_id: 2
-          stream: "\002\000\000\001\001\003"
-        }
-        fields {
-          field_id: 3
-          stream: "y\036"
-        }
-        fields {
-          field_id: 1
-          stream: "\001\020"
+      match {
+        field_id: 2
+        exact {
+          value: "\000"
         }
       }
-    }
-  }
-}
-
-Adding local destinations
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 38270129
-      key {
-        fields {
-          field_id: 4
-          ternary {
-            value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-            mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+      action {
+        action {
+          action_id: 18771031
+          params {
+            param_id: 2
+            value: "\002\000\000\001\001\001"
           }
-        }
-        fields {
-          field_id: 3
-          ternary {
-            value: "\n\002\001\002"
-            mask: "\377\377\377\000"
+          params {
+            param_id: 3
+            value: "y\032"
           }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000"
-          }
-        }
-        fields {
-          field_id: 2
-          exact {
-            value: "\000"
-          }
-        }
-      }
-      data {
-        action_id: 18771031
-        fields {
-          field_id: 2
-          stream: "\002\000\000\001\001\001"
-        }
-        fields {
-          field_id: 3
-          stream: "uY"
-        }
-        fields {
-          field_id: 1
-          stream: "\001\210"
-        }
-      }
-    }
-  }
-}
-
-Adding local services
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 38270129
-      key {
-        fields {
-          field_id: 4
-          ternary {
-            value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-            mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-          }
-        }
-        fields {
-          field_id: 3
-          ternary {
-            value: "\000\001\000\000"
-            mask: "\377\377\377\377"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000"
-          }
-        }
-        fields {
-          field_id: 2
-          exact {
-            value: "\001"
-          }
-        }
-      }
-      data {
-        action_id: 33086563
-        fields {
-          field_id: 2
-          stream: "\n\002\001\002"
-        }
-        fields {
-          field_id: 3
-          stream: "\002\000\000\001\001\001"
-        }
-        fields {
-          field_id: 4
-          stream: "uY"
-        }
-        fields {
-          field_id: 1
-          stream: "\001\020"
-        }
-      }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 38270129
-      key {
-        fields {
-          field_id: 4
-          ternary {
-            value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-            mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-          }
-        }
-        fields {
-          field_id: 3
-          ternary {
-            value: "\000\002\000\000"
-            mask: "\377\377\377\377"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000"
-          }
-        }
-        fields {
-          field_id: 2
-          exact {
-            value: "\001"
-          }
-        }
-      }
-      data {
-        action_id: 33086563
-        fields {
-          field_id: 2
-          stream: "\n\002\001\002"
-        }
-        fields {
-          field_id: 3
-          stream: "\002\000\000\001\001\001"
-        }
-        fields {
-          field_id: 4
-          stream: "uY"
-        }
-        fields {
-          field_id: 1
-          stream: "\001\020"
-        }
-      }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 38270129
-      key {
-        fields {
-          field_id: 4
-          ternary {
-            value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-            mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-          }
-        }
-        fields {
-          field_id: 3
-          ternary {
-            value: "\177\000\000\001"
-            mask: "\377\377\377\377"
-          }
-        }
-        fields {
-          field_id: 1
-          exact {
-            value: "\000"
-          }
-        }
-        fields {
-          field_id: 2
-          exact {
-            value: "\000"
-          }
-        }
-      }
-      data {
-        action_id: 33086563
-        fields {
-          field_id: 2
-          stream: "\n\002\001\002"
-        }
-        fields {
-          field_id: 3
-          stream: "\002\000\000\001\001\001"
-        }
-        fields {
-          field_id: 4
-          stream: "uY"
-        }
-        fields {
-          field_id: 1
-          stream: "\001\020"
-        }
-      }
-    }
-  }
-}
-
-
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 41317658
-    }
-  }
-}
-
-Adding fowarding info
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 41317658
-      key {
-        fields {
-          field_id: 1
-          exact {
-            value: "\000\003"
-          }
-        }
-      }
-      data {
-        action_id: 30960158
-        fields {
-          field_id: 2
-          stream: "\n\002\001\002"
-        }
-        fields {
-          field_id: 3
-          stream: "\002\000\000\001\001\001"
-        }
-        fields {
-          field_id: 4
-          stream: "y\032"
-        }
-        fields {
-          field_id: 1
-          stream: "\001\020"
-        }
-      }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 41317658
-      key {
-        fields {
-          field_id: 1
-          exact {
-            value: "\006a"
-          }
-        }
-      }
-      data {
-        action_id: 22381655
-        fields {
-          field_id: 2
-          stream: "\n\001\005\002"
-        }
-        fields {
-          field_id: 3
-          stream: "\266A\202$\246\'"
-        }
-        fields {
-          field_id: 4
-          stream: "\303P"
-        }
-        fields {
-          field_id: 1
-          stream: "\001\010"
-        }
-      }
-    }
-  }
-}
-
-
-updates {
-  type: DELETE
-  entity {
-    table_entry {
-      table_id: 36003445
-    }
-  }
-}
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 36003445
-      key {
-        fields {
-          field_id: 1
-          exact {
-            value: "\001\010"
-          }
-        }
-      }
-      data {
-        action_id: 19623549
-        fields {
-          field_id: 1
-          stream: "\n\001\005\001"
-        }
-        fields {
-          field_id: 2
-          stream: "\022#\034\314\340\250"
-        }
-        fields {
-          field_id: 3
-          stream: "\303P"
-        }
-      }
-    }
-  }
-}
-
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 36003445
-      key {
-        fields {
-          field_id: 1
-          exact {
+          params {
+            param_id: 1
             value: "\001\020"
           }
         }
       }
-      data {
-        action_id: 19623549
-        fields {
-          field_id: 1
-          stream: "\n\002\001\005"
+    }
+  }
+}
+
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 48549864
+      match {
+        field_id: 4
+        ternary {
+          value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+          mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
         }
-        fields {
-          field_id: 2
-          stream: "\002\000\000\001\001\004"
+      }
+      match {
+        field_id: 3
+        ternary {
+          value: "\n\002\001\003"
+          mask: "\377\377\377\377"
         }
-        fields {
-          field_id: 3
-          stream: "y "
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\000"
+        }
+      }
+      match {
+        field_id: 2
+        exact {
+          value: "\000"
+        }
+      }
+      action {
+        action {
+          action_id: 18771031
+          params {
+            param_id: 2
+            value: "\002\000\000\001\001\004"
+          }
+          params {
+            param_id: 3
+            value: "y\034"
+          }
+          params {
+            param_id: 1
+            value: "\001\020"
+          }
         }
       }
     }
   }
 }
 
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 48549864
+      match {
+        field_id: 4
+        ternary {
+          value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+          mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+        }
+      }
+      match {
+        field_id: 3
+        ternary {
+          value: "\n\002\001\004"
+          mask: "\377\377\377\377"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\000"
+        }
+      }
+      match {
+        field_id: 2
+        exact {
+          value: "\000"
+        }
+      }
+      action {
+        action {
+          action_id: 18771031
+          params {
+            param_id: 2
+            value: "\002\000\000\001\001\003"
+          }
+          params {
+            param_id: 3
+            value: "y\036"
+          }
+          params {
+            param_id: 1
+            value: "\001\020"
+          }
+        }
+      }
+    }
+  }
+}
+
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 38270129
+      match {
+        field_id: 4
+        ternary {
+          value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+          mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+        }
+      }
+      match {
+        field_id: 3
+        ternary {
+          value: "\n\002\001\002"
+          mask: "\377\377\377\000"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\000"
+        }
+      }
+      match {
+        field_id: 2
+        exact {
+          value: "\000"
+        }
+      }
+      action {
+        action {
+          action_id: 18771031
+          params {
+            param_id: 2
+            value: "\002\000\000\001\001\001"
+          }
+          params {
+            param_id: 3
+            value: "uY"
+          }
+          params {
+            param_id: 1
+            value: "\001\210"
+          }
+        }
+      }
+    }
+  }
+}
+
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 38270129
+      match {
+        field_id: 4
+        ternary {
+          value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+          mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+        }
+      }
+      match {
+        field_id: 3
+        ternary {
+          value: "\000\001\000\000"
+          mask: "\377\377\377\377"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\000"
+        }
+      }
+      match {
+        field_id: 2
+        exact {
+          value: "\001"
+        }
+      }
+      action {
+        action {
+          action_id: 33086563
+          params {
+            param_id: 2
+            value: "\n\002\001\002"
+          }
+          params {
+            param_id: 3
+            value: "\002\000\000\001\001\001"
+          }
+          params {
+            param_id: 4
+            value: "uY"
+          }
+          params {
+            param_id: 1
+            value: "\001\020"
+          }
+        }
+      }
+    }
+  }
+}
+
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 38270129
+      match {
+        field_id: 4
+        ternary {
+          value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+          mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+        }
+      }
+      match {
+        field_id: 3
+        ternary {
+          value: "\000\002\000\000"
+          mask: "\377\377\377\377"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\000"
+        }
+      }
+      match {
+        field_id: 2
+        exact {
+          value: "\001"
+        }
+      }
+      action {
+        action {
+          action_id: 33086563
+          params {
+            param_id: 2
+            value: "\n\002\001\002"
+          }
+          params {
+            param_id: 3
+            value: "\002\000\000\001\001\001"
+          }
+          params {
+            param_id: 4
+            value: "uY"
+          }
+          params {
+            param_id: 1
+            value: "\001\020"
+          }
+        }
+      }
+    }
+  }
+}
+
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 38270129
+      match {
+        field_id: 4
+        ternary {
+          value: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+          mask: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+        }
+      }
+      match {
+        field_id: 3
+        ternary {
+          value: "\177\000\000\001"
+          mask: "\377\377\377\377"
+        }
+      }
+      match {
+        field_id: 1
+        exact {
+          value: "\000"
+        }
+      }
+      match {
+        field_id: 2
+        exact {
+          value: "\000"
+        }
+      }
+      action {
+        action {
+          action_id: 33086563
+          params {
+            param_id: 2
+            value: "\n\002\001\002"
+          }
+          params {
+            param_id: 3
+            value: "\002\000\000\001\001\001"
+          }
+          params {
+            param_id: 4
+            value: "uY"
+          }
+          params {
+            param_id: 1
+            value: "\001\020"
+          }
+        }
+      }
+    }
+  }
+}
+
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 41317658
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
+
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 41317658
+      match {
+        field_id: 1
+        exact {
+          value: "\000\003"
+        }
+      }
+      action {
+        action {
+          action_id: 30960158
+          params {
+            param_id: 2
+            value: "\n\002\001\002"
+          }
+          params {
+            param_id: 3
+            value: "\002\000\000\001\001\001"
+          }
+          params {
+            param_id: 4
+            value: "y\032"
+          }
+          params {
+            param_id: 1
+            value: "\001\020"
+          }
+        }
+      }
+    }
+  }
+}
+
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 41317658
+      match {
+        field_id: 1
+        exact {
+          value: "\006a"
+        }
+      }
+      action {
+        action {
+          action_id: 22381655
+          params {
+            param_id: 2
+            value: "\n\001\005\002"
+          }
+          params {
+            param_id: 3
+            value: "\266A\202$\246\'"
+          }
+          params {
+            param_id: 4
+            value: "\303P"
+          }
+          params {
+            param_id: 1
+            value: "\001\010"
+          }
+        }
+      }
+    }
+  }
+}
+
+# updates {
+#   type: DELETE
+#   entity {
+#     table_entry {
+#       table_id: 36003445
+#       action {
+#         action {
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: INSERT
   entity {
     table_entry {
       table_id: 36003445
-      key {
-        fields {
-          field_id: 1
-          exact {
-            value: "\000\204"
-          }
+      match {
+        field_id: 1
+        exact {
+          value: "\001\010"
         }
       }
-      data {
-        action_id: 19623549
-        fields {
-          field_id: 1
-          stream: "\000\000\000\000"
-        }
-        fields {
-          field_id: 2
-          stream: "\000\000\000\000\000\000"
-        }
-        fields {
-          field_id: 3
-          stream: "\000\000"
+      action {
+        action {
+          action_id: 19623549
+          params {
+            param_id: 1
+            value: "\n\001\005\001"
+          }
+          params {
+            param_id: 2
+            value: "\022#\034\314\340\250"
+          }
+          params {
+            param_id: 3
+            value: "\303P"
+          }
         }
       }
     }
   }
 }
 
-
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 36003445
-      key {
-        fields {
-          field_id: 1
-          exact {
-            value: "\000\202"
-          }
-        }
-      }
-      data {
-        action_id: 19623549
-        fields {
-          field_id: 1
-          stream: "\000\000\000\000"
-        }
-        fields {
-          field_id: 2
-          stream: "\000\000\000\000\000\000"
-        }
-        fields {
-          field_id: 3
-          stream: "\000\000"
-        }
-      }
-    }
-  }
-}

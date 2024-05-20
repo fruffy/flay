@@ -3,13 +3,16 @@
 #include <fcntl.h>
 
 #include <cerrno>
+#include <cstdio>
 #include <cstdlib>
 #include <optional>
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
+#include "backends/p4tools/common/lib/logging.h"
 #include "control-plane/p4RuntimeArchHandler.h"
 #include "control-plane/p4infoApi.h"
 #include "ir/irutils.h"
+#include "lib/exceptions.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -30,7 +33,7 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
     const p4::v1::FieldMatch &field, cstring tableName,
     const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet) {
     TableKeySet tableKeySet;
-    const auto *keyType = IR::getBitType(matchField.bitwidth());
+    const auto *keyType = IR::Type_Bits::get(matchField.bitwidth());
     const auto *keySymbol = ControlPlaneState::getTableKey(tableName, matchField.name(), keyType);
     symbolSet.emplace(*keySymbol);
     switch (field.field_match_type_case()) {
@@ -68,7 +71,7 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
 std::optional<TableKeySet> ProtobufDeserializer::produceTableMatchForMissingField(
     cstring tableName, const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet) {
     TableKeySet tableKeySet;
-    const auto *keyType = IR::getBitType(matchField.bitwidth());
+    const auto *keyType = IR::Type_Bits::get(matchField.bitwidth());
     const auto *keySymbol = ControlPlaneState::getTableKey(tableName, matchField.name(), keyType);
     symbolSet.emplace(*keySymbol);
     switch (matchField.match_type()) {
@@ -112,7 +115,7 @@ std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
     for (int idx = 0; idx < tblAction.params().size(); ++idx) {
         const auto &paramConfig = tblAction.params().at(idx);
         const auto &param = p4Action.params().at(idx);
-        const auto *paramType = IR::getBitType(param.bitwidth());
+        const auto *paramType = IR::Type_Bits::get(param.bitwidth());
         auto paramName = param.name();
         const auto *actionArg =
             ControlPlaneState::getTableActionArgument(tableName, actionName, paramName, paramType);
@@ -135,14 +138,14 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
     auto actionId = tableAction.action_id();
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &p4Action, P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, actionId), std::nullopt,
-        ::error("ID %1% not found in the P4Info.", actionId));
+        ::error("Action ID %1% not found in the P4Info.", actionId));
     ASSIGN_OR_RETURN(const auto *actionExpr,
                      convertTableAction(tableAction, tableName, p4Action, symbolSet, false),
                      std::nullopt);
     TableKeySet tableKeySet;
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &p4InfoTable, P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId), std::nullopt,
-        ::error("ID %1% not found in the P4Info.", actionId));
+        ::error("Table ID %1% not found in the P4Info.", actionId));
 
     RETURN_IF_FALSE_WITH_MESSAGE(
         tableEntry.match().size() <= p4InfoTable.match_fields().size(), std::nullopt,
@@ -178,9 +181,9 @@ int ProtobufDeserializer::updateTableEntry(const p4::config::v1::P4Info &p4Info,
                                            const ::p4::v1::Update_Type &updateType,
                                            SymbolSet &symbolSet) {
     auto tblId = tableEntry.table_id();
-    ASSIGN_OR_RETURN_WITH_MESSAGE(auto &p4Table,
-                                  P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId),
-                                  EXIT_FAILURE, ::error("ID %1% not found in the P4Info.", tblId));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        auto &p4Table, P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId), EXIT_FAILURE,
+        ::error("Table ID %1% not found in the P4Info.", tblId));
     cstring tableName = p4Table.preamble().name();
 
     auto it = controlPlaneConstraints.find(tableName);
@@ -199,7 +202,8 @@ int ProtobufDeserializer::updateTableEntry(const p4::config::v1::P4Info &p4Info,
         ASSIGN_OR_RETURN_WITH_MESSAGE(
             auto &p4Action,
             P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, defaultAction.action_id()),
-            EXIT_FAILURE, ::error("ID %1% not found in the P4Info.", defaultAction.action_id()));
+            EXIT_FAILURE,
+            ::error("Action ID %1% not found in the P4Info.", defaultAction.action_id()));
         ASSIGN_OR_RETURN(auto defaultActionExpr,
                          convertTableAction(defaultAction, tableName, p4Action, symbolSet, true),
                          EXIT_FAILURE);

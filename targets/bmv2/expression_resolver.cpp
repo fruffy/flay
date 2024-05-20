@@ -38,7 +38,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 
-         const auto *nineBitType = IR::getBitType(9);
+         const auto *nineBitType = IR::Type_Bits::get(9);
          const auto &metadataLabel =
              externInfo.externArgs->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
 
@@ -423,7 +423,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
              externInfo.externArgs->at(0)->expression->checkedTo<IR::Constant>()->asUint64();
          const auto *sessionID = externInfo.externArgs->at(1)->expression;
 
-         const auto *instanceBitType = IR::getBitType(32);
+         const auto *instanceBitType = IR::Type_Bits::get(32);
          auto *isCloned = new IR::LAnd(
              Bmv2ControlPlaneState::getCloneActive(),
              new IR::Equ(sessionID, Bmv2ControlPlaneState::getCloneSessionId(sessionID->type)));
@@ -526,7 +526,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
              externInfo.externArgs->at(0)->expression->checkedTo<IR::Constant>()->asUint64();
          const auto *sessionID = externInfo.externArgs->at(1)->expression;
 
-         const auto *instanceBitType = IR::getBitType(32);
+         const auto *instanceBitType = IR::Type_Bits::get(32);
          auto *isCloned = new IR::LAnd(
              Bmv2ControlPlaneState::getCloneActive(),
              new IR::Equ(sessionID, Bmv2ControlPlaneState::getCloneSessionId(sessionID->type)));
@@ -591,7 +591,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
                               externInfo.methodName + "_" +
                               std::to_string(externInfo.originalCall.clone_id);
          const auto *hashCalc =
-             ToolsVariables::getSymbolicVariable(IR::getBitType(16), checksumLabel);
+             ToolsVariables::getSymbolicVariable(IR::Type_Bits::get(16), checksumLabel);
          return hashCalc;
      }},
     /* ======================================================================================
@@ -626,7 +626,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
          // We do not calculate the checksum for now and instead use a dummy.
          const auto *cond = externInfo.externArgs->at(0)->expression;
 
-         const auto *oneBitType = IR::getBitType(1);
+         const auto *oneBitType = IR::Type_Bits::get(1);
          const auto *checksumErr = new IR::Member(
              oneBitType, new IR::PathExpression("*standard_metadata"), "checksum_error");
          auto verifyChecksumLabel = externInfo.externObjectRef.path->toString() + "_" +
@@ -656,7 +656,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
          // We do not calculate the checksum for now and instead use a dummy.
          const auto *cond = externInfo.externArgs->at(0)->expression;
 
-         const auto *oneBitType = IR::getBitType(1);
+         const auto *oneBitType = IR::Type_Bits::get(1);
          const auto *checksumErr = new IR::Member(
              oneBitType, new IR::PathExpression("*standard_metadata"), "checksum_error");
          auto verifyChecksumLabel = externInfo.externObjectRef.path->toString() + "_" +

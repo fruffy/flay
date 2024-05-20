@@ -19,7 +19,7 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     FlayOptions &operator=(FlayOptions &&) = delete;
 
-    virtual ~FlayOptions() = default;
+    ~FlayOptions() override = default;
 
     /// @returns the singleton instance of this class.
     static FlayOptions &get();
@@ -56,8 +56,11 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns false when --preserve-data-plane-variables has been set.
     [[nodiscard]] bool collapseDataPlaneOperations() const;
 
-    /// @returns the path set with --p4-info-file.
-    [[nodiscard]] std::optional<std::string> getP4InfoFilePath() const;
+    /// @returns the path set with --generate-p4info.
+    [[nodiscard]] std::optional<std::filesystem::path> getP4InfoFilePath() const;
+
+    /// @returns the path to the user p4 info file set by the --user-p4info option.
+    [[nodiscard]] std::optional<std::filesystem::path> userP4Info() const;
 
  protected:
     explicit FlayOptions(
@@ -91,6 +94,9 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     /// Collapse arithmetic operations on data plane variables.
     bool collapseDataPlaneOperations_ = true;
+
+    // Use a user-supplied P4Info file instead of generating one.
+    std::optional<std::filesystem::path> _userP4Info = std::nullopt;
 
     // Write the P4Runtime control plane API description to the specified file.
     std::optional<std::filesystem::path> p4InfoFilePath = std::nullopt;

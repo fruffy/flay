@@ -70,9 +70,22 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const IR::P4Program 
     auto *serializer = P4::P4RuntimeSerializer::get();
     serializer->registerArch("tofino",
                              new P4::ControlPlaneAPI::Standard::TofinoArchHandlerBuilder());
-    auto p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "tofino");
-    if (::errorCount() > 0) {
-        return std::nullopt;
+
+    std::optional<P4::P4RuntimeAPI> p4runtimeApi;
+    auto p4UserInfo = FlayOptions::get().userP4Info();
+    if (p4UserInfo.has_value()) {
+        ASSIGN_OR_RETURN(
+            auto p4Info,
+            ProtobufDeserializer::deserializeProtoObjectFromFile<p4::config::v1::P4Info>(
+                p4UserInfo.value()),
+            std::nullopt);
+        p4runtimeApi = P4::P4RuntimeAPI(new p4::config::v1::P4Info(p4Info), nullptr);
+    } else {
+        /// After the front end, get the P4Runtime API for the V1model architecture.
+        p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "tofino");
+        if (::errorCount() > 0) {
+            return std::nullopt;
+        }
     }
 
     program = runMidEnd(program);
@@ -89,8 +102,8 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const IR::P4Program 
         TofinoControlPlaneInitializer(refMap).generateInitialControlPlaneConstraints(program),
         std::nullopt);
 
-    return {*new FlayCompilerResult{CompilerResult(*program), *originalProgram, p4runtimeApi,
-                                    initialControlPlaneState}};
+    return {*new FlayCompilerResult{CompilerResult(*program), *originalProgram,
+                                    p4runtimeApi.value(), initialControlPlaneState}};
 }
 
 /* =============================================================================================

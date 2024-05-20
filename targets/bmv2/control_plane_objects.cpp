@@ -19,7 +19,7 @@ const IR::Expression *CloneSession::computeControlPlaneConstraint() const {
     if (!sessionId.has_value()) {
         return new IR::Equ(cloneActive, IR::BoolLiteral::get(false));
     }
-    const auto *sessionIdExpr = IR::Constant::get(IR::getBitType(32), sessionId.value());
+    const auto *sessionIdExpr = IR::Constant::get(IR::Type_Bits::get(32), sessionId.value());
     return new IR::LAnd(new IR::Equ(cloneActive, IR::BoolLiteral::get(false)), sessionIdExpr);
 }
 }  // namespace P4Tools::Flay::V1Model
