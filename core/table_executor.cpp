@@ -36,8 +36,8 @@ IR::Vector<IR::Argument> createActionCallArguments(cstring tableName, cstring ac
         // type information. Is there any way we can simplify this?
         if (parameter->type->is<IR::Type_Boolean>()) {
             actionArg = ControlPlaneState::getTableActionArgument(
-                tableName, actionName, parameter->controlPlaneName(), IR::getBitType(1));
-            actionArg = new IR::Equ(actionArg, new IR::Constant(IR::getBitType(1), 1));
+                tableName, actionName, parameter->controlPlaneName(), IR::Type_Bits::get(1));
+            actionArg = new IR::Equ(actionArg, new IR::Constant(IR::Type_Bits::get(1), 1));
         } else {
             actionArg = ControlPlaneState::getTableActionArgument(
                 tableName, actionName, parameter->controlPlaneName(), parameter->type);

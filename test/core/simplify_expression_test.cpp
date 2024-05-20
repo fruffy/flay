@@ -20,7 +20,7 @@ class OptimizationTest : public ::testing::Test {};
 
 // Tests for the optimization of various expressions.
 TEST_F(OptimizationTest, Optimization01) {
-    const auto *eightBitType = IR::getBitType(8);
+    const auto *eightBitType = IR::Type_Bits::get(8);
     const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
     const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A");
     const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B");
@@ -36,7 +36,7 @@ TEST_F(OptimizationTest, Optimization01) {
 }
 
 TEST_F(OptimizationTest, Optimization02) {
-    const auto *eightBitType = IR::getBitType(8);
+    const auto *eightBitType = IR::Type_Bits::get(8);
     const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
     const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A");
     const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B");
@@ -53,7 +53,7 @@ TEST_F(OptimizationTest, Optimization02) {
 }
 
 TEST_F(OptimizationTest, Optimization03) {
-    const auto *eightBitType = IR::getBitType(8);
+    const auto *eightBitType = IR::Type_Bits::get(8);
     const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
     const auto *yVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "Y");
     const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A");
@@ -71,7 +71,7 @@ TEST_F(OptimizationTest, Optimization03) {
 }
 
 TEST_F(OptimizationTest, Optimization04) {
-    const auto *eightBitType = IR::getBitType(8);
+    const auto *eightBitType = IR::Type_Bits::get(8);
     const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
     const auto *yVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "Y");
     const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A");

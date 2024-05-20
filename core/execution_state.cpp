@@ -2,8 +2,6 @@
 
 #include <utility>
 
-#include <boost/container/vector.hpp>
-
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/simplify_expression.h"

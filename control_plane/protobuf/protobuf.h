@@ -106,7 +106,7 @@ class ProtobufDeserializer {
                                      ::error("Failed to parse configuration \"%1%\" for file %2%",
                                              protoObject.ShortDebugString(), inputFile.c_str()));
 
-        printInfo("Parsed configuration: %1%", protoObject.DebugString());
+        printFeature("flay_protobuf", 4, "Parsed configuration: %1%", protoObject.DebugString());
         // Close the open file.
         close(fd);
         return protoObject;

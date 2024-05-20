@@ -204,7 +204,7 @@ const IR::Node *DataPlaneVariablePropagator::postorder(IR::Slice *slice) {
         auto slLeftInt = slice->e1->checkedTo<IR::Constant>()->asInt();
         auto slRightInt = slice->e2->checkedTo<IR::Constant>()->asInt();
         auto width = 1 + slLeftInt - slRightInt;
-        return getRandomDataPlaneVariable(IR::getBitType(width));
+        return getRandomDataPlaneVariable(IR::Type_Bits::get(width));
     }
     return slice;
 }
