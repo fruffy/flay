@@ -135,6 +135,9 @@ class TableConfiguration : public ControlPlaneItem {
     /// Delete an existing table entry.
     size_t deleteTableEntry(const TableMatchEntry &tableMatchEntry);
 
+    /// Clear all table entries.
+    void clearTableEntries();
+
     /// Set the default action for this table.
     void setDefaultTableAction(TableDefaultAction defaultTableAction);
 

@@ -6,7 +6,7 @@
 #include <utility>
 
 #include "backends/p4tools/common/lib/logging.h"
-#include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
+#include "backends/p4tools/modules/flay/control_plane/p4runtime/protobuf.h"
 #include "backends/p4tools/modules/flay/core/flay_service.h"
 #include "lib/timer.h"
 
@@ -25,9 +25,10 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
     SymbolSet symbolSet;
     for (const auto &update : request->updates()) {
         Util::ScopedTimer timer("processMessage");
-        if (ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-                update.entity(), *getCompilerResult().getP4RuntimeApi().p4Info,
-                controlPlaneConstraints, update.type(), symbolSet) != EXIT_SUCCESS) {
+        auto result = P4Runtime::updateControlPlaneConstraintsWithEntityMessage(
+            update.entity(), *compilerResult().getP4RuntimeApi().p4Info,
+            mutableControlPlaneConstraints(), update.type(), symbolSet);
+        if (result != EXIT_SUCCESS) {
             return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
         }
     }
@@ -35,8 +36,8 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
     if (result.first != EXIT_SUCCESS) {
         return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
     }
-    auto statementCountBefore = countStatements(originalProgram);
-    auto statementCountAfter = countStatements(*optimizedProgram);
+    auto statementCountBefore = countStatements(originalProgram());
+    auto statementCountAfter = countStatements(optimizedProgram());
     float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
                                          static_cast<float>(statementCountBefore));
     printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",

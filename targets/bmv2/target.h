@@ -24,9 +24,6 @@ class V1ModelFlayTarget : public FlayTarget {
     const ProgramInfo *produceProgramInfoImpl(const CompilerResult &compilerResult,
                                               const IR::Declaration_Instance *mainDecl) const final;
 
-    [[nodiscard]] std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
-        const FlayCompilerResult &compilerResult, const FlayOptions &options) const override;
-
     [[nodiscard]] const ArchSpec *getArchSpecImpl() const override;
 
     [[nodiscard]] FlayStepper &getStepperImpl(const ProgramInfo &programInfo,

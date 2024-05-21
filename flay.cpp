@@ -7,14 +7,16 @@
 #include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/logging.h"
-#include "backends/p4tools/modules/flay/control_plane/util.h"
-#include "backends/p4tools/modules/flay/core/flay_service.h"
+#include "backends/p4tools/modules/flay/control_plane/return_macros.h"
+#include "backends/p4tools/modules/flay/core/service_wrapper_bfruntime.h"
+#include "backends/p4tools/modules/flay/core/service_wrapper_p4runtime.h"
 #include "backends/p4tools/modules/flay/core/symbolic_executor.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "backends/p4tools/modules/flay/toolname.h"
 #include "control-plane/p4RuntimeSerializer.h"
 #include "control-plane/p4RuntimeTypes.h"
+
 #ifdef FLAY_WITH_GRPC
 #include "backends/p4tools/modules/flay/service/flay_grpc_service.h"
 #endif
@@ -52,20 +54,29 @@ std::optional<FlayServiceStatistics> runServiceWrapper(const FlayOptions &flayOp
                                                        const ExecutionState &executionState,
                                                        const ControlPlaneConstraints &constraints) {
     FlayServiceOptions serviceOptions;
-
-    FlayServiceWrapper serviceWrapper(serviceOptions, flayCompilerResult,
-                                      executionState.getReachabilityMap(), constraints);
+    auto controlPlaneApi = flayOptions.controlPlaneApi();
+    // TODO: Make this target-specific?
+    FlayServiceWrapper *serviceWrapper = nullptr;
+    if (controlPlaneApi == "P4RUNTIME") {
+        serviceWrapper = new P4RuntimeFlayServiceWrapper(
+            serviceOptions, flayCompilerResult, executionState.getReachabilityMap(), constraints);
+    } else if (controlPlaneApi == "BFRUNTIME") {
+        serviceWrapper = new BfRuntimeFlayServiceWrapper(
+            serviceOptions, flayCompilerResult, executionState.getReachabilityMap(), constraints);
+    } else {
+        ::error("Unsupported control plane API %1%.", controlPlaneApi.data());
+        return std::nullopt;
+    }
     if (flayOptions.hasConfigurationUpdatePattern()) {
-        RETURN_IF_FALSE(serviceWrapper.parseControlUpdatesFromPattern(
-                            flayOptions.getConfigurationUpdatePattern()) == EXIT_SUCCESS,
+        RETURN_IF_FALSE(serviceWrapper->parseControlUpdatesFromPattern(
+                            flayOptions.configurationUpdatePattern()) == EXIT_SUCCESS,
                         std::nullopt);
     }
-
-    RETURN_IF_FALSE(serviceWrapper.run() == EXIT_SUCCESS, std::nullopt);
-    if (FlayOptions::get().getOptimizedOutputDir() != std::nullopt) {
-        serviceWrapper.outputOptimizedProgram("optimized.final.p4");
+    RETURN_IF_FALSE(serviceWrapper->run() == EXIT_SUCCESS, std::nullopt);
+    if (FlayOptions::get().optimizedOutputDir() != std::nullopt) {
+        serviceWrapper->outputOptimizedProgram("optimized.final.p4");
     }
-    return serviceWrapper.computeFlayServiceStatistics();
+    return serviceWrapper->computeFlayServiceStatistics();
 }
 
 int Flay::mainImpl(const CompilerResult &compilerResult) {
@@ -89,8 +100,8 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     }
     const auto &flayOptions = FlayOptions::get();
 
-    if (flayOptions.getP4InfoFilePath().has_value()) {
-        auto *outputFile = openFile(flayOptions.getP4InfoFilePath().value().c_str(), true);
+    if (flayOptions.p4InfoFilePath().has_value()) {
+        auto *outputFile = openFile(flayOptions.p4InfoFilePath().value().c_str(), true);
         if (outputFile == nullptr) {
             return EXIT_FAILURE;
         }
@@ -112,6 +123,9 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     printInfo("Starting the service...");
     // If server mode is active, start the server and exit once it has finished.
     if (flayOptions.serverModeActive()) {
+        if (flayOptions.controlPlaneApi() != "P4RUNTIME") {
+            ::error("Server mode requires P4RUNTIME as --control-plane option.");
+        }
         return runServer(flayOptions, flayCompilerResult, symbolicExecutor.getExecutionState(),
                          constraints);
     }

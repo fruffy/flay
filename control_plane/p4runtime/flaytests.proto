@@ -1,0 +1,15 @@
+// Flay Config Protobuf template.
+syntax = "proto3";
+
+package p4runtime.flaytests;
+
+import "p4/v1/p4runtime.proto";
+
+message Config {
+    // The entities (e.g., table entries) to install on the switch before
+    // injecting the `input_packet`.
+    repeated p4.v1.Entity entities = 3;
+    // Additional metadata and information.
+    repeated string metadata = 4;
+}
+

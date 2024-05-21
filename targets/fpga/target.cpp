@@ -2,12 +2,11 @@
 
 #include <cstddef>
 #include <cstdlib>
-#include <map>
 #include <optional>
 #include <vector>
 
-#include "backends/p4tools/common/lib/logging.h"
-#include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
+#include "backends/p4tools/common/lib/util.h"
+#include "backends/p4tools/modules/flay/control_plane/protobuf_utils.h"
 #include "backends/p4tools/modules/flay/targets/fpga/symbolic_state.h"
 #include "backends/p4tools/modules/flay/targets/fpga/xsa/program_info.h"
 #include "backends/p4tools/modules/flay/targets/fpga/xsa/stepper.h"
@@ -15,6 +14,12 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 #include "lib/ordered_map.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#include "p4/config/v1/p4info.pb.h"
+#pragma GCC diagnostic pop
 
 namespace P4Tools::Flay::Fpga {
 
@@ -24,36 +29,6 @@ namespace P4Tools::Flay::Fpga {
 
 FpgaBaseFlayTarget::FpgaBaseFlayTarget(const std::string &deviceName, const std::string &archName)
     : FlayTarget(deviceName, archName){};
-
-std::optional<ControlPlaneConstraints> FpgaBaseFlayTarget::computeControlPlaneConstraintsImpl(
-    const FlayCompilerResult &compilerResult, const FlayOptions &options) const {
-    // Initialize some constraints that are active regardless of the control-plane configuration.
-    // These constraints can be overridden by the respective control-plane configuration.
-    auto constraints = compilerResult.getDefaultControlPlaneConstraints();
-    if (!options.hasControlPlaneConfig()) {
-        return constraints;
-    }
-    auto confPath = options.getControlPlaneConfig();
-    printInfo("Parsing initial control plane configuration...\n");
-    if (confPath.extension() == ".txtpb") {
-        auto deserializedConfig =
-            ProtobufDeserializer::deserializeProtoObjectFromFile<flaytests::Config>(confPath);
-        if (!deserializedConfig.has_value()) {
-            return std::nullopt;
-        }
-        SymbolSet symbolSet;
-        if (ProtobufDeserializer::updateControlPlaneConstraints(
-                deserializedConfig.value(), *compilerResult.getP4RuntimeApi().p4Info, constraints,
-                symbolSet) != EXIT_SUCCESS) {
-            return std::nullopt;
-        }
-        return constraints;
-    }
-
-    ::error("Control plane file format %1% not supported for this target.",
-            confPath.extension().c_str());
-    return std::nullopt;
-}
 
 CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const IR::P4Program *program) const {
     program = runFrontend(program);
@@ -70,8 +45,7 @@ CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const IR::P4Program *p
     if (p4UserInfo.has_value()) {
         ASSIGN_OR_RETURN(
             auto p4Info,
-            ProtobufDeserializer::deserializeProtoObjectFromFile<p4::config::v1::P4Info>(
-                p4UserInfo.value()),
+            Protobuf::deserializeObjectFromFile<p4::config::v1::P4Info>(p4UserInfo.value()),
             std::nullopt);
         p4runtimeApi = P4::P4RuntimeAPI(p4Info.New(), nullptr);
     } else {

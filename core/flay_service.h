@@ -9,12 +9,6 @@
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wpedantic"
-#include "p4/v1/p4runtime.pb.h"
-#pragma GCC diagnostic pop
-
 namespace P4Tools::Flay {
 
 class StatementCounter : public Inspector {
@@ -56,92 +50,11 @@ inline double measureSizeDifference(const IR::P4Program &programBefore,
 enum ReachabilityMapType { kz3Precomputed, kZ3Default };
 
 struct FlayServiceOptions {
-    /// If useSymbolSet is true, we only check whether the symbols in the set have changed.
+    /// If useSymbolSet is true, we only check whether the symbols in the set have
+    /// changed.
     bool useSymbolSet = true;
     /// The type of map to initialize.
     ReachabilityMapType mapType = ReachabilityMapType::kz3Precomputed;
-};
-
-class FlayServiceBase {
-    friend class FlayServiceWrapper;
-
- protected:
-    // Configuration options for the service.
-    FlayServiceOptions options;
-
-    /// The original source P4 program after the front end.
-    std::reference_wrapper<const IR::P4Program> originalProgram;
-
-    /// The P4 program after mid end optimizations.
-    std::reference_wrapper<const IR::P4Program> midEndProgram;
-
-    /// The P4 program after Flay optimizing. Should be initialized with the initial data plane
-    /// configuration
-    const IR::P4Program *optimizedProgram = nullptr;
-
-    /// The program info object stores the results of the compilation, which includes the P4 program
-    /// and any information extracted from the program using static analysis.
-    std::reference_wrapper<const FlayCompilerResult> compilerResult;
-
-    /// The reachability map used by the server. Derived from the input argument.
-    std::reference_wrapper<AbstractReachabilityMap> reachabilityMap;
-
-    /// The set of active control plane constraints. These constraints are added to every solver
-    /// check to compute feasibility of a program node.
-    ControlPlaneConstraints controlPlaneConstraints;
-
-    /// A map to look up declaration references.
-    P4::ReferenceMap refMap;
-
-    /// The list of eliminated and optionally replaced nodes. Used for bookkeeping.
-    std::vector<EliminatedReplacedPair> eliminatedNodes;
-
-    /// Compute whether the semantics of the program under this control plane configuration have
-    /// changed since the last update.
-    // @returns std::nullopt if an error occurred during the computation.
-    [[nodiscard]] std::optional<bool> checkForSemanticChange(
-        std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) const;
-
-    /// Update the internal  control plane constraints with the given entity message.
-    /// Private method used for testing.
-    int updateControlPlaneConstraintsWithEntityMessage(const p4::v1::Entity &entity,
-                                                       const ::p4::v1::Update_Type &updateType,
-                                                       SymbolSet &symbolSet);
-
- public:
-    explicit FlayServiceBase(const FlayServiceOptions &options,
-                             const FlayCompilerResult &compilerResult,
-                             const ReachabilityMap &reachabilityMap,
-                             ControlPlaneConstraints initialControlPlaneConstraints);
-
-    /// Print the optimized program to stdout;
-    void printoptimizedProgram();
-
-    /// Output the optimized program to file.
-    void outputOptimizedProgram(const std::filesystem::path &optimizedOutputFile);
-
-    static AbstractReachabilityMap &initializeReachabilityMap(
-        ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap);
-
-    /// @returns the original program.
-    [[nodiscard]] const IR::P4Program &getOriginalProgram() const;
-
-    /// @returns the mid-end program.
-    [[nodiscard]] const IR::P4Program &getMidEndProgram() const;
-
-    /// @returns the optimized program.
-    [[nodiscard]] const IR::P4Program &getOptimizedProgram() const;
-
-    /// @returns the list of eliminated (and potential replaced) nodes.
-    [[nodiscard]] const std::vector<EliminatedReplacedPair> &getEliminatedNodes() const;
-
-    /// @returns a reference to the compiler result that this program info object was initialized
-    /// with.
-    [[nodiscard]] const FlayCompilerResult &getCompilerResult() const;
-
-    /// Run dead code elimination on the original P4 program.
-    std::pair<int, bool> elimControlPlaneDeadCode(
-        std::optional<std::reference_wrapper<const SymbolSet>> symbolSet = std::nullopt);
 };
 
 struct FlayServiceStatistics {
@@ -157,41 +70,92 @@ struct FlayServiceStatistics {
     size_t cyclomaticComplexity;
 };
 
-/// Wrapper class to simplify benchmarking and the collection of statistics.
-class FlayServiceWrapper {
-    /// The series of control plane updates which is applied after Flay service has started.
-    std::vector<std::string> controlPlaneUpdateFileNames;
-    /// The parsed series of control plane updates which is applied after Flay service has started.
-    std::vector<p4::v1::WriteRequest> controlPlaneUpdates;
+class FlayServiceBase {
+ protected:
+    // Configuration options for the service.
+    FlayServiceOptions _options;
 
- private:
-    /// Helper function to retrieve a list of files matching a pattern.
-    static std::vector<std::string> findFiles(const std::string &pattern);
+    /// The original source P4 program after the front end.
+    std::reference_wrapper<const IR::P4Program> _originalProgram;
 
-    /// The Flay service that is being wrapped.
-    FlayServiceBase flayService;
+    /// The P4 program after mid end optimizations.
+    std::reference_wrapper<const IR::P4Program> _midEndProgram;
+
+    /// The P4 program after Flay optimizing. Should be initialized with the
+    /// initial data plane configuration
+    const IR::P4Program *_optimizedProgram = nullptr;
+
+    /// The program info object stores the results of the compilation, which
+    /// includes the P4 program and any information extracted from the program
+    /// using static analysis.
+    std::reference_wrapper<const FlayCompilerResult> _compilerResult;
+
+    /// The reachability map used by the server. Derived from the input argument.
+    std::reference_wrapper<AbstractReachabilityMap> _reachabilityMap;
+
+    /// The set of active control plane constraints. These constraints are added
+    /// to every solver check to compute feasibility of a program node.
+    ControlPlaneConstraints _controlPlaneConstraints;
+
+    /// A map to look up declaration references.
+    P4::ReferenceMap _refMap;
+
+    /// The list of eliminated and optionally replaced nodes. Used for
+    /// bookkeeping.
+    std::vector<EliminatedReplacedPair> _eliminatedNodes;
+
+    /// Compute whether the semantics of the program under this control plane
+    /// configuration have changed since the last update.
+    // @returns std::nullopt if an error occurred during the computation.
+    [[nodiscard]] std::optional<bool> checkForSemanticChange(
+        std::optional<std::reference_wrapper<const SymbolSet>> symbolSet);
 
  public:
-    FlayServiceWrapper(const FlayServiceOptions &serviceOptions,
-                       const FlayCompilerResult &compilerResult,
-                       const ReachabilityMap &reachabilityMap,
-                       const ControlPlaneConstraints &initialControlPlaneConstraints)
-        : flayService(serviceOptions, compilerResult, reachabilityMap,
-                      initialControlPlaneConstraints) {}
+    explicit FlayServiceBase(const FlayServiceOptions &options,
+                             const FlayCompilerResult &compilerResult,
+                             const ReachabilityMap &reachabilityMap,
+                             ControlPlaneConstraints initialControlPlaneConstraints);
+
+    /// Print the optimized program to stdout;
+    void printOptimizedProgram() const;
 
     /// Output the optimized program to file.
-    void outputOptimizedProgram(std::filesystem::path optimizedOutputFile);
+    void outputOptimizedProgram(const std::filesystem::path &optimizedOutputFile) const;
 
-    /// Try to parse the provided pattern into update files and convert them to control-plane
-    /// updates.
-    int parseControlUpdatesFromPattern(const std::string &pattern);
+    static AbstractReachabilityMap &initializeReachabilityMap(
+        ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap);
+
+    /// @returns the original program.
+    [[nodiscard]] const IR::P4Program &originalProgram() const;
+
+    /// @returns the mid-end program.
+    [[nodiscard]] const IR::P4Program &midEndProgram() const;
+
+    /// @returns the optimized program.
+    [[nodiscard]] const IR::P4Program &optimizedProgram() const;
+
+    /// @returns the list of eliminated (and potential replaced) nodes.
+    [[nodiscard]] const std::vector<EliminatedReplacedPair> &eliminatedNodes() const;
+
+    /// @returns a reference to the compiler result that this program info object
+    /// was initialized with.
+    [[nodiscard]] const FlayCompilerResult &compilerResult() const;
+
+    /// @returns a mutable reference reachability map.
+    [[nodiscard]] AbstractReachabilityMap &mutableReachabilityMap();
+
+    /// @returns a mutable reference to the control plane constraints that this
+    /// program info object was initialized with.
+    [[nodiscard]] ControlPlaneConstraints &mutableControlPlaneConstraints();
+
+    /// Run dead code elimination on the original P4 program.
+    std::pair<int, bool> elimControlPlaneDeadCode(
+        std::optional<std::reference_wrapper<const SymbolSet>> symbolSet = std::nullopt);
 
     /// Compute some statistics on the changes in the program and print them out.
-    static void recordProgramChange(const FlayServiceBase &service);
+    void recordProgramChange() const;
 
-    [[nodiscard]] int run();
-
-    /// @compute the service statistics.
+    /// Compute and return some statistics on the changes in the program.
     [[nodiscard]] FlayServiceStatistics computeFlayServiceStatistics() const;
 };
 

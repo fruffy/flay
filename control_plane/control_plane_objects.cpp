@@ -92,6 +92,8 @@ size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEnt
     return tableEntries_.erase(tableMatchEntry);
 }
 
+void TableConfiguration::clearTableEntries() { tableEntries_.clear(); }
+
 void TableConfiguration::setDefaultTableAction(TableDefaultAction defaultTableAction) {
     defaultTableAction_ = std::move(defaultTableAction);
 }
