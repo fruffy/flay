@@ -168,13 +168,62 @@ std::optional<TableMatchEntry *> produceTableEntry(cstring tableName,
     return new TableMatchEntry(actionExpr, 0, tableKeySet);
 }
 
-int updateTableEntry(const p4::config::v1::P4Info &p4Info, const bfrt_proto::TableEntry &tableEntry,
+int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::config::v1::Table &p4Table,
+                     const bfrt_proto::TableEntry &tableEntry,
+                     TableConfiguration &tableConfiguration,
+                     const ::bfrt_proto::Update_Type &updateType, SymbolSet &symbolSet) {
+    if (tableEntry.is_default_entry()) {
+        const auto &defaultAction = tableEntry.data();
+        ASSIGN_OR_RETURN_WITH_MESSAGE(
+            auto &p4Action,
+            P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, defaultAction.action_id()),
+            EXIT_FAILURE,
+            ::error("Action ID %1% not found in the P4Info.", defaultAction.action_id()));
+        ASSIGN_OR_RETURN(
+            auto defaultActionExpr,
+            convertTableAction(defaultAction, p4Table.preamble().name(), p4Action, symbolSet, true),
+            EXIT_FAILURE);
+        tableConfiguration.setDefaultTableAction(TableDefaultAction(defaultActionExpr));
+    }
+
+    RETURN_IF_FALSE_WITH_MESSAGE(
+        !p4Table.is_const_table(), EXIT_FAILURE,
+        ::error("Trying to insert an entry into table '%1%', which is a const table.",
+                p4Table.preamble().name()));
+
+    // Consider a delete message without an action a wild card delete.
+    if (updateType == bfrt_proto::Update::DELETE && !tableEntry.has_data()) {
+        tableConfiguration.clearTableEntries();
+        return EXIT_SUCCESS;
+    }
+
+    ASSIGN_OR_RETURN(auto *tableMatchEntry,
+                     produceTableEntry(p4Table.preamble().name(), p4Table.preamble().id(), p4Info,
+                                       tableEntry, symbolSet),
+                     EXIT_FAILURE);
+
+    if (updateType == bfrt_proto::Update::MODIFY) {
+        tableConfiguration.addTableEntry(*tableMatchEntry, true);
+    } else if (updateType == bfrt_proto::Update::INSERT) {
+        RETURN_IF_FALSE_WITH_MESSAGE(
+            tableConfiguration.addTableEntry(*tableMatchEntry, false) == EXIT_SUCCESS, EXIT_FAILURE,
+            ::error("Table entry \"%1%\" already exists.", tableEntry.ShortDebugString()));
+    } else if (updateType == bfrt_proto::Update::DELETE) {
+        RETURN_IF_FALSE_WITH_MESSAGE(tableConfiguration.deleteTableEntry(*tableMatchEntry) != 0,
+                                     EXIT_FAILURE,
+                                     ::error("Table entry %1% not found and can not be deleted.",
+                                             tableEntry.ShortDebugString()));
+    } else {
+        ::error("Unsupported update type %1%.", updateType);
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::config::v1::Table &p4Table,
+                     const bfrt_proto::TableEntry &tableEntry,
                      ControlPlaneConstraints &controlPlaneConstraints,
                      const ::bfrt_proto::Update_Type &updateType, SymbolSet &symbolSet) {
-    auto tblId = tableEntry.table_id();
-    ASSIGN_OR_RETURN_WITH_MESSAGE(
-        auto &p4Table, P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId), EXIT_FAILURE,
-        ::error("Table ID %1% not found in the P4Info.", tblId));
     cstring tableName = p4Table.preamble().name();
 
     auto it = controlPlaneConstraints.find(tableName);
@@ -188,50 +237,7 @@ int updateTableEntry(const p4::config::v1::P4Info &p4Info, const bfrt_proto::Tab
         auto &tableResult, it->second.get().to<TableConfiguration>(), EXIT_FAILURE,
         ::error("Configuration result is not a TableConfiguration.", tableName));
 
-    if (tableEntry.is_default_entry()) {
-        const auto &defaultAction = tableEntry.data();
-        ASSIGN_OR_RETURN_WITH_MESSAGE(
-            auto &p4Action,
-            P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, defaultAction.action_id()),
-            EXIT_FAILURE,
-            ::error("Action ID %1% not found in the P4Info.", defaultAction.action_id()));
-        ASSIGN_OR_RETURN(auto defaultActionExpr,
-                         convertTableAction(defaultAction, tableName, p4Action, symbolSet, true),
-                         EXIT_FAILURE);
-        tableResult.setDefaultTableAction(TableDefaultAction(defaultActionExpr));
-    }
-
-    RETURN_IF_FALSE_WITH_MESSAGE(
-        !p4Table.is_const_table(), EXIT_FAILURE,
-        ::error("Trying to insert an entry into table '%1%', which is a const table.", tableName));
-
-    // Consider a delete message without an action a wild card delete.
-    if (updateType == bfrt_proto::Update::DELETE && !tableEntry.has_data()) {
-        tableResult.clearTableEntries();
-        return EXIT_SUCCESS;
-    }
-
-    ASSIGN_OR_RETURN(auto *tableMatchEntry,
-                     produceTableEntry(tableName, tblId, p4Info, tableEntry, symbolSet),
-                     EXIT_FAILURE);
-
-    if (updateType == bfrt_proto::Update::MODIFY) {
-        tableResult.addTableEntry(*tableMatchEntry, true);
-    } else if (updateType == bfrt_proto::Update::INSERT) {
-        RETURN_IF_FALSE_WITH_MESSAGE(
-            tableResult.addTableEntry(*tableMatchEntry, false) == EXIT_SUCCESS, EXIT_FAILURE,
-            ::error("Table entry \"%1%\" already exists.", tableEntry.ShortDebugString()));
-    } else if (updateType == bfrt_proto::Update::DELETE) {
-        RETURN_IF_FALSE_WITH_MESSAGE(tableResult.deleteTableEntry(*tableMatchEntry) != 0,
-                                     EXIT_FAILURE,
-                                     ::error("Table entry %1% not found and can not be deleted.",
-                                             tableEntry.ShortDebugString()));
-    } else {
-        ::error("Unsupported update type %1%.", updateType);
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    return updateTableEntry(p4Info, p4Table, tableEntry, tableResult, updateType, symbolSet);
 }
 
 int updateControlPlaneConstraintsWithEntityMessage(const bfrt_proto::Entity &entity,
@@ -240,14 +246,68 @@ int updateControlPlaneConstraintsWithEntityMessage(const bfrt_proto::Entity &ent
                                                    const ::bfrt_proto::Update_Type &updateType,
                                                    SymbolSet &symbolSet) {
     if (entity.has_table_entry()) {
-        RETURN_IF_FALSE(updateTableEntry(p4Info, entity.table_entry(), controlPlaneConstraints,
-                                         updateType, symbolSet) == EXIT_SUCCESS,
-                        EXIT_FAILURE)
-    } else {
-        ::error("Unsupported control plane entry %1%.", entity.DebugString().c_str());
-        return EXIT_FAILURE;
+        auto tableId = entity.table_entry().table_id();
+        const auto *p4Table = P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tableId);
+        if (p4Table != nullptr) {
+            RETURN_IF_FALSE(
+                updateTableEntry(p4Info, *p4Table, entity.table_entry(), controlPlaneConstraints,
+                                 updateType, symbolSet) == EXIT_SUCCESS,
+                EXIT_FAILURE)
+            return EXIT_SUCCESS;
+        }
+        // In BFRuntime, table entries could also configure an action profile.
+        ASSIGN_OR_RETURN_WITH_MESSAGE(
+            auto p4ActionProfileExtern,
+            P4::ControlPlaneAPI::findP4RuntimeExtern(p4Info, "ActionSelector"), EXIT_FAILURE,
+            ::error("Action profile ID %1% not found in the P4Info.", tableId));
+        std::optional<cstring> actionProfileNameOpt;
+        for (const auto &actionSelectorInstance : p4ActionProfileExtern.instances()) {
+            if (actionSelectorInstance.preamble().id() == tableId) {
+                actionProfileNameOpt = actionSelectorInstance.preamble().name();
+            }
+        }
+        if (actionProfileNameOpt == std::nullopt) {
+            ::error("Action profile ID %1% not found in the P4Info.", tableId);
+            return EXIT_FAILURE;
+        }
+        auto actionProfileName = actionProfileNameOpt.value();
+        auto it = controlPlaneConstraints.find(actionProfileName);
+        RETURN_IF_FALSE_WITH_MESSAGE(
+            it != controlPlaneConstraints.end(), EXIT_FAILURE,
+            ::error("Action profile %1% not found in the control plane constraints. It should "
+                    "have already been initialized at this point.",
+                    actionProfileName));
+
+        ASSIGN_OR_RETURN_WITH_MESSAGE(
+            auto &actionProfileResult, it->second.get().to<ActionProfile>(), EXIT_FAILURE,
+            ::error("Configuration result %1% is not a ActionProfile.", actionProfileName));
+
+        for (auto associatedTableReference : actionProfileResult.associatedTables()) {
+            auto it = controlPlaneConstraints.find(associatedTableReference);
+            RETURN_IF_FALSE_WITH_MESSAGE(it != controlPlaneConstraints.end(), EXIT_FAILURE,
+                                         ::error("Configuration for table %1% not found in the "
+                                                 "control plane constraints. It should "
+                                                 "have already been initialized at this point.",
+                                                 associatedTableReference));
+
+            ASSIGN_OR_RETURN_WITH_MESSAGE(
+                auto &tableResult, it->second.get().to<TableConfiguration>(), EXIT_FAILURE,
+                ::error("Configuration result %1% is not a TableConfiguration.",
+                        associatedTableReference));
+            ASSIGN_OR_RETURN_WITH_MESSAGE(
+                auto &p4InfoTable,
+                P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, associatedTableReference),
+                EXIT_FAILURE,
+                ::error("Table name %1% not found in the P4Info.", associatedTableReference));
+
+            RETURN_IF_FALSE(updateTableEntry(p4Info, p4InfoTable, entity.table_entry(), tableResult,
+                                             updateType, symbolSet) == EXIT_SUCCESS,
+                            EXIT_FAILURE);
+        }
+        return EXIT_SUCCESS;
     }
-    return EXIT_SUCCESS;
+    ::error("Unsupported control plane entry %1%.", entity.DebugString().c_str());
+    return EXIT_FAILURE;
 }
 
 int updateControlPlaneConstraints(const bfruntime::flaytests::Config &protoControlPlaneConfig,

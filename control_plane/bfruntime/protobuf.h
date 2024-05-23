@@ -26,14 +26,14 @@
 /// representation of the program.
 namespace P4Tools::Flay::BfRuntime {
 
-/// Convert a P4Runtime TableAction into the appropriate symbolic constraint
+/// Convert a BFRuntime TableAction into the appropriate symbolic constraint
 /// assignments. If @param isDefaultAction is true, then the constraints generated are
 /// specialized towards overriding a default action in a table.
 [[nodiscard]] std::optional<const IR::Expression *> convertTableAction(
     const bfrt_proto::TableData &tblAction, cstring tableName,
     const p4::config::v1::Action &p4Action, SymbolSet &symbolSet, bool isDefaultAction);
 
-/// Convert a P4Runtime FieldMatch into the appropriate symbolic constraint
+/// Convert a BFRuntime FieldMatch into the appropriate symbolic constraint
 /// assignments.
 /// @param symbolSet tracks the symbols used in this conversion.
 [[nodiscard]] std::optional<TableKeySet> produceTableMatch(
@@ -46,25 +46,26 @@ namespace P4Tools::Flay::BfRuntime {
 [[nodiscard]] std::optional<TableKeySet> produceTableMatchForMissingField(
     cstring tableName, const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet);
 
-/// Convert a P4Runtime TableEntry into a TableMatchEntry.
+/// Convert a BFRuntime TableEntry into a TableMatchEntry.
 /// Returns std::nullopt if the conversion fails.
 /// @param symbolSet tracks the symbols used in this conversion.
 [[nodiscard]] std::optional<TableMatchEntry *> produceTableEntry(
     cstring tableName, P4::ControlPlaneAPI::p4rt_id_t tblId, const p4::config::v1::P4Info &p4Info,
     const bfrt_proto::TableEntry &tableEntry, SymbolSet &symbolSet);
 
-/// Convert a P4Runtime TableEntry into the appropriate symbolic constraint
+/// Convert a BFRuntime TableEntry into the appropriate symbolic constraint
 /// assignments.
 /// @param symbolSet tracks the symbols used in this conversion.
 [[nodiscard]] int updateTableEntry(const p4::config::v1::P4Info &p4Info,
+                                   const p4::config::v1::Table &p4Table,
                                    const bfrt_proto::TableEntry &tableEntry,
                                    ControlPlaneConstraints &controlPlaneConstraints,
                                    const ::bfrt_proto::Update_Type &updateType,
                                    SymbolSet &symbolSet);
 
-/// Convert a Protobuf P4Runtime entity object into a set of IR-based
+/// Convert a Protobuf BFRuntime entity object into a set of IR-based
 /// control-plane constraints. Use the
-/// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
+/// @param irToIdMap to lookup the nodes associated with BFRuntime Ids.
 /// @param symbolSet tracks the symbols used in this conversion.
 [[nodiscard]] int updateControlPlaneConstraintsWithEntityMessage(
     const bfrt_proto::Entity &entity, const p4::config::v1::P4Info &p4Info,
@@ -73,7 +74,7 @@ namespace P4Tools::Flay::BfRuntime {
 
 /// Convert a Protobuf Config object into a set of IR-based control-plane
 /// constraints. Use the
-/// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
+/// @param irToIdMap to lookup the nodes associated with BFRuntime Ids.
 /// @param symbolSet tracks the symbols used in this conversion.
 [[nodiscard]] int updateControlPlaneConstraints(
     const bfruntime::flaytests::Config &protoControlPlaneConfig,
