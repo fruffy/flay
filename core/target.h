@@ -53,7 +53,7 @@ class FlayTarget : public CompilerTarget {
 
     /// @see @computeControlPlaneConstraints.
     [[nodiscard]] virtual std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
-        const FlayCompilerResult &compilerResult, const FlayOptions &options) const = 0;
+        const FlayCompilerResult &compilerResult, const FlayOptions &options) const;
 
     /// @see getArchSpec
     [[nodiscard]] virtual const ArchSpec *getArchSpecImpl() const = 0;

@@ -11,6 +11,8 @@ class TofinoControlPlaneInitializer : public ControlPlaneStateInitializer {
                       cstring tableName, cstring fieldName, cstring matchType,
                       TableKeySet &keySet) override;
 
+    bool preorder(const IR::P4Table *table) override;
+
  public:
     explicit TofinoControlPlaneInitializer(const P4::ReferenceMap &refMap)
         : ControlPlaneStateInitializer(refMap) {}

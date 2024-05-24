@@ -12,42 +12,38 @@ set(FLAY_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4flay")
 set(FLAY_REFERENCE_DRIVER "${flay_BINARY_DIR}/tools/flay_reference_checker")
 
 # ############### Protobuf generation
-set(FLAY_P4RUNTIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf)
-set(FLAY_P4RUNTIME_INFO_PROTO ${FLAY_P4RUNTIME_DIR}/flaytests.proto)
+set(FLAY_CONTROL_PLANE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/control_plane)
+set(FLAY_P4RUNTIME_DIR ${FLAY_CONTROL_PLANE_DIR}/p4runtime)
+set(FLAY_P4RUNTIME_TESTS_PROTO ${FLAY_P4RUNTIME_DIR}/flaytests.proto)
 set(P4RUNTIME_DIR ${P4C_BINARY_DIR}/control-plane/p4/v1)
 set(P4RUNTIME_RT_PROTO ${P4RUNTIME_STD_DIR}/p4/v1/p4runtime.proto)
+set(FLAY_BFRUNTIME_DIR ${FLAY_CONTROL_PLANE_DIR}/bfruntime)
+set(BFRUNTIME_RT_PROTO ${FLAY_BFRUNTIME_DIR}/bfruntime.proto)
+set(BFRUNTIME_TESTS_PROTO ${FLAY_BFRUNTIME_DIR}/flaytests.proto)
 
 add_custom_target(
   flay_runtime_dir ${CMAKE_COMMAND} -E make_directory
-                   ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
+                   ${CMAKE_CURRENT_BINARY_DIR}/control_plane/p4runtime &&
+                   ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/control_plane/bfruntime
 )
 
-add_library(flay_runtime OBJECT ${FLAY_P4RUNTIME_INFO_PROTO})
-target_include_directories(flay_runtime PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(flay_runtime PRIVATE controlplane)
-add_dependencies(flay_runtime flay_runtime_dir)
+# Unity builds do not work for Protobuf...
+set(CMAKE_UNITY_BUILD_PREV ${CMAKE_UNITY_BUILD})
+set(CMAKE_UNITY_BUILD OFF)
+add_library(flay_p4runtime OBJECT ${FLAY_P4RUNTIME_TESTS_PROTO} ${BFRUNTIME_RT_PROTO} ${BFRUNTIME_TESTS_PROTO})
+target_include_directories(flay_p4runtime PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(flay_p4runtime PRIVATE controlplane)
+add_dependencies(flay_p4runtime flay_runtime_dir)
 protobuf_generate(
-  TARGET flay_runtime
-  LANGUAGE cpp
-  IMPORT_DIRS ${P4RUNTIME_STD_DIR} ${FLAY_P4RUNTIME_DIR} ${Protobuf_INCLUDE_DIRS} ${P4C_SOURCE_DIR}/control-plane
-  PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
-  OUT_VAR P4RUNTIME_GEN_SRCS
-  DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO}
-)
-protobuf_generate(
-  TARGET flay_runtime
-  LANGUAGE python
-  IMPORT_DIRS ${P4RUNTIME_STD_DIR} ${FLAY_P4RUNTIME_DIR} ${Protobuf_INCLUDE_DIRS} ${P4C_SOURCE_DIR}/control-plane
-  PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/control_plane/protobuf
+  TARGET flay_p4runtime
+  LANGUAGE cpp python
+  IMPORT_DIRS ${P4RUNTIME_STD_DIR} ${Protobuf_INCLUDE_DIRS} ${P4C_SOURCE_DIR}/control-plane ${P4C_SOURCE_DIR}
+  PROTOC_OUT_DIR ${P4C_BINARY_DIR}
   OUT_VAR FLAY_P4RUNTIME_INFO_GEN_SRCS
-  DEPENDS ${FLAY_P4RUNTIME_INFO_PROTO}
+  DEPENDS ${FLAY_P4RUNTIME_TESTS_PROTO}
 )
-# Silence various warnings as the root issue is out of our control, example
-# https://github.com/protocolbuffers/protobuf/issues/7140
-set_source_files_properties(
-  ${FLAY_P4RUNTIME_INFO_GEN_SRCS} PROPERTIES COMPILE_FLAGS
-                                             "-Wno-unused-parameter -Wno-array-bounds -Wno-error"
-)
+# Reset temporary variable modifications.
+set(CMAKE_UNITY_BUILD ${CMAKE_UNITY_BUILD_PREV})
 
 if(P4TOOLS_FLAY_WITH_GRPC)
   include(GRpc)
@@ -59,10 +55,11 @@ endif()
 set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/options.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/flay.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/protobuf/protobuf.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/control_plane_objects.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/id_to_ir_map.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/control_plane/symbolic_state.cpp
+    ${FLAY_CONTROL_PLANE_DIR}/bfruntime/protobuf.cpp
+    ${FLAY_CONTROL_PLANE_DIR}/p4runtime/protobuf.cpp
+    ${FLAY_CONTROL_PLANE_DIR}/control_plane_objects.cpp
+    ${FLAY_CONTROL_PLANE_DIR}/id_to_ir_map.cpp
+    ${FLAY_CONTROL_PLANE_DIR}/symbolic_state.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/analysis.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/collapse_dataplane_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/compiler_result.cpp
@@ -73,6 +70,9 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/parser_stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/program_info.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/reachability.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/service_wrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/service_wrapper_bfruntime.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/service_wrapper_p4runtime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/simplify_expression.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/substitute_placeholders.cpp
@@ -92,7 +92,7 @@ set(FLAY_GTEST_SOURCES
 
 # Flay libraries.
 set(FLAY_LIBS
-    PRIVATE p4tools-control-plane p4tools-common flay_runtime controlplane ${LIBGC_LIBRARIES}
+    PRIVATE p4tools-control-plane p4tools-common flay_p4runtime controlplane ${LIBGC_LIBRARIES}
 )
 
 file(GLOB flay_targets RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/targets

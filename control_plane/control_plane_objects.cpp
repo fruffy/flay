@@ -92,6 +92,8 @@ size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEnt
     return tableEntries_.erase(tableMatchEntry);
 }
 
+void TableConfiguration::clearTableEntries() { tableEntries_.clear(); }
+
 void TableConfiguration::setDefaultTableAction(TableDefaultAction defaultTableAction) {
     defaultTableAction_ = std::move(defaultTableAction);
 }
@@ -126,5 +128,19 @@ const IR::Expression *ParserValueSet::computeControlPlaneConstraint() const {
     return new IR::Equ(ControlPlaneState::getParserValueSetConfigured(name_),
                        IR::BoolLiteral::get(false));
 }
+
+bool ActionProfile::operator<(const ControlPlaneItem &other) const {
+    // There is only one action profile active, we ignore the set of associated tables..
+    return typeid(*this) == typeid(other) ? false
+                                          : typeid(*this).hash_code() < typeid(other).hash_code();
+}
+
+const IR::Expression *ActionProfile::computeControlPlaneConstraint() const {
+    // Action profiles are indirect and associated with the constraints of a table.
+    return IR::BoolLiteral::get(true);
+}
+const std::set<cstring> &ActionProfile::associatedTables() const { return _associatedTables; }
+
+void ActionProfile::addAssociatedTable(cstring table) { _associatedTables.insert(table); }
 
 }  // namespace P4Tools::Flay

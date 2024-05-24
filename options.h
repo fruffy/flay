@@ -27,7 +27,7 @@ class FlayOptions : public AbstractP4cToolOptions {
     const char *getIncludePath() override;
 
     /// @returns the path set with --config-file.
-    [[nodiscard]] std::filesystem::path getControlPlaneConfig() const;
+    [[nodiscard]] std::filesystem::path controlPlaneConfig() const;
 
     /// @returns true when the --config-file option has been set.
     [[nodiscard]] bool hasControlPlaneConfig() const;
@@ -36,13 +36,13 @@ class FlayOptions : public AbstractP4cToolOptions {
     [[nodiscard]] bool serverModeActive() const;
 
     /// @returns the server address set with --server-address.
-    [[nodiscard]] std::string getServerAddress() const;
+    [[nodiscard]] std::string_view serverAddress() const;
 
     /// @returns true when the --config-update-pattern option has been set.
     [[nodiscard]] bool hasConfigurationUpdatePattern() const;
 
     /// @returns the configuration update pattern set with --config-update-pattern.
-    [[nodiscard]] std::string getConfigurationUpdatePattern() const;
+    [[nodiscard]] std::string_view configurationUpdatePattern() const;
 
     /// @returns true when the --use-placeholders option has been set.
     [[nodiscard]] bool usePlaceholders() const;
@@ -51,16 +51,19 @@ class FlayOptions : public AbstractP4cToolOptions {
     [[nodiscard]] bool isStrict() const;
 
     /// @returns the path set with --optimized-output-file.
-    [[nodiscard]] std::optional<std::filesystem::path> getOptimizedOutputDir() const;
+    [[nodiscard]] std::optional<std::filesystem::path> optimizedOutputDir() const;
 
     /// @returns false when --preserve-data-plane-variables has been set.
     [[nodiscard]] bool collapseDataPlaneOperations() const;
 
     /// @returns the path set with --generate-p4info.
-    [[nodiscard]] std::optional<std::filesystem::path> getP4InfoFilePath() const;
+    [[nodiscard]] std::optional<std::filesystem::path> p4InfoFilePath() const;
 
     /// @returns the path to the user p4 info file set by the --user-p4info option.
     [[nodiscard]] std::optional<std::filesystem::path> userP4Info() const;
+
+    /// @returns the control plane API to use.
+    [[nodiscard]] std::string_view controlPlaneApi() const;
 
  protected:
     explicit FlayOptions(
@@ -68,38 +71,41 @@ class FlayOptions : public AbstractP4cToolOptions {
 
  private:
     /// Path to the initial control plane configuration file.
-    std::optional<std::filesystem::path> controlPlaneConfig_ = std::nullopt;
+    std::optional<std::filesystem::path> _controlPlaneConfig = std::nullopt;
 
     /// Toggle server mode.
     /// After parsing, Flay can initialize a P4Runtime server which handles control-plane messages.
-    bool serverMode_ = false;
+    bool _serverMode = false;
 
     /// Server address for the Flay service.
-    std::string serverAddress_ = "localhost:50051";
+    std::string _serverAddress = "localhost:50051";
 
     /// A pattern which can either match a single file or a list of files.
     /// This pattern is converted into a list of configuration updates.
     /// Used for testing.
-    std::optional<std::string> configUpdatePattern_;
+    std::optional<std::string> _configUpdatePattern;
 
     /// Toggle use of placeholder variables to model recirculated or cloned packets.
-    bool usePlaceholders_ = false;
+    bool _usePlaceholders = false;
 
     /// In strict mode, Flay will report errors instead of warnings for certain unsafe behavior.
     /// For example, when adding more than one reachability condition for one IR node.
-    bool strict_ = false;
+    bool _strict = false;
 
     /// The path to the output file of the optimized P4 program.
-    std::optional<std::filesystem::path> optimizedOutputDir_ = std::nullopt;
+    std::optional<std::filesystem::path> _optimizedOutputDir = std::nullopt;
 
     /// Collapse arithmetic operations on data plane variables.
-    bool collapseDataPlaneOperations_ = true;
+    bool _collapseDataPlaneOperations = true;
 
     // Use a user-supplied P4Info file instead of generating one.
     std::optional<std::filesystem::path> _userP4Info = std::nullopt;
 
     // Write the P4Runtime control plane API description to the specified file.
-    std::optional<std::filesystem::path> p4InfoFilePath = std::nullopt;
+    std::optional<std::filesystem::path> _p4InfoFilePath = std::nullopt;
+
+    // The control plane API to use. Defaults to P4Runtime.
+    std::string _controlPlaneApi = "P4RUNTIME";
 };
 
 }  // namespace P4Tools

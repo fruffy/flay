@@ -1,8 +1,5 @@
-#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_UTIL_H_
-#define BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_UTIL_H_
-
-#include <map>
-#include <optional>
+#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_RETURN_MACROS_H_
+#define BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_RETURN_MACROS_H_
 
 namespace P4Tools::Flay {
 
@@ -45,27 +42,16 @@ namespace P4Tools::Flay {
     }                                                                                             \
     targetVariable = *(temporary);  // NOLINT
 
-#define ASSIGN_OR_RETURN_WITH_MESSAGE(targetVariable, inputFunction, returnValue, errorFunction) \
-    ASSIGN_OR_RETURN_WITH_MESSAGE_IMPL(STATUS_MACROS_CONCAT_NAME(temporary, __LINE__),           \
-                                       targetVariable, inputFunction, returnValue, errorFunction)
-
 /// Assigns the value of @param inputFunction to @param targetVariable if the contained value is not
 /// false.
 /// @param inputFunction is dereferenced, which will work on std::nullopt and pointers, but not
 /// bools. Prints an error provided with @param errorFunction if the inputFunction evaluates to
 /// false.
 // NOLINTNEXTLINE
-
-/// Tries to look up a key in a map, returns std::nullopt if the key does not exist.
-template <class K, class T, class V, class Comp, class Alloc>
-inline std::optional<V> safeAt(const std::map<K, V, Comp, Alloc> &m, T key) {
-    auto it = m.find(key);
-    if (it != m.end()) {
-        return it->second;
-    }
-    return std::nullopt;
-}
+#define ASSIGN_OR_RETURN_WITH_MESSAGE(targetVariable, inputFunction, returnValue, errorFunction) \
+    ASSIGN_OR_RETURN_WITH_MESSAGE_IMPL(STATUS_MACROS_CONCAT_NAME(temporary, __LINE__),           \
+                                       targetVariable, inputFunction, returnValue, errorFunction)
 
 }  // namespace P4Tools::Flay
 
-#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_UTIL_H_ */
+#endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_RETURN_MACROS_H_ */

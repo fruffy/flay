@@ -1,4 +1,4 @@
-#include "backends/p4tools/modules/flay/control_plane/protobuf/protobuf.h"
+#include "backends/p4tools/modules/flay/control_plane/p4runtime/protobuf.h"
 
 #include <fcntl.h>
 
@@ -8,11 +8,10 @@
 #include <optional>
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
-#include "backends/p4tools/common/lib/logging.h"
+#include "backends/p4tools/modules/flay/control_plane/protobuf_utils.h"
 #include "control-plane/p4RuntimeArchHandler.h"
 #include "control-plane/p4infoApi.h"
 #include "ir/irutils.h"
-#include "lib/exceptions.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -21,24 +20,18 @@
 #include "p4/v1/p4runtime.pb.h"
 #pragma GCC diagnostic pop
 
-namespace P4Tools::Flay {
+namespace P4Tools::Flay::P4Runtime {
 
-big_int ProtobufDeserializer::protoValueToBigInt(const std::string &valueString) {
-    big_int value;
-    boost::multiprecision::import_bits(value, valueString.begin(), valueString.end());
-    return value;
-}
-
-std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
-    const p4::v1::FieldMatch &field, cstring tableName,
-    const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet) {
+std::optional<TableKeySet> produceTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
+                                             const p4::config::v1::MatchField &matchField,
+                                             SymbolSet &symbolSet) {
     TableKeySet tableKeySet;
     const auto *keyType = IR::Type_Bits::get(matchField.bitwidth());
     const auto *keySymbol = ControlPlaneState::getTableKey(tableName, matchField.name(), keyType);
     symbolSet.emplace(*keySymbol);
     switch (field.field_match_type_case()) {
         case p4::v1::FieldMatch::kExact: {
-            auto value = protoValueToBigInt(field.exact().value());
+            auto value = Protobuf::stringToBigInt(field.exact().value());
             tableKeySet.emplace(*keySymbol, *IR::Constant::get(keyType, value));
             return tableKeySet;
         }
@@ -46,7 +39,7 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
             const auto *lpmPrefixSymbol =
                 ControlPlaneState::getTableMatchLpmPrefix(tableName, matchField.name(), keyType);
             symbolSet.emplace(*lpmPrefixSymbol);
-            auto value = protoValueToBigInt(field.lpm().value());
+            auto value = Protobuf::stringToBigInt(field.lpm().value());
             int prefix = field.lpm().prefix_len();
             tableKeySet.emplace(*keySymbol, *IR::Constant::get(keyType, value));
             tableKeySet.emplace(*lpmPrefixSymbol, *IR::Constant::get(keyType, prefix));
@@ -56,8 +49,8 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
             const auto *maskSymbol =
                 ControlPlaneState::getTableTernaryMask(tableName, matchField.name(), keyType);
             symbolSet.emplace(*maskSymbol);
-            auto value = protoValueToBigInt(field.ternary().value());
-            auto mask = protoValueToBigInt(field.ternary().mask());
+            auto value = Protobuf::stringToBigInt(field.ternary().value());
+            auto mask = Protobuf::stringToBigInt(field.ternary().mask());
             tableKeySet.emplace(*keySymbol, *IR::Constant::get(keyType, value));
             tableKeySet.emplace(*maskSymbol, *IR::Constant::get(keyType, mask));
             return tableKeySet;
@@ -68,7 +61,7 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatch(
     return std::nullopt;
 }
 
-std::optional<TableKeySet> ProtobufDeserializer::produceTableMatchForMissingField(
+std::optional<TableKeySet> produceTableMatchForMissingField(
     cstring tableName, const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet) {
     TableKeySet tableKeySet;
     const auto *keyType = IR::Type_Bits::get(matchField.bitwidth());
@@ -94,9 +87,11 @@ std::optional<TableKeySet> ProtobufDeserializer::produceTableMatchForMissingFiel
     return std::nullopt;
 }
 
-std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
-    const p4::v1::Action &tblAction, cstring tableName, const p4::config::v1::Action &p4Action,
-    SymbolSet &symbolSet, bool isDefaultAction) {
+std::optional<const IR::Expression *> convertTableAction(const p4::v1::Action &tblAction,
+                                                         cstring tableName,
+                                                         const p4::config::v1::Action &p4Action,
+                                                         SymbolSet &symbolSet,
+                                                         bool isDefaultAction) {
     const IR::SymbolicVariable *tableActionID =
         isDefaultAction ? ControlPlaneState::getDefaultActionVariable(tableName)
                         : ControlPlaneState::getTableActionChoice(tableName);
@@ -121,15 +116,17 @@ std::optional<const IR::Expression *> ProtobufDeserializer::convertTableAction(
             ControlPlaneState::getTableActionArgument(tableName, actionName, paramName, paramType);
         symbolSet.emplace(*actionArg);
         const auto *actionVal =
-            IR::Constant::get(paramType, protoValueToBigInt(paramConfig.value()));
+            IR::Constant::get(paramType, Protobuf::stringToBigInt(paramConfig.value()));
         actionExpr = new IR::LAnd(actionExpr, new IR::Equ(actionArg, actionVal));
     }
     return actionExpr;
 }
 
-std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
-    cstring tableName, P4::ControlPlaneAPI::p4rt_id_t tblId, const p4::config::v1::P4Info &p4Info,
-    const p4::v1::TableEntry &tableEntry, SymbolSet &symbolSet) {
+std::optional<TableMatchEntry *> produceTableEntry(cstring tableName,
+                                                   P4::ControlPlaneAPI::p4rt_id_t tblId,
+                                                   const p4::config::v1::P4Info &p4Info,
+                                                   const p4::v1::TableEntry &tableEntry,
+                                                   SymbolSet &symbolSet) {
     RETURN_IF_FALSE_WITH_MESSAGE(
         tableEntry.action().has_action(), std::nullopt,
         ::error("Table entry %1% has no action.", tableEntry.DebugString()));
@@ -175,11 +172,9 @@ std::optional<TableMatchEntry *> ProtobufDeserializer::produceTableEntry(
     return new TableMatchEntry(actionExpr, tableEntry.priority(), tableKeySet);
 }
 
-int ProtobufDeserializer::updateTableEntry(const p4::config::v1::P4Info &p4Info,
-                                           const p4::v1::TableEntry &tableEntry,
-                                           ControlPlaneConstraints &controlPlaneConstraints,
-                                           const ::p4::v1::Update_Type &updateType,
-                                           SymbolSet &symbolSet) {
+int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::v1::TableEntry &tableEntry,
+                     ControlPlaneConstraints &controlPlaneConstraints,
+                     const ::p4::v1::Update_Type &updateType, SymbolSet &symbolSet) {
     auto tblId = tableEntry.table_id();
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &p4Table, P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId), EXIT_FAILURE,
@@ -237,10 +232,11 @@ int ProtobufDeserializer::updateTableEntry(const p4::config::v1::P4Info &p4Info,
     return EXIT_SUCCESS;
 }
 
-int ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
-    const p4::v1::Entity &entity, const p4::config::v1::P4Info &p4Info,
-    ControlPlaneConstraints &controlPlaneConstraints, const ::p4::v1::Update_Type &updateType,
-    SymbolSet &symbolSet) {
+int updateControlPlaneConstraintsWithEntityMessage(const p4::v1::Entity &entity,
+                                                   const p4::config::v1::P4Info &p4Info,
+                                                   ControlPlaneConstraints &controlPlaneConstraints,
+                                                   const ::p4::v1::Update_Type &updateType,
+                                                   SymbolSet &symbolSet) {
     if (entity.has_table_entry()) {
         RETURN_IF_FALSE(updateTableEntry(p4Info, entity.table_entry(), controlPlaneConstraints,
                                          updateType, symbolSet) == EXIT_SUCCESS,
@@ -252,9 +248,10 @@ int ProtobufDeserializer::updateControlPlaneConstraintsWithEntityMessage(
     return EXIT_SUCCESS;
 }
 
-int ProtobufDeserializer::updateControlPlaneConstraints(
-    const flaytests::Config &protoControlPlaneConfig, const p4::config::v1::P4Info &p4Info,
-    ControlPlaneConstraints &controlPlaneConstraints, SymbolSet &symbolSet) {
+int updateControlPlaneConstraints(const ::p4runtime::flaytests::Config &protoControlPlaneConfig,
+                                  const p4::config::v1::P4Info &p4Info,
+                                  ControlPlaneConstraints &controlPlaneConstraints,
+                                  SymbolSet &symbolSet) {
     for (const auto &entity : protoControlPlaneConfig.entities()) {
         if (updateControlPlaneConstraintsWithEntityMessage(entity, p4Info, controlPlaneConstraints,
                                                            p4::v1::Update::MODIFY,
@@ -265,4 +262,4 @@ int ProtobufDeserializer::updateControlPlaneConstraints(
     return EXIT_SUCCESS;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4Tools::Flay::P4Runtime

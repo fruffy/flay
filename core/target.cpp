@@ -6,6 +6,10 @@
 #include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/common/compiler/convert_varbits.h"
 #include "backends/p4tools/common/core/target.h"
+#include "backends/p4tools/common/lib/logging.h"
+#include "backends/p4tools/modules/flay/control_plane/bfruntime/protobuf.h"
+#include "backends/p4tools/modules/flay/control_plane/p4runtime/protobuf.h"
+#include "backends/p4tools/modules/flay/control_plane/protobuf_utils.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/toolname.h"
 #include "frontends/common/constantFolding.h"
@@ -30,6 +34,12 @@
 #include "midend/parserUnroll.h"
 #include "midend/removeExits.h"
 #include "midend/removeLeftSlices.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#include "control_plane/p4runtime/flaytests.pb.h"
+#pragma GCC diagnostic pop
 
 namespace P4Tools::Flay {
 
@@ -85,6 +95,54 @@ class ErrorOn32Bits : public P4::ChooseErrorRepresentation {
 
     [[nodiscard]] unsigned errorSize(unsigned /*errorCount*/) const override { return 32; }
 };
+
+std::optional<ControlPlaneConstraints> FlayTarget::computeControlPlaneConstraintsImpl(
+    const FlayCompilerResult &compilerResult, const FlayOptions &options) const {
+    // Initialize some constraints that are active regardless of the control-plane
+    // configuration. These constraints can be overridden by the respective control-plane
+    // configuration.
+    auto constraints = compilerResult.getDefaultControlPlaneConstraints();
+    if (!options.hasControlPlaneConfig()) {
+        return constraints;
+    }
+    auto confPath = options.controlPlaneConfig();
+    printInfo("Parsing initial control plane configuration...\n");
+    if (confPath.extension() == ".txtpb") {
+        // By default we only support P4Runtime parsing.
+        if (options.controlPlaneApi() == "P4RUNTIME") {
+            auto deserializedConfig =
+                Protobuf::deserializeObjectFromFile<p4runtime::flaytests::Config>(confPath);
+            if (!deserializedConfig.has_value()) {
+                return std::nullopt;
+            }
+            SymbolSet symbolSet;
+            if (P4Runtime::updateControlPlaneConstraints(deserializedConfig.value(),
+                                                         *compilerResult.getP4RuntimeApi().p4Info,
+                                                         constraints, symbolSet) != EXIT_SUCCESS) {
+                return std::nullopt;
+            }
+            return constraints;
+        }
+        if (options.controlPlaneApi() == "BFRUNTIME") {
+            auto deserializedConfig =
+                Protobuf::deserializeObjectFromFile<bfruntime::flaytests::Config>(confPath);
+            if (!deserializedConfig.has_value()) {
+                return std::nullopt;
+            }
+            SymbolSet symbolSet;
+            if (BfRuntime::updateControlPlaneConstraints(deserializedConfig.value(),
+                                                         *compilerResult.getP4RuntimeApi().p4Info,
+                                                         constraints, symbolSet) != EXIT_SUCCESS) {
+                return std::nullopt;
+            }
+            return constraints;
+        }
+    }
+
+    ::error("Control plane file format %1% for control plane %2% not supported for this target.",
+            confPath.extension().c_str(), options.controlPlaneApi().data());
+    return std::nullopt;
+}
 
 MidEnd FlayTarget::mkMidEnd(const CompilerOptions &options) const {
     MidEnd midEnd(options);

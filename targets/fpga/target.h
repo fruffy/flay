@@ -14,9 +14,6 @@ class FpgaBaseFlayTarget : public FlayTarget {
  protected:
     explicit FpgaBaseFlayTarget(const std::string &deviceName, const std::string &archName);
 
-    [[nodiscard]] std::optional<ControlPlaneConstraints> computeControlPlaneConstraintsImpl(
-        const FlayCompilerResult &compilerResult, const FlayOptions &options) const override;
-
     CompilerResultOrError runCompilerImpl(const IR::P4Program *program) const override;
 };
 

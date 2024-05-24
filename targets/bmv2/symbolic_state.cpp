@@ -5,7 +5,7 @@
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
-#include "backends/p4tools/modules/flay/control_plane/util.h"
+#include "backends/p4tools/modules/flay/control_plane/return_macros.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/control_plane_objects.h"
 

@@ -135,6 +135,9 @@ class TableConfiguration : public ControlPlaneItem {
     /// Delete an existing table entry.
     size_t deleteTableEntry(const TableMatchEntry &tableMatchEntry);
 
+    /// Clear all table entries.
+    void clearTableEntries();
+
     /// Set the default action for this table.
     void setDefaultTableAction(TableDefaultAction defaultTableAction);
 
@@ -163,6 +166,37 @@ class ParserValueSet : public ControlPlaneItem {
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
     DECLARE_TYPEINFO(ParserValueSet);
+};
+
+/// An action profile. Action profiles are programmed like a table, but each table associated
+/// with the respective table shares the action profile configuration. Hence, we use a set of table
+/// control plane names to represent this data structure.
+class ActionProfile : public ControlPlaneItem {
+    /// The control plane names of the tables associated with this action profile.
+    std::set<cstring> _associatedTables;
+
+ public:
+    ActionProfile() = default;
+    explicit ActionProfile(std::set<cstring> associatedTables)
+        : _associatedTables(std::move(associatedTables)) {}
+
+    ~ActionProfile() override = default;
+    ActionProfile(const ActionProfile &) = default;
+    ActionProfile(ActionProfile &&) = default;
+    ActionProfile &operator=(const ActionProfile &) = default;
+    ActionProfile &operator=(ActionProfile &&) = default;
+
+    bool operator<(const ControlPlaneItem &other) const override;
+
+    /// Get the set of control plane names of the tables associated with this action profile.
+    [[nodiscard]] const std::set<cstring> &associatedTables() const;
+
+    /// Add the control plane name of a  table to the set of associated tables.
+    void addAssociatedTable(cstring table);
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(ActionProfile);
 };
 
 }  // namespace P4Tools::Flay

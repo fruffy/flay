@@ -4,7 +4,7 @@
 
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/lib/table_utils.h"
-#include "backends/p4tools/modules/flay/control_plane/util.h"
+#include "backends/p4tools/modules/flay/control_plane/return_macros.h"
 #include "ir/node.h"
 #include "ir/vector.h"
 #include "lib/error.h"
