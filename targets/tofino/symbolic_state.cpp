@@ -62,64 +62,160 @@ bool TofinoControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
 
 namespace {
 
-std::optional<cstring> checkForActionProfile(const IR::P4Table &table,
-                                             const P4::ReferenceMap &refMap) {
+std::optional<cstring> checkforAttachedActionProfile(const IR::P4Table &table,
+                                                     const P4::ReferenceMap &refMap,
+                                                     ControlPlaneConstraints &defaultConstraints) {
     const auto *impl = table.properties->getProperty(cstring("implementation"));
     if (impl == nullptr) {
         return std::nullopt;
     }
 
     const auto *implExpr = impl->value->checkedTo<IR::ExpressionValue>();
-    const IR::IDeclaration *implDecl = nullptr;
+    const IR::IDeclaration *implementationDeclaration = nullptr;
+    const IR::IDeclaration *implementationTypeDeclaration = nullptr;
+
     if (const auto *implPath = implExpr->expression->to<IR::PathExpression>()) {
-        const auto *declInst = refMap.getDeclaration(implPath->path);
-        if (declInst == nullptr) {
+        const auto *decl = refMap.getDeclaration(implPath->path);
+        if (decl == nullptr) {
             ::error("Action profile reference %1% not found.", implPath->path->name);
             return std::nullopt;
         }
-        implDecl = declInst;
+        const auto *declarationInstance = decl->to<IR::Declaration_Instance>();
+        if (declarationInstance == nullptr) {
+            ::error("Action profile reference %1% is not an instance.", implPath->path->name);
+            return std::nullopt;
+        }
+        const auto *declarationInstanceTypeName = declarationInstance->type->to<IR::Type_Name>();
+        if (declarationInstanceTypeName == nullptr) {
+            ::error("Implementation instance type %1% is not a type name.", implPath->path->name);
+            return std::nullopt;
+        }
+        implementationTypeDeclaration = refMap.getDeclaration(declarationInstanceTypeName->path);
+        implementationDeclaration = declarationInstance;
     } else {
         ::error("Unimplemented action profile type %1%.", implExpr->expression->node_type_name());
         return std::nullopt;
     }
-
-    return implDecl->controlPlaneName();
+    auto declarationControlPlaneName = implementationDeclaration->controlPlaneName();
+    if (implementationTypeDeclaration->getName() == "ActionSelector") {
+        ActionSelector *actionSelector = nullptr;
+        auto it = defaultConstraints.find(declarationControlPlaneName);
+        if (it != defaultConstraints.end()) {
+            actionSelector = it->second.get().to<ActionSelector>();
+        }
+        if (actionSelector == nullptr) {
+            ::error("Could not find action selector %1%.", declarationControlPlaneName);
+            return std::nullopt;
+        }
+        actionSelector->addAssociatedTable(table.controlPlaneName());
+        return actionSelector->actionProfile().name();
+    }
+    if (implementationTypeDeclaration->getName() == "ActionProfile") {
+        ActionProfile *actionProfile = nullptr;
+        auto it = defaultConstraints.find(declarationControlPlaneName);
+        if (it != defaultConstraints.end()) {
+            actionProfile = it->second.get().to<ActionProfile>();
+        }
+        if (actionProfile == nullptr) {
+            ::error("Could not find action profile %1%.", declarationControlPlaneName);
+            return std::nullopt;
+        }
+        actionProfile->addAssociatedTable(table.controlPlaneName());
+        return actionProfile->name();
+    }
+    ::error("Implementation type %1% is not an action selector or action profile.",
+            implementationTypeDeclaration->getName());
+    return std::nullopt;
 }
 
 }  // namespace
+
+bool TofinoControlPlaneInitializer::preorder(const IR::Declaration_Instance *declaration) {
+    const auto *declarationInstanceTypeName = declaration->type->to<IR::Type_Name>();
+    if (declarationInstanceTypeName == nullptr) {
+        return false;
+    }
+    const auto *implTypeDeclaration = refMap().getDeclaration(declarationInstanceTypeName->path);
+    if (implTypeDeclaration == nullptr) {
+        return false;
+    }
+
+    if (implTypeDeclaration->getName() == "ActionProfile") {
+        defaultConstraints.insert(
+            {declaration->controlPlaneName(), *new ActionProfile(declaration->controlPlaneName())});
+    }
+    if (implTypeDeclaration->getName() == "ActionSelector") {
+        const auto *declarationArguments = declaration->arguments;
+        constexpr int kMinimumExpectedArgumentSize = 5;
+        if (declarationArguments->size() < kMinimumExpectedArgumentSize) {
+            ::error("Action selector %1% requires %2% arguments, but only %3% were provided.",
+                    implTypeDeclaration->controlPlaneName(), kMinimumExpectedArgumentSize,
+                    declarationArguments->size());
+            return false;
+        }
+        const auto *actionProfileReference = declarationArguments->at(0)->expression;
+        const auto *actionProfileReferencePath = actionProfileReference->to<IR::PathExpression>();
+        if (actionProfileReferencePath == nullptr) {
+            ::error("Action profile reference %1% is not a path expression.",
+                    actionProfileReference);
+            return false;
+        }
+        const auto *actionProfileDeclaration =
+            refMap().getDeclaration(actionProfileReferencePath->path);
+        auto actionProfileName = actionProfileDeclaration->controlPlaneName();
+        ActionProfile *actionProfileObject = nullptr;
+        auto constraintObject = defaultConstraints.find(actionProfileName);
+        if (constraintObject != defaultConstraints.end()) {
+            actionProfileObject = constraintObject->second.get().to<ActionProfile>();
+        }
+        if (actionProfileObject == nullptr) {
+            ::error(
+                "The action selector must reference an existing action profile but action profile "
+                "%1% was not found.",
+                actionProfileName);
+            return false;
+        }
+        defaultConstraints.insert(
+            {declaration->controlPlaneName(), *new ActionSelector(*actionProfileObject)});
+    }
+
+    return false;
+}
 
 bool TofinoControlPlaneInitializer::preorder(const IR::P4Table *table) {
     TableUtils::TableProperties properties;
     TableUtils::checkTableImmutability(*table, properties);
     auto tableName = table->controlPlaneName();
 
-    ASSIGN_OR_RETURN(auto defaultActionConstraints, computeDefaultActionConstraints(table, refMap_),
-                     false);
-    ASSIGN_OR_RETURN(TableEntrySet initialTableEntries, initializeTableEntries(table, refMap_),
-                     false);
-    auto actionProfileNameOpt = checkForActionProfile(*table, refMap_);
-    if (actionProfileNameOpt.has_value()) {
-        auto actionProfileName = actionProfileNameOpt.value();
-        ActionProfile *actionProfile = nullptr;
-        auto it = defaultConstraints.find(actionProfileName);
-        if (it != defaultConstraints.end()) {
-            actionProfile = it->second.get().to<ActionProfile>();
-            if (actionProfile == nullptr) {
-                ::error(
-                    "Looking up action profile %1%  in the constraints map did not return an "
-                    "action profile.",
-                    actionProfileName);
-                return false;
-            }
-        } else {
-            actionProfile = new ActionProfile();
-            defaultConstraints.insert({actionProfileName, *actionProfile});
-        }
-        actionProfile->addAssociatedTable(tableName);
+    auto result = checkforAttachedActionProfile(*table, refMap(), defaultConstraints);
+    if (result.has_value()) {
+        // defaultConstraints.insert(
+        //     {tableName,
+        //      *new TableConfiguration(table->controlPlaneName(),
+        //                              TableDefaultAction(IR::BoolLiteral::get(true)), {})});
+        // return false;
+        auto *newTable = table->clone();
+        newTable->name = result.value();
+        const auto *nameAnnotation =
+            newTable->annotations->getSingle(IR::Annotation::nameAnnotation);
+        newTable->annotations = newTable->annotations->addOrReplace(
+            nameAnnotation->name, new IR::StringLiteral(result.value()));
+        table = newTable;
     }
+
+    ASSIGN_OR_RETURN(auto defaultActionConstraints,
+                     computeDefaultActionConstraints(table, refMap()), false);
+
+    ASSIGN_OR_RETURN(TableEntrySet initialTableEntries, initializeTableEntries(table, refMap()),
+                     false);
+    auto config =
+        *new TableConfiguration(table->controlPlaneName(),
+                                TableDefaultAction(defaultActionConstraints), initialTableEntries);
     defaultConstraints.insert(
-        {tableName, *new TableConfiguration(tableName, TableDefaultAction(defaultActionConstraints),
+        {tableName, *new TableConfiguration(table->controlPlaneName(),
+                                            TableDefaultAction(defaultActionConstraints),
                                             initialTableEntries)});
+
     return false;
 }
 

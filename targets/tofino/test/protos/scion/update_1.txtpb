@@ -299,29 +299,29 @@ updates {
   }
 }
 
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 49974363
-      key {
-        fields {
-          field_id: 1
-          ternary {
-            value: "\000\000"
-            mask: "\000\000"
-          }
-        }
-      }
-      data {
-        fields {
-          field_id: 65540
-          stream: "\000\000\000\000"
-        }
-      }
-    }
-  }
-}
+# updates {
+#   type: INSERT
+#   entity {
+#     table_entry {
+#       table_id: 49974363
+#       key {
+#         fields {
+#           field_id: 1
+#           ternary {
+#             value: "\000\000"
+#             mask: "\000\000"
+#           }
+#         }
+#       }
+#       data {
+#         fields {
+#           field_id: 65540
+#           stream: "\000\000\000\000"
+#         }
+#       }
+#     }
+#   }
+# }
 
 updates {
   type: DELETE

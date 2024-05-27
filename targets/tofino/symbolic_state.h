@@ -12,6 +12,7 @@ class TofinoControlPlaneInitializer : public ControlPlaneStateInitializer {
                       TableKeySet &keySet) override;
 
     bool preorder(const IR::P4Table *table) override;
+    bool preorder(const IR::Declaration_Instance *declaration) override;
 
  public:
     explicit TofinoControlPlaneInitializer(const P4::ReferenceMap &refMap)

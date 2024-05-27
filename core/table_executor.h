@@ -4,7 +4,6 @@
 #include <functional>
 
 #include "backends/p4tools/common/lib/table_utils.h"
-#include "backends/p4tools/modules/flay/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/execution_state.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "ir/ir.h"
@@ -23,6 +22,9 @@ class TableExecutor {
 
     /// The resolver that instantiated this table execution..
     std::reference_wrapper<ExpressionResolver> resolver;
+
+    /// The prefix associated with symbolic variables in this table. This is usually the table name.
+    cstring _symbolicTablePrefix;
 
     /// Resolves the input key and ensures that all members of the key are pure symbolic.
     /// @returns the symbolic key.
@@ -43,6 +45,12 @@ class TableExecutor {
     void processTableActionOptions(ReturnProperties &tableReturnProperties) const;
 
  protected:
+    /// sets the symbolic table name
+    void setSymbolicTablePrefix(cstring name);
+
+    /// @returns the symbolic table name
+    [[nodiscard]] cstring symbolicTablePrefix() const;
+
     /// @returns the table associated with this executor.
     [[nodiscard]] const IR::P4Table &getP4Table() const;
 

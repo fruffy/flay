@@ -40,8 +40,12 @@ p4tools_add_tests(
   "${EXTRA_OPTS} -D__TARGET_TOFINO__=1"
 )
 
+# Include configuration tests.
+include(${CMAKE_CURRENT_LIST_DIR}/ConfigTests.cmake)
+
 # Include the list of failing tests.
 include(${CMAKE_CURRENT_LIST_DIR}/Tofino1Xfail.cmake)
+
 
 # Research projects using Tofino.
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/programs/research)

@@ -18,7 +18,6 @@ class FlayStepper : public Inspector {
     /// The parser stepper should be able to access functions internal to the core stepper.
     friend ParserStepper;
 
- private:
     /// The program info of the target.
     std::reference_wrapper<const ProgramInfo> _programInfo;
 

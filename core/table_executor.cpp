@@ -27,7 +27,7 @@ namespace {
 // Synthesize a list of variables which correspond to a control plane argument.
 // We get the unique name of the table coupled with the unique name of the action.
 // Getting the unique name is needed to avoid generating duplicate arguments.
-IR::Vector<IR::Argument> createActionCallArguments(cstring tableName, cstring actionName,
+IR::Vector<IR::Argument> createActionCallArguments(cstring symbolicTablePrefix, cstring actionName,
                                                    const IR::ParameterList &parameters) {
     IR::Vector<IR::Argument> arguments;
     for (const auto *parameter : parameters.parameters) {
@@ -35,12 +35,13 @@ IR::Vector<IR::Argument> createActionCallArguments(cstring tableName, cstring ac
         // TODO: This boolean cast hack is only necessary because the P4Info does not contain
         // type information. Is there any way we can simplify this?
         if (parameter->type->is<IR::Type_Boolean>()) {
-            actionArg = ControlPlaneState::getTableActionArgument(
-                tableName, actionName, parameter->controlPlaneName(), IR::Type_Bits::get(1));
+            actionArg = ControlPlaneState::getTableActionArgument(symbolicTablePrefix, actionName,
+                                                                  parameter->controlPlaneName(),
+                                                                  IR::Type_Bits::get(1));
             actionArg = new IR::Equ(actionArg, new IR::Constant(IR::Type_Bits::get(1), 1));
         } else {
             actionArg = ControlPlaneState::getTableActionArgument(
-                tableName, actionName, parameter->controlPlaneName(), parameter->type);
+                symbolicTablePrefix, actionName, parameter->controlPlaneName(), parameter->type);
         }
         arguments.push_back(new IR::Argument(actionArg));
     }
@@ -50,7 +51,13 @@ IR::Vector<IR::Argument> createActionCallArguments(cstring tableName, cstring ac
 }  // namespace
 
 TableExecutor::TableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver)
-    : table(table), resolver(callingResolver) {}
+    : table(table), resolver(callingResolver) {
+    setSymbolicTablePrefix(table.controlPlaneName());
+}
+
+void TableExecutor::setSymbolicTablePrefix(cstring name) { _symbolicTablePrefix = name; }
+
+cstring TableExecutor::symbolicTablePrefix() const { return _symbolicTablePrefix; }
 
 const ProgramInfo &TableExecutor::getProgramInfo() const { return resolver.get().getProgramInfo(); }
 
@@ -102,7 +109,6 @@ const IR::Expression *TableExecutor::computeKey(const IR::Key *key) const {
 }
 
 const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement *keyField) const {
-    auto tableName = getP4Table().controlPlaneName();
     const auto *keyExpr = keyField->expression;
     const auto matchType = keyField->matchType->toString();
     const auto *nameAnnot = keyField->getAnnotation(IR::Annotation::nameAnnotation);
@@ -114,22 +120,24 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
         fieldName = nameAnnot->getName();
     }
     // Create a new variable constant that corresponds to the key expression.
-    const auto *ctrlPlaneKey = ControlPlaneState::getTableKey(tableName, fieldName, keyExpr->type);
+    const auto *ctrlPlaneKey =
+        ControlPlaneState::getTableKey(symbolicTablePrefix(), fieldName, keyExpr->type);
 
     if (matchType == P4Constants::MATCH_KIND_EXACT) {
         return new IR::Equ(keyExpr, ctrlPlaneKey);
     }
     if (matchType == P4Constants::MATCH_KIND_TERNARY) {
         const IR::Expression *ternaryMask = nullptr;
-        ternaryMask = ControlPlaneState::getTableTernaryMask(tableName, fieldName, keyExpr->type);
+        ternaryMask =
+            ControlPlaneState::getTableTernaryMask(symbolicTablePrefix(), fieldName, keyExpr->type);
         return new IR::Equ(new IR::BAnd(keyExpr, ternaryMask),
                            new IR::BAnd(ctrlPlaneKey, ternaryMask));
     }
     if (matchType == P4Constants::MATCH_KIND_LPM) {
         const auto *keyType = keyExpr->type->checkedTo<IR::Type_Bits>();
         auto keyWidth = keyType->width_bits();
-        const IR::Expression *maskVar =
-            ControlPlaneState::getTableMatchLpmPrefix(tableName, fieldName, keyExpr->type);
+        const IR::Expression *maskVar = ControlPlaneState::getTableMatchLpmPrefix(
+            symbolicTablePrefix(), fieldName, keyExpr->type);
         // The maxReturn is the maximum vale for the given bit width. This value is shifted by
         // the mask variable to create a mask (and with that, a prefix).
         auto maxReturn = IR::getMaxBvVal(keyWidth);
@@ -194,7 +202,7 @@ void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tabl
         }
         const auto *actionExpr = IR::StringLiteral::get(actionType->controlPlaneName());
         auto *actionHitCondition = new IR::Equ(
-            actionExpr, ControlPlaneState::getDefaultActionVariable(table.controlPlaneName()));
+            actionExpr, ControlPlaneState::getDefaultActionVariable(symbolicTablePrefix()));
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
             actionHitCondition, actionExpr, tableReturnProperties.actionRun);
@@ -204,8 +212,7 @@ void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tabl
         const auto &parameters = actionType->parameters;
         auto &actionState = state.clone();
         actionState.pushExecutionCondition(actionHitCondition);
-        auto arguments =
-            createActionCallArguments(table.controlPlaneName(), actionName, *parameters);
+        auto arguments = createActionCallArguments(symbolicTablePrefix(), actionName, *parameters);
         state.addReachabilityMapping(action, actionHitCondition);
         callAction(getProgramInfo(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
@@ -217,7 +224,7 @@ void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnPrope
     auto table = getP4Table();
     auto tableActionList = TableUtils::buildTableActionList(table);
     auto &state = getExecutionState();
-    const auto *tableActionID = ControlPlaneState::getTableActionChoice(table.controlPlaneName());
+    const auto *tableActionID = ControlPlaneState::getTableActionChoice(symbolicTablePrefix());
 
     for (const auto *action : tableActionList) {
         const auto *actionType =
@@ -236,8 +243,7 @@ void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnPrope
         const auto &parameters = actionType->parameters;
         auto &actionState = state.clone();
         actionState.pushExecutionCondition(actionHitCondition);
-        auto arguments =
-            createActionCallArguments(table.controlPlaneName(), actionName, *parameters);
+        auto arguments = createActionCallArguments(symbolicTablePrefix(), actionName, *parameters);
         state.addReachabilityMapping(action, actionHitCondition);
         callAction(getProgramInfo(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
@@ -246,24 +252,25 @@ void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnPrope
 }
 
 const IR::Expression *TableExecutor::processTable() {
-    const auto tableName = getP4Table().controlPlaneName();
+    const auto &table = getP4Table();
     TableUtils::TableProperties properties;
     TableUtils::checkTableImmutability(table, properties);
 
     // Then, resolve the key.
-    const auto *key = getP4Table().getKey();
+    const auto *key = table.getKey();
     if (key == nullptr) {
         auto tableActionList = TableUtils::buildTableActionList(table);
         for (const auto *action : tableActionList) {
             getExecutionState().addReachabilityMapping(action, IR::BoolLiteral::get(false));
         }
-        const auto *actionPath = TableUtils::getDefaultActionName(getP4Table());
+        const auto *actionPath = TableUtils::getDefaultActionName(table);
         return new IR::StructExpression(
             nullptr,
             {new IR::NamedExpression("hit", IR::BoolLiteral::get(false)),
              new IR::NamedExpression("miss", IR::BoolLiteral::get(true)),
              new IR::NamedExpression("action_run", IR::StringLiteral::get(actionPath->toString())),
-             new IR::NamedExpression("table_name", IR::StringLiteral::get(tableName))});
+             new IR::NamedExpression("table_name",
+                                     IR::StringLiteral::get(table.controlPlaneName()))});
     }
     key = resolveKey(key);
 
@@ -271,7 +278,7 @@ const IR::Expression *TableExecutor::processTable() {
     /// Pay attention to how we use "toString" for the path name here.
     /// We need to match these choices correctly. TODO: Make this very explicit.
     const auto *hitCondition =
-        new IR::LAnd(ControlPlaneState::getTableActive(tableName), computeKey(key));
+        new IR::LAnd(ControlPlaneState::getTableActive(symbolicTablePrefix()), computeKey(key));
     ReturnProperties tableReturnProperties{hitCondition,
                                            IR::StringLiteral::get(actionPath->path->toString())};
 
@@ -285,7 +292,7 @@ const IR::Expression *TableExecutor::processTable() {
         {new IR::NamedExpression("hit", tableReturnProperties.totalHitCondition),
          new IR::NamedExpression("miss", new IR::LNot(tableReturnProperties.totalHitCondition)),
          new IR::NamedExpression("action_run", tableReturnProperties.actionRun),
-         new IR::NamedExpression("table_name", IR::StringLiteral::get(tableName))});
+         new IR::NamedExpression("table_name", IR::StringLiteral::get(table.controlPlaneName()))});
 }
 
 }  // namespace P4Tools::Flay

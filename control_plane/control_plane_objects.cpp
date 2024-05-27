@@ -23,6 +23,10 @@ const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName) {
 
 namespace P4Tools::Flay {
 
+/**************************************************************************************************
+TableMatchEntry
+**************************************************************************************************/
+
 TableMatchEntry::TableMatchEntry(const Constraint *actionAssignment, int32_t priority,
                                  const TableKeySet &matches)
     : actionAssignment(actionAssignment),
@@ -63,6 +67,31 @@ bool TableMatchEntry::operator<(const ControlPlaneItem &other) const {
 const IR::Expression *TableMatchEntry::computeControlPlaneConstraint() const {
     return matchExpression;
 }
+
+/**************************************************************************************************
+WildCardMatchEntry
+**************************************************************************************************/
+
+WildCardMatchEntry::WildCardMatchEntry(const Constraint *actionAssignment, int32_t priority)
+    : TableMatchEntry(actionAssignment, priority, {}) {
+    matchExpression = IR::BoolLiteral::get(true);
+}
+
+bool WildCardMatchEntry::operator<(const ControlPlaneItem &other) const {
+    // Table match entries are only compared based on the match expression.
+    return typeid(*this) == typeid(other)
+               ? matchExpression->isSemanticallyLess(
+                     *(dynamic_cast<const WildCardMatchEntry &>(other)).matchExpression)
+               : typeid(*this).hash_code() < typeid(other).hash_code();
+}
+
+const IR::Expression *WildCardMatchEntry::computeControlPlaneConstraint() const {
+    return matchExpression;
+}
+
+/**************************************************************************************************
+TableConfiguration
+**************************************************************************************************/
 
 bool TableConfiguration::CompareTableMatch::operator()(const TableMatchEntry &left,
                                                        const TableMatchEntry &right) {
@@ -117,6 +146,10 @@ const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const 
     return new IR::LAnd(matchExpression, tableConfigured);
 }
 
+/**************************************************************************************************
+ParserValueSet
+**************************************************************************************************/
+
 ParserValueSet::ParserValueSet(cstring name) : name_(name) {}
 
 bool ParserValueSet::operator<(const ControlPlaneItem &other) const {
@@ -129,8 +162,12 @@ const IR::Expression *ParserValueSet::computeControlPlaneConstraint() const {
                        IR::BoolLiteral::get(false));
 }
 
+/**************************************************************************************************
+ActionProfile
+**************************************************************************************************/
+
 bool ActionProfile::operator<(const ControlPlaneItem &other) const {
-    // There is only one action profile active, we ignore the set of associated tables..
+    // There is only one action profile active, we ignore the set of associated tables.
     return typeid(*this) == typeid(other) ? false
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
@@ -143,4 +180,28 @@ const std::set<cstring> &ActionProfile::associatedTables() const { return _assoc
 
 void ActionProfile::addAssociatedTable(cstring table) { _associatedTables.insert(table); }
 
+/**************************************************************************************************
+ActionSelector
+**************************************************************************************************/
+
+bool ActionSelector::operator<(const ControlPlaneItem &other) const {
+    // There is only one action selection active.
+    // We ignore the set of associated tables and referenced profile.
+    return typeid(*this) == typeid(other) ? false
+                                          : typeid(*this).hash_code() < typeid(other).hash_code();
+}
+
+const IR::Expression *ActionSelector::computeControlPlaneConstraint() const {
+    // Action profiles are indirect and associated with the constraints of a table.
+    return IR::BoolLiteral::get(true);
+}
+const std::set<cstring> &ActionSelector::associatedTables() const { return _associatedTables; }
+
+void ActionSelector::addAssociatedTable(cstring table) {
+    _associatedTables.insert(table);
+    // Note that we also add the table to the associated profile.
+    _actionProfile.get().addAssociatedTable(table);
+}
+
+const ActionProfile &ActionSelector::actionProfile() const { return _actionProfile; }
 }  // namespace P4Tools::Flay

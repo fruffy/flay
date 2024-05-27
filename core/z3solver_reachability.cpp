@@ -1,5 +1,6 @@
 #include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
 
+#include <cstdio>
 #include <utility>
 
 #include "backends/p4tools/common/lib/logging.h"
