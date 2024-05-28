@@ -16,13 +16,13 @@
 namespace P4Tools::Flay {
 
 FlayStepper::FlayStepper(const ProgramInfo &programInfo, ExecutionState &executionState)
-    : programInfo(programInfo), executionState(executionState) {
+    : _programInfo(programInfo), _executionState(executionState) {
     visitDagOnce = false;
 }
 
-const ProgramInfo &FlayStepper::getProgramInfo() const { return programInfo.get(); }
+const ProgramInfo &FlayStepper::getProgramInfo() const { return _programInfo; }
 
-ExecutionState &FlayStepper::getExecutionState() const { return executionState.get(); }
+ExecutionState &FlayStepper::getExecutionState() const { return _executionState; }
 
 bool FlayStepper::preorder(const IR::Node *node) {
     P4C_UNIMPLEMENTED("Node %1% of type %2% not implemented in the core stepper.", node,
@@ -121,7 +121,7 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
     auto &executionState = getExecutionState();
 
     const auto *cond = ifStatement->condition;
-    auto &resolver = createExpressionResolver(programInfo, executionState);
+    auto &resolver = createExpressionResolver(getProgramInfo(), executionState);
     cond = resolver.computeResult(cond);
 
     // Add the node to the reachability map.
@@ -130,7 +130,7 @@ bool FlayStepper::preorder(const IR::IfStatement *ifStatement) {
     // Execute the case where the condition is true.
     auto &trueState = executionState.clone();
     trueState.pushExecutionCondition(cond);
-    auto &trueStepper = FlayTarget::getStepper(programInfo, trueState);
+    auto &trueStepper = FlayTarget::getStepper(getProgramInfo(), trueState);
     ifStatement->ifTrue->apply(trueStepper);
 
     // Execute the alternative.
@@ -154,7 +154,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
 
     auto &executionState = getExecutionState();
     // Resolve the switch match expression.
-    auto &resolver = createExpressionResolver(programInfo, executionState);
+    auto &resolver = createExpressionResolver(getProgramInfo(), executionState);
     const auto *switchExpr = resolver.computeResult(switchStatement->expression);
 
     const IR::Expression *cond = nullptr;
@@ -199,7 +199,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             cond = IR::BoolLiteral::get(false);
             caseState.pushExecutionCondition(finalCond);
             // Execute the state with the accumulated statements.
-            auto &switchStepper = FlayTarget::getStepper(programInfo, caseState);
+            auto &switchStepper = FlayTarget::getStepper(getProgramInfo(), caseState);
             for (const auto *switchCase : accumulatedSwitchCases) {
                 // Add the switch case to the reachability map.
                 executionState.addReachabilityMapping(switchCase, finalCond);
@@ -229,7 +229,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
 }
 
 bool FlayStepper::preorder(const IR::MethodCallStatement *callStatement) {
-    auto &resolver = createExpressionResolver(programInfo, executionState);
+    auto &resolver = createExpressionResolver(getProgramInfo(), getExecutionState());
     callStatement->methodCall->apply(resolver);
     return false;
 }

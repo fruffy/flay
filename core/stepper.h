@@ -20,11 +20,12 @@ class FlayStepper : public Inspector {
 
  private:
     /// The program info of the target.
-    std::reference_wrapper<const ProgramInfo> programInfo;
+    std::reference_wrapper<const ProgramInfo> _programInfo;
 
     /// The current execution state.
-    std::reference_wrapper<ExecutionState> executionState;
+    std::reference_wrapper<ExecutionState> _executionState;
 
+ protected:
     /// Visitor methods.
     bool preorder(const IR::Node *node) override;
     bool preorder(const IR::P4Control *control) override;
@@ -36,7 +37,6 @@ class FlayStepper : public Inspector {
     bool preorder(const IR::SwitchStatement *switchStatement) override;
     bool preorder(const IR::MethodCallStatement *callStatement) override;
 
- protected:
     /// @returns the current execution state.
     ExecutionState &getExecutionState() const;
 
