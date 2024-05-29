@@ -1,7 +1,5 @@
 #include "backends/p4tools/modules/flay/targets/tofino/tofino1/stepper.h"
 
-#include <utility>
-
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 
@@ -21,12 +19,6 @@ Tofino1ExpressionResolver &Tofino1FlayStepper::createExpressionResolver(
 }
 
 void Tofino1FlayStepper::initializeParserState(const IR::P4Parser &parser) {
-    // TODO: In Tofino blocks can have optional elements. How to support setting the parser error
-    // for that?
-
-    // Both parsers have 6 parameters.
-    // BUG_CHECK(parser.getApplyParameters()->parameters.size() == 6,
-    //           "Expected 6 parameters for parser %1%", parser);
     const auto &parameters = parser.getApplyParameters()->parameters;
 
     auto canonicalBlockName = getProgramInfo().getCanonicalBlockName(parser.name);
@@ -45,12 +37,6 @@ void Tofino1FlayStepper::initializeParserState(const IR::P4Parser &parser) {
                 parser.controlPlaneName() + "_" + metadataBlock->controlPlaneName() + "_parser_err";
             getExecutionState().set(parserErrorVariable, ToolsVariables::getSymbolicVariable(
                                                              sixteenBitType, parserErrorLabel));
-        } else {
-            const auto *parserErrorVar = new IR::Member(
-                sixteenBitType, new IR::PathExpression("*ig_intr_md_from_prsr"), "parser_err");
-            const IR::Expression *parserErrorValue =
-                new IR::SymbolicVariable(sixteenBitType, "ig_intr_md_from_prsr.parser_err");
-            getExecutionState().set(parserErrorVar, parserErrorValue);
         }
     } else if (canonicalBlockName == "EgressParserT") {
         constexpr int kParserMetadataIndex = 4;
@@ -66,12 +52,6 @@ void Tofino1FlayStepper::initializeParserState(const IR::P4Parser &parser) {
                 parser.controlPlaneName() + "_" + metadataBlock->controlPlaneName() + "_parser_err";
             getExecutionState().set(parserErrorVariable, ToolsVariables::getSymbolicVariable(
                                                              sixteenBitType, parserErrorLabel));
-        } else {
-            const auto *parserErrorVar = new IR::Member(
-                sixteenBitType, new IR::PathExpression("*eg_intr_md_from_prsr"), "parser_err");
-            const IR::Expression *parserErrorValue =
-                new IR::SymbolicVariable(sixteenBitType, "eg_intr_md_from_prsr.parser_err");
-            getExecutionState().set(parserErrorVar, parserErrorValue);
         }
     } else {
         BUG("Unexpected canonical block name %1% for parser %2%", canonicalBlockName, parser);

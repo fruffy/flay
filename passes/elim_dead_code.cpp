@@ -5,6 +5,7 @@
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/modules/flay/control_plane/return_macros.h"
+#include "backends/p4tools/modules/flay/options.h"
 #include "ir/node.h"
 #include "ir/vector.h"
 #include "lib/error.h"
@@ -14,6 +15,13 @@ namespace P4Tools::Flay {
 ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
                            const AbstractReachabilityMap &reachabilityMap)
     : reachabilityMap(reachabilityMap), refMap(refMap) {}
+
+const IR::Node *ElimDeadCode::preorder(IR::P4Parser *parser) {
+    if (FlayOptions::get().skipParsers()) {
+        prune();
+    }
+    return parser;
+}
 
 const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     // Only analyze statements with valid source location.

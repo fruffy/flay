@@ -4,7 +4,6 @@
 
 #include "backends/p4tools/common/lib/arch_spec.h"
 #include "backends/p4tools/common/lib/gen_eq.h"
-#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "ir/declaration.h"
 #include "ir/id.h"
@@ -35,12 +34,32 @@ bool ParserStepper::preorder(const IR::Node *node) {
 bool ParserStepper::preorder(const IR::P4Parser *parser) {
     auto &executionState = getExecutionState();
     // Enter the parser's namespace.
-    executionState.pushNamespace(parser);
     auto blockName = parser->getName().name;
     auto canonicalName = getProgramInfo().getCanonicalBlockName(blockName);
     const auto *parserParams = parser->getApplyParameters();
     const auto *archSpec = FlayTarget::getArchSpec();
 
+    // If we skip the parser we just initialize all (In)Out variables with a symbolic expression.
+    if (FlayOptions::get().skipParsers()) {
+        for (size_t paramIdx = 0; paramIdx < parserParams->size(); ++paramIdx) {
+            const auto *internalParam = parserParams->getParameter(paramIdx);
+            if (internalParam->direction != IR::Direction::Out &&
+                internalParam->direction != IR::Direction::InOut) {
+                continue;
+            }
+            auto variablePrefix =
+                parser->controlPlaneName() + "_" + internalParam->controlPlaneName();
+            const auto *symbolicExpression =
+                executionState.createSymbolicExpression(internalParam->type, variablePrefix);
+            auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
+            const auto *externalParamRef =
+                new IR::PathExpression(internalParam->type, new IR::Path(externalParamName));
+            executionState.assignStructLike(externalParamRef, symbolicExpression);
+        }
+        return false;
+    }
+
+    executionState.pushNamespace(parser);
     // Copy-in.
     for (size_t paramIdx = 0; paramIdx < parserParams->size(); ++paramIdx) {
         const auto *internalParam = parserParams->getParameter(paramIdx);
