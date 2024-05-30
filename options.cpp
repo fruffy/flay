@@ -156,6 +156,14 @@ FlayOptions::FlayOptions(const std::string &message)
             }
         },
         "Specifies the control plane API to use. Defaults to P4Rtuntime.");
+    registerOption(
+        "--skip-parsers", nullptr,
+        [this](const char *) {
+            _skipParsers = true;
+            return true;
+        },
+        "Skip parsers in the analysis and replace the parser output result with symbolic "
+        "variables.");
 }
 
 std::filesystem::path FlayOptions::controlPlaneConfig() const {
@@ -189,5 +197,7 @@ std::optional<std::filesystem::path> FlayOptions::p4InfoFilePath() const { retur
 std::optional<std::filesystem::path> FlayOptions::userP4Info() const { return _userP4Info; }
 
 std::string_view FlayOptions::controlPlaneApi() const { return _controlPlaneApi; }
+
+bool FlayOptions::skipParsers() const { return _skipParsers; }
 
 }  // namespace P4Tools

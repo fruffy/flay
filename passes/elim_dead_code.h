@@ -29,6 +29,7 @@ class ElimDeadCode : public Transform {
     /// The list of eliminated and optionally replaced nodes. Used for bookkeeping.
     std::vector<EliminatedReplacedPair> eliminatedNodes;
 
+    const IR::Node *preorder(IR::P4Parser *parser) override;
     const IR::Node *preorder(IR::IfStatement *stmt) override;
     const IR::Node *preorder(IR::SwitchStatement *switchStmt) override;
     const IR::Node *preorder(IR::MethodCallStatement *stmt) override;

@@ -179,7 +179,8 @@ const IR::Expression *simplify(const IR::Expression *expr) {
         new FoldMuxConditionDown(),
         new LiftMuxConditions(),
     });
-    if (FlayOptions::get().collapseDataPlaneOperations()) {
+    auto &options = FlayOptions::get();
+    if (options.collapseDataPlaneOperations() && !options.skipParsers()) {
         pass.addPasses({
             new Flay::DataPlaneVariablePropagator(),
         });
