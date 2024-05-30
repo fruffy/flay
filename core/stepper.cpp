@@ -29,6 +29,10 @@ bool FlayStepper::preorder(const IR::Node *node) {
                       node->node_type_name());
 }
 
+void FlayStepper::initializeParserState(const IR::P4Parser & /*parser*/) {};
+
+void FlayStepper::initializeControlState(const IR::P4Control & /*control*/) {};
+
 /* =============================================================================================
  *  Visitor functions
  * ============================================================================================= */
@@ -55,6 +59,8 @@ bool FlayStepper::preorder(const IR::P4Control *control) {
         auto externalParamName = archSpec->getParamName(canonicalName, paramIdx);
         executionState.copyIn(FlayTarget::get(), internalParam, externalParamName);
     }
+
+    initializeControlState(*control);
 
     // Declare local variables.
     for (const auto *decl : control->controlLocals) {

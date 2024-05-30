@@ -4,10 +4,12 @@
 #include <utility>
 
 #include "backends/p4tools/common/lib/arch_spec.h"
+#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
 #include "ir/irutils.h"
+#include "lib/exceptions.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -48,6 +50,20 @@ void V1ModelFlayStepper::initializeState() {
     executionState.setPlaceholderValue(
         "standard_metadata.instance_type",
         IR::Constant::get(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
+}
+
+void V1ModelFlayStepper::initializeParserState(const IR::P4Parser &parser) {
+    BUG_CHECK(parser.getApplyParameters()->parameters.size() == 4,
+              "Expected 4 parameters for parser %1%", parser);
+    // Initialize the parser error to be a symbolic variable.
+    const auto *metadataBlock = parser.getApplyParameters()->parameters.at(3);
+    const auto *thirtyTwoBitType = IR::Type_Bits::get(32);
+    auto *parserErrorVariable = new IR::Member(
+        thirtyTwoBitType, new IR::PathExpression(metadataBlock->name), "parser_error");
+    auto parserErrorLabel =
+        parser.controlPlaneName() + "_" + metadataBlock->controlPlaneName() + "_parser_error";
+    getExecutionState().set(parserErrorVariable, ToolsVariables::getSymbolicVariable(
+                                                     thirtyTwoBitType, parserErrorLabel));
 }
 
 V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::Bmv2V1ModelProgramInfo &programInfo,

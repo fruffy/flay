@@ -48,6 +48,8 @@ bool ParserStepper::preorder(const IR::P4Parser *parser) {
         executionState.copyIn(FlayTarget::get(), internalParam, externalParamName);
     }
 
+    stepper.get().initializeParserState(*parser);
+
     // Declare local variables.
     for (const auto *decl : parser->parserLocals) {
         if (const auto *declVar = decl->to<IR::Declaration_Variable>()) {

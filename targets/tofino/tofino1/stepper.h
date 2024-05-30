@@ -17,6 +17,8 @@ class Tofino1FlayStepper : public TofinoBaseFlayStepper {
     explicit Tofino1FlayStepper(const Tofino1ProgramInfo &programInfo,
                                 ExecutionState &executionState);
 
+    void initializeParserState(const IR::P4Parser &parser) override;
+
     Tofino1ExpressionResolver &createExpressionResolver(
         const ProgramInfo &programInfo, ExecutionState &executionState) const override;
 };
