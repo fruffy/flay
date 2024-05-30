@@ -16,6 +16,8 @@ class XsaFlayStepper : public FpgaBaseFlayStepper {
  public:
     explicit XsaFlayStepper(const XsaProgramInfo &programInfo, ExecutionState &executionState);
 
+    void initializeParserState(const IR::P4Parser &parser) override;
+
     XsaExpressionResolver &createExpressionResolver(const ProgramInfo &programInfo,
                                                     ExecutionState &executionState) const override;
 };

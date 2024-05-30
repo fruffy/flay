@@ -19,6 +19,8 @@ class V1ModelFlayStepper : public FlayStepper {
 
     void initializeState() override;
 
+    void initializeParserState(const IR::P4Parser &parser) override;
+
     V1ModelExpressionResolver &createExpressionResolver(
         const ProgramInfo &programInfo, ExecutionState &executionState) const override;
 };

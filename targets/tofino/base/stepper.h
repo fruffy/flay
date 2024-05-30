@@ -11,8 +11,6 @@ class TofinoBaseFlayStepper : public FlayStepper {
  protected:
     const TofinoBaseProgramInfo &getProgramInfo() const override;
 
-    bool preorder(const IR::P4Control *control) override;
-
  public:
     explicit TofinoBaseFlayStepper(const TofinoBaseProgramInfo &programInfo,
                                    ExecutionState &executionState);

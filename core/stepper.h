@@ -26,6 +26,14 @@ class FlayStepper : public Inspector {
     std::reference_wrapper<ExecutionState> _executionState;
 
  protected:
+    /// Called after the copy-in step in the parser.
+    /// Can initialize some target-specific state before the rest of the parser is invoked.
+    virtual void initializeParserState(const IR::P4Parser &parser);
+
+    /// Called after the copy-in step in the control.
+    /// Can initialize some target-specific state before the rest of the control is invoked.
+    virtual void initializeControlState(const IR::P4Control &control);
+
     /// Visitor methods.
     bool preorder(const IR::Node *node) override;
     bool preorder(const IR::P4Control *control) override;
