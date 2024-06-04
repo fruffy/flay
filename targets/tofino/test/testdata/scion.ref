@@ -8,13 +8,8 @@ Eliminated node at line (unknown): { tmp_41 = tbl_bfd_local_0/tbl_bfd_local.appl
 Eliminated node at line 1489: bfd_state = tbl_bfd_remote.apply().hit;
 Eliminated node at line 1500: if (local_destination) {
 Eliminated node at line 1523: forward_local_ipv6:
-Eliminated node at line 1528: hdr.scion_info_field_0.segId = meta.nextSegId;
-Eliminated node at line 1530: hdr.scion_info_field_1.segId = meta.nextSegId;
-Eliminated node at line 1531: } else if (hdr.scion_path_meta.currInf == 2) {
-Eliminated node at line 1536: if(hdr.scion_common.pathType == PathType.SCION) {
 Replaced node at line 1548: tbl_set_local_source.apply(); with default_action = drop();
-Eliminated node at line 1551: if (hdr.scion_common.nextHdr != 0xCB) {
 statement_count_before:596
-statement_count_after:572
+statement_count_after:581
 cyclomatic_complexity:134
 
