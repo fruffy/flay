@@ -81,6 +81,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/target.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/z3solver_reachability.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/elim_dead_code.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/passes/substitute_expressions.cpp
 )
 
 # GTest source files for P4Flay.

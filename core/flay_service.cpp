@@ -11,7 +11,7 @@
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/core/analysis.h"
 #include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
-#include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
+#include "backends/p4tools/modules/flay/passes/specializer.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 #include "lib/timer.h"
@@ -111,10 +111,10 @@ std::pair<int, bool> FlayServiceBase::elimControlPlaneDeadCode(
     }
     printInfo("Change in semantics detected.");
 
-    auto elimDeadCode = ElimDeadCode(_refMap, _reachabilityMap);
-    _optimizedProgram = originalProgram().apply(elimDeadCode);
+    auto flaySpecializer = FlaySpecializer(_refMap, _reachabilityMap);
+    _optimizedProgram = originalProgram().apply(flaySpecializer);
     // Update the list of eliminated nodes.
-    _eliminatedNodes = elimDeadCode.getEliminatedNodes();
+    _eliminatedNodes = flaySpecializer.eliminatedNodes();
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
                                : std::pair{EXIT_FAILURE, hasChanged};
 }
