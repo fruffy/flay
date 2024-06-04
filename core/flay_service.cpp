@@ -19,28 +19,28 @@
 namespace P4Tools::Flay {
 
 AbstractReachabilityMap &FlayServiceBase::initializeReachabilityMap(
-    ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap) {
+    ReachabilityMapType mapType, const NodeAnnotationMap &nodeAnnotationMap) {
     printInfo("Creating the reachability map...");
     AbstractReachabilityMap *initializedReachabilityMap = nullptr;
     if (mapType == ReachabilityMapType::kz3Precomputed) {
-        initializedReachabilityMap = new Z3SolverReachabilityMap(reachabilityMap);
+        initializedReachabilityMap = new Z3SolverReachabilityMap(nodeAnnotationMap);
     } else {
         auto *solver = new Z3Solver();
-        initializedReachabilityMap = new SolverReachabilityMap(*solver, reachabilityMap);
+        initializedReachabilityMap = new SolverReachabilityMap(*solver, nodeAnnotationMap);
     }
     return *initializedReachabilityMap;
 }
 
 FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
                                  const FlayCompilerResult &compilerResult,
-                                 const ReachabilityMap &reachabilityMap,
+                                 const NodeAnnotationMap &nodeAnnotationMap,
                                  ControlPlaneConstraints initialControlPlaneConstraints)
     : _options(options),
       _originalProgram(compilerResult.getOriginalProgram()),
       _midEndProgram(compilerResult.getProgram()),
       _optimizedProgram(&compilerResult.getOriginalProgram()),
       _compilerResult(compilerResult),
-      _reachabilityMap(initializeReachabilityMap(options.mapType, reachabilityMap)),
+      _reachabilityMap(initializeReachabilityMap(options.mapType, nodeAnnotationMap)),
       _controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
     printInfo("Checking whether dead code can be removed with the initial configuration...");
     originalProgram().apply(P4::ResolveReferences(&_refMap));

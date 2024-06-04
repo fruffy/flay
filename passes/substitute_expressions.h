@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include "backends/p4tools/modules/flay/core/reachability.h"
+#include "backends/p4tools/modules/flay/core/reachability_map.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
 #include "ir/ir-generated.h"
 #include "ir/ir.h"

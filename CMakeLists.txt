@@ -67,9 +67,11 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/expression_resolver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/externs.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/flay_service.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/node_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/parser_stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/program_info.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/reachability.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/reachability_expression.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/reachability_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service_wrapper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service_wrapper_bfruntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service_wrapper_p4runtime.cpp

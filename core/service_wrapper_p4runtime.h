@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "backends/p4tools/modules/flay/core/reachability.h"
+#include "backends/p4tools/modules/flay/core/node_map.h"
 #include "backends/p4tools/modules/flay/core/service_wrapper.h"
 
 #pragma GCC diagnostic push
@@ -22,9 +22,9 @@ class P4RuntimeFlayServiceWrapper : public FlayServiceWrapper {
  public:
     P4RuntimeFlayServiceWrapper(const FlayServiceOptions &serviceOptions,
                                 const FlayCompilerResult &compilerResult,
-                                const ReachabilityMap &reachabilityMap,
+                                const NodeAnnotationMap &nodeAnnotationMap,
                                 const ControlPlaneConstraints &initialControlPlaneConstraints)
-        : FlayServiceWrapper(serviceOptions, compilerResult, reachabilityMap,
+        : FlayServiceWrapper(serviceOptions, compilerResult, nodeAnnotationMap,
                              initialControlPlaneConstraints) {}
 
     /// Try to parse the provided pattern into update files and convert them to control-plane

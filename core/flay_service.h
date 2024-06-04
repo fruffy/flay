@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "backends/p4tools/modules/flay/core/compiler_result.h"
-#include "backends/p4tools/modules/flay/core/reachability.h"
+#include "backends/p4tools/modules/flay/core/node_map.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"
 
@@ -113,7 +113,7 @@ class FlayServiceBase {
  public:
     explicit FlayServiceBase(const FlayServiceOptions &options,
                              const FlayCompilerResult &compilerResult,
-                             const ReachabilityMap &reachabilityMap,
+                             const NodeAnnotationMap &nodeAnnotationMap,
                              ControlPlaneConstraints initialControlPlaneConstraints);
 
     /// Print the optimized program to stdout;
@@ -123,7 +123,7 @@ class FlayServiceBase {
     void outputOptimizedProgram(const std::filesystem::path &optimizedOutputFile) const;
 
     static AbstractReachabilityMap &initializeReachabilityMap(
-        ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap);
+        ReachabilityMapType mapType, const NodeAnnotationMap &nodeAnnotationMap);
 
     /// @returns the original program.
     [[nodiscard]] const IR::P4Program &originalProgram() const;

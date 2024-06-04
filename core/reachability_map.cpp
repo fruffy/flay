@@ -1,63 +1,15 @@
-#include "backends/p4tools/modules/flay/core/reachability.h"
+#include "backends/p4tools/modules/flay/core/reachability_map.h"
 
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
 
-const IR::Expression *ReachabilityExpression::getCondition() const { return cond; }
-
-void ReachabilityExpression::setCondition(const IR::Expression *cond) { this->cond = cond; }
-
-std::optional<bool> ReachabilityExpression::getReachability() const {
-    return reachabilityAssignment;
-}
-
-void ReachabilityExpression::setReachability(std::optional<bool> reachability) {
-    reachabilityAssignment = reachability;
-}
-
-ReachabilityExpression::ReachabilityExpression(const IR::Expression *cond,
-                                               std::optional<bool> reachabilityAssignment)
-    : cond(cond), reachabilityAssignment(reachabilityAssignment) {}
-ReachabilityExpression::ReachabilityExpression(const IR::Expression *cond)
-    : cond(cond), reachabilityAssignment(std::nullopt) {}
-
-bool ReachabilityMap::initializeReachabilityMapping(const IR::Node *node,
-                                                    const IR::Expression *cond) {
-    SymbolCollector collector;
-    cond->apply(collector);
-    const auto &collectedSymbols = collector.getCollectedSymbols();
-    for (const auto &symbol : collectedSymbols) {
-        symbolMap[symbol.get()].emplace(node);
-    }
-
-    auto result = emplace(node, std::set<ReachabilityExpression *>());
-    result.first->second.insert(new ReachabilityExpression(cond));
-    return result.second;
-}
-
-void ReachabilityMap::mergeReachabilityMapping(const ReachabilityMap &otherMap) {
-    for (const auto &rechabilityTuple : otherMap) {
-        (*this)[rechabilityTuple.first].insert(rechabilityTuple.second.begin(),
-                                               rechabilityTuple.second.end());
-    }
-    for (const auto &symbol : otherMap.getSymbolMap()) {
-        symbolMap[symbol.first.get()].insert(symbol.second.begin(), symbol.second.end());
+SolverReachabilityMap::SolverReachabilityMap(AbstractSolver &solver, const NodeAnnotationMap &map)
+    : _symbolMap(map.symbolMap()), _solver(solver) {
+    for (auto &pair : map.reachabilityMap()) {
+        emplace(pair.first, pair.second);
     }
 }
-
-void ReachabilityMap::substitutePlaceholders(Transform &substitute) {
-    for (auto &[node, reachabilityExpressionVector] : *this) {
-        for (const auto &reachabilityExpression : reachabilityExpressionVector) {
-            reachabilityExpression->setCondition(
-                reachabilityExpression->getCondition()->apply(substitute));
-        }
-    }
-}
-SymbolMap ReachabilityMap::getSymbolMap() const { return symbolMap; }
-
-SolverReachabilityMap::SolverReachabilityMap(AbstractSolver &solver, const ReachabilityMap &map)
-    : ReachabilityMap(map), symbolMap(map.getSymbolMap()), solver(solver) {}
 
 std::optional<bool> SolverReachabilityMap::computeNodeReachability(
     const IR::Node *node, const std::vector<const Constraint *> &constraints) {
@@ -73,7 +25,7 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
 
         std::vector<const Constraint *> mergedConstraints(constraints);
         mergedConstraints.push_back(reachabilityCondition);
-        auto solverResult = solver.get().checkSat(mergedConstraints);
+        auto solverResult = _solver.get().checkSat(mergedConstraints);
         /// Solver returns unknown, better leave this alone.
         if (solverResult == std::nullopt) {
             ::warning("Solver returned unknown result for %1%.", node);
@@ -90,7 +42,7 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
 
         std::vector<const Constraint *> mergedConstraints1(constraints);
         mergedConstraints1.push_back(new IR::LNot(reachabilityCondition));
-        auto solverResult1 = solver.get().checkSat(mergedConstraints1);
+        auto solverResult1 = _solver.get().checkSat(mergedConstraints1);
         /// Solver returns unknown, better leave this alone.
         if (solverResult1 == std::nullopt) {
             ::warning("Solver returned unknown result for %1%.", node);
@@ -158,8 +110,8 @@ std::optional<bool> SolverReachabilityMap::recomputeReachability(
     const SymbolSet &symbolSet, const ControlPlaneConstraints &controlPlaneConstraints) {
     NodeSet targetNodes;
     for (const auto &symbol : symbolSet) {
-        auto it = symbolMap.find(symbol);
-        if (it != symbolMap.end()) {
+        auto it = _symbolMap.find(symbol);
+        if (it != _symbolMap.end()) {
             for (const auto *node : it->second) {
                 targetNodes.insert(node);
             }

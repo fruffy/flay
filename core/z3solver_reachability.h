@@ -4,7 +4,8 @@
 #include <z3++.h>
 
 #include "backends/p4tools/common/core/z3_solver.h"
-#include "backends/p4tools/modules/flay/core/reachability.h"
+#include "backends/p4tools/modules/flay/core/node_map.h"
+#include "backends/p4tools/modules/flay/core/reachability_map.h"
 
 namespace P4Tools::Flay {
 
@@ -26,18 +27,19 @@ class Z3ReachabilityExpression : public ReachabilityExpression {
 class Z3SolverReachabilityMap
     : private std::map<const IR::Node *, std::set<Z3ReachabilityExpression *>, SourceIdCmp>,
       public AbstractReachabilityMap {
+ private:
     /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the
     /// reachability map. This map can we used for incremental re-computation of reachability.
-    SymbolMap symbolMap;
+    SymbolMap _symbolMap;
 
- private:
-    Z3Solver solver;
+    /// The Z3 solver used for incremental re-computation of reachability.
+    Z3Solver _solver;
 
     /// Compute reachability for the node given the set of constraints.
     std::optional<bool> computeNodeReachability(const IR::Node *node);
 
  public:
-    explicit Z3SolverReachabilityMap(const ReachabilityMap &map);
+    explicit Z3SolverReachabilityMap(const NodeAnnotationMap &map);
 
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

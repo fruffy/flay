@@ -37,7 +37,7 @@ int runServer(const FlayOptions &flayOptions, const FlayCompilerResult &flayComp
     FlayServiceOptions serviceOptions;
 
     // Initialize the flay service, which includes a dead code eliminator.
-    FlayService service(serviceOptions, flayCompilerResult, executionState.getReachabilityMap(),
+    FlayService service(serviceOptions, flayCompilerResult, executionState.nodeAnnotationMap(),
                         constraints);
     if (::errorCount() > 0) {
         ::error("Encountered errors trying to starting the service.");
@@ -59,10 +59,10 @@ std::optional<FlayServiceStatistics> runServiceWrapper(const FlayOptions &flayOp
     FlayServiceWrapper *serviceWrapper = nullptr;
     if (controlPlaneApi == "P4RUNTIME") {
         serviceWrapper = new P4RuntimeFlayServiceWrapper(
-            serviceOptions, flayCompilerResult, executionState.getReachabilityMap(), constraints);
+            serviceOptions, flayCompilerResult, executionState.nodeAnnotationMap(), constraints);
     } else if (controlPlaneApi == "BFRUNTIME") {
         serviceWrapper = new BfRuntimeFlayServiceWrapper(
-            serviceOptions, flayCompilerResult, executionState.getReachabilityMap(), constraints);
+            serviceOptions, flayCompilerResult, executionState.nodeAnnotationMap(), constraints);
     } else {
         ::error("Unsupported control plane API %1%.", controlPlaneApi.data());
         return std::nullopt;
