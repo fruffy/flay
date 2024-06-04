@@ -2,6 +2,7 @@
 
 #include <utility>
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "lib/timer.h"
 
 namespace P4Tools::Flay {
@@ -88,6 +89,8 @@ std::optional<bool> Z3SolverReachabilityMap::isNodeReachable(const IR::Node *nod
     if (vectorIt != end()) {
         BUG_CHECK(!vectorIt->second.empty(), "Reachability vector for node %1% is empty.", node);
         for (const auto &reachabilityNode : vectorIt->second) {
+            printFeature("flay_reachability_mapping", 4, "Reachability: %1% = %2%.", node,
+                         reachabilityNode->getCondition());
             auto reachability = reachabilityNode->getReachability();
             if (!reachability.has_value()) {
                 return std::nullopt;

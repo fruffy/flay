@@ -53,7 +53,7 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns the path set with --optimized-output-file.
     [[nodiscard]] std::optional<std::filesystem::path> optimizedOutputDir() const;
 
-    /// @returns false when --preserve-data-plane-variables has been set.
+    /// @returns true when --collapse-data-plane-variables has been set.
     [[nodiscard]] bool collapseDataPlaneOperations() const;
 
     /// @returns the path set with --generate-p4info.
@@ -99,7 +99,7 @@ class FlayOptions : public AbstractP4cToolOptions {
     std::optional<std::filesystem::path> _optimizedOutputDir = std::nullopt;
 
     /// Collapse arithmetic operations on data plane variables.
-    bool _collapseDataPlaneOperations = true;
+    bool _collapseDataPlaneOperations = false;
 
     // Use a user-supplied P4Info file instead of generating one.
     std::optional<std::filesystem::path> _userP4Info = std::nullopt;

@@ -95,9 +95,9 @@ FlayOptions::FlayOptions(const std::string &message)
         },
         "The path to the output directory of the optimized P4 program(s).");
     registerOption(
-        "--preserve-data-plane-variables", nullptr,
+        "--collapse-data-plane-variables", nullptr,
         [this](const char *) {
-            _collapseDataPlaneOperations = false;
+            _collapseDataPlaneOperations = true;
             return true;
         },
         "Preserve arithmetic operations on variables sourced from the data plane (e.g., header "
