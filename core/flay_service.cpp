@@ -11,7 +11,7 @@
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/core/analysis.h"
 #include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
-#include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
+#include "backends/p4tools/modules/flay/passes/specializer.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 #include "lib/timer.h"
@@ -19,28 +19,28 @@
 namespace P4Tools::Flay {
 
 AbstractReachabilityMap &FlayServiceBase::initializeReachabilityMap(
-    ReachabilityMapType mapType, const ReachabilityMap &reachabilityMap) {
+    ReachabilityMapType mapType, const NodeAnnotationMap &nodeAnnotationMap) {
     printInfo("Creating the reachability map...");
     AbstractReachabilityMap *initializedReachabilityMap = nullptr;
     if (mapType == ReachabilityMapType::kz3Precomputed) {
-        initializedReachabilityMap = new Z3SolverReachabilityMap(reachabilityMap);
+        initializedReachabilityMap = new Z3SolverReachabilityMap(nodeAnnotationMap);
     } else {
         auto *solver = new Z3Solver();
-        initializedReachabilityMap = new SolverReachabilityMap(*solver, reachabilityMap);
+        initializedReachabilityMap = new SolverReachabilityMap(*solver, nodeAnnotationMap);
     }
     return *initializedReachabilityMap;
 }
 
 FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
                                  const FlayCompilerResult &compilerResult,
-                                 const ReachabilityMap &reachabilityMap,
+                                 const NodeAnnotationMap &nodeAnnotationMap,
                                  ControlPlaneConstraints initialControlPlaneConstraints)
     : _options(options),
       _originalProgram(compilerResult.getOriginalProgram()),
       _midEndProgram(compilerResult.getProgram()),
       _optimizedProgram(&compilerResult.getOriginalProgram()),
       _compilerResult(compilerResult),
-      _reachabilityMap(initializeReachabilityMap(options.mapType, reachabilityMap)),
+      _reachabilityMap(initializeReachabilityMap(options.mapType, nodeAnnotationMap)),
       _controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
     printInfo("Checking whether dead code can be removed with the initial configuration...");
     originalProgram().apply(P4::ResolveReferences(&_refMap));
@@ -111,10 +111,10 @@ std::pair<int, bool> FlayServiceBase::elimControlPlaneDeadCode(
     }
     printInfo("Change in semantics detected.");
 
-    auto elimDeadCode = ElimDeadCode(_refMap, _reachabilityMap);
-    _optimizedProgram = originalProgram().apply(elimDeadCode);
+    auto flaySpecializer = FlaySpecializer(_refMap, _reachabilityMap);
+    _optimizedProgram = originalProgram().apply(flaySpecializer);
     // Update the list of eliminated nodes.
-    _eliminatedNodes = elimDeadCode.getEliminatedNodes();
+    _eliminatedNodes = flaySpecializer.eliminatedNodes();
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
                                : std::pair{EXIT_FAILURE, hasChanged};
 }

@@ -97,7 +97,7 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
     const auto *cond = mergeState.getExecutionCondition();
     cond = SimplifyExpression::simplify(cond);
     const auto &mergeEnv = mergeState.getSymbolicEnv();
-    reachabilityMap.mergeReachabilityMapping(mergeState.getReachabilityMap());
+    _nodeAnnotationMap.mergeAnnotationMapping(mergeState.nodeAnnotationMap());
 
     if (const auto *boolExpr = cond->to<IR::BoolLiteral>()) {
         // If the condition is false, do nothing. If it is true, set all the values.
@@ -126,7 +126,7 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
     }
 }
 
-const ReachabilityMap &ExecutionState::getReachabilityMap() const { return reachabilityMap; }
+const NodeAnnotationMap &ExecutionState::nodeAnnotationMap() const { return _nodeAnnotationMap; }
 
 void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expression *cond) {
     // TODO: Think about better handling of these types of errors?
@@ -134,7 +134,7 @@ void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expr
         return;
     }
 
-    bool notAlreadyInMap = reachabilityMap.initializeReachabilityMapping(
+    bool notAlreadyInMap = _nodeAnnotationMap.initializeReachabilityMapping(
         node, new IR::LAnd(getExecutionCondition(), cond));
     if (!notAlreadyInMap && FlayOptions::get().isStrict()) {
         // Throw a fatal error if we try to add a duplicate mapping.
@@ -166,7 +166,7 @@ void ExecutionState::substitutePlaceholders() {
     }
     Util::ScopedTimer timer("Placeholder Substitution");
     auto substitute = SubstitutePlaceHolders(*this);
-    reachabilityMap.substitutePlaceholders(substitute);
+    _nodeAnnotationMap.substitutePlaceholders(substitute);
 }
 
 /* =========================================================================================

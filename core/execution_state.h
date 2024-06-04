@@ -5,7 +5,7 @@
 #include <set>
 
 #include "backends/p4tools/common/core/abstract_execution_state.h"
-#include "backends/p4tools/modules/flay/core/reachability.h"
+#include "backends/p4tools/modules/flay/core/node_map.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 
@@ -22,8 +22,8 @@ class ExecutionState : public AbstractExecutionState {
     /// loops.
     std::set<int> visitedParserIds;
 
-    /// Keeps track of the reachability of individual nodes in the program.
-    ReachabilityMap reachabilityMap;
+    /// Keeps track of the annotations on individual nodes in the program, for example reachability.
+    NodeAnnotationMap _nodeAnnotationMap;
 
     /// A static label for placeholder variables used in Flay.
     static const IR::PathExpression PLACEHOLDER_LABEL;
@@ -63,8 +63,8 @@ class ExecutionState : public AbstractExecutionState {
     /// Merge another execution state into this state.
     void merge(const ExecutionState &mergeState);
 
-    /// @returns the reachability map associated with this state.
-    [[nodiscard]] const ReachabilityMap &getReachabilityMap() const;
+    /// @returns the node annotation map associated with this state.
+    [[nodiscard]] const NodeAnnotationMap &nodeAnnotationMap() const;
 
     /// Map the conditions to be reachable to a particular program node.
     void addReachabilityMapping(const IR::Node *node, const IR::Expression *cond);

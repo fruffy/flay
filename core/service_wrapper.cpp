@@ -41,8 +41,8 @@ FlayServiceStatistics FlayServiceWrapper::computeFlayServiceStatistics() const {
 
 FlayServiceWrapper::FlayServiceWrapper(
     const FlayServiceOptions &serviceOptions, const FlayCompilerResult &compilerResult,
-    const ReachabilityMap &reachabilityMap,
+    const NodeAnnotationMap &nodeAnnotationMap,
     const ControlPlaneConstraints &initialControlPlaneConstraints)
-    : _flayService(serviceOptions, compilerResult, reachabilityMap,
+    : _flayService(serviceOptions, compilerResult, nodeAnnotationMap,
                    initialControlPlaneConstraints) {}
 }  // namespace P4Tools::Flay

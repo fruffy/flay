@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "backends/p4tools/modules/flay/core/flay_service.h"
-#include "backends/p4tools/modules/flay/core/reachability.h"
+#include "backends/p4tools/modules/flay/core/node_map.h"
 
 namespace P4Tools::Flay {
 
@@ -23,7 +23,7 @@ class FlayServiceWrapper {
  public:
     FlayServiceWrapper(const FlayServiceOptions &serviceOptions,
                        const FlayCompilerResult &compilerResult,
-                       const ReachabilityMap &reachabilityMap,
+                       const NodeAnnotationMap &nodeAnnotationMap,
                        const ControlPlaneConstraints &initialControlPlaneConstraints);
     virtual ~FlayServiceWrapper() = default;
 

@@ -44,7 +44,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     if (reachability.value()) {
         printInfo("---DEAD_CODE--- %1% true branch will always be executed.", stmt);
         if (stmt->ifFalse != nullptr) {
-            eliminatedNodes.emplace_back(stmt->ifFalse, nullptr);
+            _eliminatedNodes.emplace_back(stmt->ifFalse, nullptr);
         }
         stmt->ifFalse = nullptr;
         return stmt;
@@ -52,11 +52,11 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     stmt->condition = new IR::LNot(stmt->condition);
     if (stmt->ifFalse != nullptr) {
         printInfo("---DEAD_CODE--- %1% false branch will always be executed.", stmt);
-        eliminatedNodes.emplace_back(stmt->ifTrue, nullptr);
+        _eliminatedNodes.emplace_back(stmt->ifTrue, nullptr);
         stmt->ifTrue = stmt->ifFalse;
     } else {
         printInfo("---DEAD_CODE--- %1% true branch can be deleted.", stmt);
-        eliminatedNodes.emplace_back(stmt, nullptr);
+        _eliminatedNodes.emplace_back(stmt, nullptr);
         stmt->ifTrue = new IR::EmptyStatement(stmt->getSourceInfo());
     }
     stmt->ifFalse = nullptr;
@@ -87,7 +87,7 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
             break;
         }
         printInfo("---DEAD_CODE--- %1% can be deleted.", switchCase);
-        eliminatedNodes.emplace_back(switchCase, nullptr);
+        _eliminatedNodes.emplace_back(switchCase, nullptr);
     }
     if (filteredSwitchCases.empty()) {
         return new IR::EmptyStatement(switchStmt->getSourceInfo());
@@ -138,7 +138,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
 
     const auto *result = IR::BoolLiteral::get(reachability, member->srcInfo);
     printInfo("---DEAD_CODE--- %1% can be replaced with %2%.", member, result->toString());
-    eliminatedNodes.emplace_back(member, nullptr);
+    _eliminatedNodes.emplace_back(member, nullptr);
     return result;
 }
 
@@ -182,19 +182,19 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
                       defaultAction);
             auto *replacement =
                 new IR::MethodCallStatement(defaultAction->getSourceInfo(), defaultAction);
-            eliminatedNodes.emplace_back(stmt, replacement);
+            _eliminatedNodes.emplace_back(stmt, replacement);
             return replacement;
         }
     }
 
     // There is no action to execute other than an empty action, remove the table.
     printInfo("---DEAD_CODE--- Removing %1%", stmt);
-    eliminatedNodes.emplace_back(stmt, nullptr);
+    _eliminatedNodes.emplace_back(stmt, nullptr);
     return new IR::EmptyStatement(stmt->getSourceInfo());
 }
 
-std::vector<EliminatedReplacedPair> ElimDeadCode::getEliminatedNodes() const {
-    return eliminatedNodes;
+std::vector<EliminatedReplacedPair> ElimDeadCode::eliminatedNodes() const {
+    return _eliminatedNodes;
 }
 
 }  // namespace P4Tools::Flay

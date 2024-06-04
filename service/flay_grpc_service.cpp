@@ -14,9 +14,9 @@ namespace P4Tools::Flay {
 
 FlayService::FlayService(const FlayServiceOptions &options,
                          const FlayCompilerResult &compilerResult,
-                         const ReachabilityMap &reachabilityMap,
+                         const NodeAnnotationMap &nodeAnnotationMap,
                          ControlPlaneConstraints initialControlPlaneConstraints)
-    : FlayServiceBase(options, compilerResult, reachabilityMap,
+    : FlayServiceBase(options, compilerResult, nodeAnnotationMap,
                       std::move(initialControlPlaneConstraints)) {}
 
 grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,

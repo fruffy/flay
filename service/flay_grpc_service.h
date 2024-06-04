@@ -20,7 +20,7 @@ class FlayService final : public FlayServiceBase, public p4::v1::P4Runtime::Serv
  public:
     explicit FlayService(const FlayServiceOptions &options,
                          const FlayCompilerResult &compilerResult,
-                         const ReachabilityMap &reachabilityMap,
+                         const NodeAnnotationMap &nodeAnnotationMap,
                          ControlPlaneConstraints initialControlPlaneConstraints);
 
     /// Start the Flay gRPC server and listen to incoming requests.

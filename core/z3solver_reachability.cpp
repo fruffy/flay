@@ -24,10 +24,10 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(const IR::N
         const auto &reachabilityCondition = it->getZ3Condition();
         auto reachabilityAssignment = it->getReachability();
         {
-            solver.push();
-            solver.asrt(reachabilityCondition);
-            auto solverResult = solver.checkSat();
-            solver.pop();
+            _solver.push();
+            _solver.asrt(reachabilityCondition);
+            auto solverResult = _solver.checkSat();
+            _solver.pop();
             /// Solver returns unknown, better leave this alone.
             if (solverResult == std::nullopt) {
                 ::warning("Solver returned unknown result for %1%.", node);
@@ -43,10 +43,10 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(const IR::N
             }
         }
         {
-            solver.push();
-            solver.asrt(!reachabilityCondition);
-            auto solverResult = solver.checkSat();
-            solver.pop();
+            _solver.push();
+            _solver.asrt(!reachabilityCondition);
+            auto solverResult = _solver.checkSat();
+            _solver.pop();
             /// Solver returns unknown, better leave this alone.
             if (solverResult == std::nullopt) {
                 ::warning("Solver returned unknown result for %1%.", node);
@@ -69,11 +69,11 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(const IR::N
     return hasChanged;
 }
 
-Z3SolverReachabilityMap::Z3SolverReachabilityMap(const ReachabilityMap &map)
-    : symbolMap(map.getSymbolMap()) {
+Z3SolverReachabilityMap::Z3SolverReachabilityMap(const NodeAnnotationMap &map)
+    : _symbolMap(map.symbolMap()) {
     Util::ScopedTimer timer("Precomputing Z3 Reachability");
-    Z3Translator z3Translator(solver);
-    for (const auto &[node, reachabilityExpressionVector] : map) {
+    Z3Translator z3Translator(_solver);
+    for (const auto &[node, reachabilityExpressionVector] : map.reachabilityMap()) {
         std::set<Z3ReachabilityExpression *> result;
         for (const auto &reachabilityExpression : reachabilityExpressionVector) {
             reachabilityExpression->getCondition()->apply(z3Translator);
@@ -111,22 +111,22 @@ std::optional<bool> Z3SolverReachabilityMap::isNodeReachable(const IR::Node *nod
 std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
-    solver.push();
+    _solver.push();
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto *constraint = controlPlaneConstraint.get().computeControlPlaneConstraint();
-        solver.asrt(constraint);
+        _solver.asrt(constraint);
     }
 
     bool hasChanged = false;
     for (auto &pair : *this) {
         auto result = computeNodeReachability(pair.first);
         if (!result.has_value()) {
-            solver.pop();
+            _solver.pop();
             return std::nullopt;
         }
         hasChanged |= result.value();
     }
-    solver.pop();
+    _solver.pop();
     return hasChanged;
 }
 
@@ -134,8 +134,8 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const SymbolSet &symbolSet, const ControlPlaneConstraints &controlPlaneConstraints) {
     NodeSet targetNodes;
     for (const auto &symbol : symbolSet) {
-        auto it = symbolMap.find(symbol);
-        if (it != symbolMap.end()) {
+        auto it = _symbolMap.find(symbol);
+        if (it != _symbolMap.end()) {
             for (const auto *node : it->second) {
                 targetNodes.insert(node);
             }
@@ -147,21 +147,21 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
 std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const NodeSet &targetNodes, const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
-    solver.push();
+    _solver.push();
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto *constraint = controlPlaneConstraint.get().computeControlPlaneConstraint();
-        solver.asrt(constraint);
+        _solver.asrt(constraint);
     }
     bool hasChanged = false;
     for (const auto *node : targetNodes) {
         auto result = computeNodeReachability(node);
         if (!result.has_value()) {
-            solver.pop();
+            _solver.pop();
             return std::nullopt;
         }
         hasChanged |= result.value();
     }
-    solver.pop();
+    _solver.pop();
     return hasChanged;
 }
 
