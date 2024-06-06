@@ -41,13 +41,14 @@ FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
       _optimizedProgram(&compilerResult.getOriginalProgram()),
       _compilerResult(compilerResult),
       _reachabilityMap(initializeReachabilityMap(options.mapType, nodeAnnotationMap)),
+      _substitutionMap(*new SolverSubstitutionMap(*new Z3Solver(), nodeAnnotationMap)),
       _controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
     printInfo("Checking whether dead code can be removed with the initial configuration...");
     originalProgram().apply(P4::ResolveReferences(&_refMap));
     if (::errorCount() > 0) {
         return;
     }
-    elimControlPlaneDeadCode();
+    specializeProgram();
 }
 
 void FlayServiceBase::printOptimizedProgram() const {
@@ -96,7 +97,7 @@ std::optional<bool> FlayServiceBase::checkForSemanticChange(
     return mutableReachabilityMap().recomputeReachability(mutableControlPlaneConstraints());
 }
 
-std::pair<int, bool> FlayServiceBase::elimControlPlaneDeadCode(
+std::pair<int, bool> FlayServiceBase::specializeProgram(
     std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) {
     Util::ScopedTimer timer("Eliminate Dead Code");
 
@@ -111,7 +112,7 @@ std::pair<int, bool> FlayServiceBase::elimControlPlaneDeadCode(
     }
     printInfo("Change in semantics detected.");
 
-    auto flaySpecializer = FlaySpecializer(_refMap, _reachabilityMap);
+    auto flaySpecializer = FlaySpecializer(_refMap, _reachabilityMap, _substitutionMap);
     _optimizedProgram = originalProgram().apply(flaySpecializer);
     // Update the list of eliminated nodes.
     _eliminatedNodes = flaySpecializer.eliminatedNodes();

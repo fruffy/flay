@@ -39,7 +39,6 @@ int BfRuntimeFlayServiceWrapper::run() {
     }
 
     /// Keeps track of how often the semantics have changed after an update.
-    uint64_t semanticsChangeCounter = 0;
     if (!_controlPlaneUpdates.empty()) {
         printInfo("Processing control plane updates...");
     }
@@ -55,13 +54,12 @@ int BfRuntimeFlayServiceWrapper::run() {
                 return EXIT_FAILURE;
             }
         }
-        auto result = _flayService.elimControlPlaneDeadCode(symbolSet);
+        auto result = _flayService.specializeProgram(symbolSet);
         if (result.first != EXIT_SUCCESS) {
             return EXIT_FAILURE;
         }
         if (result.second) {
             _flayService.recordProgramChange();
-            semanticsChangeCounter++;
         }
         if (FlayOptions::get().optimizedOutputDir() != std::nullopt) {
             outputOptimizedProgram(std::filesystem::path(_controlPlaneUpdateFileNames[updateIdx])

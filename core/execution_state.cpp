@@ -145,6 +145,24 @@ void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expr
     }
 }
 
+void ExecutionState::addExpressionMapping(const IR::Expression *expression,
+                                          const IR::Expression *value) {
+    // TODO: Think about better handling of these types of errors?
+    if (!expression->getSourceInfo().isValid() || !expression->type->is<IR::Type_Bits>()) {
+        return;
+    }
+
+    bool notAlreadyInMap = _nodeAnnotationMap.initializeExpressionMapping(expression, value);
+    if (!notAlreadyInMap && FlayOptions::get().isStrict()) {
+        // Throw a fatal error if we try to add a duplicate mapping.
+        // This can affect the correctness of the entire mapping.
+        BUG("Expression mapping for expression %1% already exists. Every mapping must be "
+            "uniquely "
+            "identifiable under strict mode.",
+            expression);
+    }
+}
+
 void ExecutionState::setPlaceholderValue(cstring label, const IR::Expression *value) {
     const auto *placeholderVar = new IR::Member(value->type, &PLACEHOLDER_LABEL, label);
     set(placeholderVar, value);

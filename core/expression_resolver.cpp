@@ -52,6 +52,7 @@ bool ExpressionResolver::preorder(const IR::Literal *lit) {
 
 bool ExpressionResolver::preorder(const IR::PathExpression *path) {
     result = getExecutionState().get(ToolsVariables::convertReference(path));
+    getExecutionState().addExpressionMapping(path, result);
     return false;
 }
 
@@ -94,9 +95,10 @@ bool ExpressionResolver::preorder(const IR::Member *member) {
     const auto *structExpr = checkStructLike(member);
     if (structExpr != nullptr) {
         result = structExpr;
-        return false;
+    } else {
+        result = getExecutionState().get(member);
     }
-    result = getExecutionState().get(member);
+    getExecutionState().addExpressionMapping(member, result);
     return false;
 }
 

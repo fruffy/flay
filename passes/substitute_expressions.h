@@ -3,9 +3,8 @@
 
 #include <functional>
 
-#include "backends/p4tools/modules/flay/core/reachability_map.h"
+#include "backends/p4tools/modules/flay/core/substitution_map.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
-#include "ir/ir-generated.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 #include "ir/visitor.h"
@@ -15,25 +14,27 @@ namespace P4Tools::Flay {
 /// The eliminated and optionally replaced node.
 using EliminatedReplacedPair = std::pair<const IR::Node *, const IR::Node *>;
 
-/// This compiler pass looks up program nodes in the reachability map and deletes nodes which are
-/// not executable according to the computation in the map.
+/// This compiler pass looks up program nodes in the expression map and substitutes any node in the
+/// map can be replaced with a constant.
 class SubstituteExpressions : public Transform {
     /// The reachability map computed by the execution state.
-    std::reference_wrapper<const AbstractReachabilityMap> reachabilityMap;
+    std::reference_wrapper<const AbstractSubstitutionMap> _substitutionMap;
 
-    std::reference_wrapper<const P4::ReferenceMap> refMap;
+    std::reference_wrapper<const P4::ReferenceMap> _refMap;
 
     /// The list of eliminated and optionally replaced nodes. Used for bookkeeping.
     std::vector<EliminatedReplacedPair> _eliminatedNodes;
 
     const IR::Node *preorder(IR::PathExpression *pathExpression) override;
     const IR::Node *preorder(IR::Member *member) override;
+    const IR::Node *preorder(IR::AssignmentStatement *statement) override;
+    const IR::Node *preorder(IR::Declaration_Variable *declaration) override;
 
  public:
     SubstituteExpressions() = delete;
 
     explicit SubstituteExpressions(const P4::ReferenceMap &refMap,
-                                   const AbstractReachabilityMap &reachabilityMap);
+                                   const AbstractSubstitutionMap &substitutionMap);
 
     [[nodiscard]] std::vector<EliminatedReplacedPair> eliminatedNodes() const;
 };

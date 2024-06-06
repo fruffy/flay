@@ -70,15 +70,15 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(const IR::N
 }
 
 Z3SolverReachabilityMap::Z3SolverReachabilityMap(const NodeAnnotationMap &map)
-    : _symbolMap(map.symbolMap()) {
+    : _symbolMap(map.reachabilitySymbolMap()) {
     Util::ScopedTimer timer("Precomputing Z3 Reachability");
     Z3Translator z3Translator(_solver);
     for (const auto &[node, reachabilityExpressionVector] : map.reachabilityMap()) {
         std::set<Z3ReachabilityExpression *> result;
         for (const auto &reachabilityExpression : reachabilityExpressionVector) {
-            reachabilityExpression->getCondition()->apply(z3Translator);
-            result.emplace(
-                new Z3ReachabilityExpression(*reachabilityExpression, z3Translator.getResult()));
+            result.emplace(new Z3ReachabilityExpression(
+                *reachabilityExpression,
+                z3Translator.translate(reachabilityExpression->getCondition())));
         }
         (*this)[node].insert(result.begin(), result.end());
     }
