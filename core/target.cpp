@@ -161,21 +161,24 @@ MidEnd FlayTarget::mkMidEnd(const CompilerOptions &options) const {
         new P4::EliminateTypedef(refMap, typeMap),
         // Sort call arguments according to the order of the function's parameters.
         new P4::OrderArguments(refMap, typeMap),
-        new P4::ConvertEnums(refMap, typeMap, new EnumOn32Bits()),
         // Replace any slices in the left side of assignments and convert them to casts.
         new P4::RemoveLeftSlices(refMap, typeMap),
-        new PassRepeated(
-            {new P4::SimplifyControlFlow(refMap, typeMap),
-             // Compress member access to struct expressions.
-             new P4::ConstantFolding(refMap, typeMap),
-             // Local copy propagation and dead-code elimination.
-             new P4::LocalCopyPropagation(refMap, typeMap, nullptr,
-                                          [](const Visitor::Context * /*context*/,
-                                             const IR::Expression * /*expr*/) { return true; })}),
+        new PassRepeated({
+            // Local copy propagation and dead-code elimination.
+            new P4::LocalCopyPropagation(refMap, typeMap, nullptr,
+                                         [](const Visitor::Context * /*context*/,
+                                            const IR::Expression * /*expr*/) { return true; }),
+            // Simplify control flow that has constants as conditions.
+            new P4::SimplifyControlFlow(refMap, typeMap),
+            // Compress member access to struct expressions.
+            new P4::ConstantFolding(refMap, typeMap),
+        }),
         // Remove loops from parsers by unrolling them as far as the stack indices allow.
         // TODO: Get rid of this pass.
         new P4::ParsersUnroll(true, refMap, typeMap),
         new P4::TypeChecking(refMap, typeMap, true),
+        // Convert enums and errors to bit<32>.
+        new P4::ConvertEnums(refMap, typeMap, new EnumOn32Bits()),
         new P4::ConvertErrors(refMap, typeMap, new ErrorOn32Bits()),
         // Simplify header stack assignments with runtime indices into conditional statements.
         // TODO: Get rid of this pass.
