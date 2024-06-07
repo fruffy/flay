@@ -27,15 +27,17 @@ const IR::Expression *TofinoBaseExpressionResolver::processTable(const IR::P4Tab
 // Provides implementations of Tofino externs.
 namespace TofinoBaseExterns {
 
+using namespace P4::literals;
+
 auto ReturnDummyImpl = [](const ExternMethodImpls::ExternInfo &externInfo) {
-    auto returnType =
+    const auto *returnType =
         externInfo.originalCall.method->type->checkedTo<IR::Type_Method>()->returnType;
     auto label = externInfo.externObjectRef.path->toString() + "_" + externInfo.methodName + "_" +
                  std::to_string(externInfo.originalCall.clone_id);
     const auto *returnVar = ToolsVariables::getSymbolicVariable(returnType, label);
     return returnVar;
 };
-
+/// Provides implementations of P4 core externs.
 const ExternMethodImpls EXTERN_METHOD_IMPLS(
     {// -----------------------------------------------------------------------------
      // CHECKSUM
@@ -49,8 +51,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Add data to checksum.
      /// @param data : List of fields to be added to checksum calculation. The
      /// data must be byte aligned.
-     {"Checksum.add",
-      {"data"},
+     {"Checksum.add"_cs,
+      {"data"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
           // We do not calculate the checksum for now.
           return nullptr;
@@ -58,15 +60,15 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Subtract data from existing checksum.
      /// @param data : List of fields to be subtracted from the checksum. The
      /// data must be byte aligned.
-     {"Checksum.subtract",
-      {"data"},
+     {"Checksum.subtract"_cs,
+      {"data"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
           // We do not calculate the checksum for now.
           return nullptr;
       }},
      /// Verify whether the complemented sum is zero, i.e. the checksum is valid.
      /// @return : Boolean flag indicating whether the checksum is valid or not.
-     {"Checksum.verify",
+     {"Checksum.verify"_cs,
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           // We do not calculate the checksum for now and instead use a dummy.
@@ -80,8 +82,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Marks the end position for residual checksum header.
      /// All header fields extracted after will be automatically subtracted.
      /// @param residual: The calculated checksum value for added fields.
-     {"Checksum.subtract_all_and_deposit",
-      {"residual"},
+     {"Checksum.subtract_all_and_deposit"_cs,
+      {"residual"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           const auto &resultVar =
               externInfo.externArgs->at(0)->expression->checkedTo<IR::InOutReference>()->ref;
@@ -96,7 +98,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
       }},
      /// Get the calculated checksum value.
      /// @return : The calculated checksum value for added fields.
-     {"Checksum.get",
+     {"Checksum.get"_cs,
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
@@ -109,8 +111,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Calculate the checksum for a  given list of fields.
      /// @param data : List of fields contributing to the checksum value.
      /// @param zeros_as_ones : encode all-zeros value as all-ones.
-     {"Checksum.update",
-      {"data"},
+     {"Checksum.update"_cs,
+      {"data"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           // We do not calculate the checksum for now and instead use a dummy.
           auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
@@ -120,8 +122,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
               ToolsVariables::getSymbolicVariable(IR::Type_Bits::get(16), checksumLabel);
           return hashCalc;
       }},
-     {"Checksum.update",
-      {"data", "zeros_as_ones"},
+     {"Checksum.update"_cs,
+      {"data"_cs, "zeros_as_ones"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           // We do not calculate the checksum for now and instead use a dummy.
           auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
@@ -140,23 +142,23 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // initialized with an immediate value or a header field.
      // -----------------------------------------------------------------------------
      /// Load the counter with an immediate value or a header field.
-     {"ParserCounter.set",
-      {"value"},
+     {"ParserCounter.set"_cs,
+      {"value"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
      /// Load the counter with a header field.
      /// @param max : Maximum permitted value for counter (pre rotate/mask/add).
      /// @param rotate : Right rotate (circular) the source field by this number of bits.
      /// @param mask : Mask the rotated source field by 2 ^ (mask + 1) - 1.
      /// @param add : Constant to add to the rotated and masked lookup field.
-     {"ParserCounter.set",
-      {"field", "max", "rotate", "mask", "add"},
+     {"ParserCounter.set"_cs,
+      {"field"_cs, "max"_cs, "rotate"_cs, "mask"_cs, "add"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
           return nullptr;
       }},
      /// @return true if counter value is zero.
-     {"ParserCounter.is_zero",
+     {"ParserCounter.is_zero"_cs,
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto label = externInfo.externObjectRef.path->toString() + "_" + externInfo.methodName +
@@ -164,7 +166,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), label);
       }},
      /// @return true if counter value is negative.
-     {"ParserCounter.is_negative",
+     {"ParserCounter.is_negative"_cs,
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto label = externInfo.externObjectRef.path->toString() + "_" + externInfo.methodName +
@@ -173,13 +175,13 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
       }},
      /// Add an immediate value to the parser counter.
      /// @param value : Constant to add to the counter.
-     {"ParserCounter.increment",
-      {"value"},
+     {"ParserCounter.increment"_cs,
+      {"value"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
      /// Subtract an immediate value from the parser counter.
      /// @param value : Constant to subtract from the counter.
-     {"ParserCounter.decrement",
-      {"value"},
+     {"ParserCounter.decrement"_cs,
+      {"value"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
 
      // -----------------------------------------------------------------------------
@@ -191,8 +193,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      /// Set a new priority for the packet.
      /// param prio : parser priority for the parsed packet.
-     {"ParserPriority.set",
-      {"prio"},
+     {"ParserPriority.set"_cs,
+      {"prio"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
 
      // -----------------------------------------------------------------------------
@@ -202,57 +204,57 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // extern CRCPolynomial<T> {
      //     CRCPolynomial(T coeff, bool reversed, bool msb, bool extended, T init, T xor);
      // }
-     {"Hash.get", {"data"}, ReturnDummyImpl},
+     {"Hash.get"_cs, {"data"_cs}, ReturnDummyImpl},
      // -----------------------------------------------------------------------------
      /// Random number generator.
      /// Return a random number with uniform distribution.
      /// @return : random number between 0 and 2**W - 1
      // -----------------------------------------------------------------------------
-     {"Random.get", {}, ReturnDummyImpl},
+     {"Random.get"_cs, {}, ReturnDummyImpl},
 
      // -----------------------------------------------------------------------------
      // EXTERN FUNCTIONS
      // -----------------------------------------------------------------------------
-     {"*method.max",
-      {"t1", "t2"},
+     {"*method.max"_cs,
+      {"t1"_cs, "t2"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto t1 = externInfo.externArgs->at(0)->expression;
           auto t2 = externInfo.externArgs->at(1)->expression;
           auto returnVar = new IR::Mux(new IR::Grt(t1, t2), t1, t2);
           return returnVar;
       }},
-     {"*method.min",
-      {"t1", "t2"},
+     {"*method.min"_cs,
+      {"t1"_cs, "t2"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto t1 = externInfo.externArgs->at(0)->expression;
           auto t2 = externInfo.externArgs->at(1)->expression;
           auto returnVar = new IR::Mux(new IR::Lss(t1, t2), t1, t2);
           return returnVar;
       }},
-     {"*method.funnel_shift_right",
-      {"dst", "src1", "src2", "shift_amount"},
+     {"*method.funnel_shift_right"_cs,
+      {"dst"_cs, "src1"_cs, "src2"_cs, "shift_amount"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
           return nullptr;
       }},
-     {"*method.invalidate",
-      {"field"},
+     {"*method.invalidate"_cs,
+      {"field"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
           return nullptr;
       }},
-     {"*method.is_validated",
-      {"field"},
+     {"*method.is_validated"_cs,
+      {"field"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
           return nullptr;
       }},
      /// Phase0
-     {"*method.port_metadata_unpack",
-      {"pkt"},
+     {"*method.port_metadata_unpack"_cs,
+      {"pkt"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto &state = externInfo.state;
           // TODO: We currently just create a dummy variable, but this is not correct.
@@ -265,53 +267,53 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
           return state.createSymbolicExpression(unpackType, unpackLabel);
       }},
      /// TODO: maybe create a type size visitor to calculate.
-     {"*method.sizeInBits", {"h"}, ReturnDummyImpl},
-     {"*method.sizeInBytes", {"h"}, ReturnDummyImpl},
+     {"*method.sizeInBits"_cs, {"h"_cs}, ReturnDummyImpl},
+     {"*method.sizeInBytes"_cs, {"h"_cs}, ReturnDummyImpl},
 
      // -----------------------------------------------------------------------------
      /// Counter
      /// Indexed counter with `size’ independent counter values.
      // -----------------------------------------------------------------------------
      // TODO: Count currently has no effect in the symbolic interpreter.
-     {"Counter.count",
-      {"index"},
+     {"Counter.count"_cs,
+      {"index"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
-     {"Counter.count",
-      {"index", "adjust_byte_count"},
+     {"Counter.count"_cs,
+      {"index"_cs, "adjust_byte_count"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
      /// DirectCounter
      /// Increment the counter value.
      /// @param adjust_byte_count : optional parameter indicating value to be
      //                             subtracted from counter value.
      // TODO: Count currently has no effect in the symbolic interpreter.
-     {"DirectCounter.count",
+     {"DirectCounter.count"_cs,
       {},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
-     {"DirectCounter.count",
-      {"adjust_byte_count"},
+     {"DirectCounter.count"_cs,
+      {"adjust_byte_count"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
 
      // -----------------------------------------------------------------------------
      /// Meter
      // -----------------------------------------------------------------------------
-     {"Meter.execute", {"index", "color"}, ReturnDummyImpl},
-     {"Meter.execute", {"index", "color", "adjust_byte_count"}, ReturnDummyImpl},
-     {"Meter.execute", {"index"}, ReturnDummyImpl},
-     {"Meter.execute", {"index", "adjust_byte_count"}, ReturnDummyImpl},
+     {"Meter.execute"_cs, {"index"_cs, "color"_cs}, ReturnDummyImpl},
+     {"Meter.execute"_cs, {"index"_cs, "color"_cs, "adjust_byte_count"_cs}, ReturnDummyImpl},
+     {"Meter.execute"_cs, {"index"_cs}, ReturnDummyImpl},
+     {"Meter.execute"_cs, {"index"_cs, "adjust_byte_count"_cs}, ReturnDummyImpl},
 
      // -----------------------------------------------------------------------------
      /// Direct meter.
      // -----------------------------------------------------------------------------
-     {"DirectMeter.execute", {"color"}, ReturnDummyImpl},
-     {"DirectMeter.execute", {"color", "adjust_byte_count"}, ReturnDummyImpl},
-     {"DirectMeter.execute", {}, ReturnDummyImpl},
-     {"DirectMeter.execute", {"adjust_byte_count"}, ReturnDummyImpl},
+     {"DirectMeter.execute"_cs, {"color"_cs}, ReturnDummyImpl},
+     {"DirectMeter.execute"_cs, {"color"_cs, "adjust_byte_count"_cs}, ReturnDummyImpl},
+     {"DirectMeter.execute"_cs, {}, ReturnDummyImpl},
+     {"DirectMeter.execute"_cs, {"adjust_byte_count"_cs}, ReturnDummyImpl},
 
      // -----------------------------------------------------------------------------
      /// LPF
      // -----------------------------------------------------------------------------
-     {"Lpf.execute",
-      {"val", "index"},
+     {"Lpf.execute"_cs,
+      {"val"_cs, "index"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -321,8 +323,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      /// Direct LPF
      // -----------------------------------------------------------------------------
-     {"DirectLpf.execute",
-      {"val"},
+     {"DirectLpf.execute"_cs,
+      {"val"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -332,8 +334,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      /// WRED
      // -----------------------------------------------------------------------------
-     {"Wred.execute",
-      {"val", "index"},
+     {"Wred.execute"_cs,
+      {"val"_cs, "index"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -343,8 +345,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      /// Direct WRED
      // -----------------------------------------------------------------------------
-     {"DirectWred.execute",
-      {"val"},
+     {"DirectWred.execute"_cs,
+      {"val"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -356,13 +358,13 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Return the value of register at specified index.
      // -----------------------------------------------------------------------------
      // TODO: Implement and actually keep track of the writes.
-     {"Register.read", {"index"}, ReturnDummyImpl},
+     {"Register.read"_cs, {"index"_cs}, ReturnDummyImpl},
      // -----------------------------------------------------------------------------
      /// Write value to register at specified index.
      // -----------------------------------------------------------------------------
      // TODO: Implement and actually keep track of the writes.
-     {"Register.write",
-      {"index", "value"},
+     {"Register.write"_cs,
+      {"index"_cs, "value"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
 
      // -----------------------------------------------------------------------------
@@ -370,19 +372,19 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Return the value of the direct register.
      // -----------------------------------------------------------------------------
      // TODO: Implement and actually keep track of the writes.
-     {"DirectRegister.read", {}, ReturnDummyImpl},
+     {"DirectRegister.read"_cs, {}, ReturnDummyImpl},
      // -----------------------------------------------------------------------------
      /// Write value to a direct register.
      // -----------------------------------------------------------------------------
      // TODO: Implement and actually keep track of the writes.
-     {"DirectRegister.write",
-      {"value"},
+     {"DirectRegister.write"_cs,
+      {"value"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
 
      // -----------------------------------------------------------------------------
      /// Return the value of the parameter.
      // -----------------------------------------------------------------------------
-     {"RegisterParam.read",
+     {"RegisterParam.read"_cs,
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
@@ -393,8 +395,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      /// MathUnit
      // -----------------------------------------------------------------------------
-     {"MathUnit.execute",
-      {"x"},
+     {"MathUnit.execute"_cs,
+      {"x"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -414,22 +416,22 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // }
      // -----------------------------------------------------------------------------
      /// TODO: really model register. For now, we only return dummy.
-     {"RegisterAction.execute",
-      {"index"},
+     {"RegisterAction.execute"_cs,
+      {"index"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto &state = externInfo.state;
           const auto *actionDecl =
               state.findDecl(&externInfo.externObjectRef)->checkedTo<IR::Declaration_Instance>();
           const auto *actionType = actionDecl->type->checkedTo<IR::Type_Specialized>();
-          BUG_CHECK(actionType->arguments->size() == 3, "Expected 3 arguments, got %1%",
+          BUG_CHECK(actionType->arguments->size() == 3, "Expected 3 arguments, got %1%"_cs,
                     actionType->arguments->size());
           const auto *valueType = actionType->arguments->at(0);  // T
           const auto &components = actionDecl->initializer->components;
-          BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%", components.size());
+          BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%"_cs, components.size());
           const auto *applyDecl = components.at(0)->checkedTo<IR::Function>();
           const auto *applyParameters = applyDecl->type->parameters;
           BUG_CHECK(applyParameters->size() == 1 || applyParameters->size() == 2,
-                    "Expected 1 or 2 parameters, got %1%", applyParameters->size());
+                    "Expected 1 or 2 parameters, got %1%"_cs, applyParameters->size());
 
           const auto &valueName = applyParameters->parameters.at(0)->name.name;
           auto valueLabel =
@@ -481,8 +483,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // Apply the implemented abstract method using an index that increments each
      // time. This method is useful for stateful logging.
      // -----------------------------------------------------------------------------
-     {"RegisterAction.execute_log",
-      {""},
+     {"RegisterAction.execute_log"_cs,
+      {""_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -494,15 +496,15 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // @param value : register value.
      // @param rv : return value.
      // -----------------------------------------------------------------------------
-     {"RegisterAction.apply",
-      {"value", "rv"},
+     {"RegisterAction.apply"_cs,
+      {"value"_cs, "rv"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
           return nullptr;
       }},
-     {"RegisterAction.predicate",
-      {"cmplo", "cmphi"},  // TODO: the two arguments are both optional
+     {"RegisterAction.predicate"_cs,
+      {"cmplo"_cs, "cmphi"_cs},  // TODO: the two arguments are both optional
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -521,22 +523,22 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // }
      // -----------------------------------------------------------------------------
      // TODO: support using real apply method to execute.
-     {"DirectRegisterAction.execute",
+     {"DirectRegisterAction.execute"_cs,
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto &state = externInfo.state;
           const auto *actionDecl =
               state.findDecl(&externInfo.externObjectRef)->checkedTo<IR::Declaration_Instance>();
           const auto *actionType = actionDecl->type->checkedTo<IR::Type_Specialized>();
-          BUG_CHECK(actionType->arguments->size() == 2, "Expected 2 arguments, got %1%",
+          BUG_CHECK(actionType->arguments->size() == 2, "Expected 2 arguments, got %1%"_cs,
                     actionType->arguments->size());
           const auto *valueType = actionType->arguments->at(0);  // T
           const auto &components = actionDecl->initializer->components;
-          BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%", components.size());
+          BUG_CHECK(components.size() == 1, "Expected 1 component, got %1%"_cs, components.size());
           const auto *applyDecl = components.at(0)->checkedTo<IR::Function>();
           const auto *applyParameters = applyDecl->type->parameters;
           BUG_CHECK(applyParameters->size() == 1 || applyParameters->size() == 2,
-                    "Expected 1 or 2 parameters, got %1%", applyParameters->size());
+                    "Expected 1 or 2 parameters, got %1%"_cs, applyParameters->size());
 
           const auto &valueName = applyParameters->parameters.at(0)->name.name;
           auto valueLabel =
@@ -573,7 +575,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
                       state.set(paramRef, argument);
                   }
               } else {
-                  P4C_UNIMPLEMENTED("Unsupported parameter type %1%", paramType->node_type_name());
+                  P4C_UNIMPLEMENTED("Unsupported parameter type %1%"_cs,
+                                    paramType->node_type_name());
               }
           }
           auto &applyStepper = FlayTarget::getStepper(externInfo.programInfo.get(), state);
@@ -588,8 +591,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      // DirectRegisterAction.apply
      // -----------------------------------------------------------------------------
-     {"DirectRegisterAction.apply",
-      {"value", "rv"},
+     {"DirectRegisterAction.apply"_cs,
+      {"value"_cs, "rv"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -598,8 +601,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      // DirectRegisterAction.predicate
      // -----------------------------------------------------------------------------
-     {"DirectRegisterAction.predicate",
-      {"cmplo", "cmphi"},  // TODO: the two arguments are both optional
+     {"DirectRegisterAction.predicate"_cs,
+      {"cmplo"_cs, "cmphi"_cs},  // TODO: the two arguments are both optional
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -609,15 +612,15 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      /// SelectorAction
      // -----------------------------------------------------------------------------
-     {"SelectorAction.execute",
-      {"index"},
+     {"SelectorAction.execute"_cs,
+      {"index"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
           return nullptr;
       }},
-     {"SelectorAction.apply",
-      {"value", "rv"},  // TODO: argument `rv` is both optional
+     {"SelectorAction.apply"_cs,
+      {"value"_cs, "rv"_cs},  // TODO: argument `rv` is both optional
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -632,8 +635,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      /// Mirror the packet.
      // -----------------------------------------------------------------------------
-     {"Mirror.emit",
-      {"session_id"},
+     {"Mirror.emit"_cs,
+      {"session_id"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -643,8 +646,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Write @hdr into the ingress/egress mirror buffer.
      /// @param hdr : T can be a header type.
      // -----------------------------------------------------------------------------
-     {"Mirror.emit",
-      {"session_id", "hdr"},
+     {"Mirror.emit"_cs,
+      {"session_id"_cs, "hdr"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -659,7 +662,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      /// Resubmit the packet.
      // -----------------------------------------------------------------------------
-     {"Resubmit.emit",
+     {"Resubmit.emit"_cs,
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
@@ -670,8 +673,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      /// Resubmit the packet and prepend it with @hdr.
      /// @param hdr : T can be a header type.
      // -----------------------------------------------------------------------------
-     {"Resubmit.emit",
-      {"hdr"},
+     {"Resubmit.emit"_cs,
+      {"hdr"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
                             externInfo.externObjectRef.toString(), externInfo.methodName);
@@ -681,7 +684,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      // -----------------------------------------------------------------------------
      // Digest
      // -----------------------------------------------------------------------------
-     {"Digest.pack", {"data"}, [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
+     {"Digest.pack"_cs, {"data"_cs}, [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
           return nullptr;
       }}});
 }  // namespace TofinoBaseExterns

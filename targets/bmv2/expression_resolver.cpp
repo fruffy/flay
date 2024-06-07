@@ -32,9 +32,11 @@ const IR::Expression *V1ModelExpressionResolver::processTable(const IR::P4Table 
 // Provides implementations of BMv2 externs.
 namespace Bmv2V1modelExterns {
 
+using namespace P4::literals;
+
 const ExternMethodImpls EXTERN_METHOD_IMPLS({
-    {"*method.mark_to_drop",
-     {"standard_metadata"},
+    {"*method.mark_to_drop"_cs,
+     {"standard_metadata"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 
@@ -54,8 +56,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  it to the result parameter.
      * ======================================================================================
      */
-    {"*method.random",
-     {"result", "lo", "hi"},
+    {"*method.random"_cs,
+     {"result"_cs, "lo"_cs, "hi"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
          const auto &fieldRef =
@@ -70,21 +72,21 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  log_msg
      *  Log user defined messages
      *  Example: log_msg("User defined message");
-     *  or log_msg("Value1 = {}, Value2 = {}",{value1, value2});
+     *  or log_msg("Value1 = {}, Value2 = {}"_cs,{value1, value2});
      * ======================================================================================
      */
-    {"*method.log_msg",
-     {"msg", "args"},
+    {"*method.log_msg"_cs,
+     {"msg"_cs, "args"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
     /* ======================================================================================
      *  log_msg
      *  Log user defined messages
      *  Example: log_msg("User defined message");
-     *  or log_msg("Value1 = {}, Value2 = {}",{value1, value2});
+     *  or log_msg("Value1 = {}, Value2 = {}"_cs,{value1, value2});
      * ======================================================================================
      */
-    {"*method.log_msg",
-     {"msg"},
+    {"*method.log_msg"_cs,
+     {"msg"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
          // Log msg is a no-op.
          return nullptr;
@@ -119,8 +121,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  is likely that your assumption was wrong, and should be reexamined.
      * ======================================================================================
      */
-    {"*method.assume",
-     {"check"},
+    {"*method.assume"_cs,
+     {"check"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
          // TODO: Consider the exit case?
          return nullptr;
@@ -148,8 +150,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  same way when assert statements are removed.
      * ======================================================================================
      */
-    {"*method.assert",
-     {"check"},
+    {"*method.assert"_cs,
+     {"check"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
          // TODO: Consider the exit case?
          return nullptr;
@@ -180,8 +182,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *
      * ======================================================================================
      */
-    {"register.write",
-     {"index", "value"},
+    {"register.write"_cs,
+     {"index"_cs, "value"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
          // TODO: Implement and actually keep track of the writes.
          return nullptr;
@@ -204,8 +206,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *
      * ======================================================================================
      */
-    {"register.read",
-     {"result", "index"},
+    {"register.read"_cs,
+     {"result"_cs, "index"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 
@@ -247,8 +249,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *               updated.
      * ======================================================================================
      */
-    {"counter.count",
-     {"index"},
+    {"counter.count"_cs,
+     {"index"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
     /* ======================================================================================
      *  direct_counter.count
@@ -278,7 +280,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      * ======================================================================================
      */
     // TODO: Count currently has no effect in the symbolic interpreter.
-    {"direct_counter.count",
+    {"direct_counter.count"_cs,
      {},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
     /* ======================================================================================
@@ -313,8 +315,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  and should be ignored by the caller.
      * ======================================================================================
      */
-    {"meter.execute_meter",
-     {"index", "result"},
+    {"meter.execute_meter"_cs,
+     {"index"_cs, "result"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
     /* ======================================================================================
      *  direct_meter.read
@@ -347,8 +349,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *               and RFC 2698 for the meaning of these colors).
      * ======================================================================================
      */
-    {"direct_meter.read",
-     {"result"},
+    {"direct_meter.read"_cs,
+     {"result"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
     /* ======================================================================================
      *  digest
@@ -375,8 +377,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  value of the receiver parameter.
      * ======================================================================================
      */
-    {"*method.digest",
-     {"receiver", "data"},
+    {"*method.digest"_cs,
+     {"receiver"_cs, "data"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
     /* ======================================================================================
      *  clone_preserving_field_list
@@ -414,8 +416,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  v1model architecture documentation (Note 1) for more details.
      * ======================================================================================
      */
-    {"*method.clone_preserving_field_list",
-     {"type", "session", "data"},
+    {"*method.clone_preserving_field_list"_cs,
+     {"type"_cs, "session"_cs, "data"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 
@@ -441,7 +443,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
          auto *mux = new IR::Mux(
              isCloned, instanceTypeConst,
              IR::Constant::get(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
-         state.setPlaceholderValue("standard_metadata.instance_type", mux);
+         state.setPlaceholderValue("standard_metadata.instance_type"_cs, mux);
          return nullptr;
      }},
     /* ======================================================================================
@@ -480,8 +482,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  resubmit_preserving_field_list(2) will only preserve field y.
      * ======================================================================================
      */
-    {"*method.resubmit_preserving_field_list",
-     {"data"},
+    {"*method.resubmit_preserving_field_list"_cs,
+     {"data"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
     /* ======================================================================================
      *  recirculate_preserving_field_list
@@ -505,8 +507,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      * for more details.
      * ======================================================================================
      */
-    {"*method.recirculate_preserving_field_list",
-     {"index"},
+    {"*method.recirculate_preserving_field_list"_cs,
+     {"index"_cs},
      [](const ExternMethodImpls::ExternInfo & /*externInfo*/) { return nullptr; }},
     /* ======================================================================================
      *  clone
@@ -517,8 +519,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  type and session parameter values, with empty data.
      * ======================================================================================
      */
-    {"*method.clone",
-     {"type", "session"},
+    {"*method.clone"_cs,
+     {"type"_cs, "session"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 
@@ -544,7 +546,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
          auto *mux = new IR::Mux(
              isCloned, instanceTypeConst,
              IR::Constant::get(instanceBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
-         state.setPlaceholderValue("standard_metadata.instance_type", mux);
+         state.setPlaceholderValue("standard_metadata.instance_type"_cs, mux);
          return nullptr;
      }},
 
@@ -564,8 +566,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  @param M          Must be a type bit<W>
      * ======================================================================================
      */
-    {"*method.hash",
-     {"result", "algo", "base", "data", "max"},
+    {"*method.hash"_cs,
+     {"result"_cs, "algo"_cs, "base"_cs, "data"_cs, "max"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 
@@ -584,8 +586,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      * Checksum16.get
      * ======================================================================================
      */
-    {"Checksum16.get",
-     {"data"},
+    {"Checksum16.get"_cs,
+     {"data"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto checksumLabel = externInfo.externObjectRef.path->toString() + "_" +
                               externInfo.methodName + "_" +
@@ -618,8 +620,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *                    constant.
      * ======================================================================================
      */
-    {"*method.verify_checksum",
-     {"condition", "data", "checksum", "algo"},
+    {"*method.verify_checksum"_cs,
+     {"condition"_cs, "data"_cs, "checksum"_cs, "algo"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 
@@ -648,8 +650,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  VerifyChecksum control.
      * ======================================================================================
      */
-    {"*method.verify_checksum_with_payload",
-     {"condition", "data", "checksum", "algo"},
+    {"*method.verify_checksum_with_payload"_cs,
+     {"condition"_cs, "data"_cs, "checksum"_cs, "algo"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 
@@ -687,8 +689,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *                    constant.
      * ======================================================================================
      */
-    {"*method.update_checksum",
-     {"condition", "data", "checksum", "algo"},
+    {"*method.update_checksum"_cs,
+     {"condition"_cs, "data"_cs, "checksum"_cs, "algo"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 
@@ -717,8 +719,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS({
      *  ComputeChecksum control.
      * ======================================================================================
      */
-    {"*method.update_checksum_with_payload",
-     {"condition", "data", "checksum", "algo"},
+    {"*method.update_checksum_with_payload"_cs,
+     {"condition"_cs, "data"_cs, "checksum"_cs, "algo"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 

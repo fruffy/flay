@@ -24,6 +24,8 @@
 
 namespace P4Tools::Flay::V1Model {
 
+using namespace ::P4::literals;
+
 /* =============================================================================================
  *  V1ModelFlayTarget implementation
  * ============================================================================================= */
@@ -46,7 +48,7 @@ const ProgramInfo *V1ModelFlayTarget::produceProgramInfoImpl(
         argumentsToTypeDeclarations(&compilerResult.getProgram(), mainDecl->arguments);
 
     // We should have six arguments.
-    BUG_CHECK(blocks.size() == 6, "%1%: The BMV2 architecture requires 6 pipes. Received %2%.",
+    BUG_CHECK(blocks.size() == 6, "%1%: The BMV2 architecture requires 6 pipes. Received %2%."_cs,
               mainDecl, blocks.size());
 
     ordered_map<cstring, const IR::Type_Declaration *> programmableBlocks;
@@ -64,28 +66,58 @@ const ProgramInfo *V1ModelFlayTarget::produceProgramInfoImpl(
                                       programmableBlocks);
 }
 
-const ArchSpec V1ModelFlayTarget::ARCH_SPEC =
-    ArchSpec("V1Switch", {// parser Parser<H, M>(packet_in b,
-                          //                     out H parsedHdr,
-                          //                     inout M meta,
-                          //                     inout standard_metadata_t standard_metadata);
-                          {"Parser", {nullptr, "*hdr", "*meta", "*standard_metadata"}},
-                          // control VerifyChecksum<H, M>(inout H hdr,
-                          //                              inout M meta);
-                          {"VerifyChecksum", {"*hdr", "*meta"}},
-                          // control Ingress<H, M>(inout H hdr,
-                          //                       inout M meta,
-                          //                       inout standard_metadata_t standard_metadata);
-                          {"Ingress", {"*hdr", "*meta", "*standard_metadata"}},
-                          // control Egress<H, M>(inout H hdr,
-                          //            inout M meta,
-                          //            inout standard_metadata_t standard_metadata);
-                          {"Egress", {"*hdr", "*meta", "*standard_metadata"}},
-                          // control ComputeChecksum<H, M>(inout H hdr,
-                          //                       inout M meta);
-                          {"ComputeChecksum", {"*hdr", "*meta"}},
-                          // control Deparser<H>(packet_out b, in H hdr);
-                          {"Deparser", {nullptr, "*hdr"}}});
+const ArchSpec V1ModelFlayTarget::ARCH_SPEC = ArchSpec(
+    "V1Switch"_cs, {
+                       // parser Parser<H, M>(packet_in b,
+                       //                     out H parsedHdr,
+                       //                     inout M meta,
+                       //                     inout standard_metadata_t standard_metadata);
+                       {"Parser"_cs,
+                        {
+                            nullptr,
+                            "*hdr"_cs,
+                            "*meta"_cs,
+                            "*standard_metadata"_cs,
+                        }},
+                       // control VerifyChecksum<H, M>(inout H hdr,
+                       //                              inout M meta);
+                       {"VerifyChecksum"_cs,
+                        {
+                            "*hdr"_cs,
+                            "*meta"_cs,
+                        }},
+                       // control Ingress<H, M>(inout H hdr,
+                       //                       inout M meta,
+                       //                       inout standard_metadata_t standard_metadata);
+                       {"Ingress"_cs,
+                        {
+                            "*hdr"_cs,
+                            "*meta"_cs,
+                            "*standard_metadata"_cs,
+                        }},
+                       // control Egress<H, M>(inout H hdr,
+                       //            inout M meta,
+                       //            inout standard_metadata_t standard_metadata);
+                       {"Egress"_cs,
+                        {
+                            "*hdr"_cs,
+                            "*meta"_cs,
+                            "*standard_metadata"_cs,
+                        }},
+                       // control ComputeChecksum<H, M>(inout H hdr,
+                       //                       inout M meta);
+                       {"ComputeChecksum"_cs,
+                        {
+                            "*hdr"_cs,
+                            "*meta"_cs,
+                        }},
+                       // control Deparser<H>(packet_out b, in H hdr);
+                       {"Deparser"_cs,
+                        {
+                            nullptr,
+                            "*hdr"_cs,
+                        }},
+                   });
 
 const ArchSpec *V1ModelFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; }
 
@@ -113,7 +145,7 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const IR::P4Program *pr
         p4runtimeApi = P4::P4RuntimeAPI(new p4::config::v1::P4Info(p4Info), nullptr);
     } else {
         /// After the front end, get the P4Runtime API for the V1model architecture.
-        p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "v1model");
+        p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "v1model"_cs);
         if (::errorCount() > 0) {
             return std::nullopt;
         }

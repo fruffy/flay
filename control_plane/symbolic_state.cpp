@@ -106,7 +106,8 @@ std::optional<TableKeySet> ControlPlaneStateInitializer::computeEntryKeySet(
         RETURN_IF_FALSE_WITH_MESSAGE(keyExpr != nullptr, std::nullopt,
                                      ::error("Entry %1% in table %2% is null"));
         ASSIGN_OR_RETURN_WITH_MESSAGE(
-            const auto &nameAnnotation, keyElement->getAnnotation("name"), std::nullopt,
+            const auto &nameAnnotation, keyElement->getAnnotation(IR::Annotation::nameAnnotation),
+            std::nullopt,
             ::error("Key %1% in table %2% does not have a name annotation.", keyElement, table));
         auto fieldName = nameAnnotation.getName();
         const auto matchType = keyElement->matchType->toString();

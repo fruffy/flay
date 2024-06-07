@@ -22,7 +22,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4Table *table) {
             if (keyElement->matchType->path->name == "selector") {
                 continue;
             }
-            const auto *nameAnnot = keyElement->getAnnotation("name");
+            const auto *nameAnnot = keyElement->getAnnotation(IR::Annotation::nameAnnotation);
             // Some hidden tables do not have any key name annotations.
             if (nameAnnot == nullptr) {
                 ::error("Non-constant table key without an annotation");
@@ -50,7 +50,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::Type_Header *hdr) {
     if (!P4::ControlPlaneAPI::isControllerHeader(hdr) || P4::ControlPlaneAPI::isHidden(hdr)) {
         return false;
     }
-    const auto *controllerHeaderAnnotation = hdr->getAnnotation("controller_header");
+    const auto *controllerHeaderAnnotation = hdr->getAnnotation(cstring("controller_header"));
     auto headerName = controllerHeaderAnnotation->body[0]->text;
     auto p4RuntimeId = p4InfoMaps.lookUpP4RuntimeId(headerName);
     if (p4RuntimeId.has_value()) {

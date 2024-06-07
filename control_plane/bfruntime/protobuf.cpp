@@ -258,8 +258,8 @@ int updateControlPlaneConstraintsWithEntityMessage(const bfrt_proto::Entity &ent
         // In BFRuntime, table entries could also configure an action profile.
         ASSIGN_OR_RETURN_WITH_MESSAGE(
             auto p4ActionProfileExtern,
-            P4::ControlPlaneAPI::findP4RuntimeExtern(p4Info, "ActionSelector"), EXIT_FAILURE,
-            ::error("Action profile ID %1% not found in the P4Info.", tableId));
+            P4::ControlPlaneAPI::findP4RuntimeExtern(p4Info, cstring("ActionSelector")),
+            EXIT_FAILURE, ::error("Action profile ID %1% not found in the P4Info.", tableId));
         std::optional<cstring> actionProfileNameOpt;
         for (const auto &actionSelectorInstance : p4ActionProfileExtern.instances()) {
             if (actionSelectorInstance.preamble().id() == tableId) {

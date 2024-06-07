@@ -101,7 +101,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     const auto &flayOptions = FlayOptions::get();
 
     if (flayOptions.p4InfoFilePath().has_value()) {
-        auto *outputFile = openFile(flayOptions.p4InfoFilePath().value().c_str(), true);
+        auto *outputFile = openFile(cstring(flayOptions.p4InfoFilePath().value().c_str()), true);
         if (outputFile == nullptr) {
             return EXIT_FAILURE;
         }

@@ -155,7 +155,7 @@ class ReferenceCheckerOptions : protected FlayOptions {
         }
         // compilerOptions.target = options.getTarget().c_str();
         // compilerOptions.arch = options.getArch().c_str();
-        compilerOptions.file = getInputFile().c_str();
+        compilerOptions.file = cstring(getInputFile().c_str());
         return EXIT_SUCCESS;
     }
 

@@ -21,7 +21,7 @@ const IR::Expression *TofinoBaseTableExecutor::computeTargetMatchType(
     auto tableName = getP4Table().controlPlaneName();
     const auto *keyExpr = keyField->expression;
     const auto matchType = keyField->matchType->toString();
-    const auto *nameAnnot = keyField->getAnnotation("name");
+    const auto *nameAnnot = keyField->getAnnotation(IR::Annotation::nameAnnotation);
     bool isTainted = false;
     // Some hidden tables do not have any key name annotations.
     BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
