@@ -64,7 +64,7 @@ namespace {
 
 std::optional<cstring> checkForActionProfile(const IR::P4Table &table,
                                              const P4::ReferenceMap &refMap) {
-    const auto *impl = table.properties->getProperty("implementation");
+    const auto *impl = table.properties->getProperty(cstring("implementation"));
     if (impl == nullptr) {
         return std::nullopt;
     }

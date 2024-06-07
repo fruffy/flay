@@ -25,6 +25,8 @@
 
 namespace P4Tools::Flay::Tofino {
 
+using namespace P4::literals;
+
 /* =============================================================================================
  *  TofinoBaseFlayTarget implementation
  * ============================================================================================= */
@@ -44,7 +46,7 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const IR::P4Program 
     /// After the front end, get the P4Runtime API for the tna architecture.
     /// TODO: We need to implement the P4Runtime handler for Tofino.
     auto *serializer = P4::P4RuntimeSerializer::get();
-    serializer->registerArch("tofino",
+    serializer->registerArch(cstring("tofino"),
                              new P4::ControlPlaneAPI::Standard::TofinoArchHandlerBuilder());
 
     std::optional<P4::P4RuntimeAPI> p4runtimeApi;
@@ -57,7 +59,8 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const IR::P4Program 
         p4runtimeApi = P4::P4RuntimeAPI(new p4::config::v1::P4Info(p4Info), nullptr);
     } else {
         /// After the front end, get the P4Runtime API for the V1model architecture.
-        p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "tofino");
+        p4runtimeApi =
+            P4::P4RuntimeSerializer::get()->generateP4Runtime(program, cstring("tofino"));
         if (::errorCount() > 0) {
             return std::nullopt;
         }
@@ -135,7 +138,7 @@ const ProgramInfo *Tofino1FlayTarget::produceProgramInfoImpl(
 }
 
 const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
-    "Pipeline",
+    "Pipeline"_cs,
     {
         // parser IngressParserT<H, M>(
         //     packet_in pkt,
@@ -144,14 +147,14 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
         //     @optional out ingress_intrinsic_metadata_t ig_intr_md,
         //     @optional out ingress_intrinsic_metadata_for_tm_t ig_intr_md_for_tm,
         //     @optional out ingress_intrinsic_metadata_from_parser_t ig_intr_md_from_prsr);
-        {"IngressParserT",
+        {"IngressParserT"_cs,
          {
              nullptr,
-             "*hdr",
-             "*ig_md",
-             "*ig_intr_md",
-             "*ig_intr_md_for_tm",
-             "*ig_intr_md_from_prsr",
+             "*hdr"_cs,
+             "*ig_md"_cs,
+             "*ig_intr_md"_cs,
+             "*ig_intr_md_for_tm"_cs,
+             "*ig_intr_md_from_prsr"_cs,
          }},
         // control IngressT<H, M>(
         //     inout H hdr,
@@ -160,14 +163,14 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
         //     @optional in ingress_intrinsic_metadata_from_parser_t ig_intr_md_from_prsr,
         //     @optional inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
         //     @optional inout ingress_intrinsic_metadata_for_tm_t ig_intr_md_for_tm);
-        {"IngressT",
+        {"IngressT"_cs,
          {
-             "*hdr",
-             "*ig_md",
-             "*ig_intr_md",
-             "*ig_intr_md_from_prsr",
-             "*ig_intr_md_for_dprsr",
-             "*ig_intr_md_for_tm",
+             "*hdr"_cs,
+             "*ig_md"_cs,
+             "*ig_intr_md"_cs,
+             "*ig_intr_md_from_prsr"_cs,
+             "*ig_intr_md_for_dprsr"_cs,
+             "*ig_intr_md_for_tm"_cs,
          }},
         // control IngressDeparserT<H, M>(
         //     packet_out pkt,
@@ -175,13 +178,13 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
         //     in M metadata,
         //     @optional in ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
         //     @optional in ingress_intrinsic_metadata_t ig_intr_md);
-        {"IngressDeparserT",
+        {"IngressDeparserT"_cs,
          {
              nullptr,
-             "*hdr",
-             "*ig_md",
-             "*ig_intr_md_for_dprsr",
-             "*ig_intr_md",
+             "*hdr"_cs,
+             "*ig_md"_cs,
+             "*ig_intr_md_for_dprsr"_cs,
+             "*ig_intr_md"_cs,
          }},
         // parser EgressParserT<H, M>(
         //     packet_in pkt,
@@ -190,14 +193,14 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
         //     @optional out egress_intrinsic_metadata_t eg_intr_md,
         //     @optional out egress_intrinsic_metadata_from_parser_t eg_intr_md_from_prsr,
         //     @optional out egress_intrinsic_metadata_for_deparser_t eg_intr_md_for_dprsr);
-        {"EgressParserT",
+        {"EgressParserT"_cs,
          {
              nullptr,
-             "*hdr",
-             "*eg_md",
-             "*eg_intr_md",
-             "*eg_intr_md_from_prsr",
-             "*eg_intr_md_for_dprsr",
+             "*hdr"_cs,
+             "*eg_md"_cs,
+             "*eg_intr_md"_cs,
+             "*eg_intr_md_from_prsr"_cs,
+             "*eg_intr_md_for_dprsr"_cs,
          }},
         // control EgressT<H, M>(
         //     inout H hdr,
@@ -206,14 +209,14 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
         //     @optional in egress_intrinsic_metadata_from_parser_t eg_intr_md_from_prsr,
         //     @optional inout egress_intrinsic_metadata_for_deparser_t eg_intr_md_for_dprsr,
         //     @optional inout egress_intrinsic_metadata_for_output_port_t eg_intr_md_for_oport);
-        {"EgressT",
+        {"EgressT"_cs,
          {
-             "*hdr",
-             "*eg_md",
-             "*eg_intr_md",
-             "*eg_intr_md_from_prsr",
-             "*eg_intr_md_for_dprsr",
-             "*eg_intr_md_for_oport",
+             "*hdr"_cs,
+             "*eg_md"_cs,
+             "*eg_intr_md"_cs,
+             "*eg_intr_md_from_prsr"_cs,
+             "*eg_intr_md_for_dprsr"_cs,
+             "*eg_intr_md_for_oport"_cs,
          }},
         // control EgressDeparserT<H, M>(
         //     packet_out pkt,
@@ -222,14 +225,14 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
         //     @optional in egress_intrinsic_metadata_for_deparser_t eg_intr_md_for_dprsr,
         //     @optional in egress_intrinsic_metadata_t eg_intr_md,
         //     @optional in egress_intrinsic_metadata_from_parser_t eg_intr_md_from_prsr);
-        {"EgressDeparserT",
+        {"EgressDeparserT"_cs,
          {
              nullptr,
-             "*hdr",
-             "*eg_md",
-             "*eg_intr_md_for_dprsr",
-             "*eg_intr_md",
-             "*eg_intr_md_from_prsr",
+             "*hdr"_cs,
+             "*eg_md"_cs,
+             "*eg_intr_md_for_dprsr"_cs,
+             "*eg_intr_md"_cs,
+             "*eg_intr_md_from_prsr"_cs,
          }},
     });
 

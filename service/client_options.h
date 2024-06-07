@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "lib/cstring.h"
 #include "lib/options.h"
 
 namespace P4Tools::Flay {
@@ -15,7 +14,7 @@ namespace P4Tools::Flay {
 /// instance.
 class FlayClientOptions : protected Util::Options {
  public:
-    explicit FlayClientOptions(cstring message);
+    explicit FlayClientOptions(std::string_view message);
 
     FlayClientOptions(const FlayClientOptions &) = default;
     FlayClientOptions(FlayClientOptions &&) = delete;

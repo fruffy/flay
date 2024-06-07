@@ -24,14 +24,17 @@ const IR::Expression *XsaExpressionResolver::processTable(const IR::P4Table *tab
 
 // Provides implementations of Fpga externs.
 namespace XsaExterns {
+
+using namespace P4::literals;
+
 const ExternMethodImpls EXTERN_METHOD_IMPLS({
     /* ======================================================================================
      *  UserExtern.apply
      * Unknown behavior. The only thing that is known that the second parameter can be written to.
      * ======================================================================================
      */
-    {"UserExtern.apply",
-     {"extern_in", "extern_out"},
+    {"UserExtern.apply"_cs,
+     {"extern_in"_cs, "extern_out"_cs},
      [](const ExternMethodImpls::ExternInfo &externInfo) {
          auto &state = externInfo.state;
 

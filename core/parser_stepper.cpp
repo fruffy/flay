@@ -77,7 +77,7 @@ bool ParserStepper::preorder(const IR::P4Parser *parser) {
     }
 
     // Step into the start state.
-    const auto *startState = parser->states.getDeclaration<IR::ParserState>("start");
+    const auto *startState = parser->states.getDeclaration<IR::ParserState>(cstring("start"));
     executionState.addParserId(startState->clone_id);
     startState->apply_visitor_preorder(*this);
 

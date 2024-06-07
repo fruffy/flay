@@ -105,7 +105,7 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
     auto tableName = getP4Table().controlPlaneName();
     const auto *keyExpr = keyField->expression;
     const auto matchType = keyField->matchType->toString();
-    const auto *nameAnnot = keyField->getAnnotation("name");
+    const auto *nameAnnot = keyField->getAnnotation(IR::Annotation::nameAnnotation);
     // Some hidden tables do not have any key name annotations.
     BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
               "Non-constant table key without an annotation");
@@ -189,7 +189,7 @@ void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tabl
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
         // Skip the current initial default action from this calculation to avoid duplicating state.
         if (defaultActionType->controlPlaneName() == actionType->controlPlaneName() ||
-            (action->getAnnotation("tableonly") != nullptr)) {
+            (action->getAnnotation(IR::Annotation::tableOnlyAnnotation) != nullptr)) {
             continue;
         }
         const auto *actionExpr = IR::StringLiteral::get(actionType->controlPlaneName());

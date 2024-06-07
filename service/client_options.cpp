@@ -11,7 +11,7 @@
 
 namespace P4Tools::Flay {
 
-FlayClientOptions::FlayClientOptions(cstring message) : Options(message) {
+FlayClientOptions::FlayClientOptions(std::string_view message) : Options(message) {
     // Register some common options.
     registerOption(
         "--help", nullptr,

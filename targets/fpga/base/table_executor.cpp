@@ -6,7 +6,6 @@
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/fpga/constants.h"
-#include "ir/ir-generated.h"
 #include "ir/irutils.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
@@ -22,7 +21,7 @@ const IR::Expression *FpgaBaseTableExecutor::computeTargetMatchType(
     auto tableName = getP4Table().controlPlaneName();
     const auto *keyExpr = keyField->expression;
     const auto matchType = keyField->matchType->toString();
-    const auto *nameAnnot = keyField->getAnnotation("name");
+    const auto *nameAnnot = keyField->getAnnotation(IR::Annotation::nameAnnotation);
     bool isTainted = false;
     // Some hidden tables do not have any key name annotations.
     BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,

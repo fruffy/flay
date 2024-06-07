@@ -33,14 +33,14 @@ void TofinoBaseFlayStepper::initializeState() {
         const auto *parserErrorVar = new IR::Member(
             sixteenBitType, new IR::PathExpression("*ig_intr_md_from_prsr"), "parser_err");
         const IR::Expression *parserErrorValue =
-            new IR::SymbolicVariable(sixteenBitType, "ig_intr_md_from_prsr.parser_err");
+            new IR::SymbolicVariable(sixteenBitType, cstring("ig_intr_md_from_prsr.parser_err"));
         getExecutionState().set(parserErrorVar, parserErrorValue);
     }
     {
         const auto *parserErrorVar = new IR::Member(
             sixteenBitType, new IR::PathExpression("*eg_intr_md_from_prsr"), "parser_err");
         const IR::Expression *parserErrorValue =
-            new IR::SymbolicVariable(sixteenBitType, "eg_intr_md_from_prsr.parser_err");
+            new IR::SymbolicVariable(sixteenBitType, cstring("eg_intr_md_from_prsr.parser_err"));
         getExecutionState().set(parserErrorVar, parserErrorValue);
     }
 }

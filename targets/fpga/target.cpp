@@ -23,6 +23,8 @@
 
 namespace P4Tools::Flay::Fpga {
 
+using namespace ::P4::literals;
+
 /* =============================================================================================
  *  FpgaBaseFlayTarget implementation
  * ============================================================================================= */
@@ -50,7 +52,7 @@ CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const IR::P4Program *p
         p4runtimeApi = P4::P4RuntimeAPI(p4Info.New(), nullptr);
     } else {
         /// After the front end, get the P4Runtime API for the V1model architecture.
-        p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "pna");
+        p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "pna"_cs);
         if (::errorCount() > 0) {
             return std::nullopt;
         }
@@ -113,39 +115,39 @@ const ProgramInfo *XsaFlayTarget::produceProgramInfoImpl(
 }
 
 const ArchSpec XsaFlayTarget::ARCH_SPEC = ArchSpec(
-    "Pipeline", {
-                    // parser Parser<H, M>(packet_in b,
-                    //                     out H hdr,
-                    //                     inout M meta,
-                    //                     inout standard_metadata_t standard_metadata);
-                    {"Parser",
-                     {
-                         nullptr,
-                         "*hdr",
-                         "*meta",
-                         "*standard_metadata",
-                     }},
-                    // control MatchAction<H, M>(inout H hdr,
-                    //                           inout M meta,
-                    //                           inout standard_metadata_t standard_metadata);
-                    {"MatchAction",
-                     {
-                         "*hdr",
-                         "*meta",
-                         "*standard_metadata",
-                     }},
-                    // control Deparser<H, M>(packet_out b,
-                    //                        in H hdr,
-                    //                        inout M meta,
-                    //                        inout standard_metadata_t standard_metadata);
-                    {"Deparser",
-                     {
-                         nullptr,
-                         "*hdr",
-                         "*meta",
-                         "*standard_metadata",
-                     }},
-                });
+    "Pipeline"_cs, {
+                       // parser Parser<H, M>(packet_in b,
+                       //                     out H hdr,
+                       //                     inout M meta,
+                       //                     inout standard_metadata_t standard_metadata);
+                       {"Parser"_cs,
+                        {
+                            nullptr,
+                            "*hdr"_cs,
+                            "*meta"_cs,
+                            "*standard_metadata"_cs,
+                        }},
+                       // control MatchAction<H, M>(inout H hdr,
+                       //                           inout M meta,
+                       //                           inout standard_metadata_t standard_metadata);
+                       {"MatchAction"_cs,
+                        {
+                            "*hdr"_cs,
+                            "*meta"_cs,
+                            "*standard_metadata"_cs,
+                        }},
+                       // control Deparser<H, M>(packet_out b,
+                       //                        in H hdr,
+                       //                        inout M meta,
+                       //                        inout standard_metadata_t standard_metadata);
+                       {"Deparser"_cs,
+                        {
+                            nullptr,
+                            "*hdr"_cs,
+                            "*meta"_cs,
+                            "*standard_metadata"_cs,
+                        }},
+                   });
 
 const ArchSpec *XsaFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; }
 

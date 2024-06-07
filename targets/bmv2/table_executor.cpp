@@ -22,7 +22,7 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
     auto tableName = getP4Table().controlPlaneName();
     const auto *keyExpr = keyField->expression;
     const auto matchType = keyField->matchType->toString();
-    const auto *nameAnnot = keyField->getAnnotation("name");
+    const auto *nameAnnot = keyField->getAnnotation(IR::Annotation::nameAnnotation);
     // Some hidden tables do not have any key name annotations.
     BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
               "Non-constant table key without an annotation");

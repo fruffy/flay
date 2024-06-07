@@ -3,14 +3,17 @@
 #include "control-plane/p4RuntimeArchStandard.h"
 
 namespace P4::ControlPlaneAPI::Helpers {
+
+using namespace P4::literals;
+
 /// @ref CounterlikeTraits<> specialization for @ref CounterExtern for TNA
 template <>
 struct CounterlikeTraits<Standard::CounterExtern<Standard::Arch::TNA>> {
-    static const cstring name() { return "counter"; }
-    static const cstring directPropertyName() { return "tna_direct_counter"; }
-    static const cstring typeName() { return "Counter"; }
-    static const cstring directTypeName() { return "DirectCounter"; }
-    static const cstring sizeParamName() { return "size"; }
+    static const cstring name() { return "counter"_cs; }
+    static const cstring directPropertyName() { return "tna_direct_counter"_cs; }
+    static const cstring typeName() { return "Counter"_cs; }
+    static const cstring directTypeName() { return "DirectCounter"_cs; }
+    static const cstring sizeParamName() { return "size"_cs; }
     static p4configv1::CounterSpec::Unit mapUnitName(const cstring name) {
         using p4configv1::CounterSpec;
         if (name == "PACKETS")
@@ -29,11 +32,11 @@ struct CounterlikeTraits<Standard::CounterExtern<Standard::Arch::TNA>> {
 /// @ref CounterlikeTraits<> specialization for @ref MeterExtern for TNA
 template <>
 struct CounterlikeTraits<Standard::MeterExtern<Standard::Arch::TNA>> {
-    static const cstring name() { return "meter"; }
-    static const cstring directPropertyName() { return "tna_direct_meter"; }
-    static const cstring typeName() { return "Meter"; }
-    static const cstring directTypeName() { return "DirectMeter"; }
-    static const cstring sizeParamName() { return "size"; }
+    static const cstring name() { return "meter"_cs; }
+    static const cstring directPropertyName() { return "tna_direct_meter"_cs; }
+    static const cstring typeName() { return "Meter"_cs; }
+    static const cstring directTypeName() { return "DirectMeter"_cs; }
+    static const cstring sizeParamName() { return "size"_cs; }
     static p4configv1::MeterSpec::Unit mapUnitName(const cstring name) {
         using p4configv1::MeterSpec;
         if (name == "PACKETS")
@@ -51,24 +54,24 @@ struct CounterlikeTraits<Standard::MeterExtern<Standard::Arch::TNA>> {
 namespace P4::ControlPlaneAPI::Standard {
 template <>
 struct ActionProfileTraits<Arch::TNA> {
-    static const cstring name() { return "action profile"; }
-    static const cstring propertyName() { return "tna_implementation"; }
-    static const cstring typeName() { return "ActionProfile"; }
-    static const cstring sizeParamName() { return "size"; }
+    static const cstring name() { return "action profile"_cs; }
+    static const cstring propertyName() { return "tna_implementation"_cs; }
+    static const cstring typeName() { return "ActionProfile"_cs; }
+    static const cstring sizeParamName() { return "size"_cs; }
 };
 
 template <>
 struct ActionSelectorTraits<Arch::TNA> : public ActionProfileTraits<Arch::TNA> {
-    static const cstring name() { return "action selector"; }
-    static const cstring typeName() { return "ActionSelector"; }
-    static const cstring actionProfileName() { return "action_profile"; }
+    static const cstring name() { return "action selector"_cs; }
+    static const cstring typeName() { return "ActionSelector"_cs; }
+    static const cstring actionProfileName() { return "action_profile"_cs; }
 };
 
 template <>
 struct RegisterTraits<Arch::TNA> {
-    static const cstring name() { return "register"; }
-    static const cstring typeName() { return "Register"; }
-    static const cstring sizeParamName() { return "size"; }
+    static const cstring name() { return "register"_cs; }
+    static const cstring typeName() { return "Register"_cs; }
+    static const cstring sizeParamName() { return "size"_cs; }
     static size_t dataTypeParamIdx() { return 0; }
     // the index of the type parameter for the register index, in the type
     // parameter list of the extern type declaration.
@@ -347,7 +350,7 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
                     [](cstring name) { return name == "max_group_size"; });
         profile->set_with_selector(actionProfile.type == ActionProfileType::INDIRECT_WITH_SELECTOR);
         profile->set_size(actionProfile.size);
-        auto maxGroupSizeAnnotation = actionProfile.annotations->getAnnotation("max_group_size");
+        auto maxGroupSizeAnnotation = actionProfile.annotations->getAnnotation("max_group_size"_cs);
         if (maxGroupSizeAnnotation) {
             if (actionProfile.type == ActionProfileType::INDIRECT_WITH_SELECTOR) {
                 auto maxGroupSizeConstant = maxGroupSizeAnnotation->expr[0]->to<IR::Constant>();

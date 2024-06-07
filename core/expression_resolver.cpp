@@ -392,9 +392,11 @@ bool ExpressionResolver::preorder(const IR::MethodCallExpression *call) {
 /// Provides implementations of P4 core externs.
 namespace CoreExterns {
 
+using namespace P4::literals;
+
 static const ExternMethodImpls EXTERN_METHOD_IMPLS(
-    {{"packet_in.extract",
-      {"hdr"},
+    {{"packet_in.extract"_cs,
+      {"hdr"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           const auto *args = externInfo.externArgs;
           const auto &externObjectRef = externInfo.externObjectRef;
@@ -418,8 +420,8 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           }
           return nullptr;
       }},
-     {"packet_in.extract",
-      {"hdr", "sizeInBits"},
+     {"packet_in.extract"_cs,
+      {"hdr"_cs, "sizeInBits"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           const auto *args = externInfo.externArgs;
           const auto &externObjectRef = externInfo.externObjectRef;
@@ -455,7 +457,7 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           }
           return nullptr;
       }},
-     {"packet_in.lookahead",
+     {"packet_in.lookahead"_cs,
       {},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
           auto &state = externInfo.state;
@@ -471,14 +473,14 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
                                 std::to_string(externInfo.originalCall.clone_id);
           return state.createSymbolicExpression(lookaheadType, lookaheadLabel);
       }},
-     {"packet_in.advance",
-      {"sizeInBits"},
+     {"packet_in.advance"_cs,
+      {"sizeInBits"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
           // Advance is a no-op for now.
           return nullptr;
       }},
-     {"packet_out.emit",
-      {"hdr"},
+     {"packet_out.emit"_cs,
+      {"hdr"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
           // Emit is a no-op for now.
           return nullptr;
@@ -493,8 +495,8 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
       *  argument.
       * ======================================================================================
       */
-     {"*method.verify",
-      {"bool", "error"},
+     {"*method.verify"_cs,
+      {"bool"_cs, "error"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {
           // TODO: Implement the error case.
           return nullptr;

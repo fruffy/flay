@@ -18,12 +18,15 @@ namespace {
 /// Helper methods to build configurations for Optimization Tests.
 class OptimizationTest : public ::testing::Test {};
 
+using namespace P4::literals;
+
 // Tests for the optimization of various expressions.
 TEST_F(OptimizationTest, Optimization01) {
     const auto *eightBitType = IR::Type_Bits::get(8);
-    const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
-    const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A");
-    const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B");
+    const auto *xVar =
+        P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X"_cs);
+    const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A"_cs);
+    const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B"_cs);
 
     // |X(bool)| ? |X(bool)| ? |A(bit<8>)| : |B(bit<8>)| : |B(bit<8>)|"
     const auto *nestedMuxExpression = new IR::Mux(xVar, new IR::Mux(xVar, aVar, bVar), bVar);
@@ -37,9 +40,10 @@ TEST_F(OptimizationTest, Optimization01) {
 
 TEST_F(OptimizationTest, Optimization02) {
     const auto *eightBitType = IR::Type_Bits::get(8);
-    const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
-    const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A");
-    const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B");
+    const auto *xVar =
+        P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X"_cs);
+    const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A"_cs);
+    const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B"_cs);
 
     // |X(bool)| ? !|X(bool)| ? |A(bit<8>)| : |B(bit<8>)| : |B(bit<8>)|
     const auto *nestedMuxExpression =
@@ -54,10 +58,12 @@ TEST_F(OptimizationTest, Optimization02) {
 
 TEST_F(OptimizationTest, Optimization03) {
     const auto *eightBitType = IR::Type_Bits::get(8);
-    const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
-    const auto *yVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "Y");
-    const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A");
-    const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B");
+    const auto *xVar =
+        P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X"_cs);
+    const auto *yVar =
+        P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "Y"_cs);
+    const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A"_cs);
+    const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B"_cs);
 
     // |X(bool)| ? |Y(bool)| || |X(bool)| ? |A(bit<8>)| : |B(bit<8>)| : |B(bit<8>)|
     const auto *nestedMuxExpression =
@@ -72,10 +78,12 @@ TEST_F(OptimizationTest, Optimization03) {
 
 TEST_F(OptimizationTest, Optimization04) {
     const auto *eightBitType = IR::Type_Bits::get(8);
-    const auto *xVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X");
-    const auto *yVar = P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "Y");
-    const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A");
-    const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B");
+    const auto *xVar =
+        P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X"_cs);
+    const auto *yVar =
+        P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "Y"_cs);
+    const auto *aVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "A"_cs);
+    const auto *bVar = P4Tools::ToolsVariables::getSymbolicVariable(eightBitType, "B"_cs);
     {
         // |X(bool)| ? |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)| : |B(bit<8>)|
         const auto *nestedMuxExpression = new IR::Mux(xVar, new IR::Mux(yVar, aVar, bVar), bVar);

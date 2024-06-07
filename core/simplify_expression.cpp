@@ -554,13 +554,6 @@ class ExpressionStrengthReduction final : public Transform {
         }
         return expr;
     }
-
-    const IR::BlockStatement *preorder(IR::BlockStatement *bs) override {
-        if (bs->annotations->getSingle("disable_optimization") != nullptr) {
-            prune();
-        }
-        return bs;
-    }
 };
 
 }  // namespace

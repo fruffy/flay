@@ -40,15 +40,15 @@ void V1ModelFlayStepper::initializeState() {
     const IR::Expression *instanceTypeValue = nullptr;
     if (FlayOptions::get().usePlaceholders()) {
         instanceTypeValue = new IR::Placeholder(
-            "standard_metadata.instance_type",
+            cstring("standard_metadata.instance_type"),
             IR::Constant::get(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
     } else {
         instanceTypeValue =
-            new IR::SymbolicVariable(thirtyTwoBitType, "standard_metadata.instance_type");
+            new IR::SymbolicVariable(thirtyTwoBitType, cstring("standard_metadata.instance_type"));
     }
     executionState.set(instanceTypeVar, instanceTypeValue);
     executionState.setPlaceholderValue(
-        "standard_metadata.instance_type",
+        cstring("standard_metadata.instance_type"),
         IR::Constant::get(thirtyTwoBitType, V1ModelConstants::PKT_INSTANCE_TYPE_NORMAL));
 }
 
