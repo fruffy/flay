@@ -21,9 +21,9 @@ using EliminatedReplacedPair = std::pair<const IR::Node *, const IR::Node *>;
 /// not executable according to the computation in the map.
 class ElimDeadCode : public Transform {
     /// The reachability map computed by the execution state.
-    std::reference_wrapper<const AbstractReachabilityMap> reachabilityMap;
+    std::reference_wrapper<const AbstractReachabilityMap> _reachabilityMap;
 
-    std::reference_wrapper<const P4::ReferenceMap> refMap;
+    std::reference_wrapper<const P4::ReferenceMap> _refMap;
 
     /// The list of eliminated and optionally replaced nodes. Used for bookkeeping.
     std::vector<EliminatedReplacedPair> _eliminatedNodes;

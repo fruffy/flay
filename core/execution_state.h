@@ -69,6 +69,9 @@ class ExecutionState : public AbstractExecutionState {
     /// Map the conditions to be reachable to a particular program node.
     void addReachabilityMapping(const IR::Node *node, const IR::Expression *cond);
 
+    /// Map the interpreter value to a particular expression in the program.
+    void addExpressionMapping(const IR::Expression *expression, const IR::Expression *value);
+
     /// Convenience function to set the value of a placeholder variables in the
     /// symbolic environment. An example where placeholder variables are necessary
     /// is recirculation. We can not immediately know the conditions to cover a

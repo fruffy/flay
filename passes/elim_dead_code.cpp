@@ -14,7 +14,7 @@ namespace P4Tools::Flay {
 
 ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
                            const AbstractReachabilityMap &reachabilityMap)
-    : reachabilityMap(reachabilityMap), refMap(refMap) {}
+    : _reachabilityMap(reachabilityMap), _refMap(refMap) {}
 
 const IR::Node *ElimDeadCode::preorder(IR::P4Parser *parser) {
     if (FlayOptions::get().skipParsers()) {
@@ -34,7 +34,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
         return stmt;
     }
 
-    auto reachability = reachabilityMap.get().isNodeReachable(stmt);
+    auto reachability = _reachabilityMap.get().isNodeReachable(stmt);
 
     // Ambiguous condition, we can not simplify.
     if (!reachability.has_value()) {
@@ -75,7 +75,7 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
             filteredSwitchCases.push_back(switchCase);
             break;
         }
-        auto isreachabilityOpt = reachabilityMap.get().isNodeReachable(switchCase);
+        auto isreachabilityOpt = _reachabilityMap.get().isNodeReachable(switchCase);
         if (!isreachabilityOpt.has_value()) {
             filteredSwitchCases.push_back(switchCase);
             continue;
@@ -134,7 +134,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
         return member;
     }
 
-    ASSIGN_OR_RETURN(auto reachability, reachabilityMap.get().isNodeReachable(member), member);
+    ASSIGN_OR_RETURN(auto reachability, _reachabilityMap.get().isNodeReachable(member), member);
 
     const auto *result = IR::BoolLiteral::get(reachability, member->srcInfo);
     printInfo("---DEAD_CODE--- %1% can be replaced with %2%.", member, result->toString());
@@ -151,7 +151,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     const auto *call = stmt->methodCall->method->to<IR::Member>();
     RETURN_IF_FALSE(call != nullptr && call->member == IR::IApply::applyMethodName, stmt);
     ASSIGN_OR_RETURN(auto &tableReference, call->expr->to<IR::PathExpression>(), stmt);
-    ASSIGN_OR_RETURN(auto &tableDecl, refMap.get().getDeclaration(tableReference.path, false),
+    ASSIGN_OR_RETURN(auto &tableDecl, _refMap.get().getDeclaration(tableReference.path, false),
                      stmt);
     ASSIGN_OR_RETURN(auto &table, tableDecl.to<IR::P4Table>(), stmt);
 
@@ -163,7 +163,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     auto tableActionList = TableUtils::buildTableActionList(table);
     for (const auto *action : tableActionList) {
         // We return if a single action is executable for the current table.
-        ASSIGN_OR_RETURN(auto reachability, reachabilityMap.get().isNodeReachable(action), stmt);
+        ASSIGN_OR_RETURN(auto reachability, _reachabilityMap.get().isNodeReachable(action), stmt);
 
         if (reachability) {
             printInfo("---DEAD_CODE--- %1% will always be executed.", action);
@@ -176,7 +176,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     // Only when the default action has an empty body, we remove the apply.
     const auto *defaultAction = table.getDefaultAction()->to<IR::MethodCallExpression>();
     if (defaultAction != nullptr) {
-        auto decl = getActionDecl(refMap, *defaultAction);
+        auto decl = getActionDecl(_refMap, *defaultAction);
         if (decl.has_value() && !decl.value()->body->components.empty()) {
             printInfo("---DEAD_CODE--- Replacing table apply with default action %1%",
                       defaultAction);

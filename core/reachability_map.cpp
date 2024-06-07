@@ -5,7 +5,7 @@
 namespace P4Tools::Flay {
 
 SolverReachabilityMap::SolverReachabilityMap(AbstractSolver &solver, const NodeAnnotationMap &map)
-    : _symbolMap(map.symbolMap()), _solver(solver) {
+    : _symbolMap(map.reachabilitySymbolMap()), _solver(solver) {
     for (auto &pair : map.reachabilityMap()) {
         emplace(pair.first, pair.second);
     }

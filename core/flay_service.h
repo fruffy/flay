@@ -6,6 +6,7 @@
 
 #include "backends/p4tools/modules/flay/core/compiler_result.h"
 #include "backends/p4tools/modules/flay/core/node_map.h"
+#include "backends/p4tools/modules/flay/core/substitution_map.h"
 #include "backends/p4tools/modules/flay/passes/elim_dead_code.h"
 #include "frontends/p4/toP4/toP4.h"
 
@@ -93,6 +94,9 @@ class FlayServiceBase {
     /// The reachability map used by the server. Derived from the input argument.
     std::reference_wrapper<AbstractReachabilityMap> _reachabilityMap;
 
+    /// The expression map used by the server.
+    std::reference_wrapper<AbstractSubstitutionMap> _substitutionMap;
+
     /// The set of active control plane constraints. These constraints are added
     /// to every solver check to compute feasibility of a program node.
     ControlPlaneConstraints _controlPlaneConstraints;
@@ -148,8 +152,8 @@ class FlayServiceBase {
     /// program info object was initialized with.
     [[nodiscard]] ControlPlaneConstraints &mutableControlPlaneConstraints();
 
-    /// Run dead code elimination on the original P4 program.
-    std::pair<int, bool> elimControlPlaneDeadCode(
+    /// Run specialization on the original P4 program.
+    std::pair<int, bool> specializeProgram(
         std::optional<std::reference_wrapper<const SymbolSet>> symbolSet = std::nullopt);
 
     /// Compute some statistics on the changes in the program and print them out.

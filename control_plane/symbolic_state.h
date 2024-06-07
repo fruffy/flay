@@ -22,6 +22,7 @@ using SymbolSet =
 using SymbolMap = std::map<std::reference_wrapper<const IR::SymbolicVariable>,
                            std::set<const IR::Node *>, IR::IsSemanticallyLessComparator>;
 using NodeSet = std::set<const IR::Node *, SourceIdCmp>;
+using ExpressionSet = std::set<const IR::Expression *, SourceIdCmp>;
 
 /// Collects all IR::SymbolicVariables in a given IR::Node.
 class SymbolCollector : public Inspector {
