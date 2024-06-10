@@ -1,5 +1,6 @@
 #include "backends/p4tools/modules/flay/core/reachability_map.h"
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {

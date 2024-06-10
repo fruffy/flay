@@ -15,7 +15,7 @@
 namespace P4Tools::Flay {
 
 ControlPlaneStateInitializer::ControlPlaneStateInitializer(const P4::ReferenceMap &refMap)
-    : refMap_(refMap) {}
+    : _refMap(refMap) {}
 
 ControlPlaneConstraints ControlPlaneStateInitializer::getDefaultConstraints() const {
     return defaultConstraints;
@@ -232,9 +232,9 @@ bool ControlPlaneStateInitializer::preorder(const IR::P4Table *table) {
     TableUtils::checkTableImmutability(*table, properties);
     auto tableName = table->controlPlaneName();
 
-    ASSIGN_OR_RETURN(auto defaultActionConstraints, computeDefaultActionConstraints(table, refMap_),
-                     false);
-    ASSIGN_OR_RETURN(TableEntrySet initialTableEntries, initializeTableEntries(table, refMap_),
+    ASSIGN_OR_RETURN(auto defaultActionConstraints,
+                     computeDefaultActionConstraints(table, refMap()), false);
+    ASSIGN_OR_RETURN(TableEntrySet initialTableEntries, initializeTableEntries(table, refMap()),
                      false);
 
     defaultConstraints.insert(
@@ -248,5 +248,7 @@ bool ControlPlaneStateInitializer::preorder(const IR::P4ValueSet *parserValueSet
                                *new ParserValueSet(parserValueSet->controlPlaneName()));
     return false;
 }
+
+const P4::ReferenceMap &ControlPlaneStateInitializer::refMap() const { return _refMap; }
 
 }  // namespace P4Tools::Flay

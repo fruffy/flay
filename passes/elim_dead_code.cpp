@@ -25,7 +25,7 @@ const IR::Node *ElimDeadCode::preorder(IR::P4Parser *parser) {
 
 const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
     // Only analyze statements with valid source location.
-    if (!stmt->srcInfo.isValid()) {
+    if (!stmt->getSourceInfo().isValid()) {
         return stmt;
     }
 
@@ -65,7 +65,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
 
 const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
     // Only analyze statements with valid source location.
-    if (!switchStmt->srcInfo.isValid()) {
+    if (!switchStmt->getSourceInfo().isValid()) {
         return switchStmt;
     }
 
@@ -83,10 +83,10 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
         auto reachability = isreachabilityOpt.value();
         if (reachability) {
             filteredSwitchCases.push_back(switchCase);
-            printInfo("---DEAD_CODE--- %1% is always true.", switchCase);
+            printInfo("---DEAD_CODE--- %1% is always true.", switchCase->label);
             break;
         }
-        printInfo("---DEAD_CODE--- %1% can be deleted.", switchCase);
+        printInfo("---DEAD_CODE--- %1% can be deleted.", switchCase->label);
         _eliminatedNodes.emplace_back(switchCase, nullptr);
     }
     if (filteredSwitchCases.empty()) {
@@ -144,7 +144,7 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
 
 const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     // Only analyze statements with valid source location.
-    if (!stmt->srcInfo.isValid()) {
+    if (!stmt->getSourceInfo().isValid()) {
         return stmt;
     }
 

@@ -1,0 +1,23 @@
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 288862101
+      key {
+        fields {
+          field_id: 1
+          exact {
+            value: "\000\000\000\000"
+          }
+        }
+      }
+      data {
+        action_id: 23932070
+        fields {
+          field_id: 1
+          stream: "\000\002"
+        }
+      }
+    }
+  }
+}

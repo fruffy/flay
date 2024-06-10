@@ -22,6 +22,11 @@
 
 namespace P4Tools::Flay::P4Runtime {
 
+namespace {
+
+/// Convert a P4Runtime FieldMatch into the appropriate symbolic constraint
+/// assignments.
+/// @param symbolSet tracks the symbols used in this conversion.
 std::optional<TableKeySet> produceTableMatch(const p4::v1::FieldMatch &field, cstring tableName,
                                              const p4::config::v1::MatchField &matchField,
                                              SymbolSet &symbolSet) {
@@ -61,6 +66,9 @@ std::optional<TableKeySet> produceTableMatch(const p4::v1::FieldMatch &field, cs
     return std::nullopt;
 }
 
+/// Retrieve the appropriate symbolic constraint assignments for a field that is not set in the
+/// message.
+/// @param symbolSet tracks the symbols used in this conversion.
 std::optional<TableKeySet> produceTableMatchForMissingField(
     cstring tableName, const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet) {
     TableKeySet tableKeySet;
@@ -87,6 +95,9 @@ std::optional<TableKeySet> produceTableMatchForMissingField(
     return std::nullopt;
 }
 
+/// Convert a P4Runtime TableAction into the appropriate symbolic constraint
+/// assignments. If @param isDefaultAction is true, then the constraints generated are
+/// specialized towards overriding a default action in a table.
 std::optional<const IR::Expression *> convertTableAction(const p4::v1::Action &tblAction,
                                                          cstring tableName,
                                                          const p4::config::v1::Action &p4Action,
@@ -122,6 +133,9 @@ std::optional<const IR::Expression *> convertTableAction(const p4::v1::Action &t
     return actionExpr;
 }
 
+/// Convert a P4Runtime TableEntry into a TableMatchEntry.
+/// Returns std::nullopt if the conversion fails.
+/// @param symbolSet tracks the symbols used in this conversion.
 std::optional<TableMatchEntry *> produceTableEntry(cstring tableName,
                                                    P4::ControlPlaneAPI::p4rt_id_t tblId,
                                                    const p4::config::v1::P4Info &p4Info,
@@ -172,6 +186,9 @@ std::optional<TableMatchEntry *> produceTableEntry(cstring tableName,
     return new TableMatchEntry(actionExpr, tableEntry.priority(), tableKeySet);
 }
 
+/// Convert a P4Runtime TableEntry into the appropriate symbolic constraint
+/// assignments.
+/// @param symbolSet tracks the symbols used in this conversion.
 int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::v1::TableEntry &tableEntry,
                      ControlPlaneConstraints &controlPlaneConstraints,
                      const ::p4::v1::Update_Type &updateType, SymbolSet &symbolSet) {
@@ -231,6 +248,8 @@ int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::v1::TableEn
 
     return EXIT_SUCCESS;
 }
+
+}  // namespace
 
 int updateControlPlaneConstraintsWithEntityMessage(const p4::v1::Entity &entity,
                                                    const p4::config::v1::P4Info &p4Info,

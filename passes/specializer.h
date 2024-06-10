@@ -18,7 +18,10 @@ class FlaySpecializer : public PassManager {
                              const AbstractSubstitutionMap &substitutionMap)
         : _elimDeadCode(new ElimDeadCode(refMap, reachabilityMap)),
           _substituteExpressions(new SubstituteExpressions(refMap, substitutionMap)) {
-        addPasses({_elimDeadCode, _substituteExpressions});
+        addPasses({
+            _elimDeadCode,
+            // _substituteExpressions,
+        });
     }
 
     [[nodiscard]] std::vector<EliminatedReplacedPair> eliminatedNodes() const {

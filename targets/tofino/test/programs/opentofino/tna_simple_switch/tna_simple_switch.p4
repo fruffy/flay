@@ -413,8 +413,9 @@ control Nexthop(in lookup_fields_t lkp,
                 bit<32> table_size) {
     bool routed;
     Hash<bit<32>>(HashAlgorithm_t.CRC32) sel_hash;
-    ActionSelector(
-        1024, sel_hash, SelectorMode_t.FAIR) ecmp_selector;
+    ActionProfile(1024) ecmp_action_profile;
+
+    ActionSelector(ecmp_action_profile, sel_hash, SelectorMode_t.FAIR, 32w1024, 32w16) ecmp_selector;
 
     action set_nexthop_attributes(bd_t bd, mac_addr_t dmac) {
         routed = true;
@@ -517,7 +518,8 @@ control LAG(in lookup_fields_t lkp,
             in ifindex_t ifindex,
             out PortId_t egress_port) {
     Hash<bit<32>>(HashAlgorithm_t.CRC32) sel_hash;
-    ActionSelector(1024, sel_hash, SelectorMode_t.FAIR) lag_selector;
+    ActionProfile(1024) lag_action_profile;
+    ActionSelector(lag_action_profile, sel_hash, SelectorMode_t.FAIR, 32w1024, 32w16) lag_selector;
 
     action set_port(PortId_t port) {
         egress_port = port;

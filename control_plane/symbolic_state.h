@@ -42,12 +42,13 @@ class SymbolCollector : public Inspector {
 };
 
 class ControlPlaneStateInitializer : public Inspector {
+ private:
+    /// The reference map to look up specific declarations.
+    std::reference_wrapper<const P4::ReferenceMap> _refMap;
+
  protected:
     /// The default control-plane constraints as defined by a target.
     ControlPlaneConstraints defaultConstraints;
-
-    /// The reference map to look up specific declarations.
-    std::reference_wrapper<const P4::ReferenceMap> refMap_;
 
     /// Tries to assemble a match for the given entry key and inserts into the @param keySet.
     /// @returns false if the match type is not supported.
@@ -68,6 +69,9 @@ class ControlPlaneStateInitializer : public Inspector {
     /// @returns std::nullopt if an error occurs.
     static std::optional<const IR::Expression *> computeDefaultActionConstraints(
         const IR::P4Table *table, const P4::ReferenceMap &refMap);
+
+    /// Get the reference map.
+    [[nodiscard]] const P4::ReferenceMap &refMap() const;
 
  public:
     explicit ControlPlaneStateInitializer(const P4::ReferenceMap &refMap);

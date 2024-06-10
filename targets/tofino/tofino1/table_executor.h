@@ -10,6 +10,12 @@ namespace P4Tools::Flay::Tofino {
 
 /// Executes a table and synthesizes control plane action parameters.
 class Tofino1TableExecutor : public TofinoBaseTableExecutor {
+ private:
+    /// This value is set when the table has either an action profile or a selector.
+    std::optional<const IR::IDeclaration *> _actionProfileOrSelector;
+
+    [[nodiscard]] const IR::Expression *computeHitCondition(const IR::Key &key) const override;
+
  public:
     explicit Tofino1TableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver);
 };
