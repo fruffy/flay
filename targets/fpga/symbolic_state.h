@@ -9,7 +9,7 @@ namespace P4Tools::Flay::Fpga {
 class FpgaControlPlaneInitializer : public ControlPlaneStateInitializer {
     bool computeMatch(const IR::Expression &entryKey, const IR::SymbolicVariable &keySymbol,
                       cstring tableName, cstring fieldName, cstring matchType,
-                      TableKeySet &keySet) override;
+                      ControlPlaneAssignmentSet &keySet) override;
 
  public:
     explicit FpgaControlPlaneInitializer(const P4::ReferenceMap &refMap)

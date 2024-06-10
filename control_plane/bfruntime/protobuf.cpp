@@ -21,10 +21,10 @@ namespace {
 /// Convert a BFRuntime FieldMatch into the appropriate symbolic constraint
 /// assignments.
 /// @param symbolSet tracks the symbols used in this conversion.
-std::optional<TableKeySet> produceTableMatch(const bfrt_proto::KeyField &field, cstring tableName,
-                                             const p4::config::v1::MatchField &matchField,
-                                             SymbolSet &symbolSet) {
-    TableKeySet tableKeySet;
+std::optional<ControlPlaneAssignmentSet> produceTableMatch(
+    const bfrt_proto::KeyField &field, cstring tableName,
+    const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet) {
+    ControlPlaneAssignmentSet tableKeySet;
     const auto *keyType = IR::Type_Bits::get(matchField.bitwidth());
     const auto *keySymbol = ControlPlaneState::getTableKey(tableName, matchField.name(), keyType);
     symbolSet.emplace(*keySymbol);
@@ -63,9 +63,9 @@ std::optional<TableKeySet> produceTableMatch(const bfrt_proto::KeyField &field, 
 /// Retrieve the appropriate symbolic constraint assignments for a field that is not set in the
 /// message.
 /// @param symbolSet tracks the symbols used in this conversion.
-std::optional<TableKeySet> produceTableMatchForMissingField(
+std::optional<ControlPlaneAssignmentSet> produceTableMatchForMissingField(
     cstring tableName, const p4::config::v1::MatchField &matchField, SymbolSet &symbolSet) {
-    TableKeySet tableKeySet;
+    ControlPlaneAssignmentSet tableKeySet;
     const auto *keyType = IR::Type_Bits::get(matchField.bitwidth());
     const auto *keySymbol = ControlPlaneState::getTableKey(tableName, matchField.name(), keyType);
     symbolSet.emplace(*keySymbol);
@@ -92,20 +92,21 @@ std::optional<TableKeySet> produceTableMatchForMissingField(
 /// Convert a BFRuntime TableAction into the appropriate symbolic constraint
 /// assignments. If @param isDefaultAction is true, then the constraints generated are
 /// specialized towards overriding a default action in a table.
-std::optional<const IR::Expression *> convertTableAction(const bfrt_proto::TableData &tblAction,
-                                                         cstring tableName,
-                                                         const p4::config::v1::Action &p4Action,
-                                                         SymbolSet &symbolSet,
-                                                         bool isDefaultAction) {
+std::optional<ControlPlaneAssignmentSet> convertTableAction(const bfrt_proto::TableData &tblAction,
+                                                            cstring tableName,
+                                                            const p4::config::v1::Action &p4Action,
+                                                            SymbolSet &symbolSet,
+                                                            bool isDefaultAction) {
     const IR::SymbolicVariable *tableActionID =
         isDefaultAction ? ControlPlaneState::getDefaultActionVariable(tableName)
                         : ControlPlaneState::getTableActionChoice(tableName);
     symbolSet.emplace(*tableActionID);
     auto actionName = p4Action.preamble().name();
     const auto *actionAssignment = IR::StringLiteral::get(actionName);
-    const IR::Expression *actionExpr = new IR::Equ(tableActionID, actionAssignment);
+    ControlPlaneAssignmentSet tableActionAssignmentSet;
+    tableActionAssignmentSet.emplace(*tableActionID, *actionAssignment);
     if (tblAction.fields().size() != p4Action.params().size()) {
-        return actionExpr;
+        return tableActionAssignmentSet;
     }
     RETURN_IF_FALSE_WITH_MESSAGE(
         tblAction.fields().size() == p4Action.params().size(), std::nullopt,
@@ -131,9 +132,9 @@ std::optional<const IR::Expression *> convertTableAction(const bfrt_proto::Table
                                              paramConfig.DebugString(), actionName));
         const auto *actionVal =
             IR::Constant::get(paramType, Protobuf::stringToBigInt(paramConfig.stream()));
-        actionExpr = new IR::LAnd(actionExpr, new IR::Equ(actionArg, actionVal));
+        tableActionAssignmentSet.emplace(*actionArg, *actionVal);
     }
-    return actionExpr;
+    return tableActionAssignmentSet;
 }
 
 /// Convert a BFRuntime TableEntry into a TableMatchEntry.
@@ -154,7 +155,7 @@ std::optional<TableMatchEntry *> produceTableEntry(cstring tableName,
         auto &p4Action, P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, actionId), std::nullopt,
         ::error("Action ID %1% from table entry `%2%` not found in the P4Info.", actionId,
                 tableEntry.ShortDebugString()));
-    ASSIGN_OR_RETURN(const auto *actionExpr,
+    ASSIGN_OR_RETURN(const auto &tableActionAssignmentSet,
                      convertTableAction(tableAction, tableName, p4Action, symbolSet, false),
                      std::nullopt);
     ASSIGN_OR_RETURN_WITH_MESSAGE(
@@ -172,10 +173,10 @@ std::optional<TableMatchEntry *> produceTableEntry(cstring tableName,
         matchMap.emplace(matchField.field_id(), matchField);
     }
 
-    TableKeySet tableKeySet;
+    ControlPlaneAssignmentSet tableKeySet;
     for (const auto &p4InfoMatchField : p4InfoTable.match_fields()) {
         auto matchFieldIt = matchMap.find(p4InfoMatchField.id());
-        std::optional<TableKeySet> matchSetOpt;
+        std::optional<ControlPlaneAssignmentSet> matchSetOpt;
         // If we are missing a match entry, create the dummy entry for supported fields.
         if (matchFieldIt == matchMap.end()) {
             matchSetOpt = produceTableMatchForMissingField(tableName, p4InfoMatchField, symbolSet);
@@ -186,7 +187,7 @@ std::optional<TableMatchEntry *> produceTableEntry(cstring tableName,
         ASSIGN_OR_RETURN(auto matchSet, matchSetOpt, std::nullopt);
         tableKeySet.insert(matchSet.begin(), matchSet.end());
     }
-    return new TableMatchEntry(actionExpr, 0, tableKeySet);
+    return new TableMatchEntry(tableActionAssignmentSet, 0, tableKeySet);
 }
 
 /// Convert a BFRuntime TableEntry into the appropriate symbolic constraint

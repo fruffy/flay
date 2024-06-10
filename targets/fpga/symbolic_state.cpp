@@ -12,7 +12,8 @@ namespace P4Tools::Flay::Fpga {
 bool FpgaControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
                                                const IR::SymbolicVariable &keySymbol,
                                                cstring tableName, cstring fieldName,
-                                               cstring matchType, TableKeySet &keySet) {
+                                               cstring matchType,
+                                               ControlPlaneAssignmentSet &keySet) {
     if (matchType == FpgaBaseConstants::MATCH_KIND_RANGE) {
         cstring minName = tableName + "_range_min_" + fieldName;
         cstring maxName = tableName + "_range_max_" + fieldName;
@@ -63,7 +64,7 @@ FpgaControlPlaneInitializer::generateInitialControlPlaneConstraints(const IR::P4
     if (::errorCount() > 0) {
         return std::nullopt;
     }
-    return getDefaultConstraints();
+    return defaultConstraints();
 }
 
 }  // namespace P4Tools::Flay::Fpga

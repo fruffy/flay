@@ -9,7 +9,6 @@
 #include "backends/p4tools/modules/flay/control_plane/control_plane_item.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
-#include "ir/solver.h"
 
 namespace P4Tools::ControlPlaneState {
 
@@ -25,27 +24,6 @@ const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName);
 
 namespace P4Tools::Flay {
 
-/// The set of concrete mappings of symbolic control plane variables for table match keys.
-/// TODO: Make this an unordered set.
-using TableKeyPointerPair = std::pair<const IR::SymbolicVariable *, const IR::Literal *>;
-using TableKeyReferencePair = std::pair<std::reference_wrapper<const IR::SymbolicVariable>,
-                                        std::reference_wrapper<const IR::Literal>>;
-struct IsSemanticallyLessPairComparator {
-    bool operator()(const TableKeyPointerPair &s1, const TableKeyPointerPair &s2) const {
-        if (!s1.first->equiv(*s2.first)) {
-            return s1.first->isSemanticallyLess(*s2.first);
-        }
-        return s1.second->isSemanticallyLess(*s2.second);
-    }
-    bool operator()(const TableKeyReferencePair &s1, const TableKeyReferencePair &s2) const {
-        if (!s1.first.get().equiv(s2.first)) {
-            return s1.first.get().isSemanticallyLess(s2.first);
-        }
-        return s1.second.get().isSemanticallyLess(s2.second);
-    }
-};
-using TableKeySet = std::set<TableKeyReferencePair, IsSemanticallyLessPairComparator>;
-
 /**************************************************************************************************
 TableMatchEntry
 **************************************************************************************************/
@@ -53,32 +31,63 @@ TableMatchEntry
 class TableMatchEntry : public ControlPlaneItem {
  protected:
     /// The action that will be executed by this entry.
-    const Constraint *actionAssignment;
+    ControlPlaneAssignmentSet _actionAssignment;
 
     /// The priority of this entry.
-    int32_t priority;
+    int32_t _priority;
 
     /// The expression which needs to be true to execute the action.
-    const IR::Expression *matchExpression;
+    const IR::Expression *_matchExpression;
 
-    /// Computes an expression from a set of matches.
-    [[nodiscard]] static const IR::Expression *computeMatchExpression(const TableKeySet &matches);
+    /// The resulting assignment once the match expression is true.
+    const IR::Expression *_actionAssignmentExpression;
+
+    /// The set of control plane assignments produced by this entry.
+    ControlPlaneAssignmentSet _matches;
 
  public:
-    explicit TableMatchEntry(const Constraint *actionAssignment, int32_t priority,
-                             const TableKeySet &matches);
+    explicit TableMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority,
+                             const ControlPlaneAssignmentSet &matches);
 
     /// @returns the action that will be executed by this entry.
-    [[nodiscard]] const Constraint *getActionAssignment() const;
+    [[nodiscard]] ControlPlaneAssignmentSet actionAssignment() const;
+
+    /// @returns the expression correlating to the action that will be executed by this entry.
+    const IR::Expression *actionAssignmentExpression() const;
 
     /// @returns the priority of this entry.
-    [[nodiscard]] int32_t getPriority() const;
+    [[nodiscard]] int32_t priority() const;
 
     bool operator<(const ControlPlaneItem &other) const override;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+
     DECLARE_TYPEINFO(TableMatchEntry);
+};
+
+/**************************************************************************************************
+TableDefaultAction
+**************************************************************************************************/
+
+class TableDefaultAction : public ControlPlaneItem {
+    /// The action that will be executed by this entry.
+    ControlPlaneAssignmentSet _actionAssignment;
+
+    /// The resulting assignment once the match expression is true.
+    const IR::Expression *_actionAssignmentExpression;
+
+ public:
+    explicit TableDefaultAction(ControlPlaneAssignmentSet actionAssignment);
+
+    bool operator<(const ControlPlaneItem &other) const override;
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+
+    DECLARE_TYPEINFO(TableDefaultAction);
 };
 
 /**************************************************************************************************
@@ -89,43 +98,15 @@ WildCardMatchEntry
 /// constraints on key values.
 class WildCardMatchEntry : public TableMatchEntry {
  public:
-    explicit WildCardMatchEntry(const Constraint *actionAssignment, int32_t priority);
+    explicit WildCardMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority);
 
     bool operator<(const ControlPlaneItem &other) const override;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+
     DECLARE_TYPEINFO(WildCardMatchEntry);
-};
-
-/**************************************************************************************************
-TableDefaultAction
-**************************************************************************************************/
-
-class TableDefaultAction : public ControlPlaneItem {
-    /// The action that will be executed by this entry.
-    const Constraint *actionAssignment_;
-
- public:
-    explicit TableDefaultAction(const Constraint *actionAssignment)
-        : actionAssignment_(actionAssignment) {}
-
-    /// @returns the action that will be executed by this entry.
-    [[nodiscard]] const Constraint *getActionAssignment() const { return actionAssignment_; }
-
-    bool operator<(const ControlPlaneItem &other) const override {
-        // Table match entries are only compared based on the match expression.
-        return typeid(*this) == typeid(other)
-                   ? actionAssignment_->isSemanticallyLess(
-                         *(dynamic_cast<const TableDefaultAction &>(other)).actionAssignment_)
-                   : typeid(*this).hash_code() < typeid(other).hash_code();
-    }
-
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override {
-        return actionAssignment_;
-    }
-
-    DECLARE_TYPEINFO(TableDefaultAction);
 };
 
 /**************************************************************************************************
@@ -139,13 +120,13 @@ using TableEntrySet =
 /// Concrete configuration of a control plane table. May contain arbitrary many table match entries.
 class TableConfiguration : public ControlPlaneItem {
     /// The control plane name of the table that is being configured.
-    cstring tableName_;
+    cstring _tableName;
 
     /// The default behavior of the table when it is not configured.
-    TableDefaultAction defaultTableAction_;
+    TableDefaultAction _defaultTableAction;
 
     /// The set of table entries in the configuration.
-    TableEntrySet tableEntries_;
+    TableEntrySet _tableEntries;
 
     /// Second-order sorting function for table entries. Sorts entries by priority.
     class CompareTableMatch {
@@ -173,6 +154,8 @@ class TableConfiguration : public ControlPlaneItem {
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+
     DECLARE_TYPEINFO(TableConfiguration);
 };
 
@@ -192,6 +175,8 @@ class ParserValueSet : public ControlPlaneItem {
     bool operator<(const ControlPlaneItem &other) const override;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(ParserValueSet);
 };
@@ -228,6 +213,8 @@ class ActionProfile : public ControlPlaneItem {
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+
     DECLARE_TYPEINFO(ActionProfile);
 };
 
@@ -263,24 +250,23 @@ class ActionSelector : public ControlPlaneItem {
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+
     DECLARE_TYPEINFO(ActionSelector);
 };
 
 /**************************************************************************************************
 TableActionSelectorConfiguration
 **************************************************************************************************/
-
 class TableActionSelectorConfiguration : public TableConfiguration {
  public:
     explicit TableActionSelectorConfiguration(cstring tableName,
                                               TableDefaultAction defaultTableAction,
-                                              TableEntrySet tableEntries)
-        : TableConfiguration(tableName, std::move(defaultTableAction), std::move(tableEntries)) {}
+                                              TableEntrySet tableEntries);
 
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override {
-        // This does nothing currently.
-        return IR::BoolLiteral::get(true);
-    }
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(TableActionSelectorConfiguration);
 };

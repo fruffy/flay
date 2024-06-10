@@ -221,7 +221,7 @@ std::optional<std::filesystem::path> getFilePath(const ReferenceCheckerOptions &
         // If a reference file is explicitly provided, just overwrite this file.
         referencePath = referenceFileOpt.value();
     } else if (referenceFolderOpt.has_value()) {
-        auto referenceFolder = referenceFolderOpt.value();
+        const auto &referenceFolder = referenceFolderOpt.value();
         try {
             std::filesystem::create_directories(referenceFolder);
         } catch (const std::exception &err) {

@@ -147,7 +147,8 @@ void ExecutionState::addExpressionMapping(const IR::Expression *expression,
         return;
     }
 
-    bool notAlreadyInMap = _nodeAnnotationMap.initializeExpressionMapping(expression, value);
+    bool notAlreadyInMap =
+        _nodeAnnotationMap.initializeExpressionMapping(expression, value, getExecutionCondition());
     if (!notAlreadyInMap && FlayOptions::get().isStrict()) {
         // Throw a fatal error if we try to add a duplicate mapping.
         // This can affect the correctness of the entire mapping.

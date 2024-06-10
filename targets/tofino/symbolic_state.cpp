@@ -15,7 +15,8 @@ namespace P4Tools::Flay::Tofino {
 bool TofinoControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
                                                  const IR::SymbolicVariable &keySymbol,
                                                  cstring tableName, cstring fieldName,
-                                                 cstring matchType, TableKeySet &keySet) {
+                                                 cstring matchType,
+                                                 ControlPlaneAssignmentSet &keySet) {
     if (matchType == TofinoBaseConstants::MATCH_KIND_RANGE) {
         cstring minName = tableName + "_range_min_" + fieldName;
         cstring maxName = tableName + "_range_max_" + fieldName;
@@ -64,7 +65,7 @@ namespace {
 
 std::optional<cstring> associateActionProfiles(const IR::P4Table &table,
                                                const P4::ReferenceMap &refMap,
-                                               ControlPlaneConstraints &defaultConstraints) {
+                                               ControlPlaneConstraints &_defaultConstraints) {
     const auto *impl = table.properties->getProperty(cstring("implementation"));
     if (impl == nullptr) {
         return std::nullopt;
@@ -99,8 +100,8 @@ std::optional<cstring> associateActionProfiles(const IR::P4Table &table,
     auto declarationControlPlaneName = implementationDeclaration->controlPlaneName();
     if (implementationTypeDeclaration->getName() == "ActionSelector") {
         ActionSelector *actionSelector = nullptr;
-        auto it = defaultConstraints.find(declarationControlPlaneName);
-        if (it != defaultConstraints.end()) {
+        auto it = _defaultConstraints.find(declarationControlPlaneName);
+        if (it != _defaultConstraints.end()) {
             actionSelector = it->second.get().to<ActionSelector>();
         }
         if (actionSelector == nullptr) {
@@ -112,8 +113,8 @@ std::optional<cstring> associateActionProfiles(const IR::P4Table &table,
     }
     if (implementationTypeDeclaration->getName() == "ActionProfile") {
         ActionProfile *actionProfile = nullptr;
-        auto it = defaultConstraints.find(declarationControlPlaneName);
-        if (it != defaultConstraints.end()) {
+        auto it = _defaultConstraints.find(declarationControlPlaneName);
+        if (it != _defaultConstraints.end()) {
             actionProfile = it->second.get().to<ActionProfile>();
         }
         if (actionProfile == nullptr) {
@@ -141,7 +142,7 @@ bool TofinoControlPlaneInitializer::preorder(const IR::Declaration_Instance *dec
     }
 
     if (implTypeDeclaration->getName() == "ActionProfile") {
-        defaultConstraints.insert(
+        _defaultConstraints.insert(
             {declaration->controlPlaneName(), *new ActionProfile(declaration->controlPlaneName())});
     }
     if (implTypeDeclaration->getName() == "ActionSelector") {
@@ -164,8 +165,8 @@ bool TofinoControlPlaneInitializer::preorder(const IR::Declaration_Instance *dec
             refMap().getDeclaration(actionProfileReferencePath->path);
         auto actionProfileName = actionProfileDeclaration->controlPlaneName();
         ActionProfile *actionProfileObject = nullptr;
-        auto constraintObject = defaultConstraints.find(actionProfileName);
-        if (constraintObject != defaultConstraints.end()) {
+        auto constraintObject = _defaultConstraints.find(actionProfileName);
+        if (constraintObject != _defaultConstraints.end()) {
             actionProfileObject = constraintObject->second.get().to<ActionProfile>();
         }
         if (actionProfileObject == nullptr) {
@@ -175,7 +176,7 @@ bool TofinoControlPlaneInitializer::preorder(const IR::Declaration_Instance *dec
                 actionProfileName);
             return false;
         }
-        defaultConstraints.insert(
+        _defaultConstraints.insert(
             {declaration->controlPlaneName(), *new ActionSelector(*actionProfileObject)});
     }
 
@@ -188,7 +189,7 @@ bool TofinoControlPlaneInitializer::preorder(const IR::P4Table *table) {
     auto tableName = table->controlPlaneName();
 
     // TODO: Consume the returned value here?
-    associateActionProfiles(*table, refMap(), defaultConstraints);
+    associateActionProfiles(*table, refMap(), _defaultConstraints);
 
     ASSIGN_OR_RETURN(auto defaultActionConstraints,
                      computeDefaultActionConstraints(table, refMap()), false);
@@ -198,7 +199,7 @@ bool TofinoControlPlaneInitializer::preorder(const IR::P4Table *table) {
     auto config =
         *new TableConfiguration(table->controlPlaneName(),
                                 TableDefaultAction(defaultActionConstraints), initialTableEntries);
-    defaultConstraints.insert(
+    _defaultConstraints.insert(
         {tableName, *new TableConfiguration(table->controlPlaneName(),
                                             TableDefaultAction(defaultActionConstraints),
                                             initialTableEntries)});
@@ -213,7 +214,7 @@ TofinoControlPlaneInitializer::generateInitialControlPlaneConstraints(
     if (::errorCount() > 0) {
         return std::nullopt;
     }
-    return getDefaultConstraints();
+    return defaultConstraints();
 }
 
 }  // namespace P4Tools::Flay::Tofino

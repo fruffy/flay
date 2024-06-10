@@ -42,7 +42,7 @@ class AbstractSubstitutionMap {
         const IR::Expression *expression) const = 0;
 };
 
-class SolverSubstitutionMap : private ExpressionMap, public AbstractSubstitutionMap {
+class Z3SolverSubstitutionMap : private Z3ExpressionMap, public AbstractSubstitutionMap {
  private:
     /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the
     /// substitution map. This map can we used for incremental re-computation of substitution.
@@ -53,10 +53,10 @@ class SolverSubstitutionMap : private ExpressionMap, public AbstractSubstitution
 
     /// Compute substitution for the node given the set of constraints.
     std::optional<bool> computeNodeSubstitution(const IR::Expression *expression,
-                                                const std::vector<const Constraint *> &constraints);
+                                                const ControlPlaneAssignmentSet &constraints);
 
  public:
-    explicit SolverSubstitutionMap(Z3Solver &solver, const NodeAnnotationMap &map);
+    explicit Z3SolverSubstitutionMap(Z3Solver &solver, const NodeAnnotationMap &map);
 
     std::optional<bool> recomputeSubstitution(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

@@ -6,7 +6,7 @@ bool NodeAnnotationMap::initializeReachabilityMapping(const IR::Node *node,
                                                       const IR::Expression *cond) {
     SymbolCollector collector;
     cond->apply(collector);
-    const auto &collectedSymbols = collector.getCollectedSymbols();
+    const auto &collectedSymbols = collector.collectedSymbols();
     for (const auto &symbol : collectedSymbols) {
         _reachabilitySymbolMap[symbol.get()].emplace(node);
     }
@@ -17,14 +17,15 @@ bool NodeAnnotationMap::initializeReachabilityMapping(const IR::Node *node,
 }
 
 bool NodeAnnotationMap::initializeExpressionMapping(const IR::Expression *expression,
-                                                    const IR::Expression *value) {
+                                                    const IR::Expression *value,
+                                                    const IR::Expression *cond) {
     SymbolCollector collector;
     value->apply(collector);
-    const auto &collectedSymbols = collector.getCollectedSymbols();
+    const auto &collectedSymbols = collector.collectedSymbols();
     for (const auto &symbol : collectedSymbols) {
         _expressionSymbolMap[symbol.get()].emplace(expression);
     }
-    auto result = _expressionMap.emplace(expression, value);
+    auto result = _expressionMap.emplace(expression, new SubstitutionExpression(cond, value));
     return result.second;
 }
 
@@ -33,6 +34,8 @@ void NodeAnnotationMap::mergeAnnotationMapping(const NodeAnnotationMap &otherMap
         _reachabilityMap[rechabilityTuple.first].insert(rechabilityTuple.second.begin(),
                                                         rechabilityTuple.second.end());
     }
+    _expressionMap.insert(otherMap._expressionMap.begin(), otherMap._expressionMap.end());
+
     for (const auto &symbol : otherMap.reachabilitySymbolMap()) {
         _reachabilitySymbolMap[symbol.first.get()].insert(symbol.second.begin(),
                                                           symbol.second.end());
@@ -50,6 +53,7 @@ void NodeAnnotationMap::substitutePlaceholders(Transform &substitute) {
         }
     }
     // TODO: Substitions for the expression map.
+    P4C_UNIMPLEMENTED("NodeAnnotationMap::substitutePlaceholders not implemented");
 }
 
 SymbolMap NodeAnnotationMap::reachabilitySymbolMap() const { return _reachabilitySymbolMap; }

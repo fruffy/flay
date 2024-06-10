@@ -9,7 +9,7 @@ namespace P4Tools::Flay::Tofino {
 class TofinoControlPlaneInitializer : public ControlPlaneStateInitializer {
     bool computeMatch(const IR::Expression &entryKey, const IR::SymbolicVariable &keySymbol,
                       cstring tableName, cstring fieldName, cstring matchType,
-                      TableKeySet &keySet) override;
+                      ControlPlaneAssignmentSet &keySet) override;
 
     bool preorder(const IR::P4Table *table) override;
     bool preorder(const IR::Declaration_Instance *declaration) override;

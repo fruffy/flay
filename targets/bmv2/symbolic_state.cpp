@@ -14,7 +14,8 @@ namespace P4Tools::Flay::V1Model {
 bool Bmv2ControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
                                                const IR::SymbolicVariable &keySymbol,
                                                cstring tableName, cstring fieldName,
-                                               cstring matchType, TableKeySet &keySet) {
+                                               cstring matchType,
+                                               ControlPlaneAssignmentSet &keySet) {
     if (matchType == V1ModelConstants::MATCH_KIND_RANGE) {
         cstring minName = tableName + "_range_min_" + fieldName;
         cstring maxName = tableName + "_range_max_" + fieldName;
@@ -66,13 +67,13 @@ bool Bmv2ControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
 
 std::optional<ControlPlaneConstraints>
 Bmv2ControlPlaneInitializer::generateInitialControlPlaneConstraints(const IR::P4Program *program) {
-    defaultConstraints.emplace("clone_session", *new CloneSession(std::nullopt));
+    _defaultConstraints.emplace("clone_session", *new CloneSession(std::nullopt));
 
     program->apply(*this);
     if (::errorCount() > 0) {
         return std::nullopt;
     }
-    return getDefaultConstraints();
+    return defaultConstraints();
 }
 
 }  // namespace P4Tools::Flay::V1Model

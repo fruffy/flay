@@ -17,7 +17,6 @@
 #include "lib/timer.h"
 
 namespace P4Tools::Flay {
-
 AbstractReachabilityMap &FlayServiceBase::initializeReachabilityMap(
     ReachabilityMapType mapType, const NodeAnnotationMap &nodeAnnotationMap) {
     printInfo("Creating the reachability map...");
@@ -41,7 +40,7 @@ FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
       _optimizedProgram(&compilerResult.getProgram()),
       _compilerResult(compilerResult),
       _reachabilityMap(initializeReachabilityMap(options.mapType, nodeAnnotationMap)),
-      _substitutionMap(*new SolverSubstitutionMap(*new Z3Solver(), nodeAnnotationMap)),
+      _substitutionMap(*new Z3SolverSubstitutionMap(*new Z3Solver(), nodeAnnotationMap)),
       _controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
     printInfo("Checking whether dead code can be removed with the initial configuration...");
     midEndProgram().apply(P4::ResolveReferences(&_refMap));
@@ -82,19 +81,45 @@ const std::vector<EliminatedReplacedPair> &FlayServiceBase::eliminatedNodes() co
 
 AbstractReachabilityMap &FlayServiceBase::mutableReachabilityMap() { return _reachabilityMap; }
 
+AbstractSubstitutionMap &FlayServiceBase::mutableSubstitutionMap() { return _substitutionMap; }
+
 ControlPlaneConstraints &FlayServiceBase::mutableControlPlaneConstraints() {
+    return _controlPlaneConstraints;
+}
+
+const ControlPlaneConstraints &FlayServiceBase::controlPlaneConstraints() const {
     return _controlPlaneConstraints;
 }
 
 std::optional<bool> FlayServiceBase::checkForSemanticChange(
     std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) {
-    printInfo("Checking for change in reachability semantics...");
+    printInfo("Checking for change in program semantics...");
     Util::ScopedTimer timer("Check for semantics change");
+
     if (symbolSet.has_value() && _options.useSymbolSet) {
-        return mutableReachabilityMap().recomputeReachability(symbolSet.value(),
-                                                              mutableControlPlaneConstraints());
+        auto reachabilityResult = mutableReachabilityMap().recomputeReachability(
+            symbolSet.value(), controlPlaneConstraints());
+        if (!reachabilityResult.has_value()) {
+            return std::nullopt;
+        }
+        auto substitutionResult = mutableSubstitutionMap().recomputeSubstitution(
+            symbolSet.value(), controlPlaneConstraints());
+        if (!substitutionResult.has_value()) {
+            return std::nullopt;
+        }
+        return reachabilityResult.value() || substitutionResult.value();
     }
-    return mutableReachabilityMap().recomputeReachability(mutableControlPlaneConstraints());
+    auto reachabilityResult =
+        mutableReachabilityMap().recomputeReachability(controlPlaneConstraints());
+    if (!reachabilityResult.has_value()) {
+        return std::nullopt;
+    }
+    auto substitutionResult =
+        mutableSubstitutionMap().recomputeSubstitution(controlPlaneConstraints());
+    if (!substitutionResult.has_value()) {
+        return std::nullopt;
+    }
+    return reachabilityResult.value() || substitutionResult.value();
 }
 
 std::pair<int, bool> FlayServiceBase::specializeProgram(

@@ -20,7 +20,7 @@ class FlaySpecializer : public PassManager {
           _substituteExpressions(new SubstituteExpressions(refMap, substitutionMap)) {
         addPasses({
             _elimDeadCode,
-            // _substituteExpressions,
+            _substituteExpressions,
         });
     }
 
