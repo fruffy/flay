@@ -17,5 +17,5 @@ Eliminated node at line 522: tb_lookup_3_3_t.apply();
 Replaced node at line 533: tb_recirc_decision.apply(); with default_action = do_not_recirc;
 statement_count_before:131
 statement_count_after:115
-cyclomatic_complexity:45
+cyclomatic_complexity:46
 
