@@ -4,4 +4,5 @@ Eliminated node at line 109: log_msg("h() returned a header stack with valid ele
 statement_count_before:22
 statement_count_after:19
 cyclomatic_complexity:4
+num_parsers_paths:1
 

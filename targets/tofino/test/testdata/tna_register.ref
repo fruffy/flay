@@ -3,4 +3,5 @@ Eliminated node at line 138: reg_match_dir.apply();
 statement_count_before:19
 statement_count_after:17
 cyclomatic_complexity:5
+num_parsers_paths:3
 

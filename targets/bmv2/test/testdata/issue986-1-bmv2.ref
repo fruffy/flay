@@ -4,4 +4,5 @@ Eliminated node at line 48: t2.apply();
 statement_count_before:3
 statement_count_after:0
 cyclomatic_complexity:6
+num_parsers_paths:1
 

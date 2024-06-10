@@ -4,4 +4,5 @@ Eliminated node at line 340: v4_networks.apply();
 statement_count_before:48
 statement_count_after:45
 cyclomatic_complexity:21
+num_parsers_paths:9
 

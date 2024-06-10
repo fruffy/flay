@@ -31,6 +31,7 @@ PARSER.add_argument(
     "--out-dir",
     dest="out_dir",
     default=OUTPUT_DIR,
+    type=Path,
     help="The output folder where all plots are dumped.",
 )
 PARSER.add_argument(
@@ -70,20 +71,34 @@ def get_data(input_dir: Path) -> Optional[pd.DataFrame]:
                     statement_count_before = int(line.split(":")[1].strip())
                 if line.startswith("statement_count_after"):
                     statement_count_after = int(line.split(":")[1].strip())
+                if line.startswith("num_parsers_paths"):
+                    num_parsers_paths = int(line.split(":")[1].strip())
 
         benchmark_file = program_data_file.with_suffix(".csv")
         if not benchmark_file.exists():
             print(f"Could not find benchmark file for {program_name}")
             return None
         benchmark_data = pd.read_csv(benchmark_file)
-        total_time = int(benchmark_data["Total Time"][0]) / 1000
+        total_time = int(benchmark_data["Total Time"][0])
+        analysis_time = int(benchmark_data.loc[benchmark_data['Timer'] == 'Dataplaneanalysis']['Total Time'].iloc[0])
+        if cyclomatic_complexity == 0:
+            print(f'warning: ignoring {program_name} because cyclomatic complexity is 0')
+            continue
+        if num_parsers_paths == 0:
+            print(f'warning: ignoring {program_name} because num_parsers_paths is 0')
+            continue
+        if analysis_time == 0:
+            print(f'warning: ignoring {program_name} because analysis time is 0')
+            continue
         complexity_data.append(
             (
                 program_name,
                 cyclomatic_complexity,
                 statement_count_before,
                 statement_count_after,
+                num_parsers_paths,
                 total_time,
+                analysis_time,
             )
         )
     df = pd.DataFrame(
@@ -93,25 +108,42 @@ def get_data(input_dir: Path) -> Optional[pd.DataFrame]:
             "Cyclomatic Complexity",
             "Statement Count Before",
             "Statement Count After",
-            "Time (Seconds)",
+            "Number of Parser Paths",
+            "Total Time (ms)",
+            "Analysis Time (ms)",
         ],
     )
-    df.sort_values("Time (Seconds)", inplace=True, ascending=False)
+    df.sort_values("Analysis Time (ms)", inplace=True, ascending=False)
     return df
 
 
 def plot_data(output_directory: Path, data: pd.DataFrame) -> None:
-    sns.regplot(
-        data=data,
-        x="Cyclomatic Complexity",
-        y="Time (Seconds)",
-        scatter=True,
-        robust=True,
-    )
-    outdir = output_directory.joinpath("flay_regression_plot")
-    plt.savefig(outdir.with_suffix(".png"), bbox_inches="tight")
-    plt.savefig(outdir.with_suffix(".pdf"), bbox_inches="tight")
-    plt.gcf().clear()
+    print("Plotting data...")
+    # Compute
+    data["log(Cyclomatic)"] = np.log(data["Cyclomatic Complexity"])
+    data["Cyclomatic + #of Parser Paths"] = data["Cyclomatic Complexity"] + data["Number of Parser Paths"]
+    data["log(Cyclomatic + #of Parser Paths)"] = np.log(data["Cyclomatic Complexity"] + data["Number of Parser Paths"])
+    data["log(Total Time (ms))"] = np.log(data["Total Time (ms)"])
+    data["log(Analysis Time (ms))"] = np.log(data["Analysis Time (ms)"])
+
+    def plot_one(x, y, output_name):
+        plt.gcf().clear()
+        sns.regplot(
+            data=data,
+            x=x,
+            y=y,
+            scatter=True,
+            robust=True,
+        )
+        outdir = output_directory.joinpath(output_name)
+        plt.savefig(outdir.with_suffix(".png"), bbox_inches="tight")
+        plt.savefig(outdir.with_suffix(".pdf"), bbox_inches="tight")
+        plt.gcf().clear()
+
+    plot_one("log(Cyclomatic)", "log(Total Time (ms))", "flay_regression_plot_log_cyclomatic__vs__log_total_time")
+    plot_one("log(Cyclomatic + #of Parser Paths)", "log(Total Time (ms))", "flay_regression_plot_log_cyclomatic_and_path__vs__log_total_time")
+    plot_one("log(Cyclomatic)", "log(Analysis Time (ms))", "flay_regression_plot_log_cyclomatic__vs__log_analysis_time")
+    plot_one("log(Cyclomatic + #of Parser Paths)", "log(Analysis Time (ms))", "flay_regression_plot_log_cyclomatic_and_path__vs__log_analysis_time")
 
 
 def main(args: Any, extra_args: Any) -> None:

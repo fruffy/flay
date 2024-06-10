@@ -3,4 +3,5 @@ Eliminated node at line 129: output_port.apply();
 statement_count_before:34
 statement_count_after:32
 cyclomatic_complexity:14
+num_parsers_paths:10
 

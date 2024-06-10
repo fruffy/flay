@@ -3,4 +3,5 @@ Eliminated node at line 106: direct_meter_color.apply();
 statement_count_before:10
 statement_count_after:8
 cyclomatic_complexity:5
+num_parsers_paths:3
 

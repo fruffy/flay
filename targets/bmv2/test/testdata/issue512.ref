@@ -3,4 +3,5 @@ Replaced node at line 75: guh.apply(); with default_action = foo;
 statement_count_before:8
 statement_count_after:6
 cyclomatic_complexity:3
+num_parsers_paths:1
 

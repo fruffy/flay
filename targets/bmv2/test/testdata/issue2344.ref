@@ -4,4 +4,5 @@ Eliminated node at line 39: simple_table.apply();
 statement_count_before:6
 statement_count_after:3
 cyclomatic_complexity:19
+num_parsers_paths:1
 

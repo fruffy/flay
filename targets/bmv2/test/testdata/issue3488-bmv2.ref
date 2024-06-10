@@ -5,4 +5,5 @@ Eliminated node at line 164: if (meta.dropped) {
 statement_count_before:14
 statement_count_after:11
 cyclomatic_complexity:15
+num_parsers_paths:2
 

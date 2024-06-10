@@ -4,4 +4,5 @@ Eliminated node at line 182: send_frame.apply();
 statement_count_before:18
 statement_count_after:15
 cyclomatic_complexity:9
+num_parsers_paths:2
 

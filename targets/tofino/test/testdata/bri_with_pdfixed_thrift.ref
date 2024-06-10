@@ -3,4 +3,5 @@ Eliminated node at line 121: ipRouteMulticast.apply();
 statement_count_before:16
 statement_count_after:15
 cyclomatic_complexity:5
+num_parsers_paths:3
 

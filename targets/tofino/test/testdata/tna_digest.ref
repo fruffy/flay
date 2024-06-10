@@ -4,4 +4,5 @@ Eliminated node at line 165: dmac.apply();
 statement_count_before:21
 statement_count_after:19
 cyclomatic_complexity:17
+num_parsers_paths:4
 

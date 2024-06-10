@@ -3,4 +3,5 @@ Replaced node at line 61: bypass_egress.apply(); with const default_action = set
 statement_count_before:12
 statement_count_after:11
 cyclomatic_complexity:6
+num_parsers_paths:5
 
