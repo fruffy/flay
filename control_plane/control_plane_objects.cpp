@@ -150,15 +150,15 @@ const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const 
 ParserValueSet
 **************************************************************************************************/
 
-ParserValueSet::ParserValueSet(cstring name) : name_(name) {}
+ParserValueSet::ParserValueSet(cstring name) : _name(name) {}
 
 bool ParserValueSet::operator<(const ControlPlaneItem &other) const {
-    return typeid(*this) == typeid(other) ? name_ < static_cast<const ParserValueSet &>(other).name_
+    return typeid(*this) == typeid(other) ? _name < static_cast<const ParserValueSet &>(other)._name
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
 const IR::Expression *ParserValueSet::computeControlPlaneConstraint() const {
-    return new IR::Equ(ControlPlaneState::getParserValueSetConfigured(name_),
+    return new IR::Equ(ControlPlaneState::getParserValueSetConfigured(_name),
                        IR::BoolLiteral::get(false));
 }
 

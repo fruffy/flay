@@ -46,6 +46,10 @@ struct IsSemanticallyLessPairComparator {
 };
 using TableKeySet = std::set<TableKeyReferencePair, IsSemanticallyLessPairComparator>;
 
+/**************************************************************************************************
+TableMatchEntry
+**************************************************************************************************/
+
 class TableMatchEntry : public ControlPlaneItem {
  protected:
     /// The action that will be executed by this entry.
@@ -77,6 +81,10 @@ class TableMatchEntry : public ControlPlaneItem {
     DECLARE_TYPEINFO(TableMatchEntry);
 };
 
+/**************************************************************************************************
+WildCardMatchEntry
+**************************************************************************************************/
+
 /// A wildcard table match entry can be used to match all possible actions and does not impose
 /// constraints on key values.
 class WildCardMatchEntry : public TableMatchEntry {
@@ -89,6 +97,10 @@ class WildCardMatchEntry : public TableMatchEntry {
 
     DECLARE_TYPEINFO(WildCardMatchEntry);
 };
+
+/**************************************************************************************************
+TableDefaultAction
+**************************************************************************************************/
 
 class TableDefaultAction : public ControlPlaneItem {
     /// The action that will be executed by this entry.
@@ -115,6 +127,10 @@ class TableDefaultAction : public ControlPlaneItem {
 
     DECLARE_TYPEINFO(TableDefaultAction);
 };
+
+/**************************************************************************************************
+TableConfiguration
+**************************************************************************************************/
 
 /// The active set of table entries. Sorted by type.
 using TableEntrySet =
@@ -160,11 +176,15 @@ class TableConfiguration : public ControlPlaneItem {
     DECLARE_TYPEINFO(TableConfiguration);
 };
 
+/**************************************************************************************************
+ParserValueSet
+**************************************************************************************************/
+
 /// Implements a parser value set as specified in
 /// https://p4.org/p4-spec/docs/P4-16-working-spec.html#sec-value-set.
 /// TODO: Actually implement all the elments in the value set.
 class ParserValueSet : public ControlPlaneItem {
-    cstring name_;
+    cstring _name;
 
  public:
     explicit ParserValueSet(cstring name);
@@ -175,6 +195,10 @@ class ParserValueSet : public ControlPlaneItem {
 
     DECLARE_TYPEINFO(ParserValueSet);
 };
+
+/**************************************************************************************************
+ActionProfile
+**************************************************************************************************/
 
 /// An action profile. Action profiles are programmed like a table, but each table associated
 /// with the respective table shares the action profile configuration. Hence, we use a set of table
@@ -207,6 +231,10 @@ class ActionProfile : public ControlPlaneItem {
     DECLARE_TYPEINFO(ActionProfile);
 };
 
+/**************************************************************************************************
+ActionSelector
+**************************************************************************************************/
+
 /// An action selector. Action selectors are programmed like a table, but each table associated
 /// with the respective table shares the action selector configuration. Hence, we use a set of table
 /// control plane names to represent this data structure.
@@ -236,6 +264,25 @@ class ActionSelector : public ControlPlaneItem {
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
     DECLARE_TYPEINFO(ActionSelector);
+};
+
+/**************************************************************************************************
+TableActionSelectorConfiguration
+**************************************************************************************************/
+
+class TableActionSelectorConfiguration : public TableConfiguration {
+ public:
+    explicit TableActionSelectorConfiguration(cstring tableName,
+                                              TableDefaultAction defaultTableAction,
+                                              TableEntrySet tableEntries)
+        : TableConfiguration(tableName, std::move(defaultTableAction), std::move(tableEntries)) {}
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override {
+        // This does nothing currently.
+        return IR::BoolLiteral::get(true);
+    }
+
+    DECLARE_TYPEINFO(TableActionSelectorConfiguration);
 };
 
 }  // namespace P4Tools::Flay

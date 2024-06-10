@@ -256,6 +256,14 @@ int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::config::v1:
         auto &tableResult, it->second.get().to<TableConfiguration>(), EXIT_FAILURE,
         ::error("Configuration result is not a TableConfiguration.", tableName));
 
+    if (p4Table.implementation_id() != 0) {
+        ::warning(
+            "Insertions of entries into tables with custom implementation is not supported yet "
+            "(Table '%1%') is not implemented.",
+            p4Table.preamble().name());
+        return EXIT_SUCCESS;
+    }
+
     return updateTableEntry(p4Info, p4Table, tableEntry, tableResult, updateType, symbolSet);
 }
 
@@ -302,6 +310,7 @@ int configureActionProfile(const bfrt_proto::TableEntry &tableEntry,
                            const ActionProfile &actionProfile, const p4::config::v1::P4Info &p4Info,
                            ControlPlaneConstraints &controlPlaneConstraints,
                            const ::bfrt_proto::Update_Type &updateType, SymbolSet &symbolSet) {
+    // Iterate over each associated table and insert the respective action into the table.
     for (auto associatedTableReference : actionProfile.associatedTables()) {
         auto it = controlPlaneConstraints.find(associatedTableReference);
         RETURN_IF_FALSE_WITH_MESSAGE(it != controlPlaneConstraints.end(), EXIT_FAILURE,
@@ -318,14 +327,9 @@ int configureActionProfile(const bfrt_proto::TableEntry &tableEntry,
             auto &p4InfoTable,
             P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, associatedTableReference), EXIT_FAILURE,
             ::error("Table name %1% not found in the P4Info.", associatedTableReference));
-        auto newp4InfoTable = p4InfoTable;
-        auto *newPreamble = newp4InfoTable.mutable_preamble();
-        newPreamble->set_name(actionProfile.name());
-        RETURN_IF_FALSE(updateTableEntry(p4Info, newp4InfoTable, tableEntry, tableResult,
-                                         updateType, symbolSet) == EXIT_SUCCESS,
+        RETURN_IF_FALSE(updateTableEntry(p4Info, p4InfoTable, tableEntry, tableResult, updateType,
+                                         symbolSet) == EXIT_SUCCESS,
                         EXIT_FAILURE);
-        /// Actually only need to process one table for now.
-        break;
     }
     return EXIT_SUCCESS;
 }

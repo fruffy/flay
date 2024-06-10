@@ -18,10 +18,10 @@ class ExpressionResolver;
 class TableExecutor {
  private:
     /// The table associated with this executor.
-    std::reference_wrapper<const IR::P4Table> table;
+    std::reference_wrapper<const IR::P4Table> _table;
 
     /// The resolver that instantiated this table execution..
-    std::reference_wrapper<ExpressionResolver> resolver;
+    std::reference_wrapper<ExpressionResolver> _resolver;
 
     /// The prefix associated with symbolic variables in this table. This is usually the table name.
     cstring _symbolicTablePrefix;
@@ -29,8 +29,6 @@ class TableExecutor {
     /// Resolves the input key and ensures that all members of the key are pure symbolic.
     /// @returns the symbolic key.
     const IR::Key *resolveKey(const IR::Key *key) const;
-
-    const IR::Expression *computeKey(const IR::Key *key) const;
 
     struct ReturnProperties {
         const IR::Expression *totalHitCondition;
@@ -45,7 +43,14 @@ class TableExecutor {
     void processTableActionOptions(ReturnProperties &tableReturnProperties) const;
 
  protected:
-    /// sets the symbolic table name
+    /// Computes a series of boolean conditions that must be true for the table to hit a particular
+    /// action.
+    virtual const IR::Expression *computeHitCondition(const IR::Key &key) const;
+
+    /// The resolver that instantiated this table execution.
+    [[nodiscard]] ExpressionResolver &resolver() const;
+
+    /// Sets the symbolic table name. Usually the control-plane name.
     void setSymbolicTablePrefix(cstring name);
 
     /// @returns the symbolic table name

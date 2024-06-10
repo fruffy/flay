@@ -51,21 +51,21 @@ IR::Vector<IR::Argument> createActionCallArguments(cstring symbolicTablePrefix, 
 }  // namespace
 
 TableExecutor::TableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver)
-    : table(table), resolver(callingResolver) {
+    : _table(table), _resolver(callingResolver) {
     setSymbolicTablePrefix(table.controlPlaneName());
 }
+
+ExpressionResolver &TableExecutor::resolver() const { return _resolver; }
 
 void TableExecutor::setSymbolicTablePrefix(cstring name) { _symbolicTablePrefix = name; }
 
 cstring TableExecutor::symbolicTablePrefix() const { return _symbolicTablePrefix; }
 
-const ProgramInfo &TableExecutor::getProgramInfo() const { return resolver.get().getProgramInfo(); }
+const ProgramInfo &TableExecutor::getProgramInfo() const { return resolver().getProgramInfo(); }
 
-ExecutionState &TableExecutor::getExecutionState() const {
-    return resolver.get().getExecutionState();
-}
+ExecutionState &TableExecutor::getExecutionState() const { return resolver().getExecutionState(); }
 
-const IR::P4Table &TableExecutor::getP4Table() const { return table; }
+const IR::P4Table &TableExecutor::getP4Table() const { return _table; }
 
 const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
     IR::Vector<IR::KeyElement> keyElements;
@@ -74,7 +74,7 @@ const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
         const auto *expr = keyField->expression;
         bool keyFieldHasChanged = false;
         if (!SymbolicEnv::isSymbolicValue(expr)) {
-            expr = resolver.get().computeResult(expr);
+            expr = resolver().computeResult(expr);
             keyFieldHasChanged = true;
         }
         if (keyFieldHasChanged) {
@@ -92,12 +92,12 @@ const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
     return key;
 }
 
-const IR::Expression *TableExecutor::computeKey(const IR::Key *key) const {
-    if (key->keyElements.empty()) {
+const IR::Expression *TableExecutor::computeHitCondition(const IR::Key &key) const {
+    if (key.keyElements.empty()) {
         return IR::BoolLiteral::get(false);
     }
     const IR::Expression *hitCondition = nullptr;
-    for (const auto *keyField : key->keyElements) {
+    for (const auto *keyField : key.keyElements) {
         const auto *matchExpr = computeTargetMatchType(keyField);
         if (hitCondition == nullptr) {
             hitCondition = matchExpr;
@@ -105,6 +105,11 @@ const IR::Expression *TableExecutor::computeKey(const IR::Key *key) const {
             hitCondition = new IR::LAnd(hitCondition, matchExpr);
         }
     }
+    // The table can only "hit" when it is actually configured by the control-plane.
+    // Pay attention to how we use "toString" for the path name here.
+    // We need to match these choices correctly. TODO: Make this very explicit.
+    hitCondition =
+        new IR::LAnd(ControlPlaneState::getTableActive(symbolicTablePrefix()), hitCondition);
     return hitCondition;
 }
 
@@ -275,11 +280,7 @@ const IR::Expression *TableExecutor::processTable() {
     key = resolveKey(key);
 
     const auto *actionPath = TableUtils::getDefaultActionName(table);
-    /// Pay attention to how we use "toString" for the path name here.
-    /// We need to match these choices correctly. TODO: Make this very explicit.
-    const auto *hitCondition =
-        new IR::LAnd(ControlPlaneState::getTableActive(symbolicTablePrefix()), computeKey(key));
-    ReturnProperties tableReturnProperties{hitCondition,
+    ReturnProperties tableReturnProperties{computeHitCondition(*key),
                                            IR::StringLiteral::get(actionPath->path->toString())};
 
     // First, execute the default action.

@@ -62,9 +62,9 @@ bool TofinoControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
 
 namespace {
 
-std::optional<cstring> checkforAttachedActionProfile(const IR::P4Table &table,
-                                                     const P4::ReferenceMap &refMap,
-                                                     ControlPlaneConstraints &defaultConstraints) {
+std::optional<cstring> associateActionProfiles(const IR::P4Table &table,
+                                               const P4::ReferenceMap &refMap,
+                                               ControlPlaneConstraints &defaultConstraints) {
     const auto *impl = table.properties->getProperty(cstring("implementation"));
     if (impl == nullptr) {
         return std::nullopt;
@@ -187,21 +187,8 @@ bool TofinoControlPlaneInitializer::preorder(const IR::P4Table *table) {
     TableUtils::checkTableImmutability(*table, properties);
     auto tableName = table->controlPlaneName();
 
-    auto result = checkforAttachedActionProfile(*table, refMap(), defaultConstraints);
-    if (result.has_value()) {
-        // defaultConstraints.insert(
-        //     {tableName,
-        //      *new TableConfiguration(table->controlPlaneName(),
-        //                              TableDefaultAction(IR::BoolLiteral::get(true)), {})});
-        // return false;
-        auto *newTable = table->clone();
-        newTable->name = result.value();
-        const auto *nameAnnotation =
-            newTable->annotations->getSingle(IR::Annotation::nameAnnotation);
-        newTable->annotations = newTable->annotations->addOrReplace(
-            nameAnnotation->name, new IR::StringLiteral(result.value()));
-        table = newTable;
-    }
+    // TODO: Consume the returned value here?
+    associateActionProfiles(*table, refMap(), defaultConstraints);
 
     ASSIGN_OR_RETURN(auto defaultActionConstraints,
                      computeDefaultActionConstraints(table, refMap()), false);

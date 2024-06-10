@@ -15,8 +15,8 @@ namespace P4Tools::Flay::Tofino {
 
 namespace {
 
-std::optional<cstring> checkForActionProfileOrSelector(const IR::P4Table &table,
-                                                       const ExecutionState &state) {
+std::optional<const IR::IDeclaration *> checkForActionProfileOrSelector(
+    const IR::P4Table &table, const ExecutionState &state) {
     const auto *impl = table.properties->getProperty(cstring("implementation"));
     if (impl == nullptr) {
         return std::nullopt;
@@ -42,7 +42,7 @@ std::optional<cstring> checkForActionProfileOrSelector(const IR::P4Table &table,
                           implExpr->expression->node_type_name());
     }
     if (implTypeDeclaration->name == "ActionProfile") {
-        return implDeclaration->controlPlaneName();
+        return implDeclaration;
     }
 
     if (implTypeDeclaration->name == "ActionSelector") {
@@ -60,22 +60,26 @@ std::optional<cstring> checkForActionProfileOrSelector(const IR::P4Table &table,
                     actionProfileReference);
             return std::nullopt;
         }
-        return state.findDecl(actionProfileReferencePath)->controlPlaneName();
+        return state.findDecl(actionProfileReferencePath);
     }
     return std::nullopt;
 }
 
 }  // namespace
 
+const IR::Expression *Tofino1TableExecutor::computeHitCondition(const IR::Key &key) const {
+    const auto *hitCond = TofinoBaseTableExecutor::computeHitCondition(key);
+    // TODO: Should we wrap this condition with an "action_profile_configured" symbolic variable?
+    return hitCond;
+}
+
 Tofino1TableExecutor::Tofino1TableExecutor(const IR::P4Table &table,
                                            ExpressionResolver &callingResolver)
     : TofinoBaseTableExecutor(table, callingResolver) {
-    // A table with an action profile/selector implementation shares the entries with other tables.
-    // This means that the symbolic prefix used for these tables must be the same.
-    auto actionProfileOrSelector = checkForActionProfileOrSelector(table, getExecutionState());
-    if (actionProfileOrSelector.has_value()) {
-        setSymbolicTablePrefix(actionProfileOrSelector.value());
-    }
+    // A table with an action profile/selector implementation shares the entries with other
+    // tables.
+    // This means that the behavior of these tables must be consistent.
+    _actionProfileOrSelector = checkForActionProfileOrSelector(table, getExecutionState());
 }
 
 }  // namespace P4Tools::Flay::Tofino
