@@ -135,10 +135,8 @@ FlayServiceStatistics FlayServiceBase::computeFlayServiceStatistics() const {
     auto cyclomaticComplexity = computeCyclomaticComplexity(midEndProgram());
     auto numParsersPaths = ParserPathsCounter::computeParserPaths(midEndProgram());
 
-    return FlayServiceStatistics{
-        &optimizedProgram(), eliminatedNodes(), statementCountBefore,
-        statementCountAfter, cyclomaticComplexity, numParsersPaths
-    };
+    return FlayServiceStatistics{&optimizedProgram(), eliminatedNodes(),    statementCountBefore,
+                                 statementCountAfter, cyclomaticComplexity, numParsersPaths};
 }
 
 }  // namespace P4Tools::Flay

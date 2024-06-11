@@ -66,7 +66,7 @@ size_t ParserPathsCounter::computeParserPaths(const IR::P4Program &program) {
     return parserPathsCounter.getCount();
 }
 
-bool ParserPathsCounter::preorder(const IR::P4Control */*control*/) { return false; }
+bool ParserPathsCounter::preorder(const IR::P4Control * /*control*/) { return false; }
 
 bool ParserPathsCounter::preorder(const IR::P4Parser *parser) {
     count += countPaths(parser);
@@ -83,14 +83,16 @@ size_t ParserPathsCounter::countPaths(const IR::P4Parser *parser) {
 size_t ParserPathsCounter::countPathsSub(const DCGVertexType *node) {
     if (node->is<IR::ParserState>()) {
         auto *parserState = node->to<IR::ParserState>();
-        if (parserState->name == IR::ParserState::accept || parserState->name == IR::ParserState::reject) {
+        if (parserState->name == IR::ParserState::accept ||
+            parserState->name == IR::ParserState::reject) {
             return 1;
         }
     } else if (node->is<IR::P4Control>()) {
-        // If we reach a control block, that means we are moving out from parsers, we have to stop counting paths.
+        // If we reach a control block, that means we are moving out from parsers, we have to stop
+        // counting paths.
         return 0;
     }
-    
+
     auto it = numPaths.find(node);
     if (it != numPaths.end()) {
         return it->second;
@@ -99,10 +101,12 @@ size_t ParserPathsCounter::countPathsSub(const DCGVertexType *node) {
 
     numPaths[node] = ParserPathsCounter::VISITING_FLAG;
     auto &targets = dcg->getOutEdges().at(node);
-    BUG_CHECK(!targets->empty(), "Nodes should have children, because we already terminate on accept/reject");
+    BUG_CHECK(!targets->empty(),
+              "Nodes should have children, because we already terminate on accept/reject");
     size_t count = 0;
     for (const auto *target : *targets) {
-        if (numPaths.find(target) != numPaths.end() && numPaths[target] == ParserPathsCounter::VISITING_FLAG) {
+        if (numPaths.find(target) != numPaths.end() &&
+            numPaths[target] == ParserPathsCounter::VISITING_FLAG) {
             // Ignore visiting nodes, meaning that we don't count parser loops.
             return 0;
         }
@@ -112,6 +116,5 @@ size_t ParserPathsCounter::countPathsSub(const DCGVertexType *node) {
     level--;
     return count;
 }
-
 
 }  // namespace P4Tools::Flay

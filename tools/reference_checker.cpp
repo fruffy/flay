@@ -284,8 +284,7 @@ int run(const ReferenceCheckerOptions &options) {
                            << "\n";
     flayOptimizationOutput << "cyclomatic_complexity:" << flayServiceStatistics.cyclomaticComplexity
                            << "\n";
-    flayOptimizationOutput << "num_parsers_paths:" << flayServiceStatistics.numParsersPaths
-                           << "\n";
+    flayOptimizationOutput << "num_parsers_paths:" << flayServiceStatistics.numParsersPaths << "\n";
 
     if (options.doOverwriteReferences()) {
         auto referencePath = getFilePath(options, options.getInputFile().stem(), ".ref");

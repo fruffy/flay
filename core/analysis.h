@@ -38,7 +38,7 @@ class ParserPathsCounter : public Inspector {
     bool preorder(const IR::P4Control *control) override;
     bool preorder(const IR::P4Parser *parser) override;
 
-  private:
+ private:
     /// For counting paths in a parser.
     P4Tools::NodesCallGraph *dcg;
     int level = 0;
@@ -46,13 +46,12 @@ class ParserPathsCounter : public Inspector {
     static const size_t VISITING_FLAG = -1;
     /// Map of number of paths to end from each vertex.
     std::unordered_map<const DCGVertexType *, size_t> numPaths;
-    
+
     /// Entry method for counting paths
     size_t countPaths(const IR::P4Parser *parser);
     /// Recursive method for counting paths
     size_t countPathsSub(const DCGVertexType *node);
 };
-
 
 }  // namespace P4Tools::Flay
 
