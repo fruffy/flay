@@ -225,7 +225,8 @@ void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tabl
     }
 }
 
-void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnProperties) const {
+void TableExecutor::processTableActionOptions(const ExecutionState &referenceState,
+                                              ReturnProperties &tableReturnProperties) const {
     auto table = getP4Table();
     auto tableActionList = TableUtils::buildTableActionList(table);
     auto &state = getExecutionState();
@@ -246,7 +247,8 @@ void TableExecutor::processTableActionOptions(ReturnProperties &tableReturnPrope
         cstring actionName = actionType->controlPlaneName();
         // Synthesize arguments for the call based on the action parameters.
         const auto &parameters = actionType->parameters;
-        auto &actionState = state.clone();
+        // IMPORTANT: We clone 'referenceState' here, NOT 'state'.
+        auto &actionState = referenceState.clone();
         actionState.pushExecutionCondition(actionHitCondition);
         auto arguments = createActionCallArguments(symbolicTablePrefix(), actionName, *parameters);
         state.addReachabilityMapping(action, actionHitCondition);
@@ -283,11 +285,13 @@ const IR::Expression *TableExecutor::processTable() {
     ReturnProperties tableReturnProperties{computeHitCondition(*key),
                                            IR::StringLiteral::get(actionPath->path->toString())};
 
+    const auto &referenceState = getExecutionState().clone();
+
     // First, execute the default action.
     processDefaultAction(properties, tableReturnProperties);
 
     // Execute all other possible action options. Get the combination of all possible hits.
-    processTableActionOptions(tableReturnProperties);
+    processTableActionOptions(referenceState, tableReturnProperties);
     return new IR::StructExpression(
         nullptr,
         {new IR::NamedExpression("hit", tableReturnProperties.totalHitCondition),
