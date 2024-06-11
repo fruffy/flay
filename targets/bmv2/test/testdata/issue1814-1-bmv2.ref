@@ -2,4 +2,5 @@ Eliminated node at line 47: debug_table.apply();
 statement_count_before:5
 statement_count_after:4
 cyclomatic_complexity:3
+num_parsers_paths:1
 

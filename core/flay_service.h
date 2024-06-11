@@ -69,6 +69,8 @@ struct FlayServiceStatistics {
     uint64_t statementCountAfter;
     // The cyclomatic complexity of the input program.
     size_t cyclomaticComplexity;
+    // The total number of paths for parsers
+    size_t numParsersPaths;
 };
 
 class FlayServiceBase {

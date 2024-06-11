@@ -55,4 +55,5 @@ Eliminated node at line 989: eni_meter.apply();
 statement_count_before:650
 statement_count_after:570
 cyclomatic_complexity:214
+num_parsers_paths:31
 

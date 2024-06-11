@@ -2,4 +2,5 @@ Eliminated node at line 43: bit<16> assign = simple_eq || simple_table_2.apply()
 statement_count_before:10
 statement_count_after:10
 cyclomatic_complexity:6
+num_parsers_paths:1
 

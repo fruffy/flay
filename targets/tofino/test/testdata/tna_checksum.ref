@@ -7,4 +7,5 @@ Eliminated node at line 258: if (ig_md.checksum_upd_udp) {
 statement_count_before:51
 statement_count_after:45
 cyclomatic_complexity:21
+num_parsers_paths:6
 

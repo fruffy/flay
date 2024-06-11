@@ -50,4 +50,5 @@ Eliminated node at line 963: meta.meter_class = meta.policy_meter_class;
 statement_count_before:654
 statement_count_after:591
 cyclomatic_complexity:229
+num_parsers_paths:31
 

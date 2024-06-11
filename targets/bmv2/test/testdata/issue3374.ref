@@ -3,4 +3,5 @@ Eliminated node at line 130: if (hdrs.vlan_tag[meta.depth].ether_type == hdrs.et
 statement_count_before:12
 statement_count_after:11
 cyclomatic_complexity:81
+num_parsers_paths:4
 

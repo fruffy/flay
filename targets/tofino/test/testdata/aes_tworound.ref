@@ -34,4 +34,5 @@ Replaced node at line 572: tb_recirc_decision.apply(); with default_action = do_
 statement_count_before:195
 statement_count_after:163
 cyclomatic_complexity:78
+num_parsers_paths:13
 

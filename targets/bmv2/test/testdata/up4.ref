@@ -9,4 +9,5 @@ Eliminated node at line 753: if (std_meta.egress_port == 255) {
 statement_count_before:228
 statement_count_after:195
 cyclomatic_complexity:69
+num_parsers_paths:38
 

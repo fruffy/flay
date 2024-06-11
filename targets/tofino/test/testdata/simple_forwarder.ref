@@ -5,4 +5,5 @@ Replaced node at line 243: do_bytes_count_benign_egress.apply(); with const defa
 statement_count_before:17
 statement_count_after:17
 cyclomatic_complexity:8
+num_parsers_paths:4
 

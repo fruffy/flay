@@ -6,4 +6,5 @@ Eliminated node at line 123: ipv4_lpm.apply();
 statement_count_before:18
 statement_count_after:13
 cyclomatic_complexity:8
+num_parsers_paths:2
 

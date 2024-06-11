@@ -4,4 +4,5 @@ Replaced node at line 146: tbl_hash2.apply(); with const default_action = apply_
 statement_count_before:14
 statement_count_after:13
 cyclomatic_complexity:7
+num_parsers_paths:5
 

@@ -2,4 +2,5 @@ Eliminated node at line 77: if (hdr.ipv4.isValid()) {
 statement_count_before:2
 statement_count_after:1
 cyclomatic_complexity:2
+num_parsers_paths:1
 

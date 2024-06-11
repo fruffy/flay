@@ -5,4 +5,5 @@ Eliminated node at line 205: if (ig_md.l3 == 1) {
 statement_count_before:28
 statement_count_after:25
 cyclomatic_complexity:14
+num_parsers_paths:6
 

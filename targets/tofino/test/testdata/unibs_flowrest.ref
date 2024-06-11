@@ -4,4 +4,5 @@ Eliminated node at line 505: if (ig_dprsr_md.digest_type == 1) {
 statement_count_before:137
 statement_count_after:90
 cyclomatic_complexity:41
+num_parsers_paths:9
 

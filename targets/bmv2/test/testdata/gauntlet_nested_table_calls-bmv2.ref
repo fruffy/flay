@@ -2,4 +2,5 @@ Eliminated node at line 44: h.eth_hdr.eth_type = simple_function((exit_table.app
 statement_count_before:9
 statement_count_after:9
 cyclomatic_complexity:4
+num_parsers_paths:1
 

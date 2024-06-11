@@ -10,4 +10,5 @@ Eliminated node at line 521: if (local_metadata.mirror_session_id_valid) {
 statement_count_before:177
 statement_count_after:168
 cyclomatic_complexity:66
+num_parsers_paths:10
 

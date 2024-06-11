@@ -12,4 +12,5 @@ Replaced node at line 1548: tbl_set_local_source.apply(); with default_action = 
 statement_count_before:596
 statement_count_after:581
 cyclomatic_complexity:137
+num_parsers_paths:14913
 

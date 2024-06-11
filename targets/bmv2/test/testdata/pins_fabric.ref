@@ -11,4 +11,5 @@ Eliminated node at line 640: acl_egress_table.apply();
 statement_count_before:191
 statement_count_after:181
 cyclomatic_complexity:75
+num_parsers_paths:10
 

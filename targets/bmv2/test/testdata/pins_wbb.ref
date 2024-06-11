@@ -8,4 +8,5 @@ Eliminated node at line 537: if (local_metadata.admit_to_l3) {
 statement_count_before:116
 statement_count_after:100
 cyclomatic_complexity:57
+num_parsers_paths:10
 

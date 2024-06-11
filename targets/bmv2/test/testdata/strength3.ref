@@ -2,4 +2,5 @@ Replaced node at line 57: apply { t.apply(); } with const default_action = case0
 statement_count_before:11
 statement_count_after:11
 cyclomatic_complexity:8
+num_parsers_paths:1
 
