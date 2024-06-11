@@ -40,12 +40,15 @@ class TableExecutor {
                               ReturnProperties &tableReturnProperties) const;
 
     /// Process all the possible actions in the table for which we could insert an entry.
-    void processTableActionOptions(ReturnProperties &tableReturnProperties) const;
+    /// ReferenceState is the initial state of the table cloned before the default action was
+    /// executed.
+    void processTableActionOptions(const ExecutionState &referenceState,
+                                   ReturnProperties &tableReturnProperties) const;
 
  protected:
     /// Computes a series of boolean conditions that must be true for the table to hit a particular
     /// action.
-    virtual const IR::Expression *computeHitCondition(const IR::Key &key) const;
+    [[nodiscard]] virtual const IR::Expression *computeHitCondition(const IR::Key &key) const;
 
     /// The resolver that instantiated this table execution.
     [[nodiscard]] ExpressionResolver &resolver() const;
