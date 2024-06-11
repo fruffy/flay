@@ -104,7 +104,7 @@ TEST_F(OptimizationTest, Optimization04) {
 
         std::stringstream stringResult;
         optimizedExpression->dbprint(stringResult);
-        ASSERT_STREQ("|X(bool)| || |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|;",
+        ASSERT_STREQ("|X(bool)| && !|Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|;",
                      stringResult.str().c_str());
     }
     {

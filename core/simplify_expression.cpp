@@ -133,23 +133,39 @@ class LiftMuxConditions : public Transform {
 
     const IR::Node *preorder(IR::Mux *mux) override {
         if (const auto *trueMux = mux->e1->to<IR::Mux>()) {
+            /// "|X(bool)| ? |Y(bool)| ? |B(bit<8>)| : |A(bit<8>)| : |B(bit<8>)|"
+            /// turns into
+            /// "|X(bool)| && !|Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|"
             if (mux->e2->equiv(*trueMux->e1)) {
-                mux->e0 = new IR::LOr(mux->e0, trueMux->e0);
+                mux->e0 = new IR::LAnd(mux->e0, new IR::LNot(trueMux->e0));
                 mux->e1 = trueMux->e2;
+                return mux;
             }
+            /// "|X(bool)| ? |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)| : |B(bit<8>)|"
+            /// turns into
+            /// "|X(bool)| && |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|"
             if (mux->e2->equiv(*trueMux->e2)) {
                 mux->e0 = new IR::LAnd(mux->e0, trueMux->e0);
                 mux->e1 = trueMux->e1;
+                return mux;
             }
         }
         if (const auto *falseMux = mux->e2->to<IR::Mux>()) {
+            /// "|X(bool)| ? |A(bit<8>)| : |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|"
+            /// turns into
+            /// "|X(bool)| || |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|"
             if (mux->e1->equiv(*falseMux->e1)) {
                 mux->e0 = new IR::LOr(mux->e0, falseMux->e0);
                 mux->e2 = falseMux->e2;
+                return mux;
             }
+            /// "|X(bool)| ? |B(bit<8>)| : |Y(bool)| ? |A(bit<8>)| : |B(bit<8>)|"
+            /// turns into
+            /// "|X(bool)| || !|Y(bool)| ? |B(bit<8>)| : |A(bit<8>)|"
             if (mux->e1->equiv(*falseMux->e2)) {
                 mux->e0 = new IR::LOr(mux->e0, new IR::LNot(falseMux->e0));
                 mux->e2 = falseMux->e1;
+                return mux;
             }
         }
         return mux;
@@ -575,8 +591,8 @@ class ExpressionRewriter : public PassManager {
         // Lifted from frontends/p4/optimizeExpression.
         addPasses({
             new PassRepeated({
-                new P4::ConstantFolding(nullptr, nullptr, false),
-                new ExpressionStrengthReduction(),
+                // new P4::ConstantFolding(nullptr, nullptr, false),
+                // new ExpressionStrengthReduction(),
                 new FoldMuxConditionDown(),
                 new LiftMuxConditions(),
             }),
