@@ -12,7 +12,10 @@ namespace P4Tools::Flay {
 /// Utility function to compare IR nodes in a set. We use their source info.
 struct SourceIdCmp {
     bool operator()(const IR::Node *s1, const IR::Node *s2) const {
-        return s1->srcInfo < s2->srcInfo;
+        if (s1->getSourceInfo() == s2->getSourceInfo()) {
+            return s1->clone_id < s2->clone_id;
+        }
+        return s1->getSourceInfo() < s2->getSourceInfo();
     }
 };
 

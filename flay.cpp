@@ -1,6 +1,7 @@
 #include "backends/p4tools/modules/flay/flay.h"
 
 #include <cstdlib>
+#include <fstream>
 #include <functional>
 #include <optional>
 
@@ -99,6 +100,20 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
         return EXIT_FAILURE;
     }
     const auto &flayOptions = FlayOptions::get();
+
+    // If we write to the optimized program to file, also dump the program after the midend.
+    if (FlayOptions::get().optimizedOutputDir() != std::nullopt) {
+        auto midendOutputFile = FlayOptions::get().optimizedOutputDir().value() / "midend.p4";
+        std::ofstream output(midendOutputFile);
+        if (!output.is_open()) {
+            ::error("Could not open file %1% for writing.", midendOutputFile.c_str());
+            return EXIT_FAILURE;
+        }
+        P4::ToP4 toP4(&output, false);
+        programInfo->getP4Program().apply(toP4);
+        output.close();
+        printInfo("Wrote midend program to %1%", midendOutputFile);
+    }
 
     if (flayOptions.p4InfoFilePath().has_value()) {
         auto *outputFile = openFile(cstring(flayOptions.p4InfoFilePath().value().c_str()), true);

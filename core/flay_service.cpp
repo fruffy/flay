@@ -38,13 +38,13 @@ FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
     : _options(options),
       _originalProgram(compilerResult.getOriginalProgram()),
       _midEndProgram(compilerResult.getProgram()),
-      _optimizedProgram(&compilerResult.getOriginalProgram()),
+      _optimizedProgram(&compilerResult.getProgram()),
       _compilerResult(compilerResult),
       _reachabilityMap(initializeReachabilityMap(options.mapType, nodeAnnotationMap)),
       _substitutionMap(*new SolverSubstitutionMap(*new Z3Solver(), nodeAnnotationMap)),
       _controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
     printInfo("Checking whether dead code can be removed with the initial configuration...");
-    originalProgram().apply(P4::ResolveReferences(&_refMap));
+    midEndProgram().apply(P4::ResolveReferences(&_refMap));
     if (::errorCount() > 0) {
         return;
     }
@@ -113,7 +113,7 @@ std::pair<int, bool> FlayServiceBase::specializeProgram(
     printInfo("Change in semantics detected.");
 
     auto flaySpecializer = FlaySpecializer(_refMap, _reachabilityMap, _substitutionMap);
-    _optimizedProgram = originalProgram().apply(flaySpecializer);
+    _optimizedProgram = midEndProgram().apply(flaySpecializer);
     // Update the list of eliminated nodes.
     _eliminatedNodes = flaySpecializer.eliminatedNodes();
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
@@ -121,7 +121,7 @@ std::pair<int, bool> FlayServiceBase::specializeProgram(
 }
 
 void FlayServiceBase::recordProgramChange() const {
-    auto statementCountBefore = countStatements(originalProgram());
+    auto statementCountBefore = countStatements(midEndProgram());
     auto statementCountAfter = countStatements(optimizedProgram());
     float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
                                          static_cast<float>(statementCountBefore));
@@ -130,7 +130,7 @@ void FlayServiceBase::recordProgramChange() const {
 }
 
 FlayServiceStatistics FlayServiceBase::computeFlayServiceStatistics() const {
-    auto statementCountBefore = countStatements(originalProgram());
+    auto statementCountBefore = countStatements(midEndProgram());
     auto statementCountAfter = countStatements(optimizedProgram());
     auto cyclomaticComplexity = computeCyclomaticComplexity(midEndProgram());
     auto numParsersPaths = ParserPathsCounter::computeParserPaths(midEndProgram());
