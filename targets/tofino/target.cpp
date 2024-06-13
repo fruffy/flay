@@ -52,6 +52,7 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const IR::P4Program 
     std::optional<P4::P4RuntimeAPI> p4runtimeApi;
     auto p4UserInfo = FlayOptions::get().userP4Info();
     if (p4UserInfo.has_value()) {
+        BUG("HELLO");
         ASSIGN_OR_RETURN(
             auto p4Info,
             Protobuf::deserializeObjectFromFile<p4::config::v1::P4Info>(p4UserInfo.value()),
