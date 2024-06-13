@@ -118,11 +118,17 @@ std::optional<const IR::Expression *> convertTableAction(const p4::v1::Action &t
         ::error("Action configuration \"%1%\" and target action \"%2%\" "
                 "have parameters of different number.",
                 p4Action.ShortDebugString(), tblAction.ShortDebugString()));
-    for (int idx = 0; idx < tblAction.params().size(); ++idx) {
-        const auto &paramConfig = tblAction.params().at(idx);
-        const auto &param = p4Action.params().at(idx);
-        const auto *paramType = IR::Type_Bits::get(param.bitwidth());
-        auto paramName = param.name();
+    std::map<uint32_t, const p4::config::v1::Action_Param *> paramMap;
+    for (const auto &param : p4Action.params()) {
+        paramMap.emplace(param.id(), &param);
+    }
+    for (const auto &paramConfig : tblAction.params()) {
+        auto paramIt = paramMap.find(paramConfig.param_id());
+        RETURN_IF_FALSE_WITH_MESSAGE(paramIt != paramMap.end(), std::nullopt,
+                                     ::error("Parameter %1% of action %2% not found.",
+                                             paramConfig.DebugString(), actionName));
+        const auto *paramType = IR::Type_Bits::get(paramIt->second->bitwidth());
+        auto paramName = paramIt->second->name();
         const auto *actionArg =
             ControlPlaneState::getTableActionArgument(tableName, actionName, paramName, paramType);
         symbolSet.emplace(*actionArg);
