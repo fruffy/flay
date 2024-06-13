@@ -1,6 +1,7 @@
 #include "backends/p4tools/modules/flay/options.h"
 
 #include "backends/p4tools/common/lib/logging.h"
+#include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/common/options.h"
 #include "backends/p4tools/modules/flay/toolname.h"
 #include "lib/error.h"
