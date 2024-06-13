@@ -3,8 +3,8 @@ Eliminated node at line 89: x = 1;
 Eliminated node at line 91: x = 2;
 Eliminated node at line 93: x = 3;
 Eliminated node at line 123: ipv4_lpm.apply();
-statement_count_before:18
-statement_count_after:13
+statement_count_before:11
+statement_count_after:6
 cyclomatic_complexity:8
 num_parsers_paths:2
 

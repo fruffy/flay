@@ -1,7 +1,7 @@
 Eliminated node at line 40: if (simple_table.apply().hit) {
 Eliminated node at line 40: if (simple_table.apply().hit) {
-statement_count_before:9
-statement_count_after:8
+statement_count_before:6
+statement_count_after:5
 cyclomatic_complexity:2
 num_parsers_paths:1
 

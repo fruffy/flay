@@ -1,7 +1,7 @@
 Replaced node at line 972: result_match.apply(); with set_result(1023, 0);
 Eliminated node at line 977: ipv4_lpm.apply();
-statement_count_before:165
-statement_count_after:164
+statement_count_before:154
+statement_count_after:153
 cyclomatic_complexity:67
 num_parsers_paths:4895
 

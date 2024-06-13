@@ -2,7 +2,6 @@
 
 #include <optional>
 
-#include "backends/p4tools/common/lib/logging.h"
 #include "ir/node.h"
 
 namespace P4Tools::Flay {

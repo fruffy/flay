@@ -1,6 +1,7 @@
 Eliminated node at line 42: simple_action: {
-statement_count_before:4
-statement_count_after:4
+Eliminated node at line (unknown): 
+statement_count_before:7
+statement_count_after:6
 cyclomatic_complexity:7
 num_parsers_paths:1
 

@@ -24,11 +24,6 @@ const IR::Node *ElimDeadCode::preorder(IR::P4Parser *parser) {
 }
 
 const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
-    // Only analyze statements with valid source location.
-    if (!stmt->getSourceInfo().isValid()) {
-        return stmt;
-    }
-
     // Skip if statements within declaration instances for now. These may be registers for example.
     if (findContext<IR::Declaration_Instance>() != nullptr) {
         return stmt;
@@ -64,11 +59,6 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
 }
 
 const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
-    // Only analyze statements with valid source location.
-    if (!switchStmt->getSourceInfo().isValid()) {
-        return switchStmt;
-    }
-
     IR::Vector<IR::SwitchCase> filteredSwitchCases;
     for (const auto *switchCase : switchStmt->cases) {
         if (switchCase->label->is<IR::DefaultExpression>()) {
@@ -143,11 +133,6 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
 }
 
 const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
-    // Only analyze statements with valid source location.
-    if (!stmt->getSourceInfo().isValid()) {
-        return stmt;
-    }
-
     const auto *call = stmt->methodCall->method->to<IR::Member>();
     RETURN_IF_FALSE(call != nullptr && call->member == IR::IApply::applyMethodName, stmt);
     ASSIGN_OR_RETURN(auto &tableReference, call->expr->to<IR::PathExpression>(), stmt);

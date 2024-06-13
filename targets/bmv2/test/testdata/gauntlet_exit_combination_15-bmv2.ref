@@ -1,6 +1,8 @@
 Eliminated node at line 42: simple_action: {
-statement_count_before:7
-statement_count_after:5
+Eliminated node at line (unknown): { h.eth_hdr.eth_type = 4;
+  hasExited = true; }
+statement_count_before:12
+statement_count_after:6
 cyclomatic_complexity:9
 num_parsers_paths:1
 

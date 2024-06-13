@@ -50,7 +50,7 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns true when the --strict option has been set.
     [[nodiscard]] bool isStrict() const;
 
-    /// @returns the path set with --optimized-output-file.
+    /// @returns the path set with --optimized-output-dir.
     [[nodiscard]] std::optional<std::filesystem::path> optimizedOutputDir() const;
 
     /// @returns true when --collapse-data-plane-variables has been set.

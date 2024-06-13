@@ -129,11 +129,6 @@ void ExecutionState::merge(const ExecutionState &mergeState) {
 const NodeAnnotationMap &ExecutionState::nodeAnnotationMap() const { return _nodeAnnotationMap; }
 
 void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expression *cond) {
-    // TODO: Think about better handling of these types of errors?
-    if (!node->getSourceInfo().isValid()) {
-        return;
-    }
-
     bool notAlreadyInMap = _nodeAnnotationMap.initializeReachabilityMapping(
         node, new IR::LAnd(getExecutionCondition(), cond));
     if (!notAlreadyInMap && FlayOptions::get().isStrict()) {
@@ -148,7 +143,7 @@ void ExecutionState::addReachabilityMapping(const IR::Node *node, const IR::Expr
 void ExecutionState::addExpressionMapping(const IR::Expression *expression,
                                           const IR::Expression *value) {
     // TODO: Think about better handling of these types of errors?
-    if (!expression->getSourceInfo().isValid() || !expression->type->is<IR::Type_Bits>()) {
+    if (!expression->type->is<IR::Type_Bits>()) {
         return;
     }
 

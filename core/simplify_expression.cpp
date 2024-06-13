@@ -580,8 +580,7 @@ const IR::Expression *produceSimplifiedMux(const IR::Expression *cond,
                                            const IR::Expression *trueExpression,
                                            const IR::Expression *falseExpression) {
     Util::ScopedTimer timer("Mux optimization");
-    auto *mux = new IR::Mux(trueExpression->type, cond, trueExpression, falseExpression);
-    return simplify(mux->apply(FoldMuxConditionDown()));
+    return simplify(new IR::Mux(trueExpression->type, cond, trueExpression, falseExpression));
 }
 
 class ExpressionRewriter : public PassManager {

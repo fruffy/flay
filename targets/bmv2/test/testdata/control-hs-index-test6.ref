@@ -1,6 +1,6 @@
 Eliminated node at line 51: t.apply();
-statement_count_before:9
-statement_count_after:8
+statement_count_before:13
+statement_count_after:12
 cyclomatic_complexity:5
 num_parsers_paths:1
 

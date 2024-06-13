@@ -1,6 +1,6 @@
 Eliminated node at line 21: new_val = 32w232;
-statement_count_before:7
-statement_count_after:6
+statement_count_before:6
+statement_count_after:5
 cyclomatic_complexity:1
 num_parsers_paths:1
 
