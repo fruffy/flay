@@ -1,5 +1,5 @@
 Eliminated node at line 106: output_port.apply();
-Replaced node at line 61: bypass_egress.apply(); with const default_action = set_bypass_egress;
+Replaced node at line 61: bypass_egress.apply(); with bypass_egress_set_bypass_egress_0/set_bypass_egress();
 statement_count_before:12
 statement_count_after:11
 cyclomatic_complexity:6

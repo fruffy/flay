@@ -1,4 +1,4 @@
-Replaced node at line 128: 12w1: { stub.apply();} with const default_action = execute;
+Replaced node at line 128: 12w1: { stub.apply();} with execute();
 Eliminated node at line 130: if (hdrs.vlan_tag[meta.depth].ether_type == hdrs.ethernet.etherType)
 statement_count_before:12
 statement_count_after:11

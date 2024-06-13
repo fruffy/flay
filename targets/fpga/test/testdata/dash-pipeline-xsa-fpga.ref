@@ -29,14 +29,14 @@ Eliminated node at line 913: if (meta.is_overlay_ip_v6 == 1) {
 Eliminated node at line 917: if (meta.is_overlay_ip_v6 == 0) {
 Eliminated node at line 1164: meta.encap_data.underlay_sip = hdr.u0_ipv4.dst_addr;
 Eliminated node at line 1163: if (vip.apply().hit) {
-Replaced node at line 871: direction_lookup.apply(); with const default_action = set_inbound_direction;
+Replaced node at line 871: direction_lookup.apply(); with direction_lookup_stage_set_inbound_direction_0/set_inbound_direction();
 Eliminated node at line 1170: appliance.apply();
 Eliminated node at line 893: meta.eni_addr = (meta.direction == dash_direction_t.OUTBOUND ? hdr.customer_ethernet.src_addr : hdr.customer_ethernet.dst_addr);
 Eliminated node at line (unknown): 
 Eliminated node at line 894: if (!eni_ether_address_map.apply().hit) {
 Eliminated node at line 1175: tunnel_decap(hdr, meta);
 Eliminated node at line 1178: tunnel_decap_pa_validate: {
-Replaced node at line 1205: eni.apply(); with const default_action = deny;
+Replaced node at line 1205: eni.apply(); with deny_0/deny();
 Eliminated node at line 1212: acl_group.apply();
 Eliminated node at line 1213: if (meta.direction == dash_direction_t.OUTBOUND) {
 Eliminated node at line (unknown): 

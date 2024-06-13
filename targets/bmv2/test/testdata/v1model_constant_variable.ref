@@ -1,4 +1,4 @@
-Replaced node at line 81: toggle_check.apply(); with const default_action = check();
+Replaced node at line 81: toggle_check.apply(); with check_1/check();
 statement_count_before:7
 statement_count_after:7
 cyclomatic_complexity:3
