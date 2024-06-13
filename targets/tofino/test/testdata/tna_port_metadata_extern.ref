@@ -1,4 +1,4 @@
-Replaced node at line 135: port_md_exm_match.apply(); with const default_action = miss;
+Replaced node at line 135: port_md_exm_match.apply(); with miss();
 statement_count_before:10
 statement_count_after:10
 cyclomatic_complexity:3

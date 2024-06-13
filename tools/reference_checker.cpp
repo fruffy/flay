@@ -242,7 +242,7 @@ int run(const ReferenceCheckerOptions &options) {
     ASSIGN_OR_RETURN(auto flayServiceStatistics,
                      Flay::optimizeProgram(options.getCompilerOptions(), options.toFlayOptions()),
                      EXIT_FAILURE);
-
+    printInfo("Flay optimization complete.");
     auto referenceFolderOpt = options.getReferenceFolder();
     auto referenceFileOpt = options.getReferenceFile();
 
@@ -264,11 +264,10 @@ int run(const ReferenceCheckerOptions &options) {
                                        << node->getSourceInfo().toPosition().sourceLine << ": "
                                        << sourceFragment;
             } else {
-                RETURN_IF_FALSE(replaced->getSourceInfo().isValid(), EXIT_FAILURE);
-                auto replacedFragment = replaced->getSourceInfo().toSourceFragment(false).trim();
                 flayOptimizationOutput << "Replaced node at line "
                                        << node->getSourceInfo().toPosition().sourceLine << ": "
-                                       << sourceFragment << " with " << replacedFragment;
+                                       << sourceFragment << " with ";
+                replaced->dbprint(flayOptimizationOutput);
             }
         } else {
             ::warning("Invalid source information for node %1%. This should be fixed", node);
@@ -298,6 +297,7 @@ int run(const ReferenceCheckerOptions &options) {
         return EXIT_SUCCESS;
     }
     if (referenceFileOpt.has_value()) {
+        printInfo("Comparing against reference file %s", referenceFileOpt.value().c_str());
         auto referenceFile = std::filesystem::absolute(referenceFileOpt.value());
         return compareAgainstReference(flayOptimizationOutput, referenceFile);
     }

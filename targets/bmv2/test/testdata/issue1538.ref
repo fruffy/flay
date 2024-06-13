@@ -1,4 +1,4 @@
-Replaced node at line 87: mac_da.apply(); with default_action = my_drop(standard_metadata);
+Replaced node at line 87: mac_da.apply(); with my_drop_0/my_drop();
 statement_count_before:28
 statement_count_after:28
 cyclomatic_complexity:2

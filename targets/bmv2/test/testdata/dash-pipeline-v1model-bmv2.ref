@@ -31,7 +31,7 @@ Eliminated node at line 901: if (meta.is_overlay_ip_v6 == 0) {
 Eliminated node at line 1152: if (meta.is_fast_path_icmp_flow_redirection_packet) {
 Eliminated node at line 1156: meta.encap_data.underlay_sip = hdr.u0_ipv4.dst_addr;
 Eliminated node at line 1155: if (vip.apply().hit) {
-Replaced node at line 854: direction_lookup.apply(); with const default_action = set_inbound_direction;
+Replaced node at line 854: direction_lookup.apply(); with direction_lookup_stage_set_inbound_direction_0/set_inbound_direction();
 Eliminated node at line 1162: appliance.apply();
 Eliminated node at line 877: meta.eni_addr = (meta.direction == dash_direction_t.OUTBOUND ? hdr.customer_ethernet.src_addr : hdr.customer_ethernet.dst_addr);
 Eliminated node at line (unknown): 
@@ -39,7 +39,7 @@ Eliminated node at line 878: if (!eni_ether_address_map.apply().hit) {
 Eliminated node at line 879: if (meta.is_fast_path_icmp_flow_redirection_packet) {
 Eliminated node at line 1167: tunnel_decap(hdr, meta);
 Eliminated node at line 1170: tunnel_decap_pa_validate: {
-Replaced node at line 1197: eni.apply(); with const default_action = deny;
+Replaced node at line 1197: eni.apply(); with deny_0/deny();
 Eliminated node at line 1201: if (meta.is_fast_path_icmp_flow_redirection_packet) {
 Eliminated node at line 1204: acl_group.apply();
 Eliminated node at line 1205: if (meta.direction == dash_direction_t.OUTBOUND) {
