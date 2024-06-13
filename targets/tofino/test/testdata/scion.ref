@@ -6,11 +6,21 @@ Eliminated node at line 1483: bool ingress_verification_successful = tbl_ingress
 Eliminated node at line (unknown): { tmp_41 = tbl_bfd_local_0/tbl_bfd_local.apply().hit;
   bfd_state_0/bfd_state = !tmp_41; }
 Eliminated node at line 1489: bfd_state = tbl_bfd_remote.apply().hit;
-Eliminated node at line 1500: if (local_destination) {
+Eliminated node at line (unknown): { if (hdr.scion_common.pathType == 1 && meta.direction == 0) {
+    if (hdr.scion_path_meta.currInf == 0) {
+      hdr.scion_info_field_0.segId = meta.nextSegId;
+    } else if (hdr.scion_path_meta.currInf == 1) {
+      hdr.scion_info_field_1.segId = meta.nextSegId;
+    } else if (hdr.scion_path_meta.currInf == 2) {
+      hdr.scion_info_field_2.segId = meta.nextSegId; } }
+  if (hdr.scion_common.pathType == 0) {
+    tbl_deliver_local_empty_0/tbl_deliver_local_empty.apply();
+  } else {
+    tbl_deliver_local_0/tbl_deliver_local.apply(); } }
 Eliminated node at line 1523: forward_local_ipv6:
 Replaced node at line 1548: tbl_set_local_source.apply(); with drop_2/drop();
-statement_count_before:596
-statement_count_after:581
+statement_count_before:582
+statement_count_after:567
 cyclomatic_complexity:137
 num_parsers_paths:14913
 

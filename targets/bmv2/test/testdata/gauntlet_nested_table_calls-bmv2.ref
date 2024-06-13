@@ -1,6 +1,8 @@
 Eliminated node at line 44: h.eth_hdr.eth_type = simple_function((exit_table.apply().hit ? 16w1 : 16w2));
-statement_count_before:9
-statement_count_after:9
+Eliminated node at line (unknown): 
+Eliminated node at line 44: h.eth_hdr.eth_type = simple_function((exit_table.apply().hit ? 16w1 : 16w2));
+statement_count_before:8
+statement_count_after:7
 cyclomatic_complexity:4
 num_parsers_paths:1
 

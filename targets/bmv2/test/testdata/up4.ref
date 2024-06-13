@@ -2,12 +2,25 @@ Eliminated node at line 681: hdr.packet_out.setInvalid();
 Eliminated node at line (unknown): 
 Eliminated node at line 683: if (!my_station.apply().hit) {
 Eliminated node at line 686: if (interfaces.apply().hit) {
-Eliminated node at line 686: if (interfaces.apply().hit) {
-Eliminated node at line 437: routes_v4.apply();
-Eliminated node at line 401: acls.apply();
+Eliminated node at line (unknown): 
+Eliminated node at line (unknown): { Routing_hasReturned = false;
+  if (hdr.ipv4.isValid()) {
+    
+  } else {
+    Routing_hasReturned = true; }
+  if (Routing_hasReturned) {
+    
+  } else {
+    { hdr.ipv4.ttl = hdr.ipv4.ttl + 255;
+      if (hdr.ipv4.ttl == 0) {
+        Routing_drop_0/drop();
+      } else {
+        Routing_routes_v4/routes_v4.apply(); } } }
+  if (hdr.ethernet.isValid() && hdr.ipv4.isValid()) {
+    Acl_acls/acls.apply(); } }
 Eliminated node at line 753: if (std_meta.egress_port == 255) {
-statement_count_before:228
-statement_count_after:195
+statement_count_before:236
+statement_count_after:199
 cyclomatic_complexity:69
 num_parsers_paths:38
 

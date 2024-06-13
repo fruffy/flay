@@ -1,9 +1,5 @@
-Eliminated node at line (unknown): { dummy/dummy_1 = h.h;
-  retval = 1;
-  h.h = dummy/dummy_1;
-  tmp_0 = retval;
-  tmp = tmp_0; }
-statement_count_before:12
+Eliminated node at line 40: h.eth_hdr.eth_type = (!b ? 16w1 : simple_fun(h.h));
+statement_count_before:8
 statement_count_after:7
 cyclomatic_complexity:1
 num_parsers_paths:1

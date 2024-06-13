@@ -15,8 +15,8 @@ Eliminated node at line 520: tb_lookup_3_1_t.apply();
 Eliminated node at line 521: tb_lookup_3_2_t.apply();
 Eliminated node at line 522: tb_lookup_3_3_t.apply();
 Replaced node at line 533: tb_recirc_decision.apply(); with do_not_recirc();
-statement_count_before:131
-statement_count_after:115
+statement_count_before:132
+statement_count_after:116
 cyclomatic_complexity:46
 num_parsers_paths:13
 

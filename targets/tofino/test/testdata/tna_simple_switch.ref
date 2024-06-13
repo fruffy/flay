@@ -10,8 +10,8 @@ Replaced node at line 305: dmac.apply(); with mac_dmac_miss_0/dmac_miss();
 Eliminated node at line 551: lag.apply();
 Eliminated node at line 797: ipv6_rewrite.apply();
 Eliminated node at line 798: srh_rewrite.apply();
-statement_count_before:384
-statement_count_after:369
+statement_count_before:372
+statement_count_after:357
 cyclomatic_complexity:164
 num_parsers_paths:277
 

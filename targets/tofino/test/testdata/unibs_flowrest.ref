@@ -1,8 +1,8 @@
 Replaced node at line 386: flow_action_table.apply(); with set_miss_flow_action();
 Eliminated node at line 390: if (hdr.recirc.isValid()){
 Eliminated node at line 505: if (ig_dprsr_md.digest_type == 1) {
-statement_count_before:137
-statement_count_after:90
+statement_count_before:127
+statement_count_after:80
 cyclomatic_complexity:41
 num_parsers_paths:9
 

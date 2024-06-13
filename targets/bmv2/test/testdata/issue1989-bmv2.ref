@@ -1,5 +1,9 @@
+Eliminated node at line 58: hdr.ethernet_stack[1] = hdr.ethernet_stack[meta.color];
+Eliminated node at line 58: hdr.ethernet_stack[1] = hdr.ethernet_stack[meta.color];
+Eliminated node at line (unknown): if (!(hsiVar >= 1)) {
+   }
 Eliminated node at line 69: acl_table.apply();
-statement_count_before:2
+statement_count_before:5
 statement_count_after:1
 cyclomatic_complexity:5
 num_parsers_paths:1
