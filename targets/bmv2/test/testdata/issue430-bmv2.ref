@@ -1,4 +1,5 @@
-
+Replaced node at line 40: hash(x, HashAlgorithm.crc32, 32w0, { p.h.f ^ 0xFFFF }, 32w65536); with 0
+Replaced node at line 40: hash(x, HashAlgorithm.crc32, 32w0, { p.h.f ^ 0xFFFF }, 32w65536); with 0
 statement_count_before:1
 statement_count_after:1
 cyclomatic_complexity:0

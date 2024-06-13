@@ -5,6 +5,7 @@ Replaced node at line 337: tbl_do_add_timestamp.apply(); with do_add_timestamp()
 Eliminated node at line (unknown): 
 Eliminated node at line 340: if (!do_bytes_count_malicious_egress.apply().hit){
 Replaced node at line 343: do_bytes_count_benign_egress.apply(); with bytes_count_benign_egress();
+Replaced node at line 184: if (meta.ctr_exceeded == 1){ with 0
 statement_count_before:29
 statement_count_after:28
 cyclomatic_complexity:16

@@ -3,6 +3,8 @@ Eliminated node at line 183: forward.apply();
 Eliminated node at line (unknown): 
 Eliminated node at line 185: if (!fib.apply().hit) {
 Eliminated node at line 186: fallback.apply();
+Replaced node at line 124: vid : exact; with 0
+Replaced node at line 140: vrf : exact; with 0
 statement_count_before:25
 statement_count_after:22
 cyclomatic_complexity:12

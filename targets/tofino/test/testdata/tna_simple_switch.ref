@@ -10,6 +10,33 @@ Replaced node at line 305: dmac.apply(); with mac_dmac_miss_0/dmac_miss();
 Eliminated node at line 551: lag.apply();
 Eliminated node at line 797: ipv6_rewrite.apply();
 Eliminated node at line 798: srh_rewrite.apply();
+Replaced node at line 249: ig_md.ifindex : exact; with 0
+Replaced node at line 355: ig_md.ifindex : ternary; // for SRv6 proxy with 0
+Replaced node at line 623: mac.apply(hdr.ethernet.dst_addr, ig_md.bd, ig_md.egress_ifindex); with 0
+Replaced node at line 613: fib.apply(lkp.ipv4_dst_addr, ig_md.vrf, ig_md.nexthop); with 0
+Replaced node at line 613: fib.apply(lkp.ipv4_dst_addr, ig_md.vrf, ig_md.nexthop); with 0
+Replaced node at line 613: fib.apply(lkp.ipv4_dst_addr, ig_md.vrf, ig_md.nexthop); with 0
+Replaced node at line 613: fib.apply(lkp.ipv4_dst_addr, ig_md.vrf, ig_md.nexthop); with 0
+Replaced node at line 615: fibv6.apply(lkp.ipv6_dst_addr, ig_md.vrf, ig_md.nexthop); with 0
+Replaced node at line 615: fibv6.apply(lkp.ipv6_dst_addr, ig_md.vrf, ig_md.nexthop); with 0
+Replaced node at line 615: fibv6.apply(lkp.ipv6_dst_addr, ig_md.vrf, ig_md.nexthop); with 0
+Replaced node at line 615: fibv6.apply(lkp.ipv6_dst_addr, ig_md.vrf, ig_md.nexthop); with 0
+Replaced node at line 428: ig_md.nexthop : exact; with 0
+Replaced node at line 429: lkp.ipv6_src_addr : selector; with 0
+Replaced node at line 430: lkp.ipv6_dst_addr : selector; with 0
+Replaced node at line 431: lkp.ipv6_flow_label : selector; with 0
+Replaced node at line 432: lkp.ipv4_src_addr : selector; with 0
+Replaced node at line 433: lkp.ipv4_dst_addr : selector; with 0
+Replaced node at line 448: ig_md.nexthop : exact; with 0
+Replaced node at line 491: key = { ig_md.bd : exact; } with 0
+Replaced node at line 626: lag.apply(lkp, ig_md.egress_ifindex, ig_tm_md.ucast_egress_port); with 65535
+Replaced node at line 533: lkp.ipv6_src_addr : selector; with 0
+Replaced node at line 534: lkp.ipv6_dst_addr : selector; with 0
+Replaced node at line 535: lkp.ipv6_flow_label : selector; with 0
+Replaced node at line 536: lkp.ipv4_src_addr : selector; with 0
+Replaced node at line 537: lkp.ipv4_dst_addr : selector; with 0
+Replaced node at line 590: lkp.mac_dst_addr : exact; with 0
+Replaced node at line 622: if (!(ig_md.bypass & BYPASS_L2 != 0)) { with 0
 statement_count_before:372
 statement_count_after:357
 cyclomatic_complexity:164

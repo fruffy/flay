@@ -1,4 +1,13 @@
 Eliminated node at line 172: debug.apply();
+Replaced node at line 139: standard_metadata.ingress_port : exact; with 0
+Replaced node at line 154: meta.before1 : exact; with 0
+Replaced node at line 155: meta.after1 : exact; with 0
+Replaced node at line 156: meta.before2 : exact; with 0
+Replaced node at line 157: meta.after2 : exact; with 0
+Replaced node at line 158: meta.before3 : exact; with 0
+Replaced node at line 159: meta.after3 : exact; with 0
+Replaced node at line 160: meta.before4 : exact; with 0
+Replaced node at line 161: meta.after4 : exact; with 0
 statement_count_before:19
 statement_count_after:18
 cyclomatic_complexity:7

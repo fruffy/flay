@@ -1,4 +1,6 @@
 Replaced node at line 133: guh.apply(); with foo();
+Replaced node at line 188: meta.mystruct1.a ++ meta.mystruct1.b, with 0
+Replaced node at line 188: meta.mystruct1.a ++ meta.mystruct1.b, with 0
 statement_count_before:15
 statement_count_after:15
 cyclomatic_complexity:3
