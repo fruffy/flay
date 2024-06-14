@@ -1,6 +1,8 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SUBSTITUTION_MAP_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SUBSTITUTION_MAP_H_
 
+#include <z3++.h>
+
 #include <functional>
 #include <optional>
 
@@ -53,7 +55,8 @@ class Z3SolverSubstitutionMap : private Z3ExpressionMap, public AbstractSubstitu
 
     /// Compute substitution for the node given the set of constraints.
     std::optional<bool> computeNodeSubstitution(const IR::Expression *expression,
-                                                const ControlPlaneAssignmentSet &constraints);
+                                                const z3::expr_vector &variables,
+                                                const z3::expr_vector &variableAssignments);
 
  public:
     explicit Z3SolverSubstitutionMap(Z3Solver &solver, const NodeAnnotationMap &map);

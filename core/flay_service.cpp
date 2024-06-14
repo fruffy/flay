@@ -91,24 +91,27 @@ const ControlPlaneConstraints &FlayServiceBase::controlPlaneConstraints() const 
     return _controlPlaneConstraints;
 }
 
-std::optional<bool> FlayServiceBase::checkForSemanticChange(
-    std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) {
+std::optional<bool> FlayServiceBase::checkForSemanticChange(const SymbolSet &symbolSet) {
+    printInfo("Checking for change in program semantics...");
+    Util::ScopedTimer timer("Check for semantics change with symbol set");
+
+    auto reachabilityResult =
+        mutableReachabilityMap().recomputeReachability(symbolSet, controlPlaneConstraints());
+    if (!reachabilityResult.has_value()) {
+        return std::nullopt;
+    }
+    auto substitutionResult =
+        mutableSubstitutionMap().recomputeSubstitution(symbolSet, controlPlaneConstraints());
+    if (!substitutionResult.has_value()) {
+        return std::nullopt;
+    }
+    return reachabilityResult.value() || substitutionResult.value();
+}
+
+std::optional<bool> FlayServiceBase::checkForSemanticChange() {
     printInfo("Checking for change in program semantics...");
     Util::ScopedTimer timer("Check for semantics change");
 
-    if (symbolSet.has_value() && _options.useSymbolSet) {
-        auto reachabilityResult = mutableReachabilityMap().recomputeReachability(
-            symbolSet.value(), controlPlaneConstraints());
-        if (!reachabilityResult.has_value()) {
-            return std::nullopt;
-        }
-        auto substitutionResult = mutableSubstitutionMap().recomputeSubstitution(
-            symbolSet.value(), controlPlaneConstraints());
-        if (!substitutionResult.has_value()) {
-            return std::nullopt;
-        }
-        return reachabilityResult.value() || substitutionResult.value();
-    }
     auto reachabilityResult =
         mutableReachabilityMap().recomputeReachability(controlPlaneConstraints());
     if (!reachabilityResult.has_value()) {
@@ -126,7 +129,9 @@ std::pair<int, bool> FlayServiceBase::specializeProgram(
     std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) {
     Util::ScopedTimer timer("Eliminate Dead Code");
 
-    std::optional<bool> hasChangedOpt = checkForSemanticChange(symbolSet);
+    std::optional<bool> hasChangedOpt = symbolSet.has_value()
+                                            ? checkForSemanticChange(symbolSet.value())
+                                            : checkForSemanticChange();
     if (!hasChangedOpt.has_value()) {
         return {EXIT_FAILURE, false};
     }

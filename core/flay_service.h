@@ -113,8 +113,8 @@ class FlayServiceBase {
     /// Compute whether the semantics of the program under this control plane
     /// configuration have changed since the last update.
     // @returns std::nullopt if an error occurred during the computation.
-    [[nodiscard]] std::optional<bool> checkForSemanticChange(
-        std::optional<std::reference_wrapper<const SymbolSet>> symbolSet);
+    [[nodiscard]] std::optional<bool> checkForSemanticChange();
+    [[nodiscard]] std::optional<bool> checkForSemanticChange(const SymbolSet &symbolSet);
 
  public:
     explicit FlayServiceBase(const FlayServiceOptions &options,

@@ -79,7 +79,7 @@ Z3SolverReachabilityMap::Z3SolverReachabilityMap(const NodeAnnotationMap &map)
         for (const auto &reachabilityExpression : reachabilityExpressionVector) {
             result.emplace(new Z3ReachabilityExpression(
                 *reachabilityExpression,
-                z3Translator.translate(reachabilityExpression->getCondition())));
+                z3Translator.translate(reachabilityExpression->getCondition()).simplify()));
         }
         (*this)[node].insert(result.begin(), result.end());
     }
