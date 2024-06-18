@@ -168,7 +168,7 @@ const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const 
 ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments() const {
     auto defaultAssignments = _defaultTableAction.computeControlPlaneAssignments();
     defaultAssignments.emplace(*ControlPlaneState::getTableActive(_tableName),
-                               *IR::BoolLiteral::get(true));
+                               *IR::BoolLiteral::get(_tableEntries.size() > 0));
     if (_tableEntries.size() == 0) {
         return defaultAssignments;
     }
