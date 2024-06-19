@@ -43,13 +43,6 @@ struct Headers {
 parser p(packet_in pkt, out Headers h, inout local_metadata_t local_metadata, inout standard_metadata_t stdmeta) {
     state start {
         pkt.extract(h.ethernet);
-        transition select(h.ethernet.ether_type) {
-            0x800: parse_ipv4;
-            default: accept;
-        }
-    }
-    state parse_ipv4 {
-        pkt.extract(h.ipv4);
         transition accept;
     }
 }
@@ -79,7 +72,7 @@ control ingress(inout Headers h, inout local_metadata_t local_metadata, inout st
 
     apply {
         toggle_check.apply();
-        h.ethernet.ether_type = (bit<16>) value;
+        h.ethernet.ether_type = value;
     }
 
 }

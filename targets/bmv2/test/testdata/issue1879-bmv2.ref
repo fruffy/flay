@@ -1,4 +1,5 @@
-
+Replaced node at line 172: bit<8> hdrLeft = meta.headerLen - meta.currPos; with 15
+Replaced node at line 140: bit<9> paddingLen = (64 - (meta.addrLen % 64)) % 64; with 64
 statement_count_before:44
 statement_count_after:44
 cyclomatic_complexity:33

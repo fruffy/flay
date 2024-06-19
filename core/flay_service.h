@@ -113,8 +113,8 @@ class FlayServiceBase {
     /// Compute whether the semantics of the program under this control plane
     /// configuration have changed since the last update.
     // @returns std::nullopt if an error occurred during the computation.
-    [[nodiscard]] std::optional<bool> checkForSemanticChange(
-        std::optional<std::reference_wrapper<const SymbolSet>> symbolSet);
+    [[nodiscard]] std::optional<bool> checkForSemanticChange();
+    [[nodiscard]] std::optional<bool> checkForSemanticChange(const SymbolSet &symbolSet);
 
  public:
     explicit FlayServiceBase(const FlayServiceOptions &options,
@@ -150,9 +150,17 @@ class FlayServiceBase {
     /// @returns a mutable reference reachability map.
     [[nodiscard]] AbstractReachabilityMap &mutableReachabilityMap();
 
+    /// @returns a mutable reference to the substitution map that this program
+    /// info object was initialized with.
+    [[nodiscard]] AbstractSubstitutionMap &mutableSubstitutionMap();
+
     /// @returns a mutable reference to the control plane constraints that this
     /// program info object was initialized with.
     [[nodiscard]] ControlPlaneConstraints &mutableControlPlaneConstraints();
+
+    /// @returns the control plane constraints that this program info object
+    /// was initialized with.
+    [[nodiscard]] const ControlPlaneConstraints &controlPlaneConstraints() const;
 
     /// Run specialization on the original P4 program.
     std::pair<int, bool> specializeProgram(

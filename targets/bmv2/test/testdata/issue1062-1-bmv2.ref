@@ -1,4 +1,5 @@
 Replaced node at line 69: t_exact.apply(); with set_error_idx(0);
+Replaced node at line 58: m.my_err : exact; with 0
 statement_count_before:4
 statement_count_after:4
 cyclomatic_complexity:1

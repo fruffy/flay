@@ -1,5 +1,6 @@
 Replaced node at line 119: forward.apply(); with miss();
 Eliminated node at line 121: ipRouteMulticast.apply();
+Replaced node at line 107: vrf : exact; with 0
 statement_count_before:16
 statement_count_after:15
 cyclomatic_complexity:5

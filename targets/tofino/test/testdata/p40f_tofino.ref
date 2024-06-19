@@ -1,5 +1,8 @@
 Replaced node at line 972: result_match.apply(); with set_result(1023, 0);
 Eliminated node at line 977: ipv4_lpm.apply();
+Replaced node at line 877: meta.p0f_metadata.quirk_zero_id: exact; //none with 0
+Replaced node at line 882: meta.p0f_metadata.quirk_zero_ack: exact; //none with 0
+Replaced node at line 883: meta.p0f_metadata.quirk_opt_zero_ts1: exact; with 0
 statement_count_before:154
 statement_count_after:153
 cyclomatic_complexity:67

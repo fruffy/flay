@@ -94,6 +94,67 @@ Eliminated node at line 963: meta.meter_class = meta.policy_meter_class;
 Eliminated node at line 971: meter_bucket.apply();
 Eliminated node at line 973: meter_bucket_outbound.count((bit<32>)meta.meter_bucket_index);
 Eliminated node at line 977: eni_meter.apply();
+Replaced node at line 335: hdr.customer_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.customer_ethernet.dst_addr : overlay_dmac); with 0
+Replaced node at line 335: hdr.customer_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.customer_ethernet.dst_addr : overlay_dmac); with 0
+Replaced node at line 335: hdr.customer_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.customer_ethernet.dst_addr : overlay_dmac); with 0
+Replaced node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac); with 0
+Replaced node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac); with 0
+Replaced node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac); with 0
+Replaced node at line 1035: meta.appliance_id: ternary; with 0
+Replaced node at line 1074: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
+Replaced node at line 1095: meta.eni_id: exact @SaiVal[type="sai_object_id_t"]; with 0
+Replaced node at line 1110: meta.vnet_id : exact @SaiVal[type="sai_object_id_t"]; with 0
+Replaced node at line 1121: meta.eni_id : exact @SaiVal[type="sai_object_id_t"]; with 0
+Replaced node at line 1145: meta.stage1_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id"]; with 0
+Replaced node at line 478: meta.stage1_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
+Replaced node at line 497: meta.stage2_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
+Replaced node at line 516: meta.stage3_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
+Replaced node at line 708: meta.eni_id : exact @SaiVal[type="sai_object_id_t"]; with 0
+Replaced node at line 734: meta.dst_vnet_id : exact @SaiVal[type="sai_object_id_t"]; with 0
+Replaced node at line 751: meta.vnet_id: exact @SaiVal[type="sai_object_id_t"]; with 0
+Replaced node at line 478: meta.stage1_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
+Replaced node at line 497: meta.stage2_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
+Replaced node at line 516: meta.stage3_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
+Replaced node at line 997: meta.dst_ip_addr: lpm @SaiVal[name="destination"]; with 0
+Replaced node at line 908: meta.meter_policy_id: exact; with 0
+Replaced node at line 919: meta.meter_policy_id: exact @SaiVal[type="sai_object_id_t", isresourcetype="true", objects="METER_POLICY"]; with 0
+Replaced node at line 920: hdr.u0_ipv4.dst_addr: ternary @SaiVal[name="dip", type="sai_ip_address_t"]; with 0
+Replaced node at line 935: meta.eni_id : exact @SaiVal[type="sai_object_id_t"]; with 0
+Replaced node at line 936: meta.meter_class: exact; with 0
+Replaced node at line 947: meta.eni_id : exact @SaiVal[type="sai_object_id_t"]; with 0
+Replaced node at line 948: meta.direction: exact; with 2
+Replaced node at line 877: meta.eni_addr = (meta.direction == dash_direction_t.OUTBOUND ? hdr.customer_ethernet.src_addr : hdr.customer_ethernet.dst_addr); with 2
+Replaced node at line 1166: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
+Replaced node at line 1168: } else if (meta.direction == dash_direction_t.INBOUND) { with 2
+Replaced node at line 1198: if (meta.eni_data.admin_state == 0) { with 0
+Replaced node at line 1205: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
+Replaced node at line 1208: } else if (meta.direction == dash_direction_t.INBOUND) { with 2
+Replaced node at line 533: if (meta.stage1_dash_acl_group_id != 0) { with 0
+Replaced node at line 543: if (meta.stage2_dash_acl_group_id != 0) { with 0
+Replaced node at line 553: if (meta.stage3_dash_acl_group_id != 0) { with 0
+Replaced node at line 818: if (meta.tunnel_pointer == 0) { with 0
+Replaced node at line 608: if (meta.routing_actions & dash_routing_actions_t.NAT46 == 0) { with 0
+Replaced node at line 634: if (meta.routing_actions & dash_routing_actions_t.NAT64 == 0) { with 0
+Replaced node at line 578: if (meta.routing_actions & dash_routing_actions_t.STATIC_ENCAP == 0) { with 0
+Replaced node at line 1214: if (meta.eni_data.dscp_mode == dash_tunnel_dscp_mode_t.PIPE_MODEL) { with 0
+Replaced node at line 957: if (meta.meter_policy_en == 1) { with 0
+Replaced node at line 962: if (meta.meter_policy_en == 1) { with 0
+Replaced node at line 967: if (meta.meter_class == 0 || meta.mapping_meter_class_override == 1) { with 0
+Replaced node at line 967: if (meta.meter_class == 0 || meta.mapping_meter_class_override == 1) { with 0
+Replaced node at line 972: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
+Replaced node at line 974: } else if (meta.direction == dash_direction_t.INBOUND) { with 2
+Replaced node at line 975: meter_bucket_inbound.count((bit<32>)meta.meter_bucket_index); with 0
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 4
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 5
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 0
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 1
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 0
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 0
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 64
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 17
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 0
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 0
+Replaced node at line 1231: update_checksum(hdr.u0_ipv4.isValid(), { hdr.u0_ipv4.version, hdr.u0_ipv4.ihl, hdr.u0_ipv4.diffserv, hdr.u0_ipv4.total_len, hdr.u0_ipv4.identification, hdr.u0_ipv4.frag_offset, hdr.u0_ipv4.flags, hdr.u0_ipv4.ttl, hdr.u0_ipv4.protocol, hdr.u0_ipv4.src_addr, hdr.u0_ipv4.dst_addr }, hdr.u0_ipv4.hdr_checksum, HashAlgorithm.csum16); with 0
 statement_count_before:547
 statement_count_after:437
 cyclomatic_complexity:229

@@ -1,5 +1,10 @@
 Eliminated node at line 37: } else {
 Eliminated node at line 55: if (s2.h1.data == 0 && s2.h2.data == 0) {
+Replaced node at line 35: if (hdr.h1.data == 0) { with 0
+Replaced node at line 45: if (h2.data == 1) { with 1
+Replaced node at line 52: if (h1.data == 1) { with 1
+Replaced node at line 55: if (s2.h1.data == 0 && s2.h2.data == 0) { with 1
+Replaced node at line 55: if (s2.h1.data == 0 && s2.h2.data == 0) { with 1
 statement_count_before:29
 statement_count_after:24
 cyclomatic_complexity:10

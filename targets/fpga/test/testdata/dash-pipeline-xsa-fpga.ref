@@ -87,6 +87,47 @@ Eliminated node at line 969: if (meta.meter_policy_en == 1) {
 Eliminated node at line 975: meta.meter_class = meta.policy_meter_class;
 Eliminated node at line 983: meter_bucket.apply();
 Eliminated node at line 989: eni_meter.apply();
+Replaced node at line 1044: meta.appliance_id: ternary; with 0
+Replaced node at line 1082: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
+Replaced node at line 1103: meta.eni_id: exact; with 0
+Replaced node at line 1118: meta.vnet_id : exact; with 0
+Replaced node at line 1129: meta.eni_id : exact; with 0
+Replaced node at line 1153: meta.stage1_dash_acl_group_id: exact; with 0
+Replaced node at line 504: meta.stage1_dash_acl_group_id: exact; with 0
+Replaced node at line 521: meta.stage2_dash_acl_group_id: exact; with 0
+Replaced node at line 538: meta.stage3_dash_acl_group_id: exact; with 0
+Replaced node at line 728: meta.eni_id : exact; with 0
+Replaced node at line 752: meta.dst_vnet_id : exact; with 0
+Replaced node at line 768: meta.vnet_id: exact; with 0
+Replaced node at line 504: meta.stage1_dash_acl_group_id: exact; with 0
+Replaced node at line 521: meta.stage2_dash_acl_group_id: exact; with 0
+Replaced node at line 538: meta.stage3_dash_acl_group_id: exact; with 0
+Replaced node at line 1007: meta.dst_ip_addr: lpm; with 0
+Replaced node at line 924: meta.meter_policy_id: exact; with 0
+Replaced node at line 935: meta.meter_policy_id: exact; with 0
+Replaced node at line 936: hdr.u0_ipv4.dst_addr: ternary; with 0
+Replaced node at line 949: meta.eni_id : exact; with 0
+Replaced node at line 950: meta.meter_class: exact; with 0
+Replaced node at line 960: meta.eni_id : exact; with 0
+Replaced node at line 961: (bit<16>) meta.direction: exact @name("eni_meter_direction"); with 2
+Replaced node at line 893: meta.eni_addr = (meta.direction == dash_direction_t.OUTBOUND ? hdr.customer_ethernet.src_addr : hdr.customer_ethernet.dst_addr); with 2
+Replaced node at line 1174: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
+Replaced node at line 1176: } else if (meta.direction == dash_direction_t.INBOUND) { with 2
+Replaced node at line 1206: if (meta.eni_data.admin_state == 0) { with 0
+Replaced node at line 1213: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
+Replaced node at line 1216: } else if (meta.direction == dash_direction_t.INBOUND) { with 2
+Replaced node at line 554: if (meta.stage1_dash_acl_group_id != 0) { with 0
+Replaced node at line 564: if (meta.stage2_dash_acl_group_id != 0) { with 0
+Replaced node at line 574: if (meta.stage3_dash_acl_group_id != 0) { with 0
+Replaced node at line 835: if (meta.tunnel_pointer == 0) { with 0
+Replaced node at line 629: if (meta.routing_actions & dash_routing_actions_t.NAT46 == 0) { with 0
+Replaced node at line 655: if (meta.routing_actions & dash_routing_actions_t.NAT64 == 0) { with 0
+Replaced node at line 599: if (meta.routing_actions & dash_routing_actions_t.STATIC_ENCAP == 0) { with 0
+Replaced node at line 1222: if (meta.eni_data.dscp_mode == dash_tunnel_dscp_mode_t.PIPE_MODEL) { with 0
+Replaced node at line 969: if (meta.meter_policy_en == 1) { with 0
+Replaced node at line 974: if (meta.meter_policy_en == 1) { with 0
+Replaced node at line 979: if (meta.meter_class == 0 || meta.mapping_meter_class_override == 1) { with 0
+Replaced node at line 979: if (meta.meter_class == 0 || meta.mapping_meter_class_override == 1) { with 0
 statement_count_before:543
 statement_count_after:440
 cyclomatic_complexity:214

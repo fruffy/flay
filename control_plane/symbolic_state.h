@@ -31,17 +31,23 @@ using ExpressionSet = std::set<const IR::Expression *, SourceIdCmp>;
 class SymbolCollector : public Inspector {
  private:
     /// The set of symbolic variables.
-    SymbolSet collectedSymbols;
+    SymbolSet _collectedSymbols;
 
  public:
     SymbolCollector() = default;
 
     void postorder(const IR::SymbolicVariable *symbolicVariable) override {
-        collectedSymbols.insert(*symbolicVariable);
+        _collectedSymbols.insert(*symbolicVariable);
     }
 
     /// Returns the collected  symbolic variables.
-    [[nodiscard]] const SymbolSet &getCollectedSymbols() const { return collectedSymbols; }
+    [[nodiscard]] const SymbolSet &collectedSymbols() const { return _collectedSymbols; }
+
+    [[nodiscard]] static const SymbolSet &collectSymbols(const IR::Node &node) {
+        SymbolCollector symbolCollector;
+        node.apply(symbolCollector);
+        return symbolCollector.collectedSymbols();
+    }
 };
 
 class ControlPlaneStateInitializer : public Inspector {
@@ -51,26 +57,33 @@ class ControlPlaneStateInitializer : public Inspector {
 
  protected:
     /// The default control-plane constraints as defined by a target.
-    ControlPlaneConstraints defaultConstraints;
+    ControlPlaneConstraints _defaultConstraints;
 
     /// Tries to assemble a match for the given entry key and inserts into the @param keySet.
     /// @returns false if the match type is not supported.
     virtual bool computeMatch(const IR::Expression &entryKey, const IR::SymbolicVariable &keySymbol,
                               cstring tableName, cstring fieldName, cstring matchType,
-                              TableKeySet &keySet);
+                              ControlPlaneAssignmentSet &keySet);
 
-    /// Tries to build a TableKeySet by matching the table fields and the keys listed in the entry.
+    /// Tries to build a ControlPlaneAssignmentSet by matching the table fields and the keys listed
+    /// in the entry.
     /// @returns std::nullopt if this is not possible.
-    std::optional<TableKeySet> computeEntryKeySet(const IR::P4Table &table, const IR::Entry &entry);
+    std::optional<ControlPlaneAssignmentSet> computeEntryKeySet(const IR::P4Table &table,
+                                                                const IR::Entry &entry);
 
     /// Tries to build a table control plane entry from the P4 entry member of the table.
     /// @returns std::nullopt if an error occurs when doing this.
     std::optional<TableEntrySet> initializeTableEntries(const IR::P4Table *table,
                                                         const P4::ReferenceMap &refMap);
 
+    /// Compute the constraints imposed by any entries defined for the table.
+    static std::optional<ControlPlaneAssignmentSet> computeEntryAction(
+        const IR::P4Table &table, const IR::P4Action &actionDecl,
+        const IR::MethodCallExpression &actionCall);
+
     /// Compute the constraints imposed by the default action if the table is not configured.
     /// @returns std::nullopt if an error occurs.
-    static std::optional<const IR::Expression *> computeDefaultActionConstraints(
+    static std::optional<ControlPlaneAssignmentSet> computeDefaultActionConstraints(
         const IR::P4Table *table, const P4::ReferenceMap &refMap);
 
     /// Get the reference map.
@@ -83,7 +96,7 @@ class ControlPlaneStateInitializer : public Inspector {
         const IR::P4Program *program) = 0;
 
     /// @returns the default control-plane constraints.
-    [[nodiscard]] ControlPlaneConstraints getDefaultConstraints() const;
+    [[nodiscard]] ControlPlaneConstraints defaultConstraints() const;
 
  private:
     bool preorder(const IR::P4Table *table) override;

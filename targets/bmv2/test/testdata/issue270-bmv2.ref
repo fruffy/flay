@@ -1,4 +1,55 @@
-
+Replaced node at line 71: verify_checksum(hdr.inner_ipv4.ihl == 5, { with 0
+Replaced node at line 72: hdr.inner_ipv4.version, with 0
+Replaced node at line 73: hdr.inner_ipv4.ihl, with 0
+Replaced node at line 74: hdr.inner_ipv4.diffserv, with 0
+Replaced node at line 75: hdr.inner_ipv4.totalLen, with 0
+Replaced node at line 76: hdr.inner_ipv4.identification, with 0
+Replaced node at line 77: hdr.inner_ipv4.flags, with 0
+Replaced node at line 78: hdr.inner_ipv4.fragOffset, with 0
+Replaced node at line 79: hdr.inner_ipv4.ttl, with 0
+Replaced node at line 80: hdr.inner_ipv4.protocol, with 0
+Replaced node at line 81: hdr.inner_ipv4.srcAddr, with 0
+Replaced node at line 82: hdr.inner_ipv4.dstAddr with 0
+Replaced node at line 83: }, hdr.inner_ipv4.hdrChecksum, HashAlgorithm.csum16); with 0
+Replaced node at line 85: verify_checksum(hdr.ipv4.ihl == 5, { with 0
+Replaced node at line 87: hdr.ipv4.version, with 0
+Replaced node at line 88: hdr.ipv4.ihl, with 0
+Replaced node at line 89: hdr.ipv4.diffserv, with 0
+Replaced node at line 90: hdr.ipv4.totalLen, with 0
+Replaced node at line 91: hdr.ipv4.identification, with 0
+Replaced node at line 92: hdr.ipv4.flags, with 0
+Replaced node at line 93: hdr.ipv4.fragOffset, with 0
+Replaced node at line 94: hdr.ipv4.ttl, with 0
+Replaced node at line 95: hdr.ipv4.protocol, with 0
+Replaced node at line 96: hdr.ipv4.srcAddr, with 0
+Replaced node at line 97: hdr.ipv4.dstAddr with 0
+Replaced node at line 98: }, hdr.ipv4.hdrChecksum, HashAlgorithm.csum16); with 0
+Replaced node at line 104: update_checksum(hdr.inner_ipv4.ihl == 5, { with 0
+Replaced node at line 105: hdr.inner_ipv4.version, with 0
+Replaced node at line 106: hdr.inner_ipv4.ihl, with 0
+Replaced node at line 107: hdr.inner_ipv4.diffserv, with 0
+Replaced node at line 108: hdr.inner_ipv4.totalLen, with 0
+Replaced node at line 109: hdr.inner_ipv4.identification, with 0
+Replaced node at line 110: hdr.inner_ipv4.flags, with 0
+Replaced node at line 111: hdr.inner_ipv4.fragOffset, with 0
+Replaced node at line 112: hdr.inner_ipv4.ttl, with 0
+Replaced node at line 113: hdr.inner_ipv4.protocol, with 0
+Replaced node at line 114: hdr.inner_ipv4.srcAddr, with 0
+Replaced node at line 115: hdr.inner_ipv4.dstAddr with 0
+Replaced node at line 116: }, hdr.inner_ipv4.hdrChecksum, HashAlgorithm.csum16); with 0
+Replaced node at line 118: update_checksum(hdr.ipv4.ihl == 5, { with 0
+Replaced node at line 120: hdr.ipv4.version, with 0
+Replaced node at line 121: hdr.ipv4.ihl, with 0
+Replaced node at line 122: hdr.ipv4.diffserv, with 0
+Replaced node at line 123: hdr.ipv4.totalLen, with 0
+Replaced node at line 124: hdr.ipv4.identification, with 0
+Replaced node at line 125: hdr.ipv4.flags, with 0
+Replaced node at line 126: hdr.ipv4.fragOffset, with 0
+Replaced node at line 127: hdr.ipv4.ttl, with 0
+Replaced node at line 128: hdr.ipv4.protocol, with 0
+Replaced node at line 129: hdr.ipv4.srcAddr, with 0
+Replaced node at line 130: hdr.ipv4.dstAddr with 0
+Replaced node at line 131: }, hdr.ipv4.hdrChecksum, HashAlgorithm.csum16); with 0
 statement_count_before:4
 statement_count_after:4
 cyclomatic_complexity:0

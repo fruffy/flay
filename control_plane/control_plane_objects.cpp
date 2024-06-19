@@ -27,67 +27,84 @@ namespace P4Tools::Flay {
 TableMatchEntry
 **************************************************************************************************/
 
-TableMatchEntry::TableMatchEntry(const Constraint *actionAssignment, int32_t priority,
-                                 const TableKeySet &matches)
-    : actionAssignment(actionAssignment),
-      priority(priority),
-      matchExpression(computeMatchExpression(matches)) {}
+TableMatchEntry::TableMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority,
+                                 const ControlPlaneAssignmentSet &matches)
+    : _actionAssignment(std::move(actionAssignment)),
+      _priority(priority),
+      _matchExpression(computeConstraintExpression(matches)),
+      _actionAssignmentExpression(computeConstraintExpression(_actionAssignment)),
+      _matches(matches) {}
 
-const IR::Expression *TableMatchEntry::computeMatchExpression(const TableKeySet &matches) {
-    if (matches.size() == 0) {
-        return IR::BoolLiteral::get(false);
-    }
-    const IR::Expression *matchExpression = nullptr;
-    // Precompute the match expression in the constructor.
-    for (const auto &match : matches) {
-        const auto &symbolicVariable = match.first.get();
-        const auto &assignment = match.second.get();
-        if (matchExpression == nullptr) {
-            matchExpression = new IR::Equ(&symbolicVariable, &assignment);
-        } else {
-            matchExpression =
-                new IR::LAnd(matchExpression, new IR::Equ(&symbolicVariable, &assignment));
-        }
-    }
-    return matchExpression;
+int32_t TableMatchEntry::priority() const { return _priority; }
+
+ControlPlaneAssignmentSet TableMatchEntry::actionAssignment() const { return _actionAssignment; }
+
+const IR::Expression *TableMatchEntry::actionAssignmentExpression() const {
+    return _actionAssignmentExpression;
 }
-
-int32_t TableMatchEntry::getPriority() const { return priority; }
-
-const IR::Expression *TableMatchEntry::getActionAssignment() const { return actionAssignment; }
 
 bool TableMatchEntry::operator<(const ControlPlaneItem &other) const {
     // Table match entries are only compared based on the match expression.
     return typeid(*this) == typeid(other)
-               ? matchExpression->isSemanticallyLess(
-                     *(dynamic_cast<const TableMatchEntry &>(other)).matchExpression)
+               ? _matchExpression->isSemanticallyLess(
+                     *(dynamic_cast<const TableMatchEntry &>(other))._matchExpression)
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
 const IR::Expression *TableMatchEntry::computeControlPlaneConstraint() const {
-    return matchExpression;
+    return _matchExpression;
+}
+
+ControlPlaneAssignmentSet TableMatchEntry::computeControlPlaneAssignments() const {
+    return _matches;
+}
+
+/**************************************************************************************************
+TableDefaultAction
+**************************************************************************************************/
+
+TableDefaultAction::TableDefaultAction(ControlPlaneAssignmentSet actionAssignment)
+    : _actionAssignment(std::move(actionAssignment)),
+      _actionAssignmentExpression(computeConstraintExpression(_actionAssignment)) {}
+
+bool TableDefaultAction::operator<(const ControlPlaneItem &other) const {
+    // Table match entries are only compared based on the match expression.
+    return typeid(*this) == typeid(other)
+               ? _actionAssignmentExpression->isSemanticallyLess(
+                     *(dynamic_cast<const TableDefaultAction &>(other))._actionAssignmentExpression)
+               : typeid(*this).hash_code() < typeid(other).hash_code();
+}
+
+[[nodiscard]] const IR::Expression *TableDefaultAction::computeControlPlaneConstraint() const {
+    return _actionAssignmentExpression;
+}
+
+ControlPlaneAssignmentSet TableDefaultAction::computeControlPlaneAssignments() const {
+    return _actionAssignment;
 }
 
 /**************************************************************************************************
 WildCardMatchEntry
 **************************************************************************************************/
 
-WildCardMatchEntry::WildCardMatchEntry(const Constraint *actionAssignment, int32_t priority)
-    : TableMatchEntry(actionAssignment, priority, {}) {
-    matchExpression = IR::BoolLiteral::get(true);
+WildCardMatchEntry::WildCardMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority)
+    : TableMatchEntry(std::move(actionAssignment), priority, {}) {
+    _matchExpression = IR::BoolLiteral::get(true);
 }
 
 bool WildCardMatchEntry::operator<(const ControlPlaneItem &other) const {
     // Table match entries are only compared based on the match expression.
     return typeid(*this) == typeid(other)
-               ? matchExpression->isSemanticallyLess(
-                     *(dynamic_cast<const WildCardMatchEntry &>(other)).matchExpression)
+               ? _matchExpression->isSemanticallyLess(
+                     *(dynamic_cast<const WildCardMatchEntry &>(other))._matchExpression)
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
 const IR::Expression *WildCardMatchEntry::computeControlPlaneConstraint() const {
-    return matchExpression;
+    return _matchExpression;
 }
+
+ControlPlaneAssignmentSet WildCardMatchEntry::computeControlPlaneAssignments() const { return {}; }
 
 /**************************************************************************************************
 TableConfiguration
@@ -95,55 +112,73 @@ TableConfiguration
 
 bool TableConfiguration::CompareTableMatch::operator()(const TableMatchEntry &left,
                                                        const TableMatchEntry &right) {
-    return left.getPriority() > right.getPriority();
+    return left.priority() > right.priority();
 }
 
 TableConfiguration::TableConfiguration(cstring tableName, TableDefaultAction defaultTableAction,
                                        TableEntrySet tableEntries)
-    : tableName_(tableName),
-      defaultTableAction_(std::move(defaultTableAction)),
-      tableEntries_(std::move(tableEntries)) {}
+    : _tableName(tableName),
+      _defaultTableAction(std::move(defaultTableAction)),
+      _tableEntries(std::move(tableEntries)) {}
 
 bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
     return typeid(*this) == typeid(other)
-               ? tableName_ < static_cast<const TableConfiguration &>(other).tableName_
+               ? _tableName < static_cast<const TableConfiguration &>(other)._tableName
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
 int TableConfiguration::addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace) {
     if (replace) {
-        tableEntries_.erase(tableMatchEntry);
+        _tableEntries.erase(tableMatchEntry);
     }
-    return tableEntries_.emplace(tableMatchEntry).second ? EXIT_SUCCESS : EXIT_FAILURE;
+    return _tableEntries.emplace(tableMatchEntry).second ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEntry) {
-    return tableEntries_.erase(tableMatchEntry);
+    return _tableEntries.erase(tableMatchEntry);
 }
 
-void TableConfiguration::clearTableEntries() { tableEntries_.clear(); }
+void TableConfiguration::clearTableEntries() { _tableEntries.clear(); }
 
 void TableConfiguration::setDefaultTableAction(TableDefaultAction defaultTableAction) {
-    defaultTableAction_ = std::move(defaultTableAction);
+    _defaultTableAction = std::move(defaultTableAction);
 }
 
 const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {
-    const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(tableName_),
-                                              IR::BoolLiteral::get(tableEntries_.size() > 0));
-    const IR::Expression *matchExpression = defaultTableAction_.computeControlPlaneConstraint();
-    if (tableEntries_.size() == 0) {
+    const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(_tableName),
+                                              IR::BoolLiteral::get(_tableEntries.size() > 0));
+    const IR::Expression *matchExpression = _defaultTableAction.computeControlPlaneConstraint();
+    if (_tableEntries.size() == 0) {
         return new IR::LAnd(matchExpression, tableConfigured);
     }
-    std::priority_queue sortedTableEntries(tableEntries_.begin(), tableEntries_.end(),
+    // TODO: Do we need this priority calculation?
+    // Maybe we should consider resolving overlapping entries beforehand.
+    std::priority_queue sortedTableEntries(_tableEntries.begin(), _tableEntries.end(),
                                            CompareTableMatch());
     while (!sortedTableEntries.empty()) {
         const auto &tableEntry = sortedTableEntries.top().get();
         matchExpression = new IR::Mux(tableEntry.computeControlPlaneConstraint(),
-                                      tableEntry.getActionAssignment(), matchExpression);
+                                      tableEntry.actionAssignmentExpression(), matchExpression);
         sortedTableEntries.pop();
     }
 
     return new IR::LAnd(matchExpression, tableConfigured);
+}
+
+ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments() const {
+    auto defaultAssignments = _defaultTableAction.computeControlPlaneAssignments();
+    defaultAssignments.emplace(*ControlPlaneState::getTableActive(_tableName),
+                               *IR::BoolLiteral::get(_tableEntries.size() > 0));
+    if (_tableEntries.size() == 0) {
+        return defaultAssignments;
+    }
+    for (const auto &tableEntry : _tableEntries) {
+        const auto &matchAssignments = tableEntry.get().computeControlPlaneAssignments();
+        const auto &actionAssignments = tableEntry.get().actionAssignment();
+        defaultAssignments.insert(matchAssignments.begin(), matchAssignments.end());
+        defaultAssignments.insert(actionAssignments.begin(), actionAssignments.end());
+    }
+    return defaultAssignments;
 }
 
 /**************************************************************************************************
@@ -162,6 +197,10 @@ const IR::Expression *ParserValueSet::computeControlPlaneConstraint() const {
                        IR::BoolLiteral::get(false));
 }
 
+ControlPlaneAssignmentSet ParserValueSet::computeControlPlaneAssignments() const {
+    return {{*ControlPlaneState::getParserValueSetConfigured(_name), *IR::BoolLiteral::get(false)}};
+}
+
 /**************************************************************************************************
 ActionProfile
 **************************************************************************************************/
@@ -172,13 +211,16 @@ bool ActionProfile::operator<(const ControlPlaneItem &other) const {
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
+const std::set<cstring> &ActionProfile::associatedTables() const { return _associatedTables; }
+
+void ActionProfile::addAssociatedTable(cstring table) { _associatedTables.insert(table); }
+
 const IR::Expression *ActionProfile::computeControlPlaneConstraint() const {
     // Action profiles are indirect and associated with the constraints of a table.
     return IR::BoolLiteral::get(true);
 }
-const std::set<cstring> &ActionProfile::associatedTables() const { return _associatedTables; }
 
-void ActionProfile::addAssociatedTable(cstring table) { _associatedTables.insert(table); }
+ControlPlaneAssignmentSet ActionProfile::computeControlPlaneAssignments() const { return {}; }
 
 /**************************************************************************************************
 ActionSelector
@@ -191,10 +233,6 @@ bool ActionSelector::operator<(const ControlPlaneItem &other) const {
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
-const IR::Expression *ActionSelector::computeControlPlaneConstraint() const {
-    // Action profiles are indirect and associated with the constraints of a table.
-    return IR::BoolLiteral::get(true);
-}
 const std::set<cstring> &ActionSelector::associatedTables() const { return _associatedTables; }
 
 void ActionSelector::addAssociatedTable(cstring table) {
@@ -204,4 +242,30 @@ void ActionSelector::addAssociatedTable(cstring table) {
 }
 
 const ActionProfile &ActionSelector::actionProfile() const { return _actionProfile; }
+
+const IR::Expression *ActionSelector::computeControlPlaneConstraint() const {
+    // Action profiles are indirect and associated with the constraints of a table.
+    return IR::BoolLiteral::get(true);
+}
+
+ControlPlaneAssignmentSet ActionSelector::computeControlPlaneAssignments() const { return {}; }
+
+/**************************************************************************************************
+TableActionSelectorConfiguration
+**************************************************************************************************/
+
+TableActionSelectorConfiguration::TableActionSelectorConfiguration(
+    cstring tableName, TableDefaultAction defaultTableAction, TableEntrySet tableEntries)
+    : TableConfiguration(tableName, std::move(defaultTableAction), std::move(tableEntries)) {}
+
+const IR::Expression *TableActionSelectorConfiguration::computeControlPlaneConstraint() const {
+    // This does nothing currently.
+    return IR::BoolLiteral::get(true);
+}
+
+ControlPlaneAssignmentSet TableActionSelectorConfiguration::computeControlPlaneAssignments() const {
+    // This does nothing currently.
+    return {};
+}
+
 }  // namespace P4Tools::Flay

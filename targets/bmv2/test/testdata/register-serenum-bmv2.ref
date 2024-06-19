@@ -1,4 +1,4 @@
-
+Replaced node at line 44: reg.write(0, h.eth_hdr.eth_type); with 0
 statement_count_before:4
 statement_count_after:4
 cyclomatic_complexity:2

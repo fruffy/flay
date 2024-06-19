@@ -1,4 +1,5 @@
 Eliminated node at line 534: custom_table.apply();
+Replaced node at line 343: transition select (stdmeta.ingress_port) { with 0
 statement_count_before:35
 statement_count_after:34
 cyclomatic_complexity:7

@@ -1,6 +1,17 @@
 Replaced node at line 386: flow_action_table.apply(); with set_miss_flow_action();
 Eliminated node at line 390: if (hdr.recirc.isValid()){
 Eliminated node at line 505: if (ig_dprsr_md.digest_type == 1) {
+Replaced node at line 152: if (meta.is_first != 1){ with 0
+Replaced node at line 168: if (meta.is_first == 1){ with 0
+Replaced node at line 183: if (meta.is_first == 1){ with 0
+Replaced node at line 336: key = {meta.codeword0: ternary;} with 0
+Replaced node at line 342: key = {meta.codeword1: ternary;} with 0
+Replaced node at line 348: key = {meta.codeword2: ternary;} with 0
+Replaced node at line 356: meta.class0: exact; with 0
+Replaced node at line 357: meta.class1: exact; with 0
+Replaced node at line 358: meta.class2: exact; with 0
+Replaced node at line 388: if (meta.f_action != 0) { with 0
+Replaced node at line 505: if (ig_dprsr_md.digest_type == 1) { with 0
 statement_count_before:127
 statement_count_after:80
 cyclomatic_complexity:41

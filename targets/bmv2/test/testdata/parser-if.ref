@@ -1,4 +1,4 @@
-
+Replaced node at line 25: if (std.ingress_port == 0) with 0
 statement_count_before:1
 statement_count_after:1
 cyclomatic_complexity:1

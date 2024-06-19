@@ -30,6 +30,8 @@ class CloneSession : public ControlPlaneItem {
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+
     DECLARE_TYPEINFO(CloneSession);
 };
 

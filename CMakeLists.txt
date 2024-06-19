@@ -77,6 +77,7 @@ set(FLAY_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service_wrapper_p4runtime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/simplify_expression.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/stepper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/substitution_expression.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/substitute_placeholders.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/substitution_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/symbolic_executor.cpp

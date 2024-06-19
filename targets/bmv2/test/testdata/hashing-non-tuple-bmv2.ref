@@ -1,4 +1,4 @@
-
+Replaced node at line 18: hash(output, HashAlgorithm.crc16, (bit<8>) 0, (bit<8>) 42, (bit<8>) 255); with 0
 statement_count_before:1
 statement_count_after:1
 cyclomatic_complexity:0

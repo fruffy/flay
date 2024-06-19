@@ -2,6 +2,8 @@ Eliminated node at line 76: send_frame.apply();
 Eliminated node at line 128: ipv4_lpm.apply();
 Eliminated node at line 129: forward.apply();
 Eliminated node at line 132: broadcast.apply();
+Replaced node at line 71: standard_metadata.egress_port: exact; with 0
+Replaced node at line 112: meta.routing_metadata.nhop_ipv4: exact; with 0
 statement_count_before:17
 statement_count_after:13
 cyclomatic_complexity:16

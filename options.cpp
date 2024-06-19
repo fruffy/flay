@@ -3,7 +3,6 @@
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/options.h"
 #include "backends/p4tools/modules/flay/toolname.h"
-#include "lib/cstring.h"
 #include "lib/error.h"
 #include "lib/exceptions.h"
 
