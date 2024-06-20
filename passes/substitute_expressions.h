@@ -25,10 +25,11 @@ class SubstituteExpressions : public Transform {
     /// The list of eliminated and optionally replaced nodes. Used for bookkeeping.
     std::vector<EliminatedReplacedPair> _eliminatedNodes;
 
-    const IR::Node *preorder(IR::PathExpression *pathExpression) override;
     const IR::Node *preorder(IR::Member *member) override;
     const IR::Node *preorder(IR::AssignmentStatement *statement) override;
     const IR::Node *preorder(IR::Declaration_Variable *declaration) override;
+    const IR::Node *preorder(IR::MethodCallExpression *call) override;
+    const IR::Node *preorder(IR::PathExpression *pathExpression) override;
 
  public:
     SubstituteExpressions() = delete;
