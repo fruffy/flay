@@ -1,7 +1,6 @@
 Eliminated node at line 336: v6_addresses.apply();
 Eliminated node at line 337: v6_networks.apply();
 Eliminated node at line 340: v4_networks.apply();
-Replaced node at line 197: update_checksum_with_payload(meta.do_cksum == 1, { hdr.ipv6.src_addr, hdr.ipv6.dst_addr, (bit<32>)hdr.ipv6.payload_length, 24w0, PROTO_ICMP6 }, hdr.icmp6.checksum, HashAlgorithm.csum16); with 0
 statement_count_before:48
 statement_count_after:45
 cyclomatic_complexity:21

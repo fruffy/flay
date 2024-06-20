@@ -1,5 +1,4 @@
 Eliminated node at line 96: forward.apply();
-Replaced node at line 69: minimal_user_extern_example.apply(extern_in, extern_out); with 0
 statement_count_before:14
 statement_count_after:13
 cyclomatic_complexity:6

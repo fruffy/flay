@@ -1,5 +1,4 @@
-Replaced node at line 55: update_checksum(hdr.ipv4.ihl == 5, { 1w0 }, hdr.ipv4.hdrChecksum, HashAlgorithm.csum16); with 0
-Replaced node at line 55: update_checksum(hdr.ipv4.ihl == 5, { 1w0 }, hdr.ipv4.hdrChecksum, HashAlgorithm.csum16); with 0
+
 statement_count_before:1
 statement_count_after:1
 cyclomatic_complexity:0

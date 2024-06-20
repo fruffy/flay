@@ -1,5 +1,4 @@
 Eliminated node at line 88: foo2_table.apply();
-Replaced node at line 73: my_reg.read(val, idx); with 0
 statement_count_before:7
 statement_count_after:6
 cyclomatic_complexity:2

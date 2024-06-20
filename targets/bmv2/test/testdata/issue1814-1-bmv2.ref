@@ -1,5 +1,4 @@
 Eliminated node at line 47: debug_table.apply();
-Replaced node at line 42: testRegister.read(registerData, 0); with 0
 statement_count_before:5
 statement_count_after:4
 cyclomatic_complexity:3
