@@ -6,6 +6,7 @@
 #include "backends/p4tools/modules/flay/control_plane/return_macros.h"
 #include "ir/node.h"
 #include "ir/vector.h"
+#include "lib/error.h"
 
 namespace P4Tools::Flay {
 
@@ -41,7 +42,7 @@ const IR::Node *SubstituteExpressions::preorder(IR::MethodCallExpression *call) 
     } else if (const auto *actionType = callType->to<IR::Type_Action>()) {
         paramList = actionType->parameters;
     } else {
-        ::error("Unexpected type %1% for call %2%.", callType, call);
+        ::warning("Unexpected type %1% for call %2%.", callType, call);
         return call;
     }
     if (call->arguments->size() > paramList->size()) {

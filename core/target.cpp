@@ -5,6 +5,7 @@
 #include "backends/bmv2/common/annotations.h"
 #include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/common/compiler/convert_varbits.h"
+#include "backends/p4tools/common/compiler/midend.h"
 #include "backends/p4tools/common/core/target.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/bfruntime/protobuf.h"
@@ -13,6 +14,7 @@
 #include "backends/p4tools/modules/flay/core/program_info.h"
 #include "backends/p4tools/modules/flay/toolname.h"
 #include "frontends/common/constantFolding.h"
+#include "frontends/common/resolveReferences/referenceMap.h"
 #include "frontends/p4/simplify.h"
 #include "frontends/p4/typeChecking/typeChecker.h"
 #include "ir/declaration.h"
@@ -173,6 +175,14 @@ MidEnd FlayTarget::mkMidEnd(const CompilerOptions &options) const {
             // Compress member access to struct expressions.
             new P4::ConstantFolding(refMap, typeMap),
         }),
+    });
+    return midEnd;
+}
+
+PassManager FlayTarget::mkPrivateMidEnd(P4::ReferenceMap *refMap, P4::TypeMap *typeMap) const {
+    PassManager midEnd;
+    midEnd.setStopOnError(true);
+    midEnd.addPasses({
         // Remove loops from parsers by unrolling them as far as the stack indices allow.
         // TODO: Get rid of this pass.
         new P4::ParsersUnroll(true, refMap, typeMap),
