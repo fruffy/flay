@@ -3,7 +3,9 @@
 #include <optional>
 
 #include "backends/p4tools/common/lib/logging.h"
+#include "backends/p4tools/modules/flay/control_plane/return_macros.h"
 #include "ir/node.h"
+#include "ir/vector.h"
 
 namespace P4Tools::Flay {
 
@@ -24,6 +26,49 @@ const IR::Node *SubstituteExpressions::preorder(IR::AssignmentStatement *stateme
     prune();
     statement->right = statement->right->apply(SubstituteExpressions(_refMap, _substitutionMap));
     return statement;
+}
+
+const IR::Node *SubstituteExpressions::preorder(IR::MethodCallExpression *call) {
+    // Do not bother checking calls in action lists.
+    if (findContext<IR::ActionListElement>() != nullptr) {
+        return call;
+    }
+    prune();
+    const auto *callType = call->method->type;
+    const IR::ParameterList *paramList = nullptr;
+    if (const auto *methodType = callType->to<IR::Type_Method>()) {
+        paramList = methodType->parameters;
+    } else if (const auto *actionType = callType->to<IR::Type_Action>()) {
+        paramList = actionType->parameters;
+    } else {
+        ::error("Unexpected type %1% for call %2%.", callType, call);
+        return call;
+    }
+    if (call->arguments->size() > paramList->size()) {
+        ::error("%1%: Expected lesser or equals than %2% arguments, got %3%.", call,
+                paramList->size(), call->arguments->size());
+        return call;
+    }
+    bool hasChanged = false;
+    auto *argumentList = new IR::Vector<IR::Argument>();
+    for (size_t idx = 0; idx < call->arguments->size(); idx++) {
+        const auto *parameter = paramList->parameters.at(idx);
+        if (parameter->direction == IR::Direction::InOut ||
+            parameter->direction == IR::Direction::Out) {
+            argumentList->push_back(call->arguments->at(idx));
+            continue;
+        }
+        hasChanged = true;
+        auto subst = SubstituteExpressions(_refMap, _substitutionMap);
+        const auto *ret = call->arguments->at(idx)->apply(subst);
+        ASSIGN_OR_RETURN_WITH_MESSAGE(auto &newArg, ret->to<IR::Argument>(), call,
+                                      ::error("Resolved argument %1% is not an argument.", ret));
+        argumentList->push_back(&newArg);
+    }
+    if (hasChanged) {
+        call->arguments = argumentList;
+    }
+    return call;
 }
 
 const IR::Node *SubstituteExpressions::preorder(IR::PathExpression *pathExpression) {

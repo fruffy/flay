@@ -1,8 +1,4 @@
-Replaced node at line 32: verify_checksum(false, {16w0}, meta.cksum.result, HashAlgorithm.csum16); with 0
-Replaced node at line 55: update_checksum(false, {16w0}, meta.cksum.result, HashAlgorithm.csum16); with 0
-Replaced node at line 56: update_checksum(hdr.e.isValid(), {16w0}, meta.cksum.result, HashAlgorithm.csum16); with 0
-Replaced node at line 57: update_checksum(meta.b == 0, {16w0}, meta.cksum.result, HashAlgorithm.csum16); with 0
-Replaced node at line 57: update_checksum(meta.b == 0, {16w0}, meta.cksum.result, HashAlgorithm.csum16); with 0
+
 statement_count_before:5
 statement_count_after:5
 cyclomatic_complexity:0

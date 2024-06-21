@@ -1,4 +1,4 @@
-Replaced node at line 62: r.read(tmp, (bit<32>) h.myhdr.reg_idx_to_update); with 0
+
 statement_count_before:7
 statement_count_after:7
 cyclomatic_complexity:0
