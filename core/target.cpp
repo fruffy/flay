@@ -203,4 +203,13 @@ PassManager FlayTarget::mkPrivateMidEnd(P4::ReferenceMap *refMap, P4::TypeMap *t
     return midEnd;
 }
 
+class P4ToolsFrontEndPolicy : public P4::FrontEndPolicy {
+    [[nodiscard]] bool skipSideEffectOrdering() const override { return true; }
+};
+
+P4::FrontEnd FlayTarget::mkFrontEnd() const {
+    auto *frontEndPolicy = new P4ToolsFrontEndPolicy();
+    return P4::FrontEnd(frontEndPolicy);
+}
+
 }  // namespace P4Tools::Flay

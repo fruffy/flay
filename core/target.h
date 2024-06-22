@@ -64,6 +64,8 @@ class FlayTarget : public CompilerTarget {
 
     [[nodiscard]] P4::FrontEnd mkFrontEnd() const override;
 
+    [[nodiscard]] virtual P4::FrontEnd mkFrontEnd() const;
+
  private:
     [[nodiscard]] MidEnd mkMidEnd(const CompilerOptions &options) const override;
 };
