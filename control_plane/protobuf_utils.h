@@ -19,8 +19,9 @@ namespace P4Tools::Flay::Protobuf {
 /// (boost cpp_int).
 inline big_int stringToBigInt(const std::string &valueString) {
     big_int value;
-    std::vector<uint8_t> Uint8Vec(valueString.begin(), valueString.end());
-    boost::multiprecision::import_bits(value, Uint8Vec.begin(), Uint8Vec.end());
+    boost::multiprecision::import_bits(
+        value, reinterpret_cast<const u_char *>(valueString.data()),
+        reinterpret_cast<const u_char *>(valueString.data()) + valueString.size());
     return value;
 }
 
