@@ -116,7 +116,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     }
 
     if (flayOptions.p4InfoFilePath().has_value()) {
-        auto *outputFile = openFile(cstring(flayOptions.p4InfoFilePath().value().c_str()), true);
+        auto *outputFile = openFile(flayOptions.p4InfoFilePath().value(), true);
         if (outputFile == nullptr) {
             return EXIT_FAILURE;
         }
@@ -172,7 +172,7 @@ std::optional<FlayServiceStatistics> optimizeProgramImpl(
                          P4Tools::CompilerTarget::runCompiler(TOOL_NAME, program.value().get()),
                          std::nullopt);
     } else {
-        RETURN_IF_FALSE_WITH_MESSAGE(!compilerOptions.file.isNullOrEmpty(), std::nullopt,
+        RETURN_IF_FALSE_WITH_MESSAGE(!compilerOptions.file.empty(), std::nullopt,
                                      ::error("Expected a file input."));
         // Run the compiler to get an IR and invoke the tool.
         ASSIGN_OR_RETURN(compilerResult, P4Tools::CompilerTarget::runCompiler(TOOL_NAME),
