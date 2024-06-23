@@ -97,7 +97,7 @@ Replaced node at line 1074: if (meta.direction == dash_direction_t.OUTBOUND) { w
 Replaced node at line 1095: meta.eni_id: exact @SaiVal[type="sai_object_id_t"]; with 0
 Replaced node at line 1110: meta.vnet_id : exact @SaiVal[type="sai_object_id_t"]; with 0
 Replaced node at line 1121: meta.eni_id : exact @SaiVal[type="sai_object_id_t"]; with 0
-Replaced node at line 1133: if (ip_addr_family == 0) { with 245876576
+Replaced node at line 1133: if (ip_addr_family == 0) { with 4112453344
 Replaced node at line 1145: meta.stage1_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id"]; with 0
 Replaced node at line 478: meta.stage1_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
 Replaced node at line 497: meta.stage2_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
