@@ -124,6 +124,11 @@ std::optional<cstring> associateActionProfiles(const IR::P4Table &table,
         actionProfile->addAssociatedTable(table.controlPlaneName());
         return actionProfile->name();
     }
+    if (implementationTypeDeclaration->getName() == "Alpm") {
+        ::warning("Implementation type %1% is not yet supported for tables.",
+                  implementationTypeDeclaration);
+        return std::nullopt;
+    }
     ::error("Implementation type %1% is not an action selector or action profile.",
             implementationTypeDeclaration->getName());
     return std::nullopt;
