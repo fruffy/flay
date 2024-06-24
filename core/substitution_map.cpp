@@ -6,11 +6,13 @@
 
 #include "backends/p4tools/common/core/z3_solver.h"
 #include "lib/error.h"
+#include "lib/timer.h"
 
 namespace P4Tools::Flay {
 
 Z3SolverSubstitutionMap::Z3SolverSubstitutionMap(Z3Solver &solver, const NodeAnnotationMap &map)
     : _symbolMap(map.expressionSymbolMap()), _solver(solver) {
+    Util::ScopedTimer timer("Precomputing Z3 Substitution Map");
     Z3Translator translator(_solver);
     for (auto &[node, substitutionExpression] : map.expressionMap()) {
         auto *z3SubstitutionExpression = new Z3SubstitutionExpression(
