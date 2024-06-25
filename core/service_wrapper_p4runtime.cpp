@@ -54,7 +54,7 @@ int P4RuntimeFlayServiceWrapper::run() {
                 return EXIT_FAILURE;
             }
         }
-        auto result = _flayService.specializeProgram(symbolSet);
+        auto result = _flayService.checkForChangeAndSpecializeProgram(symbolSet);
         if (result.first != EXIT_SUCCESS) {
             return EXIT_FAILURE;
         }
