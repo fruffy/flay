@@ -1,4 +1,4 @@
-Replaced node at line 42: switch (hdr.h1.data) with 0
+
 statement_count_before:16
 statement_count_after:14
 cyclomatic_complexity:2

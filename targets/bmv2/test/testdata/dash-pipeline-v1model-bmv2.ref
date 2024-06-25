@@ -5,6 +5,8 @@ Eliminated node at line 572: meta.encap_data.underlay_sip = (underlay_sip == 0 ?
 Eliminated node at line 573: meta.encap_data.underlay_dip = (underlay_dip == 0 ? meta.encap_data.underlay_dip : underlay_dip);
 Eliminated node at line 574: meta.overlay_data.dmac = (overlay_dmac == 0 ? meta.overlay_data.dmac : overlay_dmac);
 Eliminated node at line 692: if (use_dst_vnet_vni == 1) {
+Eliminated node at line 569: meta.encap_data.vni = (vni == 0 ? meta.encap_data.vni : vni);
+Eliminated node at line 572: meta.encap_data.underlay_sip = (underlay_sip == 0 ? meta.encap_data.underlay_sip : underlay_sip);
 Eliminated node at line 573: meta.encap_data.underlay_dip = (underlay_dip == 0 ? meta.encap_data.underlay_dip : underlay_dip);
 Eliminated node at line 574: meta.overlay_data.dmac = (overlay_dmac == 0 ? meta.overlay_data.dmac : overlay_dmac);
 Eliminated node at line 569: meta.encap_data.vni = (vni == 0 ? meta.encap_data.vni : vni);
@@ -76,12 +78,12 @@ Eliminated node at line (unknown): { assert(!meta.overlay_data.is_ipv6);
   hdr.u0_ipv4.src_addr = (bit<32>)meta.overlay_data.sip;
   hdr.u0_ipv6.setInvalid();
   hdr.u0_ethernet.ether_type = 2048; }
-Eliminated node at line (unknown): { if (meta.encap_data.dash_encapsulation == 1) {
+Eliminated node at line (unknown): { if (meta.encap_data.dash_encapsulation == dash_encapsulation_t.VXLAN) {
     if (meta.tunnel_pointer == 0) {
       push_vxlan_tunnel_u0_2/push_vxlan_tunnel_u0();
     } else if (meta.tunnel_pointer == 1) {
       push_vxlan_tunnel_u1_2/push_vxlan_tunnel_u1(); }
-  } else if (meta.encap_data.dash_encapsulation == 2) {
+  } else if (meta.encap_data.dash_encapsulation == dash_encapsulation_t.NVGRE) {
     if (meta.tunnel_pointer == 0) {
       push_vxlan_tunnel_u0_3/push_vxlan_tunnel_u0();
     } else if (meta.tunnel_pointer == 1) {
@@ -94,14 +96,7 @@ Eliminated node at line 963: meta.meter_class = meta.policy_meter_class;
 Eliminated node at line 971: meter_bucket.apply();
 Eliminated node at line 973: meter_bucket_outbound.count((bit<32>)meta.meter_bucket_index);
 Eliminated node at line 977: eni_meter.apply();
-Replaced node at line 335: hdr.customer_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.customer_ethernet.dst_addr : overlay_dmac); with 0
-Replaced node at line 335: hdr.customer_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.customer_ethernet.dst_addr : overlay_dmac); with 0
-Replaced node at line 335: hdr.customer_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.customer_ethernet.dst_addr : overlay_dmac); with 0
-Replaced node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac); with 0
-Replaced node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac); with 0
-Replaced node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac); with 0
 Replaced node at line 1035: meta.appliance_id: ternary; with 0
-Replaced node at line 1074: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
 Replaced node at line 1095: meta.eni_id: exact @SaiVal[type="sai_object_id_t"]; with 0
 Replaced node at line 1110: meta.vnet_id : exact @SaiVal[type="sai_object_id_t"]; with 0
 Replaced node at line 1121: meta.eni_id : exact @SaiVal[type="sai_object_id_t"]; with 0
@@ -122,13 +117,7 @@ Replaced node at line 920: hdr.u0_ipv4.dst_addr: ternary @SaiVal[name="dip", typ
 Replaced node at line 935: meta.eni_id : exact @SaiVal[type="sai_object_id_t"]; with 0
 Replaced node at line 936: meta.meter_class: exact; with 0
 Replaced node at line 947: meta.eni_id : exact @SaiVal[type="sai_object_id_t"]; with 0
-Replaced node at line 948: meta.direction: exact; with 2
-Replaced node at line 877: meta.eni_addr = (meta.direction == dash_direction_t.OUTBOUND ? hdr.customer_ethernet.src_addr : hdr.customer_ethernet.dst_addr); with 2
-Replaced node at line 1166: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
-Replaced node at line 1168: } else if (meta.direction == dash_direction_t.INBOUND) { with 2
 Replaced node at line 1198: if (meta.eni_data.admin_state == 0) { with 0
-Replaced node at line 1205: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
-Replaced node at line 1208: } else if (meta.direction == dash_direction_t.INBOUND) { with 2
 Replaced node at line 533: if (meta.stage1_dash_acl_group_id != 0) { with 0
 Replaced node at line 543: if (meta.stage2_dash_acl_group_id != 0) { with 0
 Replaced node at line 553: if (meta.stage3_dash_acl_group_id != 0) { with 0
@@ -136,15 +125,12 @@ Replaced node at line 818: if (meta.tunnel_pointer == 0) { with 0
 Replaced node at line 608: if (meta.routing_actions & dash_routing_actions_t.NAT46 == 0) { with 0
 Replaced node at line 634: if (meta.routing_actions & dash_routing_actions_t.NAT64 == 0) { with 0
 Replaced node at line 578: if (meta.routing_actions & dash_routing_actions_t.STATIC_ENCAP == 0) { with 0
-Replaced node at line 1214: if (meta.eni_data.dscp_mode == dash_tunnel_dscp_mode_t.PIPE_MODEL) { with 0
 Replaced node at line 957: if (meta.meter_policy_en == 1) { with 0
 Replaced node at line 962: if (meta.meter_policy_en == 1) { with 0
 Replaced node at line 967: if (meta.meter_class == 0 || meta.mapping_meter_class_override == 1) { with 0
 Replaced node at line 967: if (meta.meter_class == 0 || meta.mapping_meter_class_override == 1) { with 0
-Replaced node at line 972: if (meta.direction == dash_direction_t.OUTBOUND) { with 2
-Replaced node at line 974: } else if (meta.direction == dash_direction_t.INBOUND) { with 2
 statement_count_before:547
-statement_count_after:437
+statement_count_after:540
 cyclomatic_complexity:229
 num_parsers_paths:31
 

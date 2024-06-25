@@ -1,6 +1,6 @@
-Eliminated node at line 41: exit_action: {
+
 statement_count_before:7
-statement_count_after:5
+statement_count_after:4
 cyclomatic_complexity:6
 num_parsers_paths:1
 

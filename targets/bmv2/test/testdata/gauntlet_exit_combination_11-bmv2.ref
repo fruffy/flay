@@ -1,7 +1,6 @@
-Eliminated node at line 45: simple_action: {
-Eliminated node at line (unknown): 
+
 statement_count_before:6
-statement_count_after:5
+statement_count_after:3
 cyclomatic_complexity:7
 num_parsers_paths:1
 
