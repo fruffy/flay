@@ -590,8 +590,8 @@ class ExpressionRewriter : public PassManager {
         // Lifted from frontends/p4/optimizeExpression.
         addPasses({
             new PassRepeated({
-                // new P4::ConstantFolding(nullptr, nullptr, false),
-                // new ExpressionStrengthReduction(),
+                new P4::ConstantFolding(nullptr, nullptr, false),
+                new ExpressionStrengthReduction(),
                 new FoldMuxConditionDown(),
                 new LiftMuxConditions(),
             }),
