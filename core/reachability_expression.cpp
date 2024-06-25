@@ -21,4 +21,8 @@ ReachabilityExpression::ReachabilityExpression(const IR::Expression *cond,
 ReachabilityExpression::ReachabilityExpression(const IR::Expression *cond)
     : _cond(cond), _reachabilityAssignment(std::nullopt) {}
 
+void ReachabilityExpression::addCondition(const IR::Expression *cond) {
+    _cond = new IR::LOr(_cond, cond);
+}
+
 }  // namespace P4Tools::Flay
