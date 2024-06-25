@@ -25,7 +25,7 @@ class Z3ReachabilityExpression : public ReachabilityExpression {
 };
 
 class Z3SolverReachabilityMap
-    : private std::map<const IR::Node *, std::set<Z3ReachabilityExpression *>, SourceIdCmp>,
+    : private std::map<const IR::Node *, Z3ReachabilityExpression *, SourceIdCmp>,
       public AbstractReachabilityMap {
  private:
     /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the

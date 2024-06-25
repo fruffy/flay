@@ -24,6 +24,7 @@ struct SubstitutionExpression {
     /// Otherwise, cond is considered either true or false and thus always or never true.
     const IR::Expression *_originalExpression;
 
+    /// The current substitution value if it exists.
     std::optional<const IR::Literal *> _substitution;
 
  public:

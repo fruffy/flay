@@ -11,9 +11,12 @@ bool NodeAnnotationMap::initializeReachabilityMapping(const IR::Node *node,
         _reachabilitySymbolMap[symbol.get()].emplace(node);
     }
 
-    auto result = _reachabilityMap.emplace(node, std::set<ReachabilityExpression *>());
-    result.first->second.insert(new ReachabilityExpression(cond));
-    return result.second;
+    auto it = _reachabilityMap.find(node);
+    if (it != _reachabilityMap.end()) {
+        it->second.addCondition(cond);
+        return false;
+    }
+    return _reachabilityMap.emplace(node, ReachabilityExpression(cond)).second;
 }
 
 bool NodeAnnotationMap::initializeExpressionMapping(const IR::Expression *expression,
@@ -30,10 +33,7 @@ bool NodeAnnotationMap::initializeExpressionMapping(const IR::Expression *expres
 }
 
 void NodeAnnotationMap::mergeAnnotationMapping(const NodeAnnotationMap &otherMap) {
-    for (const auto &rechabilityTuple : otherMap._reachabilityMap) {
-        _reachabilityMap[rechabilityTuple.first].insert(rechabilityTuple.second.begin(),
-                                                        rechabilityTuple.second.end());
-    }
+    _reachabilityMap.insert(otherMap._reachabilityMap.begin(), otherMap._reachabilityMap.end());
     _expressionMap.insert(otherMap._expressionMap.begin(), otherMap._expressionMap.end());
 
     for (const auto &symbol : otherMap.reachabilitySymbolMap()) {
@@ -46,11 +46,9 @@ void NodeAnnotationMap::mergeAnnotationMapping(const NodeAnnotationMap &otherMap
 }
 
 void NodeAnnotationMap::substitutePlaceholders(Transform &substitute) {
-    for (auto &[node, reachabilityExpressionVector] : _reachabilityMap) {
-        for (const auto &reachabilityExpression : reachabilityExpressionVector) {
-            reachabilityExpression->setCondition(
-                reachabilityExpression->getCondition()->apply(substitute));
-        }
+    for (auto &[node, reachabilityExpression] : _reachabilityMap) {
+        reachabilityExpression.setCondition(
+            reachabilityExpression.getCondition()->apply(substitute));
     }
     // TODO: Substitions for the expression map.
     P4C_UNIMPLEMENTED("NodeAnnotationMap::substitutePlaceholders not implemented");
