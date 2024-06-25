@@ -1,6 +1,6 @@
 
 statement_count_before:8
-statement_count_after:8
+statement_count_after:15
 cyclomatic_complexity:1
 num_parsers_paths:1
 

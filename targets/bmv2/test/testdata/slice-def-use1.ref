@@ -1,6 +1,6 @@
 Replaced node at line 57: tbl_act.apply(); with act();
 statement_count_before:5
-statement_count_after:5
+statement_count_after:7
 cyclomatic_complexity:1
 num_parsers_paths:1
 

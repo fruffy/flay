@@ -38,7 +38,7 @@ Replaced node at line 537: lkp.ipv4_dst_addr : selector; with 0
 Replaced node at line 590: lkp.mac_dst_addr : exact; with 0
 Replaced node at line 622: if (!(ig_md.bypass & BYPASS_L2 != 0)) { with 0
 statement_count_before:372
-statement_count_after:357
+statement_count_after:369
 cyclomatic_complexity:164
 num_parsers_paths:277
 

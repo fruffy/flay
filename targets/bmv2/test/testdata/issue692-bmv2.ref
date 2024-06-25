@@ -1,6 +1,6 @@
 Replaced node at line 19: transition select(parsedHdr.hstack.next.y) { with 0
 statement_count_before:2
-statement_count_after:2
+statement_count_after:1
 cyclomatic_complexity:1
 num_parsers_paths:2
 

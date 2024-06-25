@@ -27,7 +27,7 @@ Replaced node at line 492: if(meta.l4_metadata.timestamp2 == 1w0x1){ with 0
 Replaced node at line 510: if(meta.l4_metadata.added_empty_header == 1w0x1){ with 0
 Replaced node at line 541: if(meta.l4_metadata.updateChecksum == 1w0x1){ with 0
 statement_count_before:153
-statement_count_after:131
+statement_count_after:134
 cyclomatic_complexity:71
 num_parsers_paths:87
 

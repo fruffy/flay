@@ -1,19 +1,7 @@
-Eliminated node at line 92: meta.ethType = hdrs.vlan_tag[meta.depth - 1].ether_type;
-Eliminated node at line 92: meta.ethType = hdrs.vlan_tag[meta.depth - 1].ether_type;
-Eliminated node at line 93: hdrs.vlan_tag[meta.depth - 1].ether_type = (ether_type_t)16w2;
-Eliminated node at line (unknown): if (!(hsiVar_0 == 1)) {
-   }
-Eliminated node at line (unknown): if (!(hsiVar == 1)) {
-   }
-Eliminated node at line 95: hdrs.vlan_tag[meta.depth].vid = hdrs.vlan_tag[meta.depth-1].vid;
-Eliminated node at line 95: hdrs.vlan_tag[meta.depth].vid = hdrs.vlan_tag[meta.depth-1].vid;
-Eliminated node at line (unknown): if (!(hsiVar == 1)) {
-   }
 Replaced node at line 128: 12w1: { stub.apply();} with execute();
 Eliminated node at line 130: if (hdrs.vlan_tag[meta.depth].ether_type == hdrs.ethernet.etherType)
-Eliminated node at line 130: if (hdrs.vlan_tag[meta.depth].ether_type == hdrs.ethernet.etherType)
 statement_count_before:32
-statement_count_after:20
+statement_count_after:11
 cyclomatic_complexity:81
 num_parsers_paths:4
 

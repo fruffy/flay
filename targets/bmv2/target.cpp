@@ -11,6 +11,8 @@
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/stepper.h"
 #include "control-plane/p4RuntimeSerializer.h"
+#include "frontends/common/options.h"
+#include "frontends/common/resolveReferences/referenceMap.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
@@ -132,7 +134,7 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const IR::P4Program *pr
     if (program == nullptr) {
         return std::nullopt;
     }
-    // Copy the program after the front end.
+    // Copy the program after the (safe) mid end.
     auto *originalProgram = program->clone();
 
     std::optional<P4::P4RuntimeAPI> p4runtimeApi;
@@ -156,8 +158,11 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const IR::P4Program *pr
         return std::nullopt;
     }
 
-    // TODO: We only need this because P4Info does not contain information on default actions.
     P4::ReferenceMap refMap;
+    P4::TypeMap typeMap;
+    program = program->apply(mkPrivateMidEnd(&refMap, &typeMap));
+
+    // TODO: We only need this because P4Info does not contain information on default actions.
     program->apply(P4::ResolveReferences(&refMap));
 
     ASSIGN_OR_RETURN(

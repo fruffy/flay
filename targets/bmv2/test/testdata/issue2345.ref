@@ -2,7 +2,7 @@ Eliminated node at line 31: if (h.eth_hdr.eth_type == 1) {
 Eliminated node at line (unknown): 
 Replaced node at line 31: if (h.eth_hdr.eth_type == 1) { with 2
 statement_count_before:9
-statement_count_after:8
+statement_count_after:10
 cyclomatic_complexity:2
 num_parsers_paths:1
 

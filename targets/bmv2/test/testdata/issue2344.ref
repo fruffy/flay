@@ -4,7 +4,7 @@ Eliminated node at line 39: simple_table.apply();
 Replaced node at line 19: if (tmp1.a != 10) { with 0
 Replaced node at line 31: h.h.b : exact @name("key") ; with 0
 statement_count_before:5
-statement_count_after:2
+statement_count_after:3
 cyclomatic_complexity:19
 num_parsers_paths:1
 

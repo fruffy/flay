@@ -2,7 +2,6 @@ Eliminated node at line 681: hdr.packet_out.setInvalid();
 Eliminated node at line (unknown): 
 Eliminated node at line 683: if (!my_station.apply().hit) {
 Eliminated node at line 686: if (interfaces.apply().hit) {
-Eliminated node at line (unknown): 
 Eliminated node at line (unknown): { Routing_hasReturned = false;
   if (hdr.ipv4.isValid()) {
     
@@ -33,7 +32,7 @@ Replaced node at line 378: std_meta.ingress_port : ternary @name("inport") ; wit
 Replaced node at line 379: local_meta.src_iface : ternary @name("src_iface") ; with 0
 Replaced node at line 753: if (std_meta.egress_port == 255) { with 0
 statement_count_before:236
-statement_count_after:199
+statement_count_after:191
 cyclomatic_complexity:69
 num_parsers_paths:38
 

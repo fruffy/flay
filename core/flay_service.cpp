@@ -37,7 +37,7 @@ FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
     : _options(options),
       _originalProgram(compilerResult.getOriginalProgram()),
       _midEndProgram(compilerResult.getProgram()),
-      _optimizedProgram(&compilerResult.getProgram()),
+      _optimizedProgram(&compilerResult.getOriginalProgram()),
       _compilerResult(compilerResult),
       _reachabilityMap(initializeReachabilityMap(options.mapType, nodeAnnotationMap)),
       _substitutionMap(*new Z3SolverSubstitutionMap(*new Z3Solver(), nodeAnnotationMap)),
@@ -143,7 +143,7 @@ std::pair<int, bool> FlayServiceBase::specializeProgram(
     printInfo("Change in semantics detected.");
 
     auto flaySpecializer = FlaySpecializer(_refMap, _reachabilityMap, _substitutionMap);
-    _optimizedProgram = midEndProgram().apply(flaySpecializer);
+    _optimizedProgram = originalProgram().apply(flaySpecializer);
     // Update the list of eliminated nodes.
     _eliminatedNodes = flaySpecializer.eliminatedNodes();
     return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}

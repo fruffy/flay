@@ -110,7 +110,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
             return EXIT_FAILURE;
         }
         P4::ToP4 toP4(&output, false);
-        programInfo->getP4Program().apply(toP4);
+        flayCompilerResult.getOriginalProgram().apply(toP4);
         output.close();
         printInfo("Wrote midend program to %1%", midendOutputFile);
     }

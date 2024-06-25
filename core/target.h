@@ -60,6 +60,10 @@ class FlayTarget : public CompilerTarget {
 
     explicit FlayTarget(const std::string &deviceName, const std::string &archName);
 
+    virtual PassManager mkPrivateMidEnd(P4::ReferenceMap *refMap, P4::TypeMap *typeMap) const;
+
+    [[nodiscard]] P4::FrontEnd mkFrontEnd() const override;
+
  private:
     [[nodiscard]] MidEnd mkMidEnd(const CompilerOptions &options) const override;
 };
