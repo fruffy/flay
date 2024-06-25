@@ -208,8 +208,10 @@ class P4ToolsFrontEndPolicy : public P4::FrontEndPolicy {
 };
 
 P4::FrontEnd FlayTarget::mkFrontEnd() const {
-    auto *frontEndPolicy = new P4ToolsFrontEndPolicy();
-    return P4::FrontEnd(frontEndPolicy);
+    if (FlayOptions::get().skipSideEffectOrdering()) {
+        return P4::FrontEnd(new P4ToolsFrontEndPolicy());
+    }
+    return {};
 }
 
 }  // namespace P4Tools::Flay

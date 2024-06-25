@@ -163,6 +163,13 @@ FlayOptions::FlayOptions(const std::string &message)
         },
         "Skip parsers in the analysis and replace the parser output result with symbolic "
         "variables.");
+    registerOption(
+        "--skip-side-effect-ordering", nullptr,
+        [this](const char *) {
+            _skipSideEffectOrdering = true;
+            return true;
+        },
+        "Skip side-effect ordering in the front end.");
 }
 
 std::filesystem::path FlayOptions::controlPlaneConfig() const {
@@ -198,5 +205,7 @@ std::optional<std::filesystem::path> FlayOptions::userP4Info() const { return _u
 std::string_view FlayOptions::controlPlaneApi() const { return _controlPlaneApi; }
 
 bool FlayOptions::skipParsers() const { return _skipParsers; }
+
+bool FlayOptions::skipSideEffectOrdering() const { return _skipSideEffectOrdering; }
 
 }  // namespace P4Tools

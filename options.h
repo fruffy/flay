@@ -68,6 +68,9 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns true when the --skip-parsers option has been set.
     [[nodiscard]] bool skipParsers() const;
 
+    /// @returns true when the --skip-side-effect-ordering option has been set.
+    [[nodiscard]] bool skipSideEffectOrdering() const;
+
  protected:
     explicit FlayOptions(
         const std::string &message = "Remove control-plane dead code from a P4 program.");
@@ -112,6 +115,9 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     /// Skip parsers in the analysis and replace the parser output result with symbolic variables.
     bool _skipParsers = false;
+
+    /// Skip side-effect ordering in the front end.
+    bool _skipSideEffectOrdering = false;
 };
 
 }  // namespace P4Tools
