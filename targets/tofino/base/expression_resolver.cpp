@@ -337,9 +337,11 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      {"Wred.execute"_cs,
       {"val"_cs, "index"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
+          ::warning("WRED not fully implemented. Returning dummy value.");
+          auto valueLabel = externInfo.externObjectRef.path->toString() + "_" +
+                            externInfo.methodName + "_" +
+                            std::to_string(externInfo.originalCall.clone_id) + "_return";
+          return externInfo.state.createSymbolicExpression(IR::Type_Bits::get(8), valueLabel);
       }},
 
      // -----------------------------------------------------------------------------
@@ -348,9 +350,11 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      {"DirectWred.execute"_cs,
       {"val"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
-          P4C_UNIMPLEMENTED("Unimplemented extern method: %1%.%2%",
-                            externInfo.externObjectRef.toString(), externInfo.methodName);
-          return nullptr;
+          ::warning("WRED not fully implemented. Returning dummy value.");
+          auto valueLabel = externInfo.externObjectRef.path->toString() + "_" +
+                            externInfo.methodName + "_" +
+                            std::to_string(externInfo.originalCall.clone_id) + "_return";
+          return externInfo.state.createSymbolicExpression(IR::Type_Bits::get(8), valueLabel);
       }},
 
      // -----------------------------------------------------------------------------
