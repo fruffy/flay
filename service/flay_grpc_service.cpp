@@ -32,7 +32,7 @@ grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
             return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
         }
     }
-    auto result = specializeProgram(symbolSet);
+    auto result = checkForChangeAndSpecializeProgram(symbolSet);
     if (result.first != EXIT_SUCCESS) {
         return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
     }

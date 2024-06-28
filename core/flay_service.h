@@ -116,6 +116,8 @@ class FlayServiceBase {
     [[nodiscard]] std::optional<bool> checkForSemanticChange();
     [[nodiscard]] std::optional<bool> checkForSemanticChange(const SymbolSet &symbolSet);
 
+    int specializeProgram();
+
  public:
     explicit FlayServiceBase(const FlayServiceOptions &options,
                              const FlayCompilerResult &compilerResult,
@@ -163,8 +165,8 @@ class FlayServiceBase {
     [[nodiscard]] const ControlPlaneConstraints &controlPlaneConstraints() const;
 
     /// Run specialization on the original P4 program.
-    std::pair<int, bool> specializeProgram(
-        std::optional<std::reference_wrapper<const SymbolSet>> symbolSet = std::nullopt);
+    std::pair<int, bool> checkForChangeAndSpecializeProgram();
+    std::pair<int, bool> checkForChangeAndSpecializeProgram(const SymbolSet &symbolSet);
 
     /// Compute some statistics on the changes in the program and print them out.
     void recordProgramChange() const;

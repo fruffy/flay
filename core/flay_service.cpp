@@ -47,7 +47,7 @@ FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
     if (::errorCount() > 0) {
         return;
     }
-    specializeProgram();
+    checkForChangeAndSpecializeProgram();
 }
 
 void FlayServiceBase::printOptimizedProgram() const {
@@ -109,9 +109,8 @@ std::optional<bool> FlayServiceBase::checkForSemanticChange(const SymbolSet &sym
 }
 
 std::optional<bool> FlayServiceBase::checkForSemanticChange() {
-    printInfo("Checking for change in program semantics...");
+    printInfo("Checking for change in program semantics with symbol set...");
     Util::ScopedTimer timer("Check for semantics change");
-
     auto reachabilityResult =
         mutableReachabilityMap().recomputeReachability(controlPlaneConstraints());
     if (!reachabilityResult.has_value()) {
@@ -125,13 +124,20 @@ std::optional<bool> FlayServiceBase::checkForSemanticChange() {
     return reachabilityResult.value() || substitutionResult.value();
 }
 
-std::pair<int, bool> FlayServiceBase::specializeProgram(
-    std::optional<std::reference_wrapper<const SymbolSet>> symbolSet) {
-    Util::ScopedTimer timer("Eliminate Dead Code");
+int FlayServiceBase::specializeProgram() {
+    printInfo("Change in semantics detected.");
+    auto flaySpecializer = FlaySpecializer(_refMap, _reachabilityMap, _substitutionMap);
+    _optimizedProgram = originalProgram().apply(flaySpecializer);
+    // Update the list of eliminated nodes.
+    _eliminatedNodes = flaySpecializer.eliminatedNodes();
+    return static_cast<int>(::errorCount() > 0);
+}
 
-    std::optional<bool> hasChangedOpt = symbolSet.has_value()
-                                            ? checkForSemanticChange(symbolSet.value())
-                                            : checkForSemanticChange();
+std::pair<int, bool> FlayServiceBase::checkForChangeAndSpecializeProgram(
+    const SymbolSet &symbolSet) {
+    Util::ScopedTimer timer("Specialize Program with SymbolSet");
+
+    std::optional<bool> hasChangedOpt = checkForSemanticChange(symbolSet);
     if (!hasChangedOpt.has_value()) {
         return {EXIT_FAILURE, false};
     }
@@ -140,14 +146,22 @@ std::pair<int, bool> FlayServiceBase::specializeProgram(
         printInfo("Received update, but semantics have not changed. No program change necessary.");
         return {EXIT_SUCCESS, hasChanged};
     }
-    printInfo("Change in semantics detected.");
+    return {specializeProgram(), hasChanged};
+}
 
-    auto flaySpecializer = FlaySpecializer(_refMap, _reachabilityMap, _substitutionMap);
-    _optimizedProgram = originalProgram().apply(flaySpecializer);
-    // Update the list of eliminated nodes.
-    _eliminatedNodes = flaySpecializer.eliminatedNodes();
-    return ::errorCount() == 0 ? std::pair{EXIT_SUCCESS, hasChanged}
-                               : std::pair{EXIT_FAILURE, hasChanged};
+std::pair<int, bool> FlayServiceBase::checkForChangeAndSpecializeProgram() {
+    Util::ScopedTimer timer("Specialize Program");
+
+    std::optional<bool> hasChangedOpt = checkForSemanticChange();
+    if (!hasChangedOpt.has_value()) {
+        return {EXIT_FAILURE, false};
+    }
+    bool hasChanged = hasChangedOpt.value();
+    if (!hasChanged) {
+        printInfo("Received update, but semantics have not changed. No program change necessary.");
+        return {EXIT_SUCCESS, hasChanged};
+    }
+    return {specializeProgram(), hasChanged};
 }
 
 void FlayServiceBase::recordProgramChange() const {
