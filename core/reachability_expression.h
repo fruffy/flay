@@ -39,6 +39,10 @@ struct ReachabilityExpression {
     /// Update the reachability expression
     void setCondition(const IR::Expression *cond);
 
+    /// Add a condition to the expression. Creates an or statement between the current condition and
+    /// the new argument.
+    void addCondition(const IR::Expression *cond);
+
     /// @returns the current reachability value.
     [[nodiscard]] std::optional<bool> getReachability() const;
 
@@ -47,7 +51,7 @@ struct ReachabilityExpression {
 };
 
 /// Convenience type definition for a mapping of nodes to a set of reachability expressions.
-using ReachabilityMap = std::map<const IR::Node *, std::set<ReachabilityExpression *>, SourceIdCmp>;
+using ReachabilityMap = std::map<const IR::Node *, ReachabilityExpression, SourceIdCmp>;
 
 }  // namespace P4Tools::Flay
 
