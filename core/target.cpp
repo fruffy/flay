@@ -154,7 +154,7 @@ MidEnd FlayTarget::mkMidEnd(const CompilerOptions &options) const {
     midEnd.addPasses({
         // Remove exit statements from the program.
         // TODO: We should not depend on this pass. It has bugs.
-        new P4::RemoveExits(refMap, typeMap),
+        new P4::RemoveExits(typeMap),
         // Replace types introduced by 'type' with 'typedef'.
         new P4::EliminateNewtype(refMap, typeMap),
         // Replace serializable enum constants with their values.
@@ -171,7 +171,7 @@ MidEnd FlayTarget::mkMidEnd(const CompilerOptions &options) const {
                                          [](const Visitor::Context * /*context*/,
                                             const IR::Expression * /*expr*/) { return true; }),
             // Simplify control flow that has constants as conditions.
-            new P4::SimplifyControlFlow(refMap, typeMap),
+            new P4::SimplifyControlFlow(typeMap),
             // Compress member access to struct expressions.
             new P4::ConstantFolding(refMap, typeMap),
         }),
