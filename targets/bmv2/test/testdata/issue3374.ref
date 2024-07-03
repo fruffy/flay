@@ -1,7 +1,7 @@
-Replaced node at line 128: 12w1: { stub.apply();} with execute();
-Eliminated node at line 130: if (hdrs.vlan_tag[meta.depth].ether_type == hdrs.ethernet.etherType)
+Eliminated node at line 128: 12w1: { stub.apply();}
+Eliminated node at line 129: 12w2: {
 statement_count_before:32
-statement_count_after:11
+statement_count_after:10
 cyclomatic_complexity:81
 num_parsers_paths:4
 

@@ -179,9 +179,12 @@ MidEnd FlayTarget::mkMidEnd(const CompilerOptions &options) const {
     return midEnd;
 }
 
-PassManager FlayTarget::mkPrivateMidEnd(P4::ReferenceMap *refMap, P4::TypeMap *typeMap) const {
+PassManager FlayTarget::mkPrivateMidEnd(const CompilerOptions &options, P4::ReferenceMap *refMap,
+                                        P4::TypeMap *typeMap) const {
     PassManager midEnd;
+    midEnd.setName("FlayPrivateMidEnd");
     midEnd.setStopOnError(true);
+    midEnd.addDebugHook(options.getDebugHook(), true);
     midEnd.addPasses({
         // Remove loops from parsers by unrolling them as far as the stack indices allow.
         // TODO: Get rid of this pass.

@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 
+#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf_utils.h"
 #include "backends/p4tools/modules/flay/targets/fpga/symbolic_state.h"
@@ -63,8 +64,8 @@ CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const IR::P4Program *p
     }
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
-    auto privateMidEnd = mkPrivateMidEnd(&refMap, &typeMap);
-    program = program->apply(privateMidEnd);
+    program = program->apply(
+        mkPrivateMidEnd(CompileContext<CompilerOptions>::get().options(), &refMap, &typeMap));
     // TODO: We only need this because P4Info does not contain information on default actions.
     program->apply(P4::ResolveReferences(&refMap));
 
