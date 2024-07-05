@@ -14,7 +14,8 @@ class FpgaBaseFlayTarget : public FlayTarget {
  protected:
     explicit FpgaBaseFlayTarget(const std::string &deviceName, const std::string &archName);
 
-    CompilerResultOrError runCompilerImpl(const IR::P4Program *program) const override;
+    CompilerResultOrError runCompilerImpl(const CompilerOptions &options,
+                                          const IR::P4Program *program) const override;
 };
 
 class XsaFlayTarget : public FpgaBaseFlayTarget {

@@ -6,7 +6,6 @@
 #include <optional>
 
 #include "backends/p4tools/common/compiler/compiler_target.h"
-#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/return_macros.h"
 #include "backends/p4tools/modules/flay/core/service_wrapper_bfruntime.h"
@@ -160,22 +159,19 @@ std::optional<FlayServiceStatistics> optimizeProgramImpl(
 
     P4Tools::Target::init(compilerOptions.target.c_str(), compilerOptions.arch.c_str());
 
-    // Set up the compilation context.
-    auto *compileContext = new CompileContext<CompilerOptions>();
-    compileContext->options() = compilerOptions;
-    AutoCompileContext autoContext(compileContext);
-
     CompilerResultOrError compilerResult;
     if (program.has_value()) {
         // Run the compiler to get an IR and invoke the tool.
-        ASSIGN_OR_RETURN(compilerResult,
-                         P4Tools::CompilerTarget::runCompiler(TOOL_NAME, program.value().get()),
-                         std::nullopt);
+        ASSIGN_OR_RETURN(
+            compilerResult,
+            P4Tools::CompilerTarget::runCompiler(compilerOptions, TOOL_NAME, program.value().get()),
+            std::nullopt);
     } else {
         RETURN_IF_FALSE_WITH_MESSAGE(!compilerOptions.file.empty(), std::nullopt,
                                      ::error("Expected a file input."));
         // Run the compiler to get an IR and invoke the tool.
-        ASSIGN_OR_RETURN(compilerResult, P4Tools::CompilerTarget::runCompiler(TOOL_NAME),
+        ASSIGN_OR_RETURN(compilerResult,
+                         P4Tools::CompilerTarget::runCompiler(compilerOptions, TOOL_NAME),
                          std::nullopt);
     }
 

@@ -1,12 +1,15 @@
 #include <cstdlib>
 #include <fstream>
+#include <optional>
 #include <sstream>
 
+#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/return_macros.h"
 #include "backends/p4tools/modules/flay/flay.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "frontends/common/options.h"
+#include "lib/compile_context.h"
 #include "lib/error.h"
 #include "lib/options.h"
 
@@ -14,28 +17,22 @@ namespace P4Tools::Flay {
 
 namespace {
 
-class ReferenceCheckerOptions : protected FlayOptions {
+class ReferenceCheckerOptions : public FlayOptions {
     /// The input file to process.
-    std::optional<std::filesystem::path> inputFile;
+    std::optional<std::filesystem::path> _inputFile;
 
     /// The reference file to compare against.
-    std::optional<std::filesystem::path> referenceFile;
+    std::optional<std::filesystem::path> _referenceFile;
 
     /// Look for the reference file in this folder.
     /// The reference file stem should be named the same as the input file stem.
-    std::optional<std::filesystem::path> referenceFolder;
+    std::optional<std::filesystem::path> _referenceFolder;
 
     /// Overwrite the reference file and do not compare against it.
-    bool overwriteReferences = false;
-
-    /// The target to compile for.
-    std::string target;
-
-    /// The architecture to compile for.
-    std::string arch;
+    bool _overwriteReferences = false;
 
     /// The arguments to pass to the Flay compiler.
-    CompilerOptions compilerOptions;
+    CompilerOptions *_compilerOptions{};
 
     /// Write a performance report.
     bool _writePerformanceReport = false;
@@ -54,13 +51,14 @@ class ReferenceCheckerOptions : protected FlayOptions {
     }
 
  public:
-    ReferenceCheckerOptions() : FlayOptions("Checks Flay output against references.") {
+    ReferenceCheckerOptions() {
         registerOption(
             "--file", "inputFile",
             [this](const char *arg) {
-                inputFile = arg;
-                if (!std::filesystem::exists(inputFile.value())) {
-                    ::error("The input P4 program '%s' does not exist.", inputFile.value().c_str());
+                _inputFile = arg;
+                if (!std::filesystem::exists(_inputFile.value())) {
+                    ::error("The input P4 program '%s' does not exist.",
+                            _inputFile.value().c_str());
                     return false;
                 }
                 return true;
@@ -69,21 +67,21 @@ class ReferenceCheckerOptions : protected FlayOptions {
         registerOption(
             "--overwrite", nullptr,
             [this](const char *) {
-                overwriteReferences = true;
+                _overwriteReferences = true;
                 return true;
             },
             "Do not check references, instead overwrite the reference.");
         registerOption(
             "--reference-file", "referenceFile",
             [this](const char *arg) {
-                referenceFile = arg;
+                _referenceFile = arg;
                 return true;
             },
             "The reference file to compare against.");
         registerOption(
             "--reference-folder", "referenceFolder",
             [this](const char *arg) {
-                referenceFolder = arg;
+                _referenceFolder = arg;
                 return true;
             },
             "Try to find the reference file in the folder. The reference file stem should be named "
@@ -105,79 +103,83 @@ class ReferenceCheckerOptions : protected FlayOptions {
             "Write a performance report for the file. The report will be written to either the "
             "location of the reference file or the location of the folder.");
     }
+
     ~ReferenceCheckerOptions() override = default;
 
-    const char *getIncludePath() override {
+    [[nodiscard]] const char *getIncludePath() const override {
         P4C_UNIMPLEMENTED("getIncludePath not implemented for FlayClient.");
     }
 
     // Process options; return list of remaining options.
     // Returns EXIT_FAILURE if an error occurred.
-    int processOptions(int argc, char *const argv[]) {
-        auto *unprocessedOptions = P4Tools::FlayOptions::process(argc, argv);
+    std::optional<AutoCompileContext *> processOptions(int argc, char *const argv[]) {
+        auto *compileContext = new CompileContext<CompilerOptions>();
+        auto *autoContext = new AutoCompileContext(compileContext);
+        auto *unprocessedOptions = process(argc, argv);
         if (unprocessedOptions != nullptr && !unprocessedOptions->empty()) {
             for (const auto &option : *unprocessedOptions) {
                 ::error("Unprocessed input: %s", option);
             }
-            return EXIT_FAILURE;
+            return std::nullopt;
         }
-        if (!inputFile.has_value()) {
+        if (!_inputFile.has_value()) {
             ::error("No input file specified.");
-            return EXIT_FAILURE;
+            return std::nullopt;
         }
-        if (!referenceFile.has_value() && !referenceFolder.has_value()) {
+        if (!_referenceFile.has_value() && !_referenceFolder.has_value()) {
             ::error(
                 "Neither a reference file nor a reference folder have been specified. Use either "
                 "--reference-file or --reference-folder.");
-            return EXIT_FAILURE;
+            return std::nullopt;
         }
-        if (referenceFile.has_value() && referenceFolder.has_value()) {
+        if (_referenceFile.has_value() && _referenceFolder.has_value()) {
             ::error(
                 "Both a reference file and a reference folder have been specified. Use only one.");
-            return EXIT_FAILURE;
+            return std::nullopt;
         }
         // If the environment variable P4TEST_REPLACE is set, overwrite the reference file.
         if (std::getenv("P4TEST_REPLACE") != nullptr) {
-            overwriteReferences = true;
+            _overwriteReferences = true;
         }
         // If the environment variable P4FLAY_INFO is set, enable information logging.
         if (std::getenv("P4FLAY_INFO") != nullptr) {
             enableInformationLogging();
         }
+        // TODO: We shouldn't need this patching.
+        _compilerOptions = &compileContext->options();
         auto compilerString = getCompilerArgs(argv[0]);
-        unprocessedOptions =
-            compilerOptions.process(static_cast<int>(compilerString.size()), compilerString.data());
+        for (const auto &option : compilerString) {
+            printf("Compiler string: %s\n", option);
+        }
+        unprocessedOptions = _compilerOptions->process(static_cast<int>(compilerString.size()),
+                                                       compilerString.data());
         if (unprocessedOptions != nullptr && !unprocessedOptions->empty()) {
             for (const auto &option : *unprocessedOptions) {
                 ::error("Unprocessed compiler input: %s", option);
             }
-            return EXIT_FAILURE;
+            return std::nullopt;
         }
-        // compilerOptions.target = options.getTarget().c_str();
-        // compilerOptions.arch = options.getArch().c_str();
-        compilerOptions.file = getInputFile();
-        return EXIT_SUCCESS;
+        _compilerOptions->arch = FlayTarget::get().spec.archName;
+        _compilerOptions->target = FlayTarget::get().spec.deviceName;
+        _compilerOptions->file = _inputFile.value();
+        return autoContext;
     }
 
-    [[nodiscard]] const std::filesystem::path &getInputFile() const { return inputFile.value(); }
+    [[nodiscard]] const std::filesystem::path &getInputFile() const { return _inputFile.value(); }
 
     [[nodiscard]] std::optional<std::filesystem::path> getReferenceFile() const {
-        return referenceFile;
+        return _referenceFile;
     }
 
     [[nodiscard]] std::optional<std::filesystem::path> getReferenceFolder() const {
-        return referenceFolder;
+        return _referenceFolder;
     }
 
-    [[nodiscard]] bool doOverwriteReferences() const { return overwriteReferences; }
-
-    [[nodiscard]] const std::string &getTarget() const { return target; }
-
-    [[nodiscard]] const std::string &getArch() const { return arch; }
+    [[nodiscard]] bool doOverwriteReferences() const { return _overwriteReferences; }
 
     [[nodiscard]] const FlayOptions &toFlayOptions() const { return *this; }
 
-    [[nodiscard]] const CompilerOptions &getCompilerOptions() const { return compilerOptions; }
+    [[nodiscard]] const CompilerOptions &getCompilerOptions() const { return *_compilerOptions; }
 
     [[nodiscard]] bool writePerformanceReport() const { return _writePerformanceReport; }
 };
@@ -325,19 +327,17 @@ int run(const ReferenceCheckerOptions &options) {
 
 }  // namespace P4Tools::Flay
 
-class FlayClientContext : public BaseCompileContext {};
-
 int main(int argc, char *argv[]) {
     P4Tools::Flay::registerFlayTargets();
 
-    // Set up the compilation context and the options.
-    AutoCompileContext autoP4FlayClientContext(new FlayClientContext);
+    // Set up the options.
     P4Tools::Flay::ReferenceCheckerOptions options;
-
     // Process command-line options.
-    if (options.processOptions(argc, argv) == EXIT_FAILURE || ::errorCount() != 0) {
+    auto compileContext = options.processOptions(argc, argv);
+    if (!compileContext.has_value()) {
         return EXIT_FAILURE;
     }
+    P4Tools::FlayOptions::set(options);
 
     // Run the reference checker.
     auto result = P4Tools::Flay::run(options);

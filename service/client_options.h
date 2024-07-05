@@ -22,7 +22,7 @@ class FlayClientOptions : protected Util::Options {
     FlayClientOptions &operator=(FlayClientOptions &&) = delete;
     virtual ~FlayClientOptions() = default;
 
-    const char *getIncludePath() override;
+    const char *getIncludePath() const override;
 
     std::vector<const char *> *process(int argc, char *const *argv) override;
 

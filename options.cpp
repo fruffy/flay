@@ -14,14 +14,14 @@ FlayOptions &FlayOptions::get() {
     return INSTANCE;
 }
 
-const char *FlayOptions::getIncludePath() {
+const char *FlayOptions::getIncludePath() const {
     P4C_UNIMPLEMENTED("getIncludePath not implemented for Flay.");
 }
 
 const std::set<std::string> K_SUPPORTED_CONTROL_PLANES = {"P4RUNTIME", "BFRUNTIME"};
 
-FlayOptions::FlayOptions(const std::string &message)
-    : AbstractP4cToolOptions(Flay::TOOL_NAME, message) {
+FlayOptions::FlayOptions()
+    : AbstractP4cToolOptions(Flay::TOOL_NAME, "Remove control-plane dead code from a P4 program.") {
     registerOption(
         "--config-file", "controlPlaneConfig",
         [this](const char *arg) {

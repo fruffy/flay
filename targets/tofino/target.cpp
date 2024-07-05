@@ -36,8 +36,9 @@ TofinoBaseFlayTarget::TofinoBaseFlayTarget(const std::string &deviceName,
                                            const std::string &archName)
     : FlayTarget(deviceName, archName){};
 
-CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const IR::P4Program *program) const {
-    program = runFrontend(program);
+CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const CompilerOptions &options,
+                                                            const IR::P4Program *program) const {
+    program = runFrontend(options, program);
     if (program == nullptr) {
         return std::nullopt;
     }
@@ -67,15 +68,14 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const IR::P4Program 
         }
     }
 
-    program = runMidEnd(program);
+    program = runMidEnd(options, program);
     if (program == nullptr) {
         return std::nullopt;
     }
 
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
-    program = program->apply(
-        mkPrivateMidEnd(CompileContext<CompilerOptions>::get().options(), &refMap, &typeMap));
+    program = program->apply(mkPrivateMidEnd(options, &refMap, &typeMap));
     // TODO: We only need this because P4Info does not contain information on default actions.
     program->apply(P4::ResolveReferences(&refMap));
 

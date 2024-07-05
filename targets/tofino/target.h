@@ -14,7 +14,8 @@ class TofinoBaseFlayTarget : public FlayTarget {
  protected:
     explicit TofinoBaseFlayTarget(const std::string &deviceName, const std::string &archName);
 
-    CompilerResultOrError runCompilerImpl(const IR::P4Program *program) const override;
+    CompilerResultOrError runCompilerImpl(const CompilerOptions &options,
+                                          const IR::P4Program *program) const override;
 };
 
 class Tofino1FlayTarget : public TofinoBaseFlayTarget {
