@@ -11,14 +11,13 @@ namespace P4Tools {
 /// Encapsulates and processes command-line options for P4Testgen.
 class FlayOptions : public AbstractP4cToolOptions {
  public:
+    FlayOptions();
     ~FlayOptions() override = default;
 
     /// @returns the singleton instance of this class.
     static FlayOptions &get();
 
     static void set(const FlayOptions &options) { get() = options; }
-
-    [[nodiscard]] const char *getIncludePath() const override;
 
     /// @returns the path set with --config-file.
     [[nodiscard]] std::filesystem::path controlPlaneConfig() const;
@@ -65,15 +64,12 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns true when the --skip-side-effect-ordering option has been set.
     [[nodiscard]] bool skipSideEffectOrdering() const;
 
- protected:
-    FlayOptions();
-
- private:
     FlayOptions(const FlayOptions &) = default;
     FlayOptions(FlayOptions &&) = default;
     FlayOptions &operator=(const FlayOptions &) = default;
     FlayOptions &operator=(FlayOptions &&) = default;
 
+ private:
     /// Path to the initial control plane configuration file.
     std::optional<std::filesystem::path> _controlPlaneConfig = std::nullopt;
 

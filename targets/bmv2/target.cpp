@@ -6,7 +6,6 @@
 #include <optional>
 #include <vector>
 
-#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf_utils.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"

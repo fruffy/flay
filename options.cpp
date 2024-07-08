@@ -9,14 +9,7 @@
 
 namespace P4Tools {
 
-FlayOptions &FlayOptions::get() {
-    static FlayOptions INSTANCE;
-    return INSTANCE;
-}
-
-const char *FlayOptions::getIncludePath() const {
-    P4C_UNIMPLEMENTED("getIncludePath not implemented for Flay.");
-}
+FlayOptions &FlayOptions::get() { return P4CContextWithOptions<FlayOptions>::get().options(); }
 
 const std::set<std::string> K_SUPPORTED_CONTROL_PLANES = {"P4RUNTIME", "BFRUNTIME"};
 
