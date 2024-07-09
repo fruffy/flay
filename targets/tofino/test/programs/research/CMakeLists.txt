@@ -151,7 +151,7 @@ p4tools_add_tests(
   "${EXTRA_OPTS} -D__TARGET_TOFINO__ -DDISABLE_IPV4"
 )
 
-set (RESEARCH_CONFIG_EXTRA_OPTS "-I${FLAY_TOFINO_TEST_DIR}/p4include --reference-folder ${FLAY_TOFINO_TEST_DIR}/testdata/config --control-plane BFRUNTIME"
+set (RESEARCH_CONFIG_EXTRA_OPTS "-I${FLAY_TOFINO_TEST_DIR}/p4include --control-plane BFRUNTIME"
 )
 
 p4tools_add_test_with_args(
@@ -159,7 +159,7 @@ p4tools_add_test_with_args(
   TAG "flay-tofino1-research-tna-config" ALIAS "scion.p4" DRIVER ${FLAY_REFERENCE_DRIVER}
   TARGET "tofino1" ARCH "tna"
   CONTROL_PLANE_UPDATES "${FLAY_TOFINO_TEST_DIR}/protos/scion/update*.txtpb"
-  TEST_ARGS "-D__TARGET_TOFINO__=1 -DDISABLE_IPV4 --user-p4info ${FLAY_TOFINO_TEST_DIR}/protos/scion/p4info.txtpb ${RESEARCH_CONFIG_EXTRA_OPTS}"
+  TEST_ARGS "-D__TARGET_TOFINO__=1 -DDISABLE_IPV4 --user-p4info ${FLAY_TOFINO_TEST_DIR}/protos/scion/p4info.txtpb --reference-folder ${FLAY_TOFINO_TEST_DIR}/testdata/config ${RESEARCH_CONFIG_EXTRA_OPTS}"
 )
 
 p4tools_add_test_with_args(
@@ -167,7 +167,7 @@ p4tools_add_test_with_args(
   TAG "flay-tofino1-research-tna-config" ALIAS "scion_bfd.p4" DRIVER ${FLAY_REFERENCE_DRIVER}
   TARGET "tofino1" ARCH "tna"
   CONTROL_PLANE_UPDATES "${FLAY_TOFINO_TEST_DIR}/protos/scion_bfd/update*.txtpb"
-  TEST_ARGS "-D__TARGET_TOFINO__=1 -DDISABLE_IPV4 --user-p4info ${FLAY_TOFINO_TEST_DIR}/protos/scion/p4info.txtpb ${RESEARCH_CONFIG_EXTRA_OPTS}"
+  TEST_ARGS "-D__TARGET_TOFINO__=1 -DDISABLE_IPV4 --user-p4info ${FLAY_TOFINO_TEST_DIR}/protos/scion/p4info.txtpb --reference-folder ${FLAY_TOFINO_TEST_DIR}/testdata/config/bfd ${RESEARCH_CONFIG_EXTRA_OPTS}"
 )
 
 # ##################################################################################################

@@ -8,6 +8,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/test/helpers.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
@@ -15,13 +16,10 @@ namespace Test {
 
 namespace {
 
-/// Helper methods to build configurations for Optimization Tests.
-class OptimizationTest : public ::testing::Test {};
-
 using namespace P4::literals;
 
 // Tests for the optimization of various expressions.
-TEST_F(OptimizationTest, Optimization01) {
+TEST_F(P4FlayTest, Optimization01) {
     const auto *eightBitType = IR::Type_Bits::get(8);
     const auto *xVar =
         P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X"_cs);
@@ -38,7 +36,7 @@ TEST_F(OptimizationTest, Optimization01) {
     ASSERT_STREQ("|X(bool)| ? |A(bit<8>)| : |B(bit<8>)|;", stringResult.str().c_str());
 }
 
-TEST_F(OptimizationTest, Optimization02) {
+TEST_F(P4FlayTest, Optimization02) {
     const auto *eightBitType = IR::Type_Bits::get(8);
     const auto *xVar =
         P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X"_cs);
@@ -56,7 +54,7 @@ TEST_F(OptimizationTest, Optimization02) {
     ASSERT_STREQ("|B(bit<8>)|", stringResult.str().c_str());
 }
 
-TEST_F(OptimizationTest, Optimization03) {
+TEST_F(P4FlayTest, Optimization03) {
     const auto *eightBitType = IR::Type_Bits::get(8);
     const auto *xVar =
         P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X"_cs);
@@ -76,7 +74,7 @@ TEST_F(OptimizationTest, Optimization03) {
     ASSERT_STREQ("|X(bool)| ? |A(bit<8>)| : |B(bit<8>)|;", stringResult.str().c_str());
 }
 
-TEST_F(OptimizationTest, Optimization04) {
+TEST_F(P4FlayTest, Optimization04) {
     const auto *eightBitType = IR::Type_Bits::get(8);
     const auto *xVar =
         P4Tools::ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(), "X"_cs);
