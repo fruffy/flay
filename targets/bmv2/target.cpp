@@ -6,7 +6,6 @@
 #include <optional>
 #include <vector>
 
-#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf_utils.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
@@ -130,8 +129,9 @@ FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
                                    executionState);
 }
 
-CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const IR::P4Program *program) const {
-    program = runFrontend(program);
+CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const CompilerOptions &options,
+                                                         const IR::P4Program *program) const {
+    program = runFrontend(options, program);
     if (program == nullptr) {
         return std::nullopt;
     }
@@ -154,15 +154,14 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const IR::P4Program *pr
         }
     }
 
-    program = runMidEnd(program);
+    program = runMidEnd(options, program);
     if (program == nullptr) {
         return std::nullopt;
     }
 
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
-    program = program->apply(
-        mkPrivateMidEnd(CompileContext<CompilerOptions>::get().options(), &refMap, &typeMap));
+    program = program->apply(mkPrivateMidEnd(options, &refMap, &typeMap));
 
     // TODO: We only need this because P4Info does not contain information on default actions.
     program->apply(P4::ResolveReferences(&refMap));

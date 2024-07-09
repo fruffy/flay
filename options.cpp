@@ -1,6 +1,7 @@
 #include "backends/p4tools/modules/flay/options.h"
 
 #include "backends/p4tools/common/lib/logging.h"
+#include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/common/options.h"
 #include "backends/p4tools/modules/flay/toolname.h"
 #include "lib/error.h"
@@ -8,19 +9,12 @@
 
 namespace P4Tools {
 
-FlayOptions &FlayOptions::get() {
-    static FlayOptions INSTANCE;
-    return INSTANCE;
-}
-
-const char *FlayOptions::getIncludePath() {
-    P4C_UNIMPLEMENTED("getIncludePath not implemented for Flay.");
-}
+FlayOptions &FlayOptions::get() { return P4CContextWithOptions<FlayOptions>::get().options(); }
 
 const std::set<std::string> K_SUPPORTED_CONTROL_PLANES = {"P4RUNTIME", "BFRUNTIME"};
 
-FlayOptions::FlayOptions(const std::string &message)
-    : AbstractP4cToolOptions(Flay::TOOL_NAME, message) {
+FlayOptions::FlayOptions()
+    : AbstractP4cToolOptions(Flay::TOOL_NAME, "Remove control-plane dead code from a P4 program.") {
     registerOption(
         "--config-file", "controlPlaneConfig",
         [this](const char *arg) {

@@ -217,4 +217,8 @@ P4::FrontEnd FlayTarget::mkFrontEnd() const {
     return {};
 }
 
+ICompileContext *FlayTarget::makeContext() const {
+    return new P4CContextWithOptions<FlayOptions>();
+}
+
 }  // namespace P4Tools::Flay

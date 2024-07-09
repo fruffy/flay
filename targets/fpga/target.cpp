@@ -5,7 +5,6 @@
 #include <optional>
 #include <vector>
 
-#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/modules/flay/control_plane/protobuf_utils.h"
 #include "backends/p4tools/modules/flay/targets/fpga/symbolic_state.h"
@@ -33,8 +32,9 @@ using namespace ::P4::literals;
 FpgaBaseFlayTarget::FpgaBaseFlayTarget(const std::string &deviceName, const std::string &archName)
     : FlayTarget(deviceName, archName){};
 
-CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const IR::P4Program *program) const {
-    program = runFrontend(program);
+CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const CompilerOptions &options,
+                                                          const IR::P4Program *program) const {
+    program = runFrontend(options, program);
     if (program == nullptr) {
         return std::nullopt;
     }
@@ -58,14 +58,13 @@ CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const IR::P4Program *p
         }
     }
 
-    program = runMidEnd(program);
+    program = runMidEnd(options, program);
     if (program == nullptr) {
         return std::nullopt;
     }
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
-    program = program->apply(
-        mkPrivateMidEnd(CompileContext<CompilerOptions>::get().options(), &refMap, &typeMap));
+    program = program->apply(mkPrivateMidEnd(options, &refMap, &typeMap));
     // TODO: We only need this because P4Info does not contain information on default actions.
     program->apply(P4::ResolveReferences(&refMap));
 

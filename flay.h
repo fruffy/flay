@@ -18,14 +18,12 @@ class Flay : public AbstractP4cTool<FlayOptions> {
     virtual ~Flay() = default;
 
     /// Analyse the given program and return an optimized version.
-    static std::optional<FlayServiceStatistics> optimizeProgram(
-        const std::string &program, const CompilerOptions &compilerOptions,
-        const FlayOptions &flayOptions);
+    static std::optional<FlayServiceStatistics> optimizeProgram(const std::string &program,
+                                                                const FlayOptions &flayOptions);
 
     /// Open the program file specified in the compiler options, preprocess it, and return an
     /// optimized version.
-    static std::optional<FlayServiceStatistics> optimizeProgram(
-        const CompilerOptions &compilerOptions, const FlayOptions &flayOptions);
+    static std::optional<FlayServiceStatistics> optimizeProgram(const FlayOptions &flayOptions);
 };
 
 }  // namespace P4Tools::Flay

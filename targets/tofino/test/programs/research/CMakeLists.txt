@@ -80,6 +80,8 @@ set(FETCHCONTENT_BASE_DIR ${FETCHCONTENT_BASE_DIR_PREV})
 # TEST PROGRAMS
 # ##################################################################################################
 
+set (FLAY_TOFINO_TEST_DIR ${CMAKE_CURRENT_LIST_DIR}/../..)
+
 set(TNA_RESEARCH_TESTS
   ${switcharoo_SOURCE_DIR}/p4src/switcharoo.p4
   ${p4sta_SOURCE_DIR}/stamper_targets/Wedge100B65/PLEASE_COPY/tofino_stamper_v1_2_0.p4
@@ -108,8 +110,8 @@ set(TNA_RESEARCH_TESTS
 )
 
 
-set (EXTRA_OPTS "-I${CMAKE_CURRENT_LIST_DIR}/../../p4include")
-set (EXTRA_OPTS "${EXTRA_OPTS} --reference-folder ${CMAKE_CURRENT_LIST_DIR}/../../testdata")
+set (EXTRA_OPTS "-I${FLAY_TOFINO_TEST_DIR}/p4include")
+set (EXTRA_OPTS "${EXTRA_OPTS} --reference-folder ${FLAY_TOFINO_TEST_DIR}/testdata")
 
 p4tools_add_tests(
   TESTS
@@ -149,6 +151,28 @@ p4tools_add_tests(
   "${EXTRA_OPTS} -D__TARGET_TOFINO__ -DDISABLE_IPV4"
 )
 
+set (RESEARCH_CONFIG_EXTRA_OPTS "-I${FLAY_TOFINO_TEST_DIR}/p4include --control-plane BFRUNTIME"
+)
+
+p4tools_add_test_with_args(
+  P4TEST "${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4"
+  TAG "flay-tofino1-research-tna-config" ALIAS "scion.p4" DRIVER ${FLAY_REFERENCE_DRIVER}
+  TARGET "tofino1" ARCH "tna"
+  CONTROL_PLANE_UPDATES "${FLAY_TOFINO_TEST_DIR}/protos/scion/update*.txtpb"
+  TEST_ARGS "-D__TARGET_TOFINO__=1 -DDISABLE_IPV4 --user-p4info ${FLAY_TOFINO_TEST_DIR}/protos/scion/p4info.txtpb --reference-folder ${FLAY_TOFINO_TEST_DIR}/testdata/config ${RESEARCH_CONFIG_EXTRA_OPTS}"
+)
+
+p4tools_add_test_with_args(
+  P4TEST "${scion_SOURCE_DIR}/tofino-scion-br/p4src/scion.p4"
+  TAG "flay-tofino1-research-tna-config" ALIAS "scion_bfd.p4" DRIVER ${FLAY_REFERENCE_DRIVER}
+  TARGET "tofino1" ARCH "tna"
+  CONTROL_PLANE_UPDATES "${FLAY_TOFINO_TEST_DIR}/protos/scion_bfd/update*.txtpb"
+  TEST_ARGS "-D__TARGET_TOFINO__=1 -DDISABLE_IPV4 --user-p4info ${FLAY_TOFINO_TEST_DIR}/protos/scion/p4info.txtpb --reference-folder ${FLAY_TOFINO_TEST_DIR}/testdata/config/bfd ${RESEARCH_CONFIG_EXTRA_OPTS}"
+)
+
+# ##################################################################################################
+# XFAILS
+# ##################################################################################################
 
 # Wildcard failing tests for now. TODO:  Classify further.
 p4tools_add_xfail_reason(

@@ -30,7 +30,8 @@ class V1ModelFlayTarget : public FlayTarget {
                                               ExecutionState &executionState) const override;
 
  private:
-    CompilerResultOrError runCompilerImpl(const IR::P4Program *program) const final;
+    CompilerResultOrError runCompilerImpl(const CompilerOptions &options,
+                                          const IR::P4Program *program) const final;
 };
 
 }  // namespace P4Tools::Flay::V1Model

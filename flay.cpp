@@ -6,7 +6,6 @@
 #include <optional>
 
 #include "backends/p4tools/common/compiler/compiler_target.h"
-#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/control_plane/return_macros.h"
 #include "backends/p4tools/modules/flay/core/service_wrapper_bfruntime.h"
@@ -154,28 +153,25 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
 
 std::optional<FlayServiceStatistics> optimizeProgramImpl(
     std::optional<std::reference_wrapper<const std::string>> program,
-    const CompilerOptions &compilerOptions, const FlayOptions &flayOptions) {
+    const FlayOptions &flayOptions) {
     // Register supported Flay targets.
     registerFlayTargets();
 
-    P4Tools::Target::init(compilerOptions.target.c_str(), compilerOptions.arch.c_str());
-
-    // Set up the compilation context.
-    auto *compileContext = new CompileContext<CompilerOptions>();
-    compileContext->options() = compilerOptions;
-    AutoCompileContext autoContext(compileContext);
+    P4Tools::Target::init(flayOptions.target.c_str(), flayOptions.arch.c_str());
 
     CompilerResultOrError compilerResult;
     if (program.has_value()) {
         // Run the compiler to get an IR and invoke the tool.
-        ASSIGN_OR_RETURN(compilerResult,
-                         P4Tools::CompilerTarget::runCompiler(TOOL_NAME, program.value().get()),
-                         std::nullopt);
+        ASSIGN_OR_RETURN(
+            compilerResult,
+            P4Tools::CompilerTarget::runCompiler(flayOptions, TOOL_NAME, program.value().get()),
+            std::nullopt);
     } else {
-        RETURN_IF_FALSE_WITH_MESSAGE(!compilerOptions.file.empty(), std::nullopt,
+        RETURN_IF_FALSE_WITH_MESSAGE(!flayOptions.file.empty(), std::nullopt,
                                      ::error("Expected a file input."));
         // Run the compiler to get an IR and invoke the tool.
-        ASSIGN_OR_RETURN(compilerResult, P4Tools::CompilerTarget::runCompiler(TOOL_NAME),
+        ASSIGN_OR_RETURN(compilerResult,
+                         P4Tools::CompilerTarget::runCompiler(flayOptions, TOOL_NAME),
                          std::nullopt);
     }
 
@@ -203,10 +199,9 @@ std::optional<FlayServiceStatistics> optimizeProgramImpl(
 }
 
 std::optional<FlayServiceStatistics> Flay::optimizeProgram(const std::string &program,
-                                                           const CompilerOptions &compilerOptions,
                                                            const FlayOptions &flayOptions) {
     try {
-        return optimizeProgramImpl(program, compilerOptions, flayOptions);
+        return optimizeProgramImpl(program, flayOptions);
     } catch (const std::exception &e) {
         std::cerr << "Internal error: " << e.what() << "\n";
         return std::nullopt;
@@ -216,10 +211,9 @@ std::optional<FlayServiceStatistics> Flay::optimizeProgram(const std::string &pr
     return std::nullopt;
 }
 
-std::optional<FlayServiceStatistics> Flay::optimizeProgram(const CompilerOptions &compilerOptions,
-                                                           const FlayOptions &flayOptions) {
+std::optional<FlayServiceStatistics> Flay::optimizeProgram(const FlayOptions &flayOptions) {
     try {
-        return optimizeProgramImpl(std::nullopt, compilerOptions, flayOptions);
+        return optimizeProgramImpl(std::nullopt, flayOptions);
     } catch (const std::exception &e) {
         std::cerr << "Internal error: " << e.what() << "\n";
         return std::nullopt;

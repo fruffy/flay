@@ -59,7 +59,7 @@ FlayClientOptions::FlayClientOptions(std::string_view message) : Options(message
         "Specify a proto update file to send to the server. Multiple entries are possible.");
 }
 
-const char *FlayClientOptions::getIncludePath() {
+const char *FlayClientOptions::getIncludePath() const {
     P4C_UNIMPLEMENTED("getIncludePath not implemented for FlayClient.");
 }
 
