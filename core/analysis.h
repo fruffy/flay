@@ -45,12 +45,12 @@ class ParserPathsCounter : public Inspector {
 
     static const size_t VISITING_FLAG = -1;
     /// Map of number of paths to end from each vertex.
-    std::unordered_map<const DCGVertexType *, size_t> numPaths;
+    std::unordered_map<DCGVertexType, size_t> numPaths;
 
     /// Entry method for counting paths
     size_t countPaths(const IR::P4Parser *parser);
     /// Recursive method for counting paths
-    size_t countPathsSub(const DCGVertexType *node);
+    size_t countPathsSub(DCGVertexType node);
 };
 
 }  // namespace P4Tools::Flay

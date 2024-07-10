@@ -3,10 +3,10 @@
 
 #include <gtest/gtest.h>
 
+#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/modules/flay/core/target.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "backends/p4tools/modules/flay/toolname.h"
-#include "frontends/common/parser_options.h"
 #include "lib/compile_context.h"
 
 class P4FlayTest : public ::testing::Test {
@@ -14,7 +14,7 @@ class P4FlayTest : public ::testing::Test {
 
  public:
     void SetUp() override {
-        _ctx = new AutoCompileContext(new P4CContextWithOptions<P4Tools::FlayOptions>());
+        _ctx = new AutoCompileContext(new P4Tools::CompileContext<P4Tools::FlayOptions>());
     }
 
     [[nodiscard]] static std::optional<std::unique_ptr<AutoCompileContext>> SetUp(

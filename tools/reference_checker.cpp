@@ -301,14 +301,14 @@ int main(int argc, char *argv[]) {
     P4Tools::Flay::registerFlayTargets();
 
     // Set up the options.
-    auto *compileContext = new P4CContextWithOptions<P4Tools::Flay::ReferenceCheckerOptions>();
+    auto *compileContext = new P4Tools::CompileContext<P4Tools::Flay::ReferenceCheckerOptions>();
     AutoCompileContext autoContext(
         new P4CContextWithOptions<P4Tools::Flay::ReferenceCheckerOptions>());
     // Process command-line options.
     if (compileContext->options().processOptions(argc, argv) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
-    auto *flayContext = new P4CContextWithOptions<P4Tools::FlayOptions>(*compileContext);
+    auto *flayContext = new P4Tools::CompileContext<P4Tools::FlayOptions>(*compileContext);
     AutoCompileContext autoContext2(flayContext);
     // Run the reference checker.
     auto result = P4Tools::Flay::run(compileContext->options(), flayContext->options());

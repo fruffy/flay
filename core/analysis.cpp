@@ -80,7 +80,7 @@ size_t ParserPathsCounter::countPaths(const IR::P4Parser *parser) {
     return countPathsSub(startState);
 }
 
-size_t ParserPathsCounter::countPathsSub(const DCGVertexType *node) {
+size_t ParserPathsCounter::countPathsSub(DCGVertexType node) {
     if (node->is<IR::ParserState>()) {
         auto *parserState = node->to<IR::ParserState>();
         if (parserState->name == IR::ParserState::accept ||

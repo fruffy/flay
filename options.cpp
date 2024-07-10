@@ -1,15 +1,15 @@
 #include "backends/p4tools/modules/flay/options.h"
 
+#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/common/options.h"
 #include "backends/p4tools/modules/flay/toolname.h"
 #include "lib/error.h"
-#include "lib/exceptions.h"
 
 namespace P4Tools {
 
-FlayOptions &FlayOptions::get() { return P4CContextWithOptions<FlayOptions>::get().options(); }
+FlayOptions &FlayOptions::get() { return P4Tools::CompileContext<FlayOptions>::get().options(); }
 
 const std::set<std::string> K_SUPPORTED_CONTROL_PLANES = {"P4RUNTIME", "BFRUNTIME"};
 

@@ -8,6 +8,7 @@ p4tools_add_xfail_reason(
   issue1304.p4 # Cast failed: Pipeline<my_packet, my_metadata> with type Type_Specialized is not a
                # Type_Declaration.
   header-stack-ops-bmv2.p4 # Unknown method member expression: hdr_0.h2; of type header h2_t
+  issue4739.p4 # type ForStatement not implemented in the core stepper
 )
 
 p4tools_add_xfail_reason(
