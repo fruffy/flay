@@ -31,8 +31,12 @@ void V1ModelFlayStepper::initializeState() {
         executionState.initializeBlockParams(target, typeDecl, &archMember->blockParams);
         blockIdx++;
     }
-
     const auto *thirtyTwoBitType = IR::Type_Bits::get(32);
+    const auto *nineBitType = IR::Type_Bits::get(9);
+    // Set the input port to a symbolic variable (for now).
+    executionState.set(
+        new IR::Member(nineBitType, new IR::PathExpression("*standard_metadata"), "ingress_port"),
+        new IR::SymbolicVariable(nineBitType, cstring("standard_metadata.ingress_port")));
 
     // Initialize instance_type with a place holder.
     const auto *instanceTypeVar = new IR::Member(
