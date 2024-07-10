@@ -1,6 +1,6 @@
 Replaced node at line 102: forward.apply(); with miss();
 statement_count_before:10
 statement_count_after:10
-cyclomatic_complexity:4
+cyclomatic_complexity:3
 num_parsers_paths:4
 

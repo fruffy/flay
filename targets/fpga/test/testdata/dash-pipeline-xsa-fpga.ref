@@ -124,6 +124,6 @@ Replaced node at line 979: if (meta.meter_class == 0 || meta.mapping_meter_class
 Replaced node at line 979: if (meta.meter_class == 0 || meta.mapping_meter_class_override == 1) { with 0
 statement_count_before:543
 statement_count_after:543
-cyclomatic_complexity:214
-num_parsers_paths:31
+cyclomatic_complexity:191
+num_parsers_paths:280
 

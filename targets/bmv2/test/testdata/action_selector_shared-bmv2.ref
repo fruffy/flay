@@ -4,6 +4,6 @@ Replaced node at line 38: key = { meta.hash1 : selector; } with 0
 Replaced node at line 46: key = { meta.hash1 : selector; } with 0
 statement_count_before:4
 statement_count_after:2
-cyclomatic_complexity:4
+cyclomatic_complexity:6
 num_parsers_paths:1
 

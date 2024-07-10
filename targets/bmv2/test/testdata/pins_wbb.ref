@@ -5,9 +5,10 @@ Eliminated node at line 612: acl_wbb_ingress_table.apply();
 Eliminated node at line 516: if (local_metadata.admit_to_l3) {
 Eliminated node at line 483: if (local_metadata.mirror_session_id_valid) {
 Eliminated node at line 537: if (local_metadata.admit_to_l3) {
+Replaced node at line 276: neighbor_id_value : exact @id(2) @format(IPV6_ADDRESS) @name("neighbor_id"); with 0
 Replaced node at line 334: local_metadata.wcmp_selector_input: selector; with 0
 statement_count_before:116
 statement_count_after:100
-cyclomatic_complexity:57
+cyclomatic_complexity:73
 num_parsers_paths:10
 

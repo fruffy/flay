@@ -1,6 +1,6 @@
 Replaced node at line 63: apply { t.apply(); } with set_port();
 statement_count_before:13
 statement_count_after:6
-cyclomatic_complexity:4
+cyclomatic_complexity:3
 num_parsers_paths:4
 

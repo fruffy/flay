@@ -7,6 +7,6 @@ Replaced node at line 124: vid : exact; with 0
 Replaced node at line 140: vrf : exact; with 0
 statement_count_before:25
 statement_count_after:22
-cyclomatic_complexity:12
+cyclomatic_complexity:9
 num_parsers_paths:4
 

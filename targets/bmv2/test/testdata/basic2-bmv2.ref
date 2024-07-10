@@ -3,6 +3,6 @@ Replaced node at line 84: hdr.ipv4.dstAddr: ternary; with 0
 Replaced node at line 85: hdr.ipv4.srcAddr: lpm; with 0
 statement_count_before:3
 statement_count_after:2
-cyclomatic_complexity:3
+cyclomatic_complexity:2
 num_parsers_paths:1
 

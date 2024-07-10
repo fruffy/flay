@@ -1,6 +1,6 @@
 Eliminated node at line 134: forward.apply();
 statement_count_before:6
 statement_count_after:5
-cyclomatic_complexity:2
+cyclomatic_complexity:1
 num_parsers_paths:2
 

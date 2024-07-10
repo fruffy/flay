@@ -2,6 +2,6 @@ Eliminated node at line 77: toggle_check.apply();
 Eliminated node at line 80: if (check_l3) {
 statement_count_before:7
 statement_count_after:5
-cyclomatic_complexity:5
+cyclomatic_complexity:4
 num_parsers_paths:2
 

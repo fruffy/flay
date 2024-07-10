@@ -3,6 +3,6 @@ Replaced node at line 145: tbl_hash1.apply(); with apply_hash1();
 Replaced node at line 146: tbl_hash2.apply(); with apply_hash2();
 statement_count_before:14
 statement_count_after:13
-cyclomatic_complexity:7
+cyclomatic_complexity:4
 num_parsers_paths:5
 

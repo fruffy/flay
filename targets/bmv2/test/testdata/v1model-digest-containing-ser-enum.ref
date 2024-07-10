@@ -4,6 +4,6 @@ Eliminated node at line 213: send_frame.apply();
 Replaced node at line 202: standard_metadata.egress_port: exact; with 0
 statement_count_before:23
 statement_count_after:20
-cyclomatic_complexity:9
+cyclomatic_complexity:14
 num_parsers_paths:2
 

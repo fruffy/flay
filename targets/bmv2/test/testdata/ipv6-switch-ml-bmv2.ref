@@ -6,6 +6,6 @@ Replaced node at line 86: standard_metadata.egress_rid : exact; with 0
 Replaced node at line 99: meta.fwd.out_bd: exact; with 0
 statement_count_before:16
 statement_count_after:14
-cyclomatic_complexity:11
+cyclomatic_complexity:8
 num_parsers_paths:4
 

@@ -1,6 +1,6 @@
 Eliminated node at line 50: simple_table.apply();
 statement_count_before:12
 statement_count_after:11
-cyclomatic_complexity:2
+cyclomatic_complexity:1
 num_parsers_paths:1
 

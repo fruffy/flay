@@ -1,6 +1,6 @@
 Replaced node at line 61: bypass_egress.apply(); with bypass_egress_set_bypass_egress_0/set_bypass_egress();
 statement_count_before:10
 statement_count_after:10
-cyclomatic_complexity:3
+cyclomatic_complexity:2
 num_parsers_paths:4
 

@@ -1,6 +1,6 @@
 Eliminated node at line 65: bool didHit = someTable.apply().hit;
 statement_count_before:6
 statement_count_after:5
-cyclomatic_complexity:3
+cyclomatic_complexity:2
 num_parsers_paths:2
 

@@ -5,6 +5,6 @@ Replaced node at line 121: meta.fwd_metadata.l2ptr: exact; with 0
 Replaced node at line 152: meta.fwd_metadata.out_bd: exact; with 0
 statement_count_before:19
 statement_count_after:19
-cyclomatic_complexity:8
+cyclomatic_complexity:11
 num_parsers_paths:2
 

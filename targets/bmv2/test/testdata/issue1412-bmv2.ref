@@ -4,6 +4,6 @@ Replaced node at line 38: if (meta.field == 0) { with 0
 Replaced node at line 44: key = { ostd.egress_spec: exact; } with 0
 statement_count_before:2
 statement_count_after:0
-cyclomatic_complexity:3
+cyclomatic_complexity:2
 num_parsers_paths:1
 

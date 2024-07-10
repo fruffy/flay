@@ -11,6 +11,6 @@ Replaced node at line 132: meta.ingress_metadata.nexthop_index: exact; with 0
 Replaced node at line 141: standard_metadata.ingress_port: exact; with 0
 statement_count_before:20
 statement_count_after:15
-cyclomatic_complexity:22
+cyclomatic_complexity:15
 num_parsers_paths:2
 

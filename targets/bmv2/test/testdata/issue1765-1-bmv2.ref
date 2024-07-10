@@ -3,6 +3,6 @@ Eliminated node at line 337: v6_networks.apply();
 Eliminated node at line 340: v4_networks.apply();
 statement_count_before:48
 statement_count_after:45
-cyclomatic_complexity:21
+cyclomatic_complexity:30
 num_parsers_paths:9
 

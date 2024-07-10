@@ -2,6 +2,6 @@ Eliminated node at line 50: t.apply();
 Replaced node at line 47: key = { meta.data[0].da : exact;} with 0
 statement_count_before:2
 statement_count_after:1
-cyclomatic_complexity:3
+cyclomatic_complexity:2
 num_parsers_paths:2
 

@@ -4,6 +4,6 @@ Eliminated node at line 48: t2.apply();
 Replaced node at line 43: if (m.b == 0) { with 0
 statement_count_before:3
 statement_count_after:0
-cyclomatic_complexity:6
+cyclomatic_complexity:4
 num_parsers_paths:1
 

@@ -33,6 +33,6 @@ Replaced node at line 379: local_meta.src_iface : ternary @name("src_iface") ; w
 Replaced node at line 753: if (std_meta.egress_port == 255) { with 0
 statement_count_before:236
 statement_count_after:191
-cyclomatic_complexity:69
+cyclomatic_complexity:83
 num_parsers_paths:38
 
