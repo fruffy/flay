@@ -1,6 +1,9 @@
 Eliminated node at line 1486: bfd_state = !tbl_bfd_local.apply().hit;
 Eliminated node at line 1489: bfd_state = tbl_bfd_remote.apply().hit;
+Replaced node at line 1513: tbl_deliver_local_empty.apply(); with drop_1/drop();
+Replaced node at line 1515: tbl_deliver_local.apply(); with drop();
 Eliminated node at line 1523: forward_local_ipv6:
+Replaced node at line 1548: tbl_set_local_source.apply(); with drop_2/drop();
 statement_count_before:582
 statement_count_after:596
 cyclomatic_complexity:126
