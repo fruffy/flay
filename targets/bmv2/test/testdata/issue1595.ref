@@ -4,6 +4,6 @@ Eliminated node at line 77: a3: { hdr.ethernet.srcAddr[39:32] = 3; }
 Eliminated node at line 78: a4: { hdr.ethernet.srcAddr[39:32] = 4; }
 statement_count_before:10
 statement_count_after:7
-cyclomatic_complexity:29
+cyclomatic_complexity:24
 num_parsers_paths:1
 

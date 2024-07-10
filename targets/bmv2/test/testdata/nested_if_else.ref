@@ -3,6 +3,6 @@ Eliminated node at line 93: x = x + 5;
 Eliminated node at line 122: ipv4_lpm.apply();
 statement_count_before:13
 statement_count_after:13
-cyclomatic_complexity:7
+cyclomatic_complexity:6
 num_parsers_paths:2
 

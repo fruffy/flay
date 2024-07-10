@@ -3,6 +3,6 @@ Replaced node at line 187: round_tbl.apply(); with read_round();
 Replaced node at line 154: key = { meta.local_metadata.set_drop : exact; } with 0
 statement_count_before:14
 statement_count_after:13
-cyclomatic_complexity:7
+cyclomatic_complexity:5
 num_parsers_paths:3
 

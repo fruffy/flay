@@ -8,11 +8,12 @@ Eliminated node at line 428: if (nexthop_id_valid) {
 Eliminated node at line 750: acl_ingress_table.apply();
 Eliminated node at line 527: if (local_metadata.mirror_session_id_valid) {
 Eliminated node at line 640: acl_egress_table.apply();
+Replaced node at line 276: neighbor_id_value : exact @id(2) @format(IPV6_ADDRESS) @name("neighbor_id"); with 0
 Replaced node at line 334: local_metadata.wcmp_selector_input: selector; with 0
 Replaced node at line 722: local_metadata.route_metadata : optional @name("route_metadata") @id(18) @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META); with 0
 Replaced node at line 616: (port_id_t)standard_metadata.egress_port : optional @name("out_port") @id(4) @sai_field(SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT); with 0
 statement_count_before:191
 statement_count_after:181
-cyclomatic_complexity:75
+cyclomatic_complexity:97
 num_parsers_paths:10
 

@@ -2,6 +2,6 @@ Eliminated node at line (unknown):
 Eliminated node at line 34: if (!t.apply().hit) {} // issue #137
 statement_count_before:0
 statement_count_after:0
-cyclomatic_complexity:2
+cyclomatic_complexity:1
 num_parsers_paths:1
 

@@ -4,6 +4,6 @@ Eliminated node at line 43: simple_table.apply();
 Replaced node at line 36: tmp_key : exact @name("bKiScA") ; with 2
 statement_count_before:9
 statement_count_after:8
-cyclomatic_complexity:3
+cyclomatic_complexity:2
 num_parsers_paths:1
 

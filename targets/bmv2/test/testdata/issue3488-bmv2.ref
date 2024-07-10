@@ -4,6 +4,6 @@ Eliminated node at line 163: post_tbl3.apply();
 Eliminated node at line 164: if (meta.dropped) {
 statement_count_before:14
 statement_count_after:11
-cyclomatic_complexity:15
+cyclomatic_complexity:11
 num_parsers_paths:2
 

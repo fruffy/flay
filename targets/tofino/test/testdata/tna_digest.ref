@@ -5,6 +5,6 @@ Replaced node at line 84: if (ig_dprsr_md.digest_type == 1) { with 1
 Replaced node at line 158: if (src_miss == true || src_move != 0) { with 0
 statement_count_before:21
 statement_count_after:19
-cyclomatic_complexity:17
+cyclomatic_complexity:15
 num_parsers_paths:4
 

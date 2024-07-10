@@ -4,6 +4,6 @@ Replaced node at line 65: m.z: exact; with 0
 Replaced node at line 66: z: exact; with 5
 statement_count_before:3
 statement_count_after:2
-cyclomatic_complexity:1
+cyclomatic_complexity:0
 num_parsers_paths:1
 

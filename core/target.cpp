@@ -4,6 +4,7 @@
 
 #include "backends/bmv2/common/annotations.h"
 #include "backends/p4tools/common/compiler/compiler_target.h"
+#include "backends/p4tools/common/compiler/context.h"
 #include "backends/p4tools/common/compiler/convert_varbits.h"
 #include "backends/p4tools/common/compiler/midend.h"
 #include "backends/p4tools/common/core/target.h"
@@ -218,7 +219,7 @@ P4::FrontEnd FlayTarget::mkFrontEnd() const {
 }
 
 ICompileContext *FlayTarget::makeContext() const {
-    return new P4CContextWithOptions<FlayOptions>();
+    return new P4Tools::CompileContext<FlayOptions>();
 }
 
 }  // namespace P4Tools::Flay

@@ -4,6 +4,6 @@ Replaced node at line 92: vrf : exact; with 0
 Replaced node at line 114: vrf : exact; with 0
 statement_count_before:16
 statement_count_after:15
-cyclomatic_complexity:6
+cyclomatic_complexity:4
 num_parsers_paths:4
 

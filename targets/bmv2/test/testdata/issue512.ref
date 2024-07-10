@@ -4,6 +4,6 @@ Replaced node at line 75: guh.apply(); with foo();
 Replaced node at line 57: if (meta.b > 10) { with 5
 statement_count_before:8
 statement_count_after:6
-cyclomatic_complexity:3
+cyclomatic_complexity:2
 num_parsers_paths:1
 

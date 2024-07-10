@@ -3,6 +3,6 @@ Eliminated node at line 128: set_dest.apply();
 Replaced node at line 121: key = { ig_md.md : exact; } with 0
 statement_count_before:13
 statement_count_after:12
-cyclomatic_complexity:7
+cyclomatic_complexity:5
 num_parsers_paths:4
 

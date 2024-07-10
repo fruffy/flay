@@ -103,6 +103,8 @@ Replaced node at line 751: meta.vnet_id: exact @SaiVal[type="sai_object_id_t"]; 
 Replaced node at line 478: meta.stage1_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
 Replaced node at line 497: meta.stage2_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
 Replaced node at line 516: meta.stage3_dash_acl_group_id: exact @SaiVal[name="dash_acl_group_id", type="sai_object_id_t", isresourcetype="true", objects="SAI_OBJECT_TYPE_DASH_ACL_GROUP"]; with 0
+Replaced node at line 986: if (packet_action == 0) { with 0
+Replaced node at line 988: } else if (packet_action == 1) { with 0
 Replaced node at line 997: meta.dst_ip_addr: lpm @SaiVal[name="destination"]; with 0
 Replaced node at line 908: meta.meter_policy_id: exact; with 0
 Replaced node at line 919: meta.meter_policy_id: exact @SaiVal[type="sai_object_id_t", isresourcetype="true", objects="METER_POLICY"]; with 0
@@ -128,6 +130,6 @@ Replaced node at line 967: if (meta.meter_class == 0 || meta.mapping_meter_class
 Replaced node at line 967: if (meta.meter_class == 0 || meta.mapping_meter_class_override == 1) { with 0
 statement_count_before:547
 statement_count_after:562
-cyclomatic_complexity:229
-num_parsers_paths:31
+cyclomatic_complexity:208
+num_parsers_paths:280
 

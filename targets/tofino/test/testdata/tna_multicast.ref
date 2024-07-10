@@ -8,6 +8,6 @@ Replaced node at line 189: ig_md.vrf : exact; with 0
 Replaced node at line 205: if (ig_md.l3 == 1) { with 0
 statement_count_before:28
 statement_count_after:25
-cyclomatic_complexity:14
+cyclomatic_complexity:10
 num_parsers_paths:6
 

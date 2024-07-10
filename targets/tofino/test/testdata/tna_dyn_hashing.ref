@@ -1,6 +1,6 @@
 Replaced node at line 135: bloom_filter_1_0.apply(); with check_bloom_filter_0/check_bloom_filter_1();
 statement_count_before:14
 statement_count_after:17
-cyclomatic_complexity:1
+cyclomatic_complexity:0
 num_parsers_paths:2
 
