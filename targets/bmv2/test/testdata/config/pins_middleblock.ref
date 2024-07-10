@@ -1,5 +1,4 @@
 Eliminated node at line 741: acl_pre_ingress_table.apply();
-Eliminated node at line 548: l3_admit_table.apply();
 Eliminated node at line 412: vrf_table.apply();
 Replaced node at line 415: ipv4_table.apply(); with routing_drop_0/drop();
 Replaced node at line 417: ipv6_table.apply(); with routing_drop_1/drop();
@@ -10,7 +9,7 @@ Eliminated node at line 521: if (local_metadata.mirror_session_id_valid) {
 Replaced node at line 276: neighbor_id_value : exact @id(2) @format(IPV6_ADDRESS) @name("neighbor_id"); with 0
 Replaced node at line 334: local_metadata.wcmp_selector_input: selector; with 0
 statement_count_before:177
-statement_count_after:168
+statement_count_after:169
 cyclomatic_complexity:87
 num_parsers_paths:10
 

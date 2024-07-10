@@ -1,5 +1,4 @@
 Eliminated node at line 172: debug.apply();
-Replaced node at line 139: standard_metadata.ingress_port : exact; with 0
 Replaced node at line 154: meta.before1 : exact; with 0
 Replaced node at line 155: meta.after1 : exact; with 0
 Replaced node at line 156: meta.before2 : exact; with 0

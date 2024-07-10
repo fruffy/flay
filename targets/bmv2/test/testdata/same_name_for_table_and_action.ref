@@ -1,5 +1,4 @@
 Eliminated node at line 32: do_something.apply();
-Replaced node at line 27: key = { smeta.ingress_port : exact; } with 0
 statement_count_before:2
 statement_count_after:1
 cyclomatic_complexity:1
