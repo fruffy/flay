@@ -179,8 +179,7 @@ void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &s
     actionType->body->apply(actionStepper);
 }
 
-void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tableProperties,
-                                         ReturnProperties &tableReturnProperties) const {
+void TableExecutor::processDefaultAction() const {
     auto &state = getExecutionState();
     auto table = getP4Table();
     const auto *defaultAction = getP4Table().getDefaultAction();
@@ -190,42 +189,10 @@ void TableExecutor::processDefaultAction(const TableUtils::TableProperties &tabl
     // Synthesize arguments for the call based on the action parameters.
     const auto *arguments = tableAction->arguments;
     callAction(getProgramInfo(), state, defaultActionType, *arguments);
-
-    if (tableProperties.defaultIsImmutable) {
-        return;
-    }
-    // If the default action is not immutable, it is possible to change it to any other action
-    // present in the table.
-    auto tableActionList = TableUtils::buildTableActionList(table);
-    for (const auto *action : tableActionList) {
-        const auto *actionType =
-            state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
-        // Skip the current initial default action from this calculation to avoid duplicating state.
-        if (defaultActionType->controlPlaneName() == actionType->controlPlaneName() ||
-            (action->getAnnotation(IR::Annotation::tableOnlyAnnotation) != nullptr)) {
-            continue;
-        }
-        const auto *actionExpr = IR::StringLiteral::get(actionType->controlPlaneName());
-        auto *actionHitCondition = new IR::Equ(
-            actionExpr, ControlPlaneState::getDefaultActionVariable(symbolicTablePrefix()));
-        // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
-        tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
-            actionHitCondition, actionExpr, tableReturnProperties.actionRun);
-        // We get the control plane name of the action we are calling.
-        cstring actionName = actionType->controlPlaneName();
-        // Synthesize arguments for the call based on the action parameters.
-        const auto &parameters = actionType->parameters;
-        auto &actionState = state.clone();
-        actionState.pushExecutionCondition(actionHitCondition);
-        auto arguments = createActionCallArguments(symbolicTablePrefix(), actionName, *parameters);
-        state.addReachabilityMapping(action, actionHitCondition);
-        callAction(getProgramInfo(), actionState, actionType, arguments);
-        // Finally, merge in the state of the action call.
-        state.merge(actionState);
-    }
 }
 
-void TableExecutor::processTableActionOptions(const ExecutionState &referenceState,
+void TableExecutor::processTableActionOptions(const TableUtils::TableProperties &tableProperties,
+                                              const ExecutionState &referenceState,
                                               ReturnProperties &tableReturnProperties) const {
     auto table = getP4Table();
     auto tableActionList = TableUtils::buildTableActionList(table);
@@ -235,23 +202,33 @@ void TableExecutor::processTableActionOptions(const ExecutionState &referenceSta
     for (const auto *action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
-        auto *actionChoice =
-            new IR::Equ(tableActionID, IR::StringLiteral::get(actionType->controlPlaneName()));
-        const auto *actionHitCondition =
-            new IR::LAnd(tableReturnProperties.totalHitCondition, actionChoice);
+        const auto *actionLiteral = IR::StringLiteral::get(actionType->controlPlaneName());
+
+        auto *actionChoice = new IR::Equ(tableActionID, actionLiteral);
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
-            actionHitCondition, IR::StringLiteral::get(action->controlPlaneName()),
+            actionChoice, IR::StringLiteral::get(action->controlPlaneName()),
             tableReturnProperties.actionRun);
+        const IR::Expression *actionHitCondition =
+            new IR::LAnd(tableReturnProperties.totalHitCondition, actionChoice);
+        state.addReachabilityMapping(action, actionHitCondition);
+        // Synthesize arguments for the call based on the action parameters.
+        // If the default action is not immutable, it is possible to change it to any other action
+        // present in the table.
+        if (!tableProperties.defaultIsImmutable &&
+            (action->getAnnotation(IR::Annotation::tableOnlyAnnotation) != nullptr)) {
+            actionHitCondition = new IR::LOr(
+                actionHitCondition,
+                new IR::Equ(ControlPlaneState::getDefaultActionVariable(symbolicTablePrefix()),
+                            actionLiteral));
+        }
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();
-        // Synthesize arguments for the call based on the action parameters.
         const auto &parameters = actionType->parameters;
         // IMPORTANT: We clone 'referenceState' here, NOT 'state'.
         auto &actionState = referenceState.clone();
         actionState.pushExecutionCondition(actionHitCondition);
         auto arguments = createActionCallArguments(symbolicTablePrefix(), actionName, *parameters);
-        state.addReachabilityMapping(action, actionHitCondition);
         callAction(getProgramInfo(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
         state.merge(actionState);
@@ -288,10 +265,13 @@ const IR::Expression *TableExecutor::processTable() {
     const auto &referenceState = getExecutionState().clone();
 
     // First, execute the default action.
-    processDefaultAction(properties, tableReturnProperties);
+    processDefaultAction();
 
     // Execute all other possible action options. Get the combination of all possible hits.
-    processTableActionOptions(referenceState, tableReturnProperties);
+    processTableActionOptions(properties, referenceState, tableReturnProperties);
+    tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
+        tableReturnProperties.totalHitCondition, tableReturnProperties.actionRun,
+        IR::StringLiteral::get(TableUtils::getDefaultActionName(table)->toString()));
     return new IR::StructExpression(
         nullptr,
         {new IR::NamedExpression("hit", tableReturnProperties.totalHitCondition),
