@@ -36,13 +36,13 @@ class TableExecutor {
     };
 
     /// Handle the default action.
-    void processDefaultAction(const TableUtils::TableProperties &tableProperties,
-                              ReturnProperties &tableReturnProperties) const;
+    void processDefaultAction() const;
 
     /// Process all the possible actions in the table for which we could insert an entry.
     /// ReferenceState is the initial state of the table cloned before the default action was
     /// executed.
-    void processTableActionOptions(const ExecutionState &referenceState,
+    void processTableActionOptions(const TableUtils::TableProperties &tableProperties,
+                                   const ExecutionState &referenceState,
                                    ReturnProperties &tableReturnProperties) const;
 
  protected:
