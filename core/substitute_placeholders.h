@@ -28,6 +28,16 @@ class SubstitutePlaceHolders : public Transform {
     const IR::Expression *preorder(IR::Placeholder *placeholder) override;
 };
 
+class SubstituteSymbolicVariable : public Transform {
+    /// Reference to an existing execution state.
+    const ControlPlaneAssignmentSet &symbolicVariables;
+
+ public:
+    explicit SubstituteSymbolicVariable(const ControlPlaneAssignmentSet &symbolicVariables);
+
+    const IR::Expression *preorder(IR::SymbolicVariable *placeholder) override;
+};
+
 }  // namespace P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SUBSTITUTE_PLACEHOLDERS_H_ */

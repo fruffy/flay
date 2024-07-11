@@ -38,7 +38,8 @@ class TableMatchKey : public ControlPlaneItem {
     [[nodiscard]] cstring name() const;
 
     bool operator<(const ControlPlaneItem &other) const override;
-    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const override;
 
     [[nodiscard]] virtual const IR::Expression *computeControlPlaneConstraint() const {
         P4C_UNIMPLEMENTED("computeControlPlaneConstraint");
@@ -251,7 +252,8 @@ class TableMatchEntry : public ControlPlaneItem {
 
     [[nodiscard]] virtual const IR::Expression *computeControlPlaneConstraint() const;
 
-    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const override;
 
     DECLARE_TYPEINFO(TableMatchEntry);
 };
@@ -274,7 +276,8 @@ class TableDefaultAction : public ControlPlaneItem {
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const;
 
-    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const override;
 
     DECLARE_TYPEINFO(TableDefaultAction);
 };
@@ -293,7 +296,8 @@ class WildCardMatchEntry : public TableMatchEntry {
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
-    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const override;
 
     DECLARE_TYPEINFO(WildCardMatchEntry);
 };
@@ -325,6 +329,8 @@ class TableConfiguration : public ControlPlaneItem {
     };
 
  public:
+    [[nodiscard]] cstring tableName() const { return _tableName; }
+
     explicit TableConfiguration(cstring tableName, TableDefaultAction defaultTableAction,
                                 TableEntrySet tableEntries);
 
@@ -342,7 +348,8 @@ class TableConfiguration : public ControlPlaneItem {
     /// Set the default action for this table.
     void setDefaultTableAction(TableDefaultAction defaultTableAction);
 
-    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const override;
 
     DECLARE_TYPEINFO(TableConfiguration);
 };
@@ -362,7 +369,8 @@ class ParserValueSet : public ControlPlaneItem {
 
     bool operator<(const ControlPlaneItem &other) const override;
 
-    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const override;
 
     DECLARE_TYPEINFO(ParserValueSet);
 };
@@ -397,7 +405,8 @@ class ActionProfile : public ControlPlaneItem {
     /// Add the control plane name of a  table to the set of associated tables.
     void addAssociatedTable(cstring table);
 
-    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const override;
 
     DECLARE_TYPEINFO(ActionProfile);
 };
@@ -432,7 +441,8 @@ class ActionSelector : public ControlPlaneItem {
     /// Add the control plane name of a  table to the set of associated tables.
     void addAssociatedTable(cstring table);
 
-    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const override;
 
     DECLARE_TYPEINFO(ActionSelector);
 };
@@ -446,7 +456,8 @@ class TableActionSelectorConfiguration : public TableConfiguration {
                                               TableDefaultAction defaultTableAction,
                                               TableEntrySet tableEntries);
 
-    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const override;
 
     DECLARE_TYPEINFO(TableActionSelectorConfiguration);
 };

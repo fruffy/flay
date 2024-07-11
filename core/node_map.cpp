@@ -13,10 +13,10 @@ bool NodeAnnotationMap::initializeReachabilityMapping(const IR::Node *node,
 
     auto it = _reachabilityMap.find(node);
     if (it != _reachabilityMap.end()) {
-        it->second.addCondition(cond);
+        it->second->addCondition(cond);
         return false;
     }
-    return _reachabilityMap.emplace(node, ReachabilityExpression(cond)).second;
+    return _reachabilityMap.emplace(node, new ReachabilityExpression(cond)).second;
 }
 
 bool NodeAnnotationMap::initializeExpressionMapping(const IR::Expression *expression,
@@ -32,9 +32,23 @@ bool NodeAnnotationMap::initializeExpressionMapping(const IR::Expression *expres
     return result.second;
 }
 
+bool NodeAnnotationMap::initializeExpressionMapping(
+    const IR::Expression *expression, SubstitutionExpression *substitutionExpression) {
+    SymbolCollector collector;
+    substitutionExpression->originalExpression()->apply(collector);
+    const auto &collectedSymbols = collector.collectedSymbols();
+    for (const auto &symbol : collectedSymbols) {
+        _expressionSymbolMap[symbol.get()].emplace(expression);
+    }
+    auto result = _expressionMap.emplace(expression, substitutionExpression);
+    return result.second;
+}
+
 void NodeAnnotationMap::mergeAnnotationMapping(const NodeAnnotationMap &otherMap) {
     _reachabilityMap.insert(otherMap._reachabilityMap.begin(), otherMap._reachabilityMap.end());
     _expressionMap.insert(otherMap._expressionMap.begin(), otherMap._expressionMap.end());
+    _tableKeyConfigurations.insert(otherMap._tableKeyConfigurations.begin(),
+                                   otherMap._tableKeyConfigurations.end());
 
     for (const auto &symbol : otherMap.reachabilitySymbolMap()) {
         _reachabilitySymbolMap[symbol.first.get()].insert(symbol.second.begin(),
@@ -47,8 +61,8 @@ void NodeAnnotationMap::mergeAnnotationMapping(const NodeAnnotationMap &otherMap
 
 void NodeAnnotationMap::substitutePlaceholders(Transform &substitute) {
     for (auto &[node, reachabilityExpression] : _reachabilityMap) {
-        reachabilityExpression.setCondition(
-            reachabilityExpression.getCondition()->apply(substitute));
+        reachabilityExpression->setCondition(
+            reachabilityExpression->getCondition()->apply(substitute));
     }
     // TODO: Substitions for the expression map.
     P4C_UNIMPLEMENTED("NodeAnnotationMap::substitutePlaceholders not implemented");

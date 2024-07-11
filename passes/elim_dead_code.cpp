@@ -148,8 +148,14 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     auto tableActionList = TableUtils::buildTableActionList(table);
     for (const auto *action : tableActionList) {
         // We return if a single action is executable for the current table.
+        auto reachable = _reachabilityMap.get().isNodeReachable(action);
+        if (!reachable.has_value()) {
+            printInfo("action %1% is ambiguous.", action);
+            return stmt;
+        }
+        printInfo("Checking reachability of %1% : %2%", action,
+                  _reachabilityMap.get().isNodeReachable(action) ? "true" : "false");
         ASSIGN_OR_RETURN(auto reachability, _reachabilityMap.get().isNodeReachable(action), stmt);
-
         if (reachability) {
             printInfo("---DEAD_CODE--- %1% will always be executed.", action);
             return stmt;

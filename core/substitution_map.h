@@ -58,6 +58,8 @@ class Z3SolverSubstitutionMap : private Z3ExpressionMap, public AbstractSubstitu
                                                 const z3::expr_vector &variables,
                                                 const z3::expr_vector &variableAssignments);
 
+    std::map<cstring, const IR::Expression *> _tableKeyConfigurations;
+
  public:
     explicit Z3SolverSubstitutionMap(Z3Solver &solver, const NodeAnnotationMap &map);
 
@@ -74,6 +76,23 @@ class Z3SolverSubstitutionMap : private Z3ExpressionMap, public AbstractSubstitu
 
     std::optional<const IR::Literal *> isExpressionConstant(
         const IR::Expression *expression) const override;
+
+    bool addTableKeyConfiguration(cstring tableControlPlaneName, const IR::Expression *key) {
+        _tableKeyConfigurations[tableControlPlaneName] = key;
+        return true;
+    }
+    [[nodiscard]] const std::map<cstring, const IR::Expression *> &getTableKeyConfigurations()
+        const {
+        return _tableKeyConfigurations;
+    }
+    [[nodiscard]] std::optional<const IR::Expression *> getTableKeyConfigurations(
+        cstring tableControlPlaneName) const {
+        auto it = _tableKeyConfigurations.find(tableControlPlaneName);
+        if (it == _tableKeyConfigurations.end()) {
+            return std::nullopt;
+        }
+        return it->second;
+    }
 };
 
 }  // namespace P4Tools::Flay

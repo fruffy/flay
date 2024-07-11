@@ -1,6 +1,8 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_CONTROL_PLANE_ITEM_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CONTROL_PLANE_CONTROL_PLANE_ITEM_H_
 
+#include <z3++.h>
+
 #include <map>
 
 #include "ir/ir.h"
@@ -82,7 +84,8 @@ class ControlPlaneItem : public ICastable {
     virtual bool operator<(const ControlPlaneItem &other) const = 0;
 
     /// Get the control plane assignments produced by the control plane item.
-    [[nodiscard]] virtual ControlPlaneAssignmentSet computeControlPlaneAssignments() const = 0;
+    [[nodiscard]] virtual ControlPlaneAssignmentSet computeControlPlaneAssignments(
+        const std::map<cstring, const IR::Expression *> &symbolicAssignments) const = 0;
 };
 
 /// The constraints imposed by the control plane on the program. The map key is a unique

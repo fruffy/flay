@@ -4,7 +4,9 @@
 #include <utility>
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
+#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/core/substitute_placeholders.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::ControlPlaneState {
@@ -35,7 +37,8 @@ bool TableMatchKey::operator<(const ControlPlaneItem &other) const {
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
-ControlPlaneAssignmentSet TableMatchKey::computeControlPlaneAssignments() const {
+ControlPlaneAssignmentSet TableMatchKey::computeControlPlaneAssignments(
+    const std::map<cstring, const IR::Expression *> & /*symbolicAssignments*/) const {
     P4C_UNIMPLEMENTED("computeControlPlaneAssignments");
 }
 
@@ -166,7 +169,8 @@ const IR::Expression *TableMatchEntry::computeControlPlaneConstraint() const {
     return _matchExpression;
 }
 
-ControlPlaneAssignmentSet TableMatchEntry::computeControlPlaneAssignments() const {
+ControlPlaneAssignmentSet TableMatchEntry::computeControlPlaneAssignments(
+    const std::map<cstring, const IR::Expression *> & /*symbolicAssignments*/) const {
     return _matches;
 }
 
@@ -190,7 +194,8 @@ bool TableDefaultAction::operator<(const ControlPlaneItem &other) const {
     return _actionAssignmentExpression;
 }
 
-ControlPlaneAssignmentSet TableDefaultAction::computeControlPlaneAssignments() const {
+ControlPlaneAssignmentSet TableDefaultAction::computeControlPlaneAssignments(
+    const std::map<cstring, const IR::Expression *> & /*symbolicAssignments*/) const {
     return _actionAssignment;
 }
 
@@ -215,7 +220,10 @@ const IR::Expression *WildCardMatchEntry::computeControlPlaneConstraint() const 
     return _matchExpression;
 }
 
-ControlPlaneAssignmentSet WildCardMatchEntry::computeControlPlaneAssignments() const { return {}; }
+ControlPlaneAssignmentSet WildCardMatchEntry::computeControlPlaneAssignments(
+    const std::map<cstring, const IR::Expression *> & /*symbolicAssignments*/) const {
+    return {};
+}
 
 /**************************************************************************************************
 TableConfiguration
@@ -255,16 +263,26 @@ void TableConfiguration::setDefaultTableAction(TableDefaultAction defaultTableAc
     _defaultTableAction = std::move(defaultTableAction);
 }
 
-ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments() const {
-    auto defaultAssignments = _defaultTableAction.computeControlPlaneAssignments();
+ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments(
+    const std::map<cstring, const IR::Expression *> &symbolicAssignments) const {
+    auto defaultAssignments =
+        _defaultTableAction.computeControlPlaneAssignments(symbolicAssignments);
     defaultAssignments.emplace(*ControlPlaneState::getTableActive(_tableName),
                                *IR::BoolLiteral::get(_tableEntries.size() > 0));
     if (_tableEntries.size() == 0) {
         return defaultAssignments;
     }
+    auto key = symbolicAssignments.find(_tableName);
+    if (key == symbolicAssignments.end()) {
+        ::error("Table %s has no key", _tableName.c_str());
+        return {};
+    }
     for (const auto &tableEntry : _tableEntries) {
         const auto &actionAssignments = tableEntry.get().actionAssignment();
-        const auto *constraint = tableEntry.get().computeControlPlaneConstraint();
+        const auto keyAssignments =
+            tableEntry.get().computeControlPlaneAssignments(symbolicAssignments);
+        const auto *constraint = key->second->apply(SubstituteSymbolicVariable(keyAssignments));
+
         for (const auto &[variable, assignment] : actionAssignments) {
             auto it = defaultAssignments.find(variable);
             if (it != defaultAssignments.end()) {
@@ -288,7 +306,8 @@ bool ParserValueSet::operator<(const ControlPlaneItem &other) const {
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
-ControlPlaneAssignmentSet ParserValueSet::computeControlPlaneAssignments() const {
+ControlPlaneAssignmentSet ParserValueSet::computeControlPlaneAssignments(
+    const std::map<cstring, const IR::Expression *> & /*symbolicAssignments*/) const {
     return {{*ControlPlaneState::getParserValueSetConfigured(_name), *IR::BoolLiteral::get(false)}};
 }
 
@@ -306,7 +325,8 @@ const std::set<cstring> &ActionProfile::associatedTables() const { return _assoc
 
 void ActionProfile::addAssociatedTable(cstring table) { _associatedTables.insert(table); }
 
-ControlPlaneAssignmentSet ActionProfile::computeControlPlaneAssignments() const {
+ControlPlaneAssignmentSet ActionProfile::computeControlPlaneAssignments(
+    const std::map<cstring, const IR::Expression *> & /*symbolicAssignments*/) const {
     // Action profiles are indirect and associated with the constraints of a table.
     return {};
 }
@@ -332,7 +352,8 @@ void ActionSelector::addAssociatedTable(cstring table) {
 
 const ActionProfile &ActionSelector::actionProfile() const { return _actionProfile; }
 
-ControlPlaneAssignmentSet ActionSelector::computeControlPlaneAssignments() const {
+ControlPlaneAssignmentSet ActionSelector::computeControlPlaneAssignments(
+    const std::map<cstring, const IR::Expression *> & /*symbolicAssignments*/) const {
     // Action profiles are indirect and associated with the constraints of a table.
 
     return {};
@@ -346,7 +367,8 @@ TableActionSelectorConfiguration::TableActionSelectorConfiguration(
     cstring tableName, TableDefaultAction defaultTableAction, TableEntrySet tableEntries)
     : TableConfiguration(tableName, std::move(defaultTableAction), std::move(tableEntries)) {}
 
-ControlPlaneAssignmentSet TableActionSelectorConfiguration::computeControlPlaneAssignments() const {
+ControlPlaneAssignmentSet TableActionSelectorConfiguration::computeControlPlaneAssignments(
+    const std::map<cstring, const IR::Expression *> & /*symbolicAssignments*/) const {
     // This does nothing currently.
     return {};
 }

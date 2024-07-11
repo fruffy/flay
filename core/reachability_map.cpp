@@ -1,5 +1,6 @@
 #include "backends/p4tools/modules/flay/core/reachability_map.h"
 
+#include "backends/p4tools/common/lib/logging.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
@@ -20,8 +21,8 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
     }
     bool hasChanged = false;
     auto &reachabilityExpression = it->second;
-    const auto *reachabilityCondition = reachabilityExpression.getCondition();
-    auto reachabilityAssignment = reachabilityExpression.getReachability();
+    const auto *reachabilityCondition = reachabilityExpression->getCondition();
+    auto reachabilityAssignment = reachabilityExpression->getReachability();
 
     std::vector<const Constraint *> mergedConstraints(constraints);
     mergedConstraints.push_back(reachabilityCondition);
@@ -34,7 +35,7 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
 
     /// There is no way to satisfy the condition. It is always false.
     if (!solverResult.value()) {
-        reachabilityExpression.setReachability(false);
+        reachabilityExpression->setReachability(false);
         return !reachabilityAssignment.has_value() || reachabilityAssignment.value();
     }
 
@@ -48,12 +49,12 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
     }
     /// There is no way to falsify the condition. It is always true.
     if (!solverResult1.value()) {
-        reachabilityExpression.setReachability(true);
+        reachabilityExpression->setReachability(true);
         return !reachabilityAssignment.has_value() || !reachabilityAssignment.value();
     }
 
     if (solverResult.value() && solverResult1.value()) {
-        reachabilityExpression.setReachability(std::nullopt);
+        reachabilityExpression->setReachability(std::nullopt);
         hasChanged = reachabilityAssignment.has_value();
     }
 
@@ -63,7 +64,7 @@ std::optional<bool> SolverReachabilityMap::computeNodeReachability(
 std::optional<bool> SolverReachabilityMap::isNodeReachable(const IR::Node *node) const {
     auto it = find(node);
     if (it != end()) {
-        return it->second.getReachability();
+        return it->second->getReachability();
     }
     ::warning(
         "Unable to find node %1% in the reachability map of this execution state. There might be "
@@ -78,7 +79,8 @@ std::optional<bool> SolverReachabilityMap::recomputeReachability(
     std::vector<const Constraint *> constraints;
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
-            controlPlaneConstraint.get().computeControlPlaneAssignments();
+            controlPlaneConstraint.get().computeControlPlaneAssignments(
+                getTableKeyConfigurations());
         for (const auto &constraint : controlPlaneAssignments) {
             constraints.emplace_back(
                 new IR::Equ(&constraint.first.get(), &constraint.second.get()));
@@ -115,7 +117,8 @@ std::optional<bool> SolverReachabilityMap::recomputeReachability(
     std::vector<const Constraint *> constraints;
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
-            controlPlaneConstraint.get().computeControlPlaneAssignments();
+            controlPlaneConstraint.get().computeControlPlaneAssignments(
+                getTableKeyConfigurations());
         for (const auto &constraint : controlPlaneAssignments) {
             constraints.emplace_back(
                 new IR::Equ(&constraint.first.get(), &constraint.second.get()));
