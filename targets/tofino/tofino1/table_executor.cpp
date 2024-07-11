@@ -67,10 +67,10 @@ std::optional<const IR::IDeclaration *> checkForActionProfileOrSelector(
 
 }  // namespace
 
-const IR::Expression *Tofino1TableExecutor::computeHitCondition(const IR::Key &key) const {
-    const auto *hitCond = TofinoBaseTableExecutor::computeHitCondition(key);
+KeyMap Tofino1TableExecutor::computeHitCondition(const IR::Key &key) const {
+    auto keyMap = TofinoBaseTableExecutor::computeHitCondition(key);
     // TODO: Should we wrap this condition with an "action_profile_configured" symbolic variable?
-    return hitCond;
+    return keyMap;
 }
 
 Tofino1TableExecutor::Tofino1TableExecutor(const IR::P4Table &table,

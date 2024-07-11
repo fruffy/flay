@@ -17,7 +17,7 @@ V1ModelTableExecutor::V1ModelTableExecutor(const IR::P4Table &table,
                                            ExpressionResolver &callingResolver)
     : TableExecutor(table, callingResolver) {}
 
-const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
+const TableMatchKey *V1ModelTableExecutor::computeTargetMatchType(
     const IR::KeyElement *keyField) const {
     auto tableName = getP4Table().controlPlaneName();
     const auto *keyExpr = keyField->expression;
@@ -37,24 +37,19 @@ const IR::Expression *V1ModelTableExecutor::computeTargetMatchType(
         // Create a new symbolic variable that corresponds to the key expression.
         const auto *ctrlPlaneKey =
             ControlPlaneState::getTableKey(tableName, fieldName, keyExpr->type);
-        return new IR::Equ(keyExpr, ctrlPlaneKey);
+        return new OptionalMatchKey(fieldName, ctrlPlaneKey, keyExpr);
     }
     // Action selector entries are not part of the match but we still need to create a key.
     if (matchType == V1ModelConstants::MATCH_KIND_SELECTOR) {
         cstring keyName = tableName + "_selector_" + fieldName;
         const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
-        return new IR::Equ(keyExpr, ctrlPlaneKey);
+        return new SelectorMatchKey(keyName, ctrlPlaneKey, keyExpr);
     }
     if (matchType == V1ModelConstants::MATCH_KIND_RANGE) {
         // We can recover from taint by matching on the entire possible range.
-        const IR::Expression *minKey = nullptr;
-        const IR::Expression *maxKey = nullptr;
-        auto symbolicTableRange =
+        auto [minKey, maxKey] =
             Bmv2ControlPlaneState::getTableRange(tableName, fieldName, keyExpr->type);
-        minKey = symbolicTableRange.first;
-        maxKey = symbolicTableRange.second;
-        return new IR::LAnd(new IR::LAnd(new IR::Lss(minKey, maxKey), new IR::Leq(minKey, keyExpr)),
-                            new IR::Leq(keyExpr, maxKey));
+        return new RangeTableMatchKey(fieldName, minKey, maxKey, keyExpr);
     }
     // If the custom match type does not match, delete to the core match types.
     return TableExecutor::computeTargetMatchType(keyField);

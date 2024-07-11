@@ -92,28 +92,15 @@ const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
     return key;
 }
 
-const IR::Expression *TableExecutor::computeHitCondition(const IR::Key &key) const {
-    if (key.keyElements.empty()) {
-        return IR::BoolLiteral::get(false);
-    }
-    const IR::Expression *hitCondition = nullptr;
+KeyMap TableExecutor::computeHitCondition(const IR::Key &key) const {
+    KeyMap keyMap;
     for (const auto *keyField : key.keyElements) {
-        const auto *matchExpr = computeTargetMatchType(keyField);
-        if (hitCondition == nullptr) {
-            hitCondition = matchExpr;
-        } else {
-            hitCondition = new IR::LAnd(hitCondition, matchExpr);
-        }
+        keyMap.insert(computeTargetMatchType(keyField));
     }
-    // The table can only "hit" when it is actually configured by the control-plane.
-    // Pay attention to how we use "toString" for the path name here.
-    // We need to match these choices correctly. TODO: Make this very explicit.
-    hitCondition =
-        new IR::LAnd(ControlPlaneState::getTableActive(symbolicTablePrefix()), hitCondition);
-    return hitCondition;
+    return keyMap;
 }
 
-const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement *keyField) const {
+const TableMatchKey *TableExecutor::computeTargetMatchType(const IR::KeyElement *keyField) const {
     const auto *keyExpr = keyField->expression;
     const auto matchType = keyField->matchType->toString();
     const auto *nameAnnot = keyField->getAnnotation(IR::Annotation::nameAnnotation);
@@ -129,31 +116,17 @@ const IR::Expression *TableExecutor::computeTargetMatchType(const IR::KeyElement
         ControlPlaneState::getTableKey(symbolicTablePrefix(), fieldName, keyExpr->type);
 
     if (matchType == P4Constants::MATCH_KIND_EXACT) {
-        return new IR::Equ(keyExpr, ctrlPlaneKey);
+        return new ExactTableMatchKey(fieldName, ctrlPlaneKey, keyExpr);
     }
     if (matchType == P4Constants::MATCH_KIND_TERNARY) {
-        const IR::Expression *ternaryMask = nullptr;
-        ternaryMask =
+        const auto *ternaryMask =
             ControlPlaneState::getTableTernaryMask(symbolicTablePrefix(), fieldName, keyExpr->type);
-        return new IR::Equ(new IR::BAnd(keyExpr, ternaryMask),
-                           new IR::BAnd(ctrlPlaneKey, ternaryMask));
+        return new TernaryTableMatchKey(fieldName, ctrlPlaneKey, ternaryMask, keyExpr);
     }
     if (matchType == P4Constants::MATCH_KIND_LPM) {
-        const auto *keyType = keyExpr->type->checkedTo<IR::Type_Bits>();
-        auto keyWidth = keyType->width_bits();
-        const IR::Expression *maskVar = ControlPlaneState::getTableMatchLpmPrefix(
-            symbolicTablePrefix(), fieldName, keyExpr->type);
-        // The maxReturn is the maximum vale for the given bit width. This value is shifted by
-        // the mask variable to create a mask (and with that, a prefix).
-        auto maxReturn = IR::getMaxBvVal(keyWidth);
-        auto *prefix = new IR::Sub(IR::Constant::get(keyType, keyWidth), maskVar);
-        const IR::Expression *lpmMask = nullptr;
-        lpmMask = new IR::Shl(IR::Constant::get(keyType, maxReturn), prefix);
-        return new IR::LAnd(
-            // This is the actual LPM match under the shifted mask (the prefix).
-            new IR::Leq(maskVar, IR::Constant::get(keyType, keyWidth)),
-            // The mask variable shift should not be larger than the key width.
-            new IR::Equ(new IR::BAnd(keyExpr, lpmMask), new IR::BAnd(ctrlPlaneKey, lpmMask)));
+        const auto *maskVar = ControlPlaneState::getTableMatchLpmPrefix(symbolicTablePrefix(),
+                                                                        fieldName, keyExpr->type);
+        return new LpmTableMatchKey(fieldName, ctrlPlaneKey, keyExpr, maskVar);
     }
     P4C_UNIMPLEMENTED("Match type %s not implemented for table keys.", matchType);
 }
@@ -235,6 +208,26 @@ void TableExecutor::processTableActionOptions(const TableUtils::TableProperties 
     }
 }
 
+const IR::Expression *TableExecutor::buildKeyMatches(cstring tablePrefix, const KeyMap &keyMap) {
+    if (keyMap.empty()) {
+        return IR::BoolLiteral::get(false);
+    }
+    const IR::Expression *hitCondition = nullptr;
+    for (const auto *key : keyMap) {
+        const auto *matchExpr = key->computeControlPlaneConstraint();
+        if (hitCondition == nullptr) {
+            hitCondition = matchExpr;
+        } else {
+            hitCondition = new IR::LAnd(hitCondition, matchExpr);
+        }
+    }
+    // The table can only "hit" when it is actually configured by the control-plane.
+    // Pay attention to how we use "toString" for the path name here.
+    // We need to match these choices correctly. TODO: Make this very explicit.
+    hitCondition = new IR::LAnd(ControlPlaneState::getTableActive(tablePrefix), hitCondition);
+    return hitCondition;
+}
+
 const IR::Expression *TableExecutor::processTable() {
     const auto &table = getP4Table();
     TableUtils::TableProperties properties;
@@ -259,8 +252,9 @@ const IR::Expression *TableExecutor::processTable() {
     key = resolveKey(key);
 
     const auto *actionPath = TableUtils::getDefaultActionName(table);
-    ReturnProperties tableReturnProperties{computeHitCondition(*key),
-                                           IR::StringLiteral::get(actionPath->path->toString())};
+    ReturnProperties tableReturnProperties{
+        buildKeyMatches(symbolicTablePrefix(), computeHitCondition(*key)),
+        IR::StringLiteral::get(actionPath->path->toString())};
 
     const auto &referenceState = getExecutionState().clone();
 

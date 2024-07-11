@@ -24,6 +24,118 @@ const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName) {
 namespace P4Tools::Flay {
 
 /**************************************************************************************************
+TableMatchKeys
+**************************************************************************************************/
+
+TableMatchKey::TableMatchKey(cstring name) : _name(name){};
+
+cstring TableMatchKey::name() const { return _name; }
+
+bool TableMatchKey::operator<(const ControlPlaneItem &other) const {
+    return typeid(*this) == typeid(other) ? _name < static_cast<const TableMatchKey &>(other)._name
+                                          : typeid(*this).hash_code() < typeid(other).hash_code();
+}
+
+ControlPlaneAssignmentSet TableMatchKey::computeControlPlaneAssignments() const {
+    P4C_UNIMPLEMENTED("computeControlPlaneAssignments");
+}
+
+ExactTableMatchKey::ExactTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                                       const IR::Expression *value)
+    : TableMatchKey(name), _variable(variable), _keyExpression(value) {}
+
+const IR::SymbolicVariable *ExactTableMatchKey::variable() const { return _variable; }
+
+const IR::Expression *ExactTableMatchKey::keyExpression() const { return _keyExpression; }
+
+const IR::Expression *ExactTableMatchKey::computeControlPlaneConstraint() const {
+    return new IR::Equ(_variable, _keyExpression);
+}
+
+TernaryTableMatchKey::TernaryTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                                           const IR::SymbolicVariable *mask,
+                                           const IR::Expression *_keyExpression)
+    : TableMatchKey(name), _variable(variable), _mask(mask), _keyExpression(_keyExpression) {}
+
+const IR::SymbolicVariable *TernaryTableMatchKey::variable() const { return _variable; }
+
+const IR::Expression *TernaryTableMatchKey::keyExpression() const { return _keyExpression; }
+
+const IR::SymbolicVariable *TernaryTableMatchKey::mask() const { return _mask; }
+
+const IR::Expression *TernaryTableMatchKey::computeControlPlaneConstraint() const {
+    return new IR::Equ(new IR::BAnd(_keyExpression, _mask), new IR::BAnd(_variable, _mask));
+}
+
+LpmTableMatchKey::LpmTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                                   const IR::Expression *value, const IR::SymbolicVariable *prefix)
+    : TableMatchKey(name), _variable(variable), _keyExpression(value), _prefixVar(prefix) {}
+
+const IR::SymbolicVariable *LpmTableMatchKey::variable() const { return _variable; }
+
+const IR::Expression *LpmTableMatchKey::keyExpression() const { return _keyExpression; }
+
+const IR::SymbolicVariable *LpmTableMatchKey::prefix() const { return _prefixVar; }
+
+const IR::Expression *LpmTableMatchKey::computeControlPlaneConstraint() const {
+    // The maxReturn is the maximum vale for the given bit width. This value is
+    // shifted by the mask variable to create a mask (and with that, a prefix).
+    const auto *keyType = _variable->type;
+    auto keyWidth = keyType->width_bits();
+    auto maxReturn = IR::getMaxBvVal(keyWidth);
+    auto *prefix = new IR::Sub(IR::Constant::get(keyType, keyWidth), _prefixVar);
+    const IR::Expression *lpmMask = new IR::Shl(IR::Constant::get(keyType, maxReturn), prefix);
+    return new IR::LAnd(
+        // This is the actual LPM match under the shifted mask (the prefix).
+        new IR::Leq(_prefixVar, IR::Constant::get(keyType, keyWidth)),
+        // The mask variable shift should not be larger than the key width.
+        new IR::Equ(new IR::BAnd(_keyExpression, lpmMask), new IR::BAnd(_variable, lpmMask)));
+}
+
+OptionalMatchKey::OptionalMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                                   const IR::Expression *value)
+    : TableMatchKey(name), _variable(variable), _keyExpression(value) {}
+
+const IR::SymbolicVariable *OptionalMatchKey::variable() const { return _variable; }
+
+const IR::Expression *OptionalMatchKey::keyExpression() const { return _keyExpression; }
+
+const IR::Expression *OptionalMatchKey::computeControlPlaneConstraint() const {
+    return new IR::Equ(_variable, _keyExpression);
+}
+
+SelectorMatchKey::SelectorMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                                   const IR::Expression *value)
+    : TableMatchKey(name), _variable(variable), _keyExpression(value) {}
+
+const IR::SymbolicVariable *SelectorMatchKey::variable() const { return _variable; }
+
+const IR::Expression *SelectorMatchKey::keyExpression() const { return _keyExpression; }
+
+const IR::Expression *SelectorMatchKey::computeControlPlaneConstraint() const {
+    return new IR::Equ(_variable, _keyExpression);
+}
+
+RangeTableMatchKey::RangeTableMatchKey(cstring name, const IR::SymbolicVariable *minKey,
+
+                                       const IR::SymbolicVariable *maxKey,
+                                       const IR::Expression *value)
+
+    : TableMatchKey(name), _minKey(minKey), _maxKey(maxKey), _keyExpression(value) {}
+
+const IR::SymbolicVariable *RangeTableMatchKey::minKey() const { return _minKey; }
+
+const IR::Expression *RangeTableMatchKey::maxKey() const { return _maxKey; }
+
+const IR::Expression *RangeTableMatchKey::keyExpression() const { return _keyExpression; }
+
+const IR::Expression *RangeTableMatchKey::computeControlPlaneConstraint() const {
+    return new IR::LAnd(
+        new IR::LAnd(new IR::Lss(_minKey, _maxKey), new IR::Leq(_minKey, _keyExpression)),
+        new IR::Leq(_keyExpression, _maxKey));
+}
+
+/**************************************************************************************************
 TableMatchEntry
 **************************************************************************************************/
 
