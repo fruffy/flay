@@ -1,7 +1,6 @@
 #include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
 
 #include <cstdlib>
-#include <queue>
 #include <utility>
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
@@ -256,27 +255,6 @@ void TableConfiguration::setDefaultTableAction(TableDefaultAction defaultTableAc
     _defaultTableAction = std::move(defaultTableAction);
 }
 
-const IR::Expression *TableConfiguration::computeControlPlaneConstraint() const {
-    const auto *tableConfigured = new IR::Equ(ControlPlaneState::getTableActive(_tableName),
-                                              IR::BoolLiteral::get(_tableEntries.size() > 0));
-    const IR::Expression *matchExpression = _defaultTableAction.computeControlPlaneConstraint();
-    if (_tableEntries.size() == 0) {
-        return new IR::LAnd(matchExpression, tableConfigured);
-    }
-    // TODO: Do we need this priority calculation?
-    // Maybe we should consider resolving overlapping entries beforehand.
-    std::priority_queue sortedTableEntries(_tableEntries.begin(), _tableEntries.end(),
-                                           CompareTableMatch());
-    while (!sortedTableEntries.empty()) {
-        const auto &tableEntry = sortedTableEntries.top().get();
-        matchExpression = new IR::Mux(tableEntry.computeControlPlaneConstraint(),
-                                      tableEntry.actionAssignmentExpression(), matchExpression);
-        sortedTableEntries.pop();
-    }
-
-    return new IR::LAnd(matchExpression, tableConfigured);
-}
-
 ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments() const {
     auto defaultAssignments = _defaultTableAction.computeControlPlaneAssignments();
     defaultAssignments.emplace(*ControlPlaneState::getTableActive(_tableName),
@@ -285,10 +263,16 @@ ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments() c
         return defaultAssignments;
     }
     for (const auto &tableEntry : _tableEntries) {
-        const auto &matchAssignments = tableEntry.get().computeControlPlaneAssignments();
         const auto &actionAssignments = tableEntry.get().actionAssignment();
-        defaultAssignments.insert(matchAssignments.begin(), matchAssignments.end());
-        defaultAssignments.insert(actionAssignments.begin(), actionAssignments.end());
+        const auto *constraint = tableEntry.get().computeControlPlaneConstraint();
+        for (const auto &[variable, assignment] : actionAssignments) {
+            auto it = defaultAssignments.find(variable);
+            if (it != defaultAssignments.end()) {
+                it->second = *new IR::Mux(constraint, &assignment.get(), &it->second.get());
+            } else {
+                defaultAssignments.insert({variable, assignment});
+            }
+        }
     }
     return defaultAssignments;
 }
@@ -302,11 +286,6 @@ ParserValueSet::ParserValueSet(cstring name) : _name(name) {}
 bool ParserValueSet::operator<(const ControlPlaneItem &other) const {
     return typeid(*this) == typeid(other) ? _name < static_cast<const ParserValueSet &>(other)._name
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
-}
-
-const IR::Expression *ParserValueSet::computeControlPlaneConstraint() const {
-    return new IR::Equ(ControlPlaneState::getParserValueSetConfigured(_name),
-                       IR::BoolLiteral::get(false));
 }
 
 ControlPlaneAssignmentSet ParserValueSet::computeControlPlaneAssignments() const {
@@ -327,12 +306,10 @@ const std::set<cstring> &ActionProfile::associatedTables() const { return _assoc
 
 void ActionProfile::addAssociatedTable(cstring table) { _associatedTables.insert(table); }
 
-const IR::Expression *ActionProfile::computeControlPlaneConstraint() const {
+ControlPlaneAssignmentSet ActionProfile::computeControlPlaneAssignments() const {
     // Action profiles are indirect and associated with the constraints of a table.
-    return IR::BoolLiteral::get(true);
+    return {};
 }
-
-ControlPlaneAssignmentSet ActionProfile::computeControlPlaneAssignments() const { return {}; }
 
 /**************************************************************************************************
 ActionSelector
@@ -355,12 +332,11 @@ void ActionSelector::addAssociatedTable(cstring table) {
 
 const ActionProfile &ActionSelector::actionProfile() const { return _actionProfile; }
 
-const IR::Expression *ActionSelector::computeControlPlaneConstraint() const {
+ControlPlaneAssignmentSet ActionSelector::computeControlPlaneAssignments() const {
     // Action profiles are indirect and associated with the constraints of a table.
-    return IR::BoolLiteral::get(true);
-}
 
-ControlPlaneAssignmentSet ActionSelector::computeControlPlaneAssignments() const { return {}; }
+    return {};
+}
 
 /**************************************************************************************************
 TableActionSelectorConfiguration
@@ -369,11 +345,6 @@ TableActionSelectorConfiguration
 TableActionSelectorConfiguration::TableActionSelectorConfiguration(
     cstring tableName, TableDefaultAction defaultTableAction, TableEntrySet tableEntries)
     : TableConfiguration(tableName, std::move(defaultTableAction), std::move(tableEntries)) {}
-
-const IR::Expression *TableActionSelectorConfiguration::computeControlPlaneConstraint() const {
-    // This does nothing currently.
-    return IR::BoolLiteral::get(true);
-}
 
 ControlPlaneAssignmentSet TableActionSelectorConfiguration::computeControlPlaneAssignments() const {
     // This does nothing currently.

@@ -14,18 +14,6 @@ bool CloneSession::operator<(const ControlPlaneItem &other) const {
 
 void CloneSession::setSessionId(uint32_t sessionId) { this->sessionId = sessionId; }
 
-const IR::Expression *CloneSession::computeControlPlaneConstraint() const {
-    const auto *cloneActive = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(),
-                                                                  cstring("clone_session_active"));
-    if (!sessionId.has_value()) {
-        return new IR::Equ(cloneActive, IR::BoolLiteral::get(false));
-    }
-    const auto *sessionIdExpr =
-        new IR::Equ(Bmv2ControlPlaneState::getCloneSessionId(IR::Type_Bits::get(32)),
-                    IR::Constant::get(IR::Type_Bits::get(32), sessionId.value()));
-    return new IR::LAnd(new IR::Equ(cloneActive, IR::BoolLiteral::get(false)), sessionIdExpr);
-}
-
 ControlPlaneAssignmentSet CloneSession::computeControlPlaneAssignments() const {
     ControlPlaneAssignmentSet assignmentSet;
     const auto *cloneActive = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(),

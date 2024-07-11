@@ -34,8 +34,8 @@ struct IsSemanticallyLessPairComparator {
 };
 
 using ControlPlaneAssignmentSet =
-    std::multimap<std::reference_wrapper<const IR::SymbolicVariable>,
-                  std::reference_wrapper<const IR::Expression>, IR::IsSemanticallyLessComparator>;
+    std::map<std::reference_wrapper<const IR::SymbolicVariable>,
+             std::reference_wrapper<const IR::Expression>, IR::IsSemanticallyLessComparator>;
 struct IsSemanticallyLessControlPlaneAssignmentSetComparator {
     bool operator()(const ControlPlaneAssignmentSet &s1,
                     const ControlPlaneAssignmentSet &s2) const {
@@ -80,9 +80,6 @@ class ControlPlaneItem : public ICastable {
     ~ControlPlaneItem() override = default;
 
     virtual bool operator<(const ControlPlaneItem &other) const = 0;
-
-    /// Generate an expression that represents the constraint imposed by the control plane item.
-    [[nodiscard]] virtual const IR::Expression *computeControlPlaneConstraint() const = 0;
 
     /// Get the control plane assignments produced by the control plane item.
     [[nodiscard]] virtual ControlPlaneAssignmentSet computeControlPlaneAssignments() const = 0;

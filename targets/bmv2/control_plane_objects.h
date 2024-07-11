@@ -28,8 +28,6 @@ class CloneSession : public ControlPlaneItem {
 
     void setSessionId(uint32_t sessionId);
 
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
-
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(CloneSession);
