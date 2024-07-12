@@ -25,6 +25,191 @@ const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName);
 namespace P4Tools::Flay {
 
 /**************************************************************************************************
+TableMatchKeys
+**************************************************************************************************/
+class TableMatchKey : public ControlPlaneItem {
+    /// The control plane identifier for this match key.
+    cstring _name;
+
+ public:
+    explicit TableMatchKey(cstring name);
+
+    /// @returns the control plane identifier for this match key.
+    [[nodiscard]] cstring name() const;
+
+    bool operator<(const ControlPlaneItem &other) const override;
+    [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+
+    DECLARE_TYPEINFO(TableMatchKey);
+};
+
+/// An exact match kind on a key field means that the value of the field in the table specifies
+/// exactly the value the lookup key field must have in order to match. This is applicable for all
+/// legal key fields whose types support equality comparisons.
+class ExactTableMatchKey : public TableMatchKey {
+    /// The symbolic variable that represents the table match key.
+    const IR::SymbolicVariable *_variable;
+
+    /// The value expression the key must match on.
+    const IR::Expression *_keyExpression;
+
+ public:
+    explicit ExactTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                                const IR::Expression *value);
+
+    /// @returns the symbolic variable that represents the table match key.
+    [[nodiscard]] const IR::SymbolicVariable *variable() const;
+
+    /// @returns the value expression the key must match on.
+    [[nodiscard]] const IR::Expression *keyExpression() const;
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(ExactTableMatchKey);
+};
+
+/// A ternary match kind on a key field means that the field in the table specifies a set of values
+/// for the key field using a value and a mask. The meaning of the (value, mask) pair is similar to
+/// the P4 mask expressions, as described in Section 8.15.3: a key field k matches the table entry
+/// when k & mask == value & mask.
+class TernaryTableMatchKey : public TableMatchKey {
+    /// The symbolic variable that represents the table match key.
+    const IR::SymbolicVariable *_variable;
+
+    /// The mask for the table match key.
+    const IR::SymbolicVariable *_mask;
+
+    /// The value expression the key must match on.
+    const IR::Expression *_keyExpression;
+
+ public:
+    TernaryTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                         const IR::SymbolicVariable *mask, const IR::Expression *_keyExpression);
+
+    /// @returns the symbolic variable that represents the table match key.
+    [[nodiscard]] const IR::SymbolicVariable *variable() const;
+
+    /// @returns the value expression the key must match on.
+    [[nodiscard]] const IR::Expression *keyExpression() const;
+
+    /// @returns the mask for the table match key.
+    [[nodiscard]] const IR::SymbolicVariable *mask() const;
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(TernaryTableMatchKey);
+};
+
+/// An lpm (longest prefix match) match kind on a key field is a specific type of ternary match
+/// where the mask is required to have a form in binary that is a contiguous set of 1 bits followed
+/// by a contiguous set of 0 bits. Masks with more 1 bits have automatically higher priorities. A
+/// mask with all bits 0 is legal.
+class LpmTableMatchKey : public TableMatchKey {
+    /// The symbolic variable that represents the table match key.
+    const IR::SymbolicVariable *_variable;
+
+    /// The value expression the key must match on.
+    const IR::Expression *_keyExpression;
+
+    /// The symbolic variable that represents the prefix.
+    const IR::SymbolicVariable *_prefixVar;
+
+ public:
+    LpmTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                     const IR::Expression *value, const IR::SymbolicVariable *prefix);
+
+    /// @returns the symbolic variable that represents the table match key.
+    [[nodiscard]] const IR::SymbolicVariable *variable() const;
+
+    /// @returns the value expression the key must match on.
+    [[nodiscard]] const IR::Expression *keyExpression() const;
+
+    /// @returns the symbolic variable that represents the prefix.
+    [[nodiscard]] const IR::SymbolicVariable *prefix() const;
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(LpmTableMatchKey);
+};
+
+/// See
+/// https://github.com/p4lang/behavioral-model/blob/main/docs/simple_switch.md#table-match-kinds-supported
+class OptionalMatchKey : public TableMatchKey {
+    /// The symbolic variable that represents the table match key.
+    const IR::SymbolicVariable *_variable;
+
+    /// The value expression the key must match on.
+    const IR::Expression *_keyExpression;
+
+ public:
+    explicit OptionalMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                              const IR::Expression *value);
+
+    /// @returns the symbolic variable that represents the table match key.
+    [[nodiscard]] const IR::SymbolicVariable *variable() const;
+
+    /// @returns the value expression the key must match on.
+    [[nodiscard]] const IR::Expression *keyExpression() const;
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(OptionalMatchKey);
+};
+
+/// See
+/// https://github.com/p4lang/behavioral-model/blob/main/docs/simple_switch.md#table-match-kinds-supported
+class SelectorMatchKey : public TableMatchKey {
+    /// The symbolic variable that represents the table match key.
+    const IR::SymbolicVariable *_variable;
+
+    /// The value expression the key must match on.
+    const IR::Expression *_keyExpression;
+
+ public:
+    explicit SelectorMatchKey(cstring name, const IR::SymbolicVariable *variable,
+                              const IR::Expression *value);
+
+    /// @returns the symbolic variable that represents the table match key.
+    [[nodiscard]] const IR::SymbolicVariable *variable() const;
+
+    /// @returns the value expression the key must match on.
+    [[nodiscard]] const IR::Expression *keyExpression() const;
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(SelectorMatchKey);
+};
+
+class RangeTableMatchKey : public TableMatchKey {
+    /// The symbolic variable that represents the minimum table match key.
+    const IR::SymbolicVariable *_minKey;
+
+    /// The symbolic variable that represents the maximum table match key.
+    const IR::SymbolicVariable *_maxKey;
+
+    /// The value expression the key must match on.
+    const IR::Expression *_keyExpression;
+
+ public:
+    RangeTableMatchKey(cstring name, const IR::SymbolicVariable *minKey,
+
+                       const IR::SymbolicVariable *maxKey, const IR::Expression *value);
+
+    /// @returns the symbolic variable that represents the minimum table match key.
+    [[nodiscard]] const IR::SymbolicVariable *minKey() const;
+
+    /// @returns the symbolic variable that represents the maximum table match key.
+    [[nodiscard]] const IR::Expression *maxKey() const;
+
+    /// @returns the value expression the key must match on.
+    [[nodiscard]] const IR::Expression *keyExpression() const;
+
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+
+    DECLARE_TYPEINFO(RangeTableMatchKey);
+};
+
+/**************************************************************************************************
 TableMatchEntry
 **************************************************************************************************/
 
@@ -53,7 +238,7 @@ class TableMatchEntry : public ControlPlaneItem {
     [[nodiscard]] ControlPlaneAssignmentSet actionAssignment() const;
 
     /// @returns the expression correlating to the action that will be executed by this entry.
-    const IR::Expression *actionAssignmentExpression() const;
+    [[nodiscard]] const IR::Expression *actionAssignmentExpression() const;
 
     /// @returns the priority of this entry.
     [[nodiscard]] int32_t priority() const;
@@ -117,7 +302,8 @@ TableConfiguration
 using TableEntrySet =
     std::set<std::reference_wrapper<const TableMatchEntry>, std::less<const TableMatchEntry>>;
 
-/// Concrete configuration of a control plane table. May contain arbitrary many table match entries.
+/// Concrete configuration of a control plane table. May contain arbitrary many table match
+/// entries.
 class TableConfiguration : public ControlPlaneItem {
     /// The control plane name of the table that is being configured.
     cstring _tableName;
@@ -186,8 +372,8 @@ ActionProfile
 **************************************************************************************************/
 
 /// An action profile. Action profiles are programmed like a table, but each table associated
-/// with the respective table shares the action profile configuration. Hence, we use a set of table
-/// control plane names to represent this data structure.
+/// with the respective table shares the action profile configuration. Hence, we use a set of
+/// table control plane names to represent this data structure.
 class ActionProfile : public ControlPlaneItem {
     /// The control plane name of the action profile.
     cstring _name;
@@ -223,8 +409,8 @@ ActionSelector
 **************************************************************************************************/
 
 /// An action selector. Action selectors are programmed like a table, but each table associated
-/// with the respective table shares the action selector configuration. Hence, we use a set of table
-/// control plane names to represent this data structure.
+/// with the respective table shares the action selector configuration. Hence, we use a set of
+/// table control plane names to represent this data structure.
 class ActionSelector : public ControlPlaneItem {
     /// The reference to the action profile associated with the selector.
     std::reference_wrapper<ActionProfile> _actionProfile;

@@ -12,7 +12,7 @@ class TofinoBaseTableExecutor : public TableExecutor {
  protected:
     /// Compute a table key match. Can be overridden by targets to add more match types.
     /// @returns the full match expression for the key given the table match types.
-    const IR::Expression *computeTargetMatchType(const IR::KeyElement *keyField) const override;
+    const TableMatchKey *computeTargetMatchType(const IR::KeyElement *keyField) const override;
 
  public:
     explicit TofinoBaseTableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver);

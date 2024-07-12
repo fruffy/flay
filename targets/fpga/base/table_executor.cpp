@@ -3,6 +3,7 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/fpga/constants.h"
@@ -16,13 +17,12 @@ FpgaBaseTableExecutor::FpgaBaseTableExecutor(const IR::P4Table &table,
                                              ExpressionResolver &callingResolver)
     : TableExecutor(table, callingResolver) {}
 
-const IR::Expression *FpgaBaseTableExecutor::computeTargetMatchType(
+const TableMatchKey *FpgaBaseTableExecutor::computeTargetMatchType(
     const IR::KeyElement *keyField) const {
     auto tableName = getP4Table().controlPlaneName();
     const auto *keyExpr = keyField->expression;
     const auto matchType = keyField->matchType->toString();
     const auto *nameAnnot = keyField->getAnnotation(IR::Annotation::nameAnnotation);
-    bool isTainted = false;
     // Some hidden tables do not have any key name annotations.
     BUG_CHECK(nameAnnot != nullptr /* || properties.tableIsImmutable*/,
               "Non-constant table key without an annotation");
@@ -35,33 +35,21 @@ const IR::Expression *FpgaBaseTableExecutor::computeTargetMatchType(
     if (matchType == FpgaBaseConstants::MATCH_KIND_OPT) {
         // We can recover from taint by simply not adding the optional match.
         // Create a new symbolic variable that corresponds to the key expression.
-        cstring keyName = tableName + "_key_" + fieldName;
-        const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
-        if (isTainted) {
-            return IR::BoolLiteral::get(true);
-        }
-        return new IR::Equ(keyExpr, ctrlPlaneKey);
+        const auto *ctrlPlaneKey =
+            ControlPlaneState::getTableKey(tableName, fieldName, keyExpr->type);
+        return new OptionalMatchKey(fieldName, ctrlPlaneKey, keyExpr);
     }
-    // Action selector entries are not part of the match.
+    // Action selector entries are not part of the match but we still need to create a key.
     if (matchType == FpgaBaseConstants::MATCH_KIND_SELECTOR) {
-        return IR::BoolLiteral::get(true);
+        cstring keyName = tableName + "_selector_" + fieldName;
+        const auto *ctrlPlaneKey = ToolsVariables::getSymbolicVariable(keyExpr->type, keyName);
+        return new SelectorMatchKey(keyName, ctrlPlaneKey, keyExpr);
     }
     if (matchType == FpgaBaseConstants::MATCH_KIND_RANGE) {
-        cstring minName = tableName + "_range_min_" + fieldName;
-        cstring maxName = tableName + "_range_max_" + fieldName;
         // We can recover from taint by matching on the entire possible range.
-        const IR::Expression *minKey = nullptr;
-        const IR::Expression *maxKey = nullptr;
-        if (isTainted) {
-            minKey = IR::Constant::get(keyExpr->type, 0);
-            maxKey = IR::Constant::get(keyExpr->type, IR::getMaxBvVal(keyExpr->type));
-            keyExpr = minKey;
-        } else {
-            minKey = ToolsVariables::getSymbolicVariable(keyExpr->type, minName);
-            maxKey = ToolsVariables::getSymbolicVariable(keyExpr->type, maxName);
-        }
-        return new IR::LAnd(new IR::LAnd(new IR::Lss(minKey, maxKey), new IR::Leq(minKey, keyExpr)),
-                            new IR::Leq(keyExpr, maxKey));
+        auto [minKey, maxKey] =
+            Bmv2ControlPlaneState::getTableRange(tableName, fieldName, keyExpr->type);
+        return new RangeTableMatchKey(fieldName, minKey, maxKey, keyExpr);
     }
     // If the custom match type does not match, delete to the core match types.
     return TableExecutor::computeTargetMatchType(keyField);
