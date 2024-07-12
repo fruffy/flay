@@ -40,6 +40,10 @@ class TableMatchKey : public ControlPlaneItem {
     bool operator<(const ControlPlaneItem &other) const override;
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
+    [[nodiscard]] virtual const IR::Expression *computeControlPlaneConstraint() const {
+        P4C_UNIMPLEMENTED("computeControlPlaneConstraint");
+    }
+
     DECLARE_TYPEINFO(TableMatchKey);
 };
 
@@ -245,7 +249,7 @@ class TableMatchEntry : public ControlPlaneItem {
 
     bool operator<(const ControlPlaneItem &other) const override;
 
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+    [[nodiscard]] virtual const IR::Expression *computeControlPlaneConstraint() const;
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
@@ -268,7 +272,7 @@ class TableDefaultAction : public ControlPlaneItem {
 
     bool operator<(const ControlPlaneItem &other) const override;
 
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const;
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
@@ -338,8 +342,6 @@ class TableConfiguration : public ControlPlaneItem {
     /// Set the default action for this table.
     void setDefaultTableAction(TableDefaultAction defaultTableAction);
 
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
-
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(TableConfiguration);
@@ -359,8 +361,6 @@ class ParserValueSet : public ControlPlaneItem {
     explicit ParserValueSet(cstring name);
 
     bool operator<(const ControlPlaneItem &other) const override;
-
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
@@ -397,8 +397,6 @@ class ActionProfile : public ControlPlaneItem {
     /// Add the control plane name of a  table to the set of associated tables.
     void addAssociatedTable(cstring table);
 
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
-
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(ActionProfile);
@@ -434,8 +432,6 @@ class ActionSelector : public ControlPlaneItem {
     /// Add the control plane name of a  table to the set of associated tables.
     void addAssociatedTable(cstring table);
 
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
-
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(ActionSelector);
@@ -449,8 +445,6 @@ class TableActionSelectorConfiguration : public TableConfiguration {
     explicit TableActionSelectorConfiguration(cstring tableName,
                                               TableDefaultAction defaultTableAction,
                                               TableEntrySet tableEntries);
-
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 

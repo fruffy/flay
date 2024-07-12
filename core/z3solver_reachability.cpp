@@ -1,5 +1,7 @@
 #include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
 
+#include <z3++.h>
+
 #include <cstdio>
 #include <utility>
 
@@ -93,9 +95,14 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
     _solver.push();
+    Z3Translator z3Translator(_solver);
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
-        const auto *constraint = controlPlaneConstraint.get().computeControlPlaneConstraint();
-        _solver.asrt(constraint);
+        const auto &controlPlaneAssignments =
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
+        for (const auto &constraint : controlPlaneAssignments) {
+            _solver.asrt((z3::operator==(z3Translator.translate(&constraint.first.get()),
+                                         z3Translator.translate(&constraint.second.get()))));
+        }
     }
     auto result = _solver.checkSat();
     if (result == std::nullopt || !result.value()) {
@@ -135,9 +142,14 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const NodeSet &targetNodes, const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
     _solver.push();
+    Z3Translator z3Translator(_solver);
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
-        const auto *constraint = controlPlaneConstraint.get().computeControlPlaneConstraint();
-        _solver.asrt(constraint);
+        const auto &controlPlaneAssignments =
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
+        for (const auto &constraint : controlPlaneAssignments) {
+            _solver.asrt((z3::operator==(z3Translator.translate(&constraint.first.get()),
+                                         z3Translator.translate(&constraint.second.get()))));
+        }
     }
     auto result = _solver.checkSat();
     if (result == std::nullopt || !result.value()) {

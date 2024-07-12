@@ -77,9 +77,13 @@ std::optional<bool> SolverReachabilityMap::recomputeReachability(
     /// Generate IR equalities from the control plane constraints.
     std::vector<const Constraint *> constraints;
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
-        constraints.push_back(controlPlaneConstraint.get().computeControlPlaneConstraint());
+        const auto &controlPlaneAssignments =
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
+        for (const auto &constraint : controlPlaneAssignments) {
+            constraints.emplace_back(
+                new IR::Equ(&constraint.first.get(), &constraint.second.get()));
+        }
     }
-
     bool hasChanged = false;
     for (auto &pair : *this) {
         auto result = computeNodeReachability(pair.first, constraints);
@@ -110,7 +114,12 @@ std::optional<bool> SolverReachabilityMap::recomputeReachability(
     /// Generate IR equalities from the control plane constraints.
     std::vector<const Constraint *> constraints;
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
-        constraints.push_back(controlPlaneConstraint.get().computeControlPlaneConstraint());
+        const auto &controlPlaneAssignments =
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
+        for (const auto &constraint : controlPlaneAssignments) {
+            constraints.emplace_back(
+                new IR::Equ(&constraint.first.get(), &constraint.second.get()));
+        }
     }
     bool hasChanged = false;
     for (const auto *node : targetNodes) {
