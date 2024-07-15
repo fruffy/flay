@@ -208,7 +208,7 @@ ControlPlaneStateInitializer::computeDefaultActionConstraints(const IR::P4Table 
 
     ControlPlaneAssignmentSet defaultActionConstraints;
     defaultActionConstraints.emplace(*ControlPlaneState::getTableActionChoice(tableName),
-                                     *selectedAction);
+                                     *IR::StringLiteral::get(cstring("*NONE*")));
     defaultActionConstraints.emplace(*ControlPlaneState::getDefaultActionVariable(tableName),
                                      *selectedAction);
     const auto *arguments = actionCall.arguments;

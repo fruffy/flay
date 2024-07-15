@@ -1,4 +1,3 @@
-
 #include "backends/p4tools/modules/flay/core/table_executor.h"
 
 #include <cstddef>
@@ -192,8 +191,10 @@ void TableExecutor::processTableActionOptions(const TableUtils::TableProperties 
             (action->getAnnotation(IR::Annotation::tableOnlyAnnotation) != nullptr)) {
             actionHitCondition = new IR::LOr(
                 actionHitCondition,
-                new IR::Equ(ControlPlaneState::getDefaultActionVariable(symbolicTablePrefix()),
-                            actionLiteral));
+                new IR::LAnd(
+                    new IR::LNot(tableReturnProperties.totalHitCondition),
+                    new IR::Equ(ControlPlaneState::getDefaultActionVariable(symbolicTablePrefix()),
+                                actionLiteral)));
         }
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();

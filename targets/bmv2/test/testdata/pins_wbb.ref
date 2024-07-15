@@ -1,14 +1,11 @@
-Eliminated node at line 510: l3_admit_table.apply();
-Eliminated node at line 412: vrf_table.apply();
-Eliminated node at line 413: if (local_metadata.admit_to_l3) {
-Eliminated node at line 612: acl_wbb_ingress_table.apply();
-Eliminated node at line 516: if (local_metadata.admit_to_l3) {
-Eliminated node at line 483: if (local_metadata.mirror_session_id_valid) {
-Eliminated node at line 537: if (local_metadata.admit_to_l3) {
-Replaced node at line 276: neighbor_id_value : exact @id(2) @format(IPV6_ADDRESS) @name("neighbor_id"); with 0
-Replaced node at line 334: local_metadata.wcmp_selector_input: selector; with 0
-statement_count_before:116
-statement_count_after:100
-cyclomatic_complexity:73
-num_parsers_paths:10
+Eliminated node at line 317: ttl = headers.ipv4.ttl;
+Eliminated node at line 318: } else if (headers.ipv6.isValid()) {
+Eliminated node at line 321: acl_wbb_ingress_table.apply();
+Replaced node at line 301: headers.ethernet.ether_type : ternary @name("ether_type") @id(3) @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE); with 0
+Replaced node at line 302: ttl : ternary @name("ttl") @id(4) @sai_field(SAI_ACL_TABLE_ATTR_FIELD_TTL); with 0
+Replaced node at line 303: headers.ipv4.header_checksum[11:0]: ternary @name("outer_vlan_id") @id(5) @sai_field(SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID); with 0
+statement_count_before:11
+statement_count_after:8
+cyclomatic_complexity:7
+num_parsers_paths:1
 
