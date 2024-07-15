@@ -192,8 +192,7 @@ void TableExecutor::processTableActionOptions(const TableUtils::TableProperties 
             actionHitCondition = new IR::LOr(
                 actionHitCondition,
                 new IR::LAnd(
-                    new IR::LAnd(new IR::LNot(tableReturnProperties.totalHitCondition),
-                                 actionChoice),
+                    new IR::LNot(tableReturnProperties.totalHitCondition),
                     new IR::Equ(ControlPlaneState::getDefaultActionVariable(symbolicTablePrefix()),
                                 actionLiteral)));
         }

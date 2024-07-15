@@ -15,7 +15,7 @@ p4tools_add_test_with_args(
 p4tools_add_test_with_args(
   P4TEST "${P4C_SOURCE_DIR}/testdata/p4_16_samples/pins/pins_middleblock.p4"
   TAG "flay-bmv2-v1model-config" ALIAS "pins_middleblock.p4" DRIVER ${FLAY_REFERENCE_DRIVER}
-  TARGET "bmv2" ARCH "v1model" CONTROL_PLANE_UPDATES "${CMAKE_CURRENT_LIST_DIR}/protos/pins_middleblock/update*.txtpb" TEST_ARGS "-I${P4C_BINARY_DIR}/p4include ${CONFIG_EXTRA_OPTS}"
+  TARGET "bmv2" ARCH "v1model" CONTROL_PLANE_UPDATES "${CMAKE_CURRENT_LIST_DIR}/protos/pins_middleblock/update*.txtpb" TEST_ARGS "-I${P4C_BINARY_DIR}/p4include  --user-p4info ${CMAKE_CURRENT_LIST_DIR}/protos/pins_middleblock/p4info.txtpb ${CONFIG_EXTRA_OPTS}"
 )
 
 p4tools_add_test_with_args(
