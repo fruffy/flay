@@ -246,6 +246,10 @@ bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
+void TableConfiguration::setTableKeyMatch(const IR::Expression *tableKeyMatch) {
+    _tableKeyMatch = tableKeyMatch;
+}
+
 int TableConfiguration::addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace) {
     if (replace) {
         _tableEntries.erase(tableMatchEntry);
@@ -272,16 +276,12 @@ ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments(
     if (_tableEntries.size() == 0) {
         return defaultAssignments;
     }
-    auto key = symbolicAssignments.find(_tableName);
-    if (key == symbolicAssignments.end()) {
-        ::error("Table %s has no key", _tableName.c_str());
-        return {};
-    }
+
     for (const auto &tableEntry : _tableEntries) {
         const auto &actionAssignments = tableEntry.get().actionAssignment();
         const auto keyAssignments =
             tableEntry.get().computeControlPlaneAssignments(symbolicAssignments);
-        const auto *constraint = key->second->apply(SubstituteSymbolicVariable(keyAssignments));
+        const auto *constraint = _tableKeyMatch->apply(SubstituteSymbolicVariable(keyAssignments));
 
         for (const auto &[variable, assignment] : actionAssignments) {
             auto it = defaultAssignments.find(variable);

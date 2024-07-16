@@ -270,8 +270,18 @@ const IR::Expression *TableExecutor::processTable() {
     tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
         tableReturnProperties.totalHitCondition, tableReturnProperties.actionRun,
         IR::StringLiteral::get(TableUtils::getDefaultActionName(table)->toString()));
-    getExecutionState().addTableKeyAnnotation(table.controlPlaneName(),
-                                              tableReturnProperties.totalHitCondition);
+
+    // Add the computed hit expression of the table to its control plane configuration.
+    // We substitute this match later with concrete assignments.
+    auto tableControlPlaneItem = controlPlaneConstraints().find(table.controlPlaneName());
+    if (tableControlPlaneItem != controlPlaneConstraints().end()) {
+        auto *tableControlPlaneConfiguration =
+            tableControlPlaneItem->second.get().checkedTo<TableConfiguration>();
+        tableControlPlaneConfiguration->setTableKeyMatch(tableReturnProperties.totalHitCondition);
+    } else {
+        ::error("Table %s has no control plane configuration", table.controlPlaneName());
+    }
+
     return new IR::StructExpression(
         nullptr,
         {new IR::NamedExpression("hit", tableReturnProperties.totalHitCondition),
