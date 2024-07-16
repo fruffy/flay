@@ -159,25 +159,6 @@ void ExecutionState::addExpressionMapping(const IR::Expression *expression,
     }
 }
 
-void ExecutionState::addSubstitutionMapping(const IR::Expression *expression,
-                                            SubstitutionExpression *SubstitutionExpression) {
-    // TODO: Think about better handling of these types of errors?
-    if (!expression->type->is<IR::Type_Bits>()) {
-        return;
-    }
-
-    bool notAlreadyInMap =
-        _nodeAnnotationMap.initializeExpressionMapping(expression, SubstitutionExpression);
-    if (!notAlreadyInMap && FlayOptions::get().isStrict()) {
-        // Throw a fatal error if we try to add a duplicate mapping.
-        // This can affect the correctness of the entire mapping.
-        BUG("Expression mapping for expression %1% already exists. Every mapping must be "
-            "uniquely "
-            "identifiable under strict mode.",
-            expression);
-    }
-}
-
 void ExecutionState::setPlaceholderValue(cstring label, const IR::Expression *value) {
     const auto *placeholderVar = new IR::Member(value->type, &PLACEHOLDER_LABEL, label);
     set(placeholderVar, value);

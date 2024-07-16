@@ -32,23 +32,9 @@ bool NodeAnnotationMap::initializeExpressionMapping(const IR::Expression *expres
     return result.second;
 }
 
-bool NodeAnnotationMap::initializeExpressionMapping(
-    const IR::Expression *expression, SubstitutionExpression *substitutionExpression) {
-    SymbolCollector collector;
-    substitutionExpression->originalExpression()->apply(collector);
-    const auto &collectedSymbols = collector.collectedSymbols();
-    for (const auto &symbol : collectedSymbols) {
-        _expressionSymbolMap[symbol.get()].emplace(expression);
-    }
-    auto result = _expressionMap.emplace(expression, substitutionExpression);
-    return result.second;
-}
-
 void NodeAnnotationMap::mergeAnnotationMapping(const NodeAnnotationMap &otherMap) {
     _reachabilityMap.insert(otherMap._reachabilityMap.begin(), otherMap._reachabilityMap.end());
     _expressionMap.insert(otherMap._expressionMap.begin(), otherMap._expressionMap.end());
-    _tableKeyConfigurations.insert(otherMap._tableKeyConfigurations.begin(),
-                                   otherMap._tableKeyConfigurations.end());
 
     for (const auto &symbol : otherMap.reachabilitySymbolMap()) {
         _reachabilitySymbolMap[symbol.first.get()].insert(symbol.second.begin(),

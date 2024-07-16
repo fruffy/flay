@@ -14,8 +14,7 @@ bool CloneSession::operator<(const ControlPlaneItem &other) const {
 
 void CloneSession::setSessionId(uint32_t sessionId) { this->sessionId = sessionId; }
 
-ControlPlaneAssignmentSet CloneSession::computeControlPlaneAssignments(
-    const std::map<cstring, const IR::Expression *> & /*tableKeyAssignments*/) const {
+ControlPlaneAssignmentSet CloneSession::computeControlPlaneAssignments() const {
     ControlPlaneAssignmentSet assignmentSet;
     const auto *cloneActive = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(),
                                                                   cstring("clone_session_active"));

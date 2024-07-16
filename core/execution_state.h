@@ -27,9 +27,6 @@ class ExecutionState : public AbstractExecutionState {
 
     /// A static label for placeholder variables used in Flay.
     static const IR::PathExpression PLACEHOLDER_LABEL;
-
-    /// Additional constraints placed on a particular symbolic variable.
-    std::map<IR::SymbolicVariable, std::set<const IR::Expression *>> _variableConstraints;
     /* =========================================================================================
      *  Accessors
      * =========================================================================================
@@ -74,20 +71,6 @@ class ExecutionState : public AbstractExecutionState {
 
     /// Map the interpreter value to a particular expression in the program.
     void addExpressionMapping(const IR::Expression *expression, const IR::Expression *value);
-
-    /// Map the interpreter value to a particular expression in the program.
-    void addSubstitutionMapping(const IR::Expression *expression,
-                                SubstitutionExpression *substitutionExpression);
-
-    /// Map a table value to a particular expression in the program.
-    void addTableKeyAnnotation(cstring tableName, const IR::Expression *value) {
-        _nodeAnnotationMap.addTableKeyConfiguration(tableName, value);
-    }
-
-    [[nodiscard]] const std::map<IR::SymbolicVariable, std::set<const IR::Expression *>> &
-    getVariableConstraints() const {
-        return _variableConstraints;
-    }
 
     /// Convenience function to set the value of a placeholder variables in the
     /// symbolic environment. An example where placeholder variables are necessary

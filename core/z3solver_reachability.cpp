@@ -1,7 +1,6 @@
 #include "backends/p4tools/modules/flay/core/z3solver_reachability.h"
 
 #include <z3++.h>
-#include <z3_api.h>
 
 #include <cstdio>
 #include <utility>
@@ -59,15 +58,6 @@ Z3SolverReachabilityMap::Z3SolverReachabilityMap(const NodeAnnotationMap &map)
         //           reachabilityExpression->getCondition());
         // printInfo("##############");
     }
-    for (const auto &[tableControlPlaneName, tableKeyExpression] :
-         map.getTableKeyConfigurations()) {
-        addTableKeyConfiguration(tableControlPlaneName, tableKeyExpression);
-    }
-    for (const auto &[tableControlPlaneName, tableKeyExpression] :
-         map.getTableKeyConfigurations()) {
-        addZ3TableKeyConfiguration(tableControlPlaneName,
-                                   z3Translator.translate(tableKeyExpression));
-    }
 }
 
 std::optional<bool> Z3SolverReachabilityMap::isNodeReachable(const IR::Node *node) const {
@@ -93,8 +83,7 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     auto variableAssignments = z3::expr_vector(_solver.mutableContext());
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
-            controlPlaneConstraint.get().computeControlPlaneAssignments(
-                getTableKeyConfigurations());
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
         for (const auto &constraint : controlPlaneAssignments) {
             // printInfo("Added constraint: %1% -> %2%", constraint.first.get(),
             //           constraint.second.get());
@@ -136,8 +125,7 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     auto variableAssignments = z3::expr_vector(_solver.mutableContext());
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
-            controlPlaneConstraint.get().computeControlPlaneAssignments(
-                getTableKeyConfigurations());
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
         for (const auto &constraint : controlPlaneAssignments) {
             // printInfo("Added constraint: %1% -> %2%", constraint.first.get(),
             //           constraint.second.get());

@@ -5,7 +5,6 @@
 #include <optional>
 
 #include "backends/p4tools/common/core/z3_solver.h"
-#include "backends/p4tools/common/lib/logging.h"
 #include "lib/error.h"
 #include "lib/timer.h"
 
@@ -20,10 +19,6 @@ Z3SolverSubstitutionMap::Z3SolverSubstitutionMap(Z3Solver &solver, const NodeAnn
             substitutionExpression->condition(), substitutionExpression->originalExpression(),
             translator.translate(substitutionExpression->originalExpression()).simplify());
         emplace(node, z3SubstitutionExpression);
-    }
-    for (const auto &[tableControlPlaneName, tableKeyExpression] :
-         map.getTableKeyConfigurations()) {
-        addTableKeyConfiguration(tableControlPlaneName, tableKeyExpression);
     }
 }
 
@@ -76,11 +71,9 @@ std::optional<bool> Z3SolverSubstitutionMap::recomputeSubstitution(
     auto variables = z3::expr_vector(_solver.get().mutableContext());
     auto variableAssignments = z3::expr_vector(_solver.get().mutableContext());
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
-        const auto &entityConstraints = controlPlaneConstraint.get().computeControlPlaneAssignments(
-            getTableKeyConfigurations());
+        const auto &entityConstraints =
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
         for (const auto &constraint : entityConstraints) {
-            // printInfo("Adding substitute %1% -> %2%", constraint.first.get(),
-            // constraint.second.get());
             variables.push_back(translator.translate(&constraint.first.get()));
             variableAssignments.push_back(translator.translate(&constraint.second.get()));
         }
@@ -119,11 +112,9 @@ std::optional<bool> Z3SolverSubstitutionMap::recomputeSubstitution(
     auto variables = z3::expr_vector(_solver.get().mutableContext());
     auto variableAssignments = z3::expr_vector(_solver.get().mutableContext());
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
-        const auto &entityConstraints = controlPlaneConstraint.get().computeControlPlaneAssignments(
-            getTableKeyConfigurations());
+        const auto &entityConstraints =
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
         for (const auto &constraint : entityConstraints) {
-            // printInfo("Adding substitute %1% -> %2%", constraint.first.get(),
-            // constraint.second.get());
             variables.push_back(translator.translate(&constraint.first.get()));
             variableAssignments.push_back(translator.translate(&constraint.second.get()));
         }

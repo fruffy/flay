@@ -50,8 +50,6 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
     /// The solver used to compute reachability.
     std::reference_wrapper<AbstractSolver> _solver;
 
-    std::map<cstring, const IR::Expression *> _tableKeyConfigurations;
-
     /// Compute reachability for the node given the set of constraints.
     std::optional<bool> computeNodeReachability(const IR::Node *node,
                                                 const std::vector<const Constraint *> &constraints);
@@ -71,23 +69,6 @@ class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabili
         const ControlPlaneConstraints &controlPlaneConstraints) override;
 
     std::optional<bool> isNodeReachable(const IR::Node *node) const override;
-
-    bool addTableKeyConfiguration(cstring tableControlPlaneName, const IR::Expression *key) {
-        _tableKeyConfigurations[tableControlPlaneName] = key;
-        return true;
-    }
-    [[nodiscard]] const std::map<cstring, const IR::Expression *> &getTableKeyConfigurations()
-        const {
-        return _tableKeyConfigurations;
-    }
-    [[nodiscard]] std::optional<const IR::Expression *> getTableKeyConfigurations(
-        cstring tableControlPlaneName) const {
-        auto it = _tableKeyConfigurations.find(tableControlPlaneName);
-        if (it == _tableKeyConfigurations.end()) {
-            return std::nullopt;
-        }
-        return it->second;
-    }
 };
 
 }  // namespace P4Tools::Flay

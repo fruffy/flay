@@ -50,21 +50,6 @@ struct ReachabilityExpression {
     [[nodiscard]] const IR::Expression *getCondition() const;
 };
 
-// struct TableReachabilityExpression : public ReachabilityExpression {
-//  private:
-//     /// The conditions for the table to be executable.
-//     const IR::Expression *tableHitCondition{};
-
-//     /// The current assigned value to `cond`. If the value is std::nullopt, the result is
-//     ambiguous.
-//     /// Otherwise, cond is considered either true or false and thus always or never true.
-//     std::optional<bool> _reachabilityAssignment;
-
-//  public:
-//     explicit TableReachabilityExpression(ReachabilityExpression expr)
-//         : ReachabilityExpression(expr) {}
-// };
-
 /// Convenience type definition for a mapping of nodes to a set of reachability expressions.
 using ReachabilityMap = std::map<const IR::Node *, ReachabilityExpression *, SourceIdCmp>;
 

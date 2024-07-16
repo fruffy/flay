@@ -26,8 +26,6 @@ class NodeAnnotationMap {
     /// node annotation map. This map can we used for incremental re-computation.
     SymbolMap _reachabilitySymbolMap;
 
-    std::map<cstring, const IR::Expression *> _tableKeyConfigurations;
-
  public:
     /// Initialize the reachability mapping for the given node.
     /// @returns false if the node is already mapped.
@@ -37,11 +35,6 @@ class NodeAnnotationMap {
     /// @returns false if the node is already mapped.
     bool initializeExpressionMapping(const IR::Expression *expression, const IR::Expression *value,
                                      const IR::Expression *cond);
-
-    /// Initialize the expression mapping for the given node.
-    /// @returns false if the node is already mapped.
-    bool initializeExpressionMapping(const IR::Expression *expression,
-                                     SubstitutionExpression *substitutionExpression);
 
     /// Merge an other node annotation map into this node annotation map.
     void mergeAnnotationMapping(const NodeAnnotationMap &otherMap);
@@ -60,23 +53,6 @@ class NodeAnnotationMap {
 
     /// @returns the expression map associated with the node annotation map.
     [[nodiscard]] ExpressionMap expressionMap() const;
-
-    bool addTableKeyConfiguration(cstring tableControlPlaneName, const IR::Expression *key) {
-        _tableKeyConfigurations[tableControlPlaneName] = key;
-        return true;
-    }
-    [[nodiscard]] const std::map<cstring, const IR::Expression *> &getTableKeyConfigurations()
-        const {
-        return _tableKeyConfigurations;
-    }
-    [[nodiscard]] std::optional<const IR::Expression *> getTableKeyConfiguration(
-        cstring tableControlPlaneName) const {
-        auto it = _tableKeyConfigurations.find(tableControlPlaneName);
-        if (it == _tableKeyConfigurations.end()) {
-            return std::nullopt;
-        }
-        return it->second;
-    }
 };
 
 }  // namespace P4Tools::Flay

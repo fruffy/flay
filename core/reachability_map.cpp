@@ -1,6 +1,5 @@
 #include "backends/p4tools/modules/flay/core/reachability_map.h"
 
-#include "backends/p4tools/common/lib/logging.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
@@ -79,8 +78,7 @@ std::optional<bool> SolverReachabilityMap::recomputeReachability(
     std::vector<const Constraint *> constraints;
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
-            controlPlaneConstraint.get().computeControlPlaneAssignments(
-                getTableKeyConfigurations());
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
         for (const auto &constraint : controlPlaneAssignments) {
             constraints.emplace_back(
                 new IR::Equ(&constraint.first.get(), &constraint.second.get()));
@@ -117,8 +115,7 @@ std::optional<bool> SolverReachabilityMap::recomputeReachability(
     std::vector<const Constraint *> constraints;
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
-            controlPlaneConstraint.get().computeControlPlaneAssignments(
-                getTableKeyConfigurations());
+            controlPlaneConstraint.get().computeControlPlaneAssignments();
         for (const auto &constraint : controlPlaneAssignments) {
             constraints.emplace_back(
                 new IR::Equ(&constraint.first.get(), &constraint.second.get()));
