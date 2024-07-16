@@ -183,6 +183,9 @@ void TableExecutor::processTableActionOptions(const TableUtils::TableProperties 
         const auto *actionLiteral = IR::StringLiteral::get(actionType->controlPlaneName());
 
         auto *actionChoice = new IR::LAnd(tableActive, new IR::Equ(tableActionID, actionLiteral));
+        tableReturnProperties.totalHitCondition = new IR::LOr(
+            tableReturnProperties.totalHitCondition, new IR::Equ(tableActionID, actionLiteral));
+
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
             actionChoice, IR::StringLiteral::get(action->controlPlaneName()),
@@ -210,6 +213,9 @@ void TableExecutor::processTableActionOptions(const TableUtils::TableProperties 
         // Finally, merge in the state of the action call.
         state.merge(actionState);
     }
+    tableReturnProperties.totalHitCondition =
+        new IR::LAnd(tableReturnProperties.totalHitCondition,
+                     ControlPlaneState::getTableActive(symbolicTablePrefix()));
 }
 
 const IR::Expression *TableExecutor::buildKeyMatches(cstring tablePrefix, const KeyMap &keyMap) {
@@ -254,11 +260,12 @@ const IR::Expression *TableExecutor::processTable() {
                                      IR::StringLiteral::get(table.controlPlaneName()))});
     }
     key = resolveKey(key);
+    const auto *tableKeyExpression =
+        buildKeyMatches(symbolicTablePrefix(), computeHitCondition(*key));
 
     const auto *actionPath = TableUtils::getDefaultActionName(table);
-    ReturnProperties tableReturnProperties{
-        buildKeyMatches(symbolicTablePrefix(), computeHitCondition(*key)),
-        IR::StringLiteral::get(actionPath->path->toString())};
+    ReturnProperties tableReturnProperties{IR::BoolLiteral::get(false),
+                                           IR::StringLiteral::get(actionPath->path->toString())};
 
     const auto &referenceState = getExecutionState().clone();
 
@@ -277,7 +284,7 @@ const IR::Expression *TableExecutor::processTable() {
     if (tableControlPlaneItem != controlPlaneConstraints().end()) {
         auto *tableControlPlaneConfiguration =
             tableControlPlaneItem->second.get().checkedTo<TableConfiguration>();
-        tableControlPlaneConfiguration->setTableKeyMatch(tableReturnProperties.totalHitCondition);
+        tableControlPlaneConfiguration->setTableKeyMatch(tableKeyExpression);
     } else {
         ::error("Table %s has no control plane configuration", table.controlPlaneName());
     }
