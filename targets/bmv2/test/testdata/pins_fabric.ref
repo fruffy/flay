@@ -1,43 +1,43 @@
-Eliminated node at line 984: ipv6_tunnel_termination_table.apply();
-Eliminated node at line 854: disable_vlan_checks_table.apply();
-Eliminated node at line 1546: acl_pre_ingress_table.apply();
-Eliminated node at line 992: if (local_metadata.apply_tunnel_decap_at_end_of_pre_ingress) {
-Eliminated node at line 791: l3_admit_table.apply();
-Eliminated node at line 523: vrf_table.apply();
-Replaced node at line 526: ipv4_table.apply(); with routing_lookup_drop_0/drop();
-Eliminated node at line 527: ipv4_multicast_table.apply();
-Replaced node at line 530: ipv6_table.apply(); with routing_lookup_drop_1/drop();
-Eliminated node at line 531: ipv6_multicast_table.apply();
-Eliminated node at line 1407: acl_ingress_table.apply();
-Eliminated node at line 1408: acl_ingress_counting_table.apply();
-Eliminated node at line 1409: acl_ingress_qos_table.apply();
-Eliminated node at line 649: if (local_metadata.wcmp_group_id_valid) {
-Eliminated node at line 652: if (local_metadata.nexthop_id_valid) {
-Eliminated node at line 665: if (local_metadata.acl_drop) {
-Eliminated node at line 734: if (local_metadata.marked_to_mirror) {
-Eliminated node at line 704: ingress_clone_table.apply();
+Eliminated node at line 992: ipv6_tunnel_termination_table.apply();
+Eliminated node at line 862: disable_vlan_checks_table.apply();
+Eliminated node at line 1554: acl_pre_ingress_table.apply();
+Eliminated node at line 1000: if (local_metadata.apply_tunnel_decap_at_end_of_pre_ingress) {
+Eliminated node at line 799: l3_admit_table.apply();
+Eliminated node at line 531: vrf_table.apply();
+Replaced node at line 534: ipv4_table.apply(); with routing_lookup_drop_0/drop();
+Eliminated node at line 535: ipv4_multicast_table.apply();
+Replaced node at line 538: ipv6_table.apply(); with routing_lookup_drop_1/drop();
+Eliminated node at line 539: ipv6_multicast_table.apply();
+Eliminated node at line 1415: acl_ingress_table.apply();
+Eliminated node at line 1416: acl_ingress_counting_table.apply();
+Eliminated node at line 1417: acl_ingress_qos_table.apply();
+Eliminated node at line 657: if (local_metadata.wcmp_group_id_valid) {
+Eliminated node at line 660: if (local_metadata.nexthop_id_valid) {
+Eliminated node at line 673: if (local_metadata.acl_drop) {
+Eliminated node at line 742: if (local_metadata.marked_to_mirror) {
+Eliminated node at line 712: ingress_clone_table.apply();
 Eliminated node at line (unknown): 
-Eliminated node at line 928: multicast_router_interface_table.apply();
-Eliminated node at line 938: if (local_metadata.enable_src_mac_rewrite) {
-Eliminated node at line 941: if (local_metadata.enable_dst_mac_rewrite) {
-Eliminated node at line 944: if (local_metadata.enable_vlan_rewrite) {
-Eliminated node at line 798: if (local_metadata.apply_tunnel_encap_at_egress) {
-Eliminated node at line 742: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2) {
-Eliminated node at line 870: mark_to_drop(standard_metadata);
-Eliminated node at line 1101: acl_egress_table.apply();
-Eliminated node at line 1102: if (local_metadata.acl_drop) {
-Replaced node at line 1212: local_metadata.route_metadata : optional @id(18) @name("route_metadata") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META); with 0
-Replaced node at line 1266: local_metadata.route_metadata : ternary @id(15) @name("route_metadata") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META); with 0
-Replaced node at line 1298: local_metadata.route_metadata : ternary @id(18) @name("route_metadata") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META); with 0
-Replaced node at line 551: neighbor_id_value : exact @id(2) @format(IPV6_ADDRESS) @name("neighbor_id"); with 0
-Replaced node at line 1048: (port_id_t)standard_metadata.egress_port : optional @id(4) @name("out_port") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT); with 0
-Replaced node at line 1627: if (!(standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 1)) { with 0
-Replaced node at line 742: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2) { with 0
-Replaced node at line 869: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2 && !(local_metadata.mirror_encap_vlan_id == NO_VLAN_ID || local_metadata.mirror_encap_vlan_id == INTERNAL_VLAN_ID)) { with 0
-Replaced node at line 869: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2 && !(local_metadata.mirror_encap_vlan_id == NO_VLAN_ID || local_metadata.mirror_encap_vlan_id == INTERNAL_VLAN_ID)) { with 0
-Replaced node at line 869: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2 && !(local_metadata.mirror_encap_vlan_id == NO_VLAN_ID || local_metadata.mirror_encap_vlan_id == INTERNAL_VLAN_ID)) { with 0
-Replaced node at line 871: } else if (!(standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 1) && !(local_metadata.vlan_id == NO_VLAN_ID || local_metadata.vlan_id == INTERNAL_VLAN_ID)) { with 0
-Replaced node at line 880: if (!(local_metadata.vlan_id == NO_VLAN_ID || local_metadata.vlan_id == INTERNAL_VLAN_ID) && !(standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2)) { with 0
+Eliminated node at line 936: multicast_router_interface_table.apply();
+Eliminated node at line 946: if (local_metadata.enable_src_mac_rewrite) {
+Eliminated node at line 949: if (local_metadata.enable_dst_mac_rewrite) {
+Eliminated node at line 952: if (local_metadata.enable_vlan_rewrite) {
+Eliminated node at line 806: if (local_metadata.apply_tunnel_encap_at_egress) {
+Eliminated node at line 750: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2) {
+Eliminated node at line 878: mark_to_drop(standard_metadata);
+Eliminated node at line 1109: acl_egress_table.apply();
+Eliminated node at line 1110: if (local_metadata.acl_drop) {
+Replaced node at line 1220: local_metadata.route_metadata : optional @id(18) @name("route_metadata") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META); with 0
+Replaced node at line 1274: local_metadata.route_metadata : ternary @id(15) @name("route_metadata") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META); with 0
+Replaced node at line 1306: local_metadata.route_metadata : ternary @id(18) @name("route_metadata") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META); with 0
+Replaced node at line 559: neighbor_id_value : exact @id(2) @format(IPV6_ADDRESS) @name("neighbor_id"); with 0
+Replaced node at line 1056: (port_id_t)standard_metadata.egress_port : optional @id(4) @name("out_port") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT); with 0
+Replaced node at line 1635: if (!(standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 1)) { with 0
+Replaced node at line 750: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2) { with 0
+Replaced node at line 877: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2 && !(local_metadata.mirror_encap_vlan_id == NO_VLAN_ID || local_metadata.mirror_encap_vlan_id == INTERNAL_VLAN_ID)) { with 0
+Replaced node at line 877: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2 && !(local_metadata.mirror_encap_vlan_id == NO_VLAN_ID || local_metadata.mirror_encap_vlan_id == INTERNAL_VLAN_ID)) { with 0
+Replaced node at line 877: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2 && !(local_metadata.mirror_encap_vlan_id == NO_VLAN_ID || local_metadata.mirror_encap_vlan_id == INTERNAL_VLAN_ID)) { with 0
+Replaced node at line 879: } else if (!(standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 1) && !(local_metadata.vlan_id == NO_VLAN_ID || local_metadata.vlan_id == INTERNAL_VLAN_ID)) { with 0
+Replaced node at line 888: if (!(local_metadata.vlan_id == NO_VLAN_ID || local_metadata.vlan_id == INTERNAL_VLAN_ID) && !(standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2)) { with 0
 statement_count_before:341
 statement_count_after:264
 cyclomatic_complexity:154
