@@ -130,7 +130,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
                      EXIT_FAILURE);
 
     printInfo("Running analysis...");
-    SymbolicExecutor symbolicExecutor(*programInfo);
+    SymbolicExecutor symbolicExecutor(*programInfo, constraints);
     symbolicExecutor.run();
 
 #ifdef FLAY_WITH_GRPC
@@ -146,7 +146,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
 #endif
 
     RETURN_IF_FALSE(runServiceWrapper(flayOptions, flayCompilerResult,
-                                      symbolicExecutor.getExecutionState(), constraints),
+                                      symbolicExecutor.executionState(), constraints),
                     EXIT_FAILURE);
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -191,10 +191,10 @@ std::optional<FlayServiceStatistics> optimizeProgramImpl(
                      std::nullopt);
 
     printInfo("Running analysis...");
-    SymbolicExecutor symbolicExecutor(*programInfo);
+    SymbolicExecutor symbolicExecutor(*programInfo, constraints);
     symbolicExecutor.run();
 
-    return runServiceWrapper(flayOptions, flayCompilerResult, symbolicExecutor.getExecutionState(),
+    return runServiceWrapper(flayOptions, flayCompilerResult, symbolicExecutor.executionState(),
                              constraints);
 }
 

@@ -35,6 +35,7 @@ class XsaFlayTarget : public FpgaBaseFlayTarget {
     [[nodiscard]] const ArchSpec *getArchSpecImpl() const final;
 
     [[nodiscard]] FlayStepper &getStepperImpl(const ProgramInfo &programInfo,
+                                              ControlPlaneConstraints &constraints,
                                               ExecutionState &executionState) const final;
 };
 

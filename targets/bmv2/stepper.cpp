@@ -71,12 +71,13 @@ void V1ModelFlayStepper::initializeParserState(const IR::P4Parser &parser) {
 }
 
 V1ModelFlayStepper::V1ModelFlayStepper(const V1Model::Bmv2V1ModelProgramInfo &programInfo,
+                                       ControlPlaneConstraints &constraints,
                                        ExecutionState &executionState)
-    : FlayStepper(programInfo, executionState) {}
+    : FlayStepper(programInfo, constraints, executionState) {}
 
-V1ModelExpressionResolver &V1ModelFlayStepper::createExpressionResolver(
-    const ProgramInfo &programInfo, ExecutionState &executionState) const {
-    return *new V1ModelExpressionResolver(programInfo, executionState);
+V1ModelExpressionResolver &V1ModelFlayStepper::createExpressionResolver() const {
+    return *new V1ModelExpressionResolver(getProgramInfo(), controlPlaneConstraints(),
+                                          getExecutionState());
 }
 
 }  // namespace P4Tools::Flay::V1Model

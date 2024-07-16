@@ -93,7 +93,7 @@ bool ParserStepper::preorder(const IR::P4Parser *parser) {
 
 void ParserStepper::processSelectExpression(const IR::SelectExpression *selectExpr) {
     auto &executionState = getExecutionState();
-    auto &resolver = stepper.get().createExpressionResolver(getProgramInfo(), getExecutionState());
+    auto &resolver = stepper.get().createExpressionResolver();
     const auto *selectKeyExpr = resolver.computeResult(selectExpr->select);
 
     const IR::Expression *notCond = nullptr;
@@ -152,8 +152,8 @@ void ParserStepper::processSelectExpression(const IR::SelectExpression *selectEx
             selectState.pushExecutionCondition(new IR::LAnd(notCond, matchCond));
             notCond = new IR::LAnd(notCond, new IR::LNot(matchCond));
         }
-        auto subParserStepper =
-            ParserStepper(FlayTarget::getStepper(getProgramInfo(), selectState));
+        auto subParserStepper = ParserStepper(FlayTarget::getStepper(
+            getProgramInfo(), stepper.get().controlPlaneConstraints(), selectState));
         decl->apply(subParserStepper);
         // Save the state for later merging.
         accumulatedStates.emplace_back(selectState);

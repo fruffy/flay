@@ -13,6 +13,7 @@ class FpgaBaseFlayStepper : public FlayStepper {
 
  public:
     explicit FpgaBaseFlayStepper(const FpgaBaseProgramInfo &programInfo,
+                                 ControlPlaneConstraints &constraints,
                                  ExecutionState &executionState);
 
     void initializeState() override;

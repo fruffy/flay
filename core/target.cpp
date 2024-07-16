@@ -73,8 +73,9 @@ const FlayTarget &FlayTarget::get() { return Target::get<FlayTarget>(TOOL_NAME);
 const ArchSpec *FlayTarget::getArchSpec() { return get().getArchSpecImpl(); }
 
 FlayStepper &FlayTarget::getStepper(const ProgramInfo &programInfo,
+                                    ControlPlaneConstraints &constraints,
                                     ExecutionState &executionState) {
-    return get().getStepperImpl(programInfo, executionState);
+    return get().getStepperImpl(programInfo, constraints, executionState);
 }
 
 std::optional<ControlPlaneConstraints> FlayTarget::computeControlPlaneConstraints(

@@ -25,6 +25,7 @@ class FlayTarget : public CompilerTarget {
 
     /// @returns the stepper that will step through the program, tailored to the target.
     [[nodiscard]] static FlayStepper &getStepper(const ProgramInfo &programInfo,
+                                                 ControlPlaneConstraints &constraints,
                                                  ExecutionState &executionState);
 
     /// A vector that maps the architecture parameters of each pipe to the corresponding
@@ -45,6 +46,7 @@ class FlayTarget : public CompilerTarget {
 
     /// @see @getStepper.
     [[nodiscard]] virtual FlayStepper &getStepperImpl(const ProgramInfo &programInfo,
+                                                      ControlPlaneConstraints &constraints,
                                                       ExecutionState &executionState) const = 0;
 
     /// @see @produceProgramInfo.

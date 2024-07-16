@@ -15,13 +15,12 @@
 namespace P4Tools::Flay::Tofino {
 
 TofinoBaseExpressionResolver::TofinoBaseExpressionResolver(const ProgramInfo &programInfo,
+                                                           ControlPlaneConstraints &constraints,
                                                            ExecutionState &executionState)
-    : ExpressionResolver(programInfo, executionState) {}
+    : ExpressionResolver(programInfo, constraints, executionState) {}
 
 const IR::Expression *TofinoBaseExpressionResolver::processTable(const IR::P4Table *table) {
-    auto copy = TofinoBaseExpressionResolver(*this);
-    auto tableExecutor = TofinoBaseTableExecutor(*table, copy);
-    return tableExecutor.processTable();
+    return TofinoBaseTableExecutor(*table, *this).processTable();
 }
 
 // Provides implementations of Tofino externs.
@@ -474,7 +473,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
                   P4C_UNIMPLEMENTED("Unsupported parameter type %1%", paramType->node_type_name());
               }
           }
-          auto &applyStepper = FlayTarget::getStepper(externInfo.programInfo.get(), state);
+          auto &applyStepper = FlayTarget::getStepper(
+              externInfo.programInfo.get(), externInfo.controlPlaneConstraints.get(), state);
           applyDecl->body->apply(applyStepper);
           if (applyParameters->size() == 2) {
               return state.get(paramRefs.at(1));
@@ -583,7 +583,8 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
                                     paramType->node_type_name());
               }
           }
-          auto &applyStepper = FlayTarget::getStepper(externInfo.programInfo.get(), state);
+          auto &applyStepper = FlayTarget::getStepper(
+              externInfo.programInfo.get(), externInfo.controlPlaneConstraints.get(), state);
           applyDecl->body->apply(applyStepper);
           if (applyParameters->size() == 2) {
               return state.get(paramRefs.at(1));

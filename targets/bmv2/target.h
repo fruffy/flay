@@ -27,6 +27,7 @@ class V1ModelFlayTarget : public FlayTarget {
     [[nodiscard]] const ArchSpec *getArchSpecImpl() const override;
 
     [[nodiscard]] FlayStepper &getStepperImpl(const ProgramInfo &programInfo,
+                                              ControlPlaneConstraints &constraints,
                                               ExecutionState &executionState) const override;
 
  private:

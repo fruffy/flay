@@ -30,7 +30,8 @@ void FpgaBaseFlayStepper::initializeState() {
 }
 
 FpgaBaseFlayStepper::FpgaBaseFlayStepper(const FpgaBaseProgramInfo &programInfo,
+                                         ControlPlaneConstraints &constraints,
                                          ExecutionState &executionState)
-    : FlayStepper(programInfo, executionState) {}
+    : FlayStepper(programInfo, constraints, executionState) {}
 
 }  // namespace P4Tools::Flay::Fpga

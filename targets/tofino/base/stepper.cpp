@@ -46,7 +46,8 @@ void TofinoBaseFlayStepper::initializeState() {
 }
 
 TofinoBaseFlayStepper::TofinoBaseFlayStepper(const TofinoBaseProgramInfo &programInfo,
+                                             ControlPlaneConstraints &constraints,
                                              ExecutionState &executionState)
-    : FlayStepper(programInfo, executionState) {}
+    : FlayStepper(programInfo, constraints, executionState) {}
 
 }  // namespace P4Tools::Flay::Tofino

@@ -10,12 +10,13 @@ const Tofino1ProgramInfo &Tofino1FlayStepper::getProgramInfo() const {
 }
 
 Tofino1FlayStepper::Tofino1FlayStepper(const Tofino1ProgramInfo &programInfo,
+                                       ControlPlaneConstraints &constraints,
                                        ExecutionState &executionState)
-    : TofinoBaseFlayStepper(programInfo, executionState) {}
+    : TofinoBaseFlayStepper(programInfo, constraints, executionState) {}
 
-Tofino1ExpressionResolver &Tofino1FlayStepper::createExpressionResolver(
-    const ProgramInfo &programInfo, ExecutionState &executionState) const {
-    return *new Tofino1ExpressionResolver(programInfo, executionState);
+Tofino1ExpressionResolver &Tofino1FlayStepper::createExpressionResolver() const {
+    return *new Tofino1ExpressionResolver(getProgramInfo(), controlPlaneConstraints(),
+                                          getExecutionState());
 }
 
 void Tofino1FlayStepper::initializeParserState(const IR::P4Parser &parser) {

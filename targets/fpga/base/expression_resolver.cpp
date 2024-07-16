@@ -12,13 +12,12 @@
 namespace P4Tools::Flay::Fpga {
 
 FpgaBaseExpressionResolver::FpgaBaseExpressionResolver(const ProgramInfo &programInfo,
+                                                       ControlPlaneConstraints &constraints,
                                                        ExecutionState &executionState)
-    : ExpressionResolver(programInfo, executionState) {}
+    : ExpressionResolver(programInfo, constraints, executionState) {}
 
 const IR::Expression *FpgaBaseExpressionResolver::processTable(const IR::P4Table *table) {
-    auto copy = FpgaBaseExpressionResolver(*this);
-    auto tableExecutor = FpgaBaseTableExecutor(*table, copy);
-    return tableExecutor.processTable();
+    return FpgaBaseTableExecutor(*table, *this).processTable();
 }
 
 // Provides implementations of Fpga externs.

@@ -12,13 +12,12 @@
 namespace P4Tools::Flay::Tofino {
 
 Tofino1ExpressionResolver::Tofino1ExpressionResolver(const ProgramInfo &programInfo,
+                                                     ControlPlaneConstraints &constraints,
                                                      ExecutionState &executionState)
-    : TofinoBaseExpressionResolver(programInfo, executionState) {}
+    : TofinoBaseExpressionResolver(programInfo, constraints, executionState) {}
 
 const IR::Expression *Tofino1ExpressionResolver::processTable(const IR::P4Table *table) {
-    auto copy = Tofino1ExpressionResolver(*this);
-    auto tableExecutor = Tofino1TableExecutor(*table, copy);
-    return tableExecutor.processTable();
+    return Tofino1TableExecutor(*table, *this).processTable();
 }
 
 // Provides implementations of Tofino externs.

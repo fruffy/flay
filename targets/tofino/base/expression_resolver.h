@@ -12,6 +12,7 @@ namespace P4Tools::Flay::Tofino {
 class TofinoBaseExpressionResolver : public ExpressionResolver {
  public:
     explicit TofinoBaseExpressionResolver(const ProgramInfo &programInfo,
+                                          ControlPlaneConstraints &constraints,
                                           ExecutionState &executionState);
 
  protected:

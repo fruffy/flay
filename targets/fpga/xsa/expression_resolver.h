@@ -11,7 +11,9 @@ namespace P4Tools::Flay::Fpga {
 /// Simplifies an expression, executes method calls, and resolves state references.
 class XsaExpressionResolver : public FpgaBaseExpressionResolver {
  public:
-    explicit XsaExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);
+    explicit XsaExpressionResolver(const ProgramInfo &programInfo,
+                                   ControlPlaneConstraints &constraints,
+                                   ExecutionState &executionState);
 
  private:
     const IR::Expression *processTable(const IR::P4Table *table) override;
