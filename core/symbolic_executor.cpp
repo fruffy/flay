@@ -8,23 +8,32 @@
 
 namespace P4Tools::Flay {
 
-SymbolicExecutor::SymbolicExecutor(const ProgramInfo &programInfo)
-    : programInfo(programInfo), executionState(&programInfo.getP4Program()) {}
+SymbolicExecutor::SymbolicExecutor(const ProgramInfo &programInfo,
+                                   ControlPlaneConstraints &controlPlaneConstraints)
+    : _programInfo(programInfo),
+      _controlPlaneConstraints(controlPlaneConstraints),
+      _executionState(&programInfo.getP4Program()) {}
 
 void SymbolicExecutor::run() {
     Util::ScopedTimer timer("Data plane analysis");
 
-    const auto *pipelineSequence = programInfo.getPipelineSequence();
-    auto &stepper = FlayTarget::getStepper(programInfo, executionState);
+    const auto *pipelineSequence = _programInfo.get().getPipelineSequence();
+    auto &stepper = FlayTarget::getStepper(_programInfo, _controlPlaneConstraints, _executionState);
     stepper.initializeState();
     for (const auto *node : *pipelineSequence) {
         node->apply(stepper);
     }
     /// Substitute any placeholder variables encountered in the execution state.
     printInfo("Substituting placeholder variables...");
-    executionState.substitutePlaceholders();
+    _executionState.substitutePlaceholders();
 }
 
-const ExecutionState &SymbolicExecutor::getExecutionState() { return executionState; }
+const ExecutionState &SymbolicExecutor::executionState() const { return _executionState; }
+
+ControlPlaneConstraints &SymbolicExecutor::controlPlaneConstraints() const {
+    return _controlPlaneConstraints;
+}
+
+const ProgramInfo &SymbolicExecutor::programInfo() const { return _programInfo; }
 
 }  // namespace P4Tools::Flay

@@ -14,6 +14,7 @@ namespace P4Tools::Flay::V1Model {
 class V1ModelExpressionResolver : public ExpressionResolver {
  public:
     explicit V1ModelExpressionResolver(const ProgramInfo &programInfo,
+                                       ControlPlaneConstraints &constraints,
                                        ExecutionState &executionState);
 
  private:

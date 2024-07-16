@@ -29,21 +29,22 @@ class ExternMethodImpls {
         const IR::PathExpression &externObjectRef;
         const IR::ID &methodName;
         const IR::Vector<IR::Argument> *externArgs;
-        ExecutionState &state;
         std::reference_wrapper<const ProgramInfo> programInfo;
+        std::reference_wrapper<ControlPlaneConstraints> controlPlaneConstraints;
+        ExecutionState &state;
 
         ExternInfo(const IR::MethodCallExpression &originalCall,
                    const IR::PathExpression &externObjectRef, const IR::ID &methodName,
-                   const IR::Vector<IR::Argument> *externArgs, ExecutionState &state,
-                   const ProgramInfo &programInfo)
+                   const IR::Vector<IR::Argument> *externArgs, const ProgramInfo &programInfo,
+                   ControlPlaneConstraints &controlPlaneConstraints, ExecutionState &state)
             : originalCall(originalCall),
               externObjectRef(externObjectRef),
               methodName(methodName),
               externArgs(externArgs),
-              state(state),
-              programInfo(programInfo) {}
+              programInfo(programInfo),
+              controlPlaneConstraints(controlPlaneConstraints),
+              state(state) {}
 
-     private:
         /// Do not accidentally copy-assign the extern info.
         ExternInfo &operator=(const ExternInfo &) = delete;
 

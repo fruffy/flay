@@ -64,6 +64,10 @@ const ProgramInfo &TableExecutor::getProgramInfo() const { return resolver().get
 
 ExecutionState &TableExecutor::getExecutionState() const { return resolver().getExecutionState(); }
 
+ControlPlaneConstraints &TableExecutor::controlPlaneConstraints() const {
+    return resolver().controlPlaneConstraints();
+}
+
 const IR::P4Table &TableExecutor::getP4Table() const { return _table; }
 
 const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
@@ -130,8 +134,9 @@ const TableMatchKey *TableExecutor::computeTargetMatchType(const IR::KeyElement 
     P4C_UNIMPLEMENTED("Match type %s not implemented for table keys.", matchType);
 }
 
-void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &state,
-                               const IR::P4Action *actionType,
+void TableExecutor::callAction(const ProgramInfo &programInfo,
+                               ControlPlaneConstraints &controlPlaneConstraints,
+                               ExecutionState &state, const IR::P4Action *actionType,
                                const IR::Vector<IR::Argument> &arguments) {
     const auto *parameters = actionType->parameters;
     BUG_CHECK(
@@ -147,7 +152,7 @@ void TableExecutor::callAction(const ProgramInfo &programInfo, ExecutionState &s
         const auto *paramRef = new IR::PathExpression(paramType, new IR::Path(parameter->name));
         state.set(paramRef, actionArg);
     }
-    auto &actionStepper = FlayTarget::getStepper(programInfo, state);
+    auto &actionStepper = FlayTarget::getStepper(programInfo, controlPlaneConstraints, state);
     actionType->body->apply(actionStepper);
 }
 
@@ -160,7 +165,7 @@ void TableExecutor::processDefaultAction() const {
 
     // Synthesize arguments for the call based on the action parameters.
     const auto *arguments = tableAction->arguments;
-    callAction(getProgramInfo(), state, defaultActionType, *arguments);
+    callAction(getProgramInfo(), controlPlaneConstraints(), state, defaultActionType, *arguments);
 }
 
 void TableExecutor::processTableActionOptions(const TableUtils::TableProperties &tableProperties,
@@ -203,7 +208,7 @@ void TableExecutor::processTableActionOptions(const TableUtils::TableProperties 
         auto &actionState = referenceState.clone();
         actionState.pushExecutionCondition(actionHitCondition);
         auto arguments = createActionCallArguments(symbolicTablePrefix(), actionName, *parameters);
-        callAction(getProgramInfo(), actionState, actionType, arguments);
+        callAction(getProgramInfo(), controlPlaneConstraints(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
         state.merge(actionState);
     }

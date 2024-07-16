@@ -15,14 +15,14 @@ class V1ModelFlayStepper : public FlayStepper {
 
  public:
     explicit V1ModelFlayStepper(const Bmv2V1ModelProgramInfo &programInfo,
+                                ControlPlaneConstraints &constraints,
                                 ExecutionState &executionState);
 
     void initializeState() override;
 
     void initializeParserState(const IR::P4Parser &parser) override;
 
-    V1ModelExpressionResolver &createExpressionResolver(
-        const ProgramInfo &programInfo, ExecutionState &executionState) const override;
+    V1ModelExpressionResolver &createExpressionResolver() const override;
 };
 
 }  // namespace P4Tools::Flay::V1Model

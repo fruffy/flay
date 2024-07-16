@@ -25,6 +25,9 @@ class ExpressionResolver : public Inspector {
     /// The program info of the target.
     std::reference_wrapper<const ProgramInfo> programInfo;
 
+    /// The control plane constraints of the current P4 program.
+    std::reference_wrapper<ControlPlaneConstraints> _controlPlaneConstraints;
+
     /// The current execution state.
     std::reference_wrapper<ExecutionState> executionState;
 
@@ -62,6 +65,9 @@ class ExpressionResolver : public Inspector {
     /// @returns the program info associated with the current target.
     const ProgramInfo &getProgramInfo() const;
 
+    /// @returns the control plane constraints associated with the current program.
+    virtual ControlPlaneConstraints &controlPlaneConstraints() const;
+
     /// Executes the target-specific table implementation and @returns the result
     /// of the execution.
     virtual const IR::Expression *processTable(const IR::P4Table *table) = 0;
@@ -76,7 +82,9 @@ class ExpressionResolver : public Inspector {
     const IR::Expression *getResult();
 
  public:
-    explicit ExpressionResolver(const ProgramInfo &programInfo, ExecutionState &executionState);
+    explicit ExpressionResolver(const ProgramInfo &programInfo,
+                                ControlPlaneConstraints &constraints,
+                                ExecutionState &executionState);
 
     /// Apply the resolver to the supplied @param node.
     /// @returns the result of the execution of this visitor.

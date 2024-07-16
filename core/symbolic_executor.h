@@ -10,29 +10,31 @@ namespace P4Tools::Flay {
 class SymbolicExecutor {
  private:
     /// Target-specific information about the P4 program.
-    const ProgramInfo &programInfo;
+    std::reference_wrapper<const ProgramInfo> _programInfo;
+
+    /// The control plane constraints of the current P4 program.
+    /// The data plane might modify some of these.
+    std::reference_wrapper<ControlPlaneConstraints> _controlPlaneConstraints;
 
     /// The current execution state.
-    ExecutionState executionState;
+    ExecutionState _executionState;
 
  public:
     virtual ~SymbolicExecutor() = default;
-
-    SymbolicExecutor(const SymbolicExecutor &) = delete;
-
-    SymbolicExecutor(SymbolicExecutor &&) = delete;
-
-    SymbolicExecutor &operator=(const SymbolicExecutor &) = delete;
-
-    SymbolicExecutor &operator=(SymbolicExecutor &&) = delete;
-
     /// Start running the symbolic executor on the program.
     void run();
 
     /// Return the execution state associated with this symbolic executor.
-    const ExecutionState &getExecutionState();
+    [[nodiscard]] const ExecutionState &executionState() const;
 
-    explicit SymbolicExecutor(const ProgramInfo &programInfo);
+    /// Return the program info associated with this symbolic executor.
+    [[nodiscard]] const ProgramInfo &programInfo() const;
+
+    /// Return the control plane constraints associated with this symbolic executor.
+    [[nodiscard]] ControlPlaneConstraints &controlPlaneConstraints() const;
+
+    explicit SymbolicExecutor(const ProgramInfo &programInfo,
+                              ControlPlaneConstraints &controlPlaneConstraints);
 };
 
 }  // namespace P4Tools::Flay

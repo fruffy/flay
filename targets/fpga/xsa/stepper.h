@@ -14,12 +14,12 @@ class XsaFlayStepper : public FpgaBaseFlayStepper {
     const XsaProgramInfo &getProgramInfo() const override;
 
  public:
-    explicit XsaFlayStepper(const XsaProgramInfo &programInfo, ExecutionState &executionState);
+    explicit XsaFlayStepper(const XsaProgramInfo &programInfo, ControlPlaneConstraints &constraints,
+                            ExecutionState &executionState);
 
     void initializeParserState(const IR::P4Parser &parser) override;
 
-    XsaExpressionResolver &createExpressionResolver(const ProgramInfo &programInfo,
-                                                    ExecutionState &executionState) const override;
+    XsaExpressionResolver &createExpressionResolver() const override;
 };
 
 }  // namespace P4Tools::Flay::Fpga

@@ -13,6 +13,7 @@ class TofinoBaseFlayStepper : public FlayStepper {
 
  public:
     explicit TofinoBaseFlayStepper(const TofinoBaseProgramInfo &programInfo,
+                                   ControlPlaneConstraints &constraints,
                                    ExecutionState &executionState);
 
     void initializeState() override;

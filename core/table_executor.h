@@ -73,6 +73,9 @@ class TableExecutor {
     /// @returns the program info associated with the current target.
     [[nodiscard]] const ProgramInfo &getProgramInfo() const;
 
+    /// @returns the program info associated with the current target.
+    [[nodiscard]] ControlPlaneConstraints &controlPlaneConstraints() const;
+
     /// Compute a table key match. Can be overridden by targets to add more match types.
     /// @returns the full match expression for the key given the table match types.
     virtual const TableMatchKey *computeTargetMatchType(const IR::KeyElement *keyField) const;
@@ -82,7 +85,8 @@ class TableExecutor {
     const IR::Expression *processTable();
 
     /// Helper function to call an action with arguments.
-    static void callAction(const ProgramInfo &programInfo, ExecutionState &state,
+    static void callAction(const ProgramInfo &programInfo,
+                           ControlPlaneConstraints &controlPlaneConstraints, ExecutionState &state,
                            const IR::P4Action *actionType,
                            const IR::Vector<IR::Argument> &arguments);
 

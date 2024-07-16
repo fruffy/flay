@@ -153,8 +153,10 @@ const ArchSpec XsaFlayTarget::ARCH_SPEC = ArchSpec(
 const ArchSpec *XsaFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; }
 
 FlayStepper &XsaFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
+                                           ControlPlaneConstraints &constraints,
                                            ExecutionState &executionState) const {
-    return *new XsaFlayStepper(*programInfo.checkedTo<XsaProgramInfo>(), executionState);
+    return *new XsaFlayStepper(*programInfo.checkedTo<XsaProgramInfo>(), constraints,
+                               executionState);
 }
 
 }  // namespace P4Tools::Flay::Fpga

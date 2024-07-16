@@ -124,8 +124,9 @@ const ArchSpec V1ModelFlayTarget::ARCH_SPEC = ArchSpec(
 const ArchSpec *V1ModelFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; }
 
 FlayStepper &V1ModelFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
+                                               ControlPlaneConstraints &constraints,
                                                ExecutionState &executionState) const {
-    return *new V1ModelFlayStepper(*programInfo.checkedTo<Bmv2V1ModelProgramInfo>(),
+    return *new V1ModelFlayStepper(*programInfo.checkedTo<Bmv2V1ModelProgramInfo>(), constraints,
                                    executionState);
 }
 

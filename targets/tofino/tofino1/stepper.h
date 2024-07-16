@@ -15,12 +15,12 @@ class Tofino1FlayStepper : public TofinoBaseFlayStepper {
 
  public:
     explicit Tofino1FlayStepper(const Tofino1ProgramInfo &programInfo,
+                                ControlPlaneConstraints &constraints,
                                 ExecutionState &executionState);
 
     void initializeParserState(const IR::P4Parser &parser) override;
 
-    Tofino1ExpressionResolver &createExpressionResolver(
-        const ProgramInfo &programInfo, ExecutionState &executionState) const override;
+    Tofino1ExpressionResolver &createExpressionResolver() const override;
 };
 
 }  // namespace P4Tools::Flay::Tofino

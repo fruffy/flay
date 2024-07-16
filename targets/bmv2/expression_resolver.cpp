@@ -20,13 +20,12 @@
 namespace P4Tools::Flay::V1Model {
 
 V1ModelExpressionResolver::V1ModelExpressionResolver(const ProgramInfo &programInfo,
+                                                     ControlPlaneConstraints &constraints,
                                                      ExecutionState &executionState)
-    : ExpressionResolver(programInfo, executionState) {}
+    : ExpressionResolver(programInfo, constraints, executionState) {}
 
 const IR::Expression *V1ModelExpressionResolver::processTable(const IR::P4Table *table) {
-    auto copy = V1ModelExpressionResolver(*this);
-    auto tableExecutor = V1ModelTableExecutor(*table, copy);
-    return tableExecutor.processTable();
+    return V1ModelTableExecutor(*table, *this).processTable();
 }
 
 // Provides implementations of BMv2 externs.

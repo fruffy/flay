@@ -12,6 +12,7 @@ namespace P4Tools::Flay::Fpga {
 class FpgaBaseExpressionResolver : public ExpressionResolver {
  public:
     explicit FpgaBaseExpressionResolver(const ProgramInfo &programInfo,
+                                        ControlPlaneConstraints &constraints,
                                         ExecutionState &executionState);
 
  protected:

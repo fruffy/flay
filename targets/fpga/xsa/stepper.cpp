@@ -11,12 +11,13 @@ const XsaProgramInfo &XsaFlayStepper::getProgramInfo() const {
     return *FpgaBaseFlayStepper::getProgramInfo().checkedTo<XsaProgramInfo>();
 }
 
-XsaFlayStepper::XsaFlayStepper(const XsaProgramInfo &programInfo, ExecutionState &executionState)
-    : FpgaBaseFlayStepper(programInfo, executionState) {}
+XsaFlayStepper::XsaFlayStepper(const XsaProgramInfo &programInfo,
+                               ControlPlaneConstraints &constraints, ExecutionState &executionState)
+    : FpgaBaseFlayStepper(programInfo, constraints, executionState) {}
 
-XsaExpressionResolver &XsaFlayStepper::createExpressionResolver(
-    const ProgramInfo &programInfo, ExecutionState &executionState) const {
-    return *new XsaExpressionResolver(programInfo, executionState);
+XsaExpressionResolver &XsaFlayStepper::createExpressionResolver() const {
+    return *new XsaExpressionResolver(getProgramInfo(), controlPlaneConstraints(),
+                                      getExecutionState());
 }
 
 void XsaFlayStepper::initializeParserState(const IR::P4Parser &parser) {

@@ -242,8 +242,10 @@ const ArchSpec Tofino1FlayTarget::ARCH_SPEC = ArchSpec(
 const ArchSpec *Tofino1FlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; }
 
 FlayStepper &Tofino1FlayTarget::getStepperImpl(const ProgramInfo &programInfo,
+                                               ControlPlaneConstraints &constraints,
                                                ExecutionState &executionState) const {
-    return *new Tofino1FlayStepper(*programInfo.checkedTo<Tofino1ProgramInfo>(), executionState);
+    return *new Tofino1FlayStepper(*programInfo.checkedTo<Tofino1ProgramInfo>(), constraints,
+                                   executionState);
 }
 
 }  // namespace P4Tools::Flay::Tofino
