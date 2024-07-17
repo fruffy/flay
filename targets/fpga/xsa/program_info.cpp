@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "backends/p4tools/common/lib/arch_spec.h"
-#include "backends/p4tools/modules/flay/core/target.h"
+#include "backends/p4tools/modules/flay/core/interpreter/target.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"

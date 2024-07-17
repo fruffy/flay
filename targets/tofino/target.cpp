@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "backends/p4tools/common/lib/util.h"
-#include "backends/p4tools/modules/flay/control_plane/protobuf_utils.h"
+#include "backends/p4tools/modules/flay/core/control_plane/protobuf_utils.h"
 #include "backends/p4tools/modules/flay/targets/tofino/control_plane_architecture.h"
 #include "backends/p4tools/modules/flay/targets/tofino/symbolic_state.h"
 #include "backends/p4tools/modules/flay/targets/tofino/tofino1/program_info.h"

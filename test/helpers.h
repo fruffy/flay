@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "backends/p4tools/common/compiler/context.h"
-#include "backends/p4tools/modules/flay/core/target.h"
+#include "backends/p4tools/modules/flay/core/interpreter/target.h"
 #include "backends/p4tools/modules/flay/register.h"
 #include "backends/p4tools/modules/flay/toolname.h"
 #include "lib/compile_context.h"

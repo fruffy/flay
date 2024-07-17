@@ -6,8 +6,8 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include "backends/p4tools/common/lib/variables.h"
-#include "backends/p4tools/modules/flay/core/externs.h"
-#include "backends/p4tools/modules/flay/core/target.h"
+#include "backends/p4tools/modules/flay/core/interpreter/externs.h"
+#include "backends/p4tools/modules/flay/core/interpreter/target.h"
 #include "backends/p4tools/modules/flay/targets/tofino/base/table_executor.h"
 #include "backends/p4tools/modules/flay/targets/tofino/constants.h"
 #include "ir/irutils.h"

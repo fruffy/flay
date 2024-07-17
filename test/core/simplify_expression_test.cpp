@@ -1,5 +1,5 @@
 
-#include "backends/p4tools/modules/flay/core/simplify_expression.h"
+#include "backends/p4tools/modules/flay/core/lib/simplify_expression.h"
 
 #include <gtest/gtest.h>
 
