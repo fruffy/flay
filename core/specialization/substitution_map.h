@@ -10,7 +10,6 @@
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_item.h"
 #include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
-#include "ir/solver.h"
 
 namespace P4Tools::Flay {
 
@@ -44,43 +43,18 @@ class AbstractSubstitutionMap {
         const IR::Expression *expression) const = 0;
 };
 
-/**************************************************************************************************
-Z3SubstitutionExpression
-**************************************************************************************************/
-
-struct Z3SubstitutionExpression : public SubstitutionExpression {
- private:
-    /// The original expression translated to Z3.
-    z3::expr _originalZ3Expression;
-
- public:
-    Z3SubstitutionExpression(const IR::Expression *condition,
-                             const IR::Expression *originalExpression,
-                             z3::expr originalZ3Expression);
-
-    /// @returns the original expression translated to Z3 form.
-    [[nodiscard]] const z3::expr &originalZ3Expression() const;
-};
-
-/// The expression map but using Z3 expressions instead of IR expressions.
-using Z3ExpressionMap = std::map<const IR::Expression *, Z3SubstitutionExpression *, SourceIdCmp>;
-
-class Z3SolverSubstitutionMap : private Z3ExpressionMap, public AbstractSubstitutionMap {
+class SubstitutionMap : private ExpressionMap, public AbstractSubstitutionMap {
  private:
     /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the
     /// substitution map. This map can we used for incremental re-computation of substitution.
     SymbolMap _symbolMap;
 
-    /// The solver used to compute substitution.
-    std::reference_wrapper<Z3Solver> _solver;
-
     /// Compute substitution for the node given the set of constraints.
-    std::optional<bool> computeNodeSubstitution(const IR::Expression *expression,
-                                                const z3::expr_vector &variables,
-                                                const z3::expr_vector &variableAssignments);
+    std::optional<bool> computeNodeSubstitution(
+        const IR::Expression *expression, const ControlPlaneAssignmentSet &controlPlaneAssignments);
 
  public:
-    explicit Z3SolverSubstitutionMap(Z3Solver &solver, const NodeAnnotationMap &map);
+    explicit SubstitutionMap(const NodeAnnotationMap &map);
 
     std::optional<bool> recomputeSubstitution(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

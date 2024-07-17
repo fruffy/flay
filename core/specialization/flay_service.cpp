@@ -11,12 +11,14 @@
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/core/lib/analysis.h"
 #include "backends/p4tools/modules/flay/core/specialization/passes/specializer.h"
+#include "backends/p4tools/modules/flay/core/specialization/z3_substitution_map.h"
 #include "backends/p4tools/modules/flay/core/specialization/z3solver_reachability.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 #include "lib/timer.h"
 
 namespace P4Tools::Flay {
+
 AbstractReachabilityMap &FlayServiceBase::initializeReachabilityMap(
     ReachabilityMapType mapType, const NodeAnnotationMap &nodeAnnotationMap) {
     printInfo("Creating the reachability map...");
@@ -24,10 +26,22 @@ AbstractReachabilityMap &FlayServiceBase::initializeReachabilityMap(
     if (mapType == ReachabilityMapType::kz3Precomputed) {
         initializedReachabilityMap = new Z3SolverReachabilityMap(nodeAnnotationMap);
     } else {
-        auto *solver = new Z3Solver();
-        initializedReachabilityMap = new SolverReachabilityMap(*solver, nodeAnnotationMap);
+        initializedReachabilityMap = new IRReachabilityMap(nodeAnnotationMap);
     }
     return *initializedReachabilityMap;
+}
+
+AbstractSubstitutionMap &FlayServiceBase::initializeSubstitutionMap(
+    ReachabilityMapType mapType, const NodeAnnotationMap &nodeAnnotationMap) {
+    printInfo("Creating the reachability map...");
+    AbstractSubstitutionMap *initializedSubstitutionMap = nullptr;
+    if (mapType == ReachabilityMapType::kz3Precomputed) {
+        auto *solver = new Z3Solver();
+        initializedSubstitutionMap = new Z3SolverSubstitutionMap(*solver, nodeAnnotationMap);
+    } else {
+        initializedSubstitutionMap = new SubstitutionMap(nodeAnnotationMap);
+    }
+    return *initializedSubstitutionMap;
 }
 
 FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
@@ -40,7 +54,7 @@ FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
       _optimizedProgram(&compilerResult.getOriginalProgram()),
       _compilerResult(compilerResult),
       _reachabilityMap(initializeReachabilityMap(options.mapType, nodeAnnotationMap)),
-      _substitutionMap(*new Z3SolverSubstitutionMap(*new Z3Solver(), nodeAnnotationMap)),
+      _substitutionMap(initializeSubstitutionMap(options.mapType, nodeAnnotationMap)),
       _controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
     printInfo("Checking whether dead code can be removed with the initial configuration...");
     midEndProgram().apply(P4::ResolveReferences(&_refMap));

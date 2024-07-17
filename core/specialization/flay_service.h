@@ -132,6 +132,8 @@ class FlayServiceBase {
 
     static AbstractReachabilityMap &initializeReachabilityMap(
         ReachabilityMapType mapType, const NodeAnnotationMap &nodeAnnotationMap);
+    static AbstractSubstitutionMap &initializeSubstitutionMap(
+        ReachabilityMapType mapType, const NodeAnnotationMap &nodeAnnotationMap);
 
     /// @returns the original program.
     [[nodiscard]] const IR::P4Program &originalProgram() const;

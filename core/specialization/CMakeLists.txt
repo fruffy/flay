@@ -8,6 +8,7 @@ set(FLAY_SPECIALIZATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/service_wrapper_bfruntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/service_wrapper_p4runtime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/substitution_map.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/z3_substitution_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/z3solver_reachability.cpp
 )
 
