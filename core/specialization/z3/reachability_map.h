@@ -1,5 +1,5 @@
-#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_Z3SOLVER_REACHABILITY_H_
-#define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_Z3SOLVER_REACHABILITY_H_
+#ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_Z3_REACHABILITY_MAP_H_
+#define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_Z3_REACHABILITY_MAP_H_
 
 #include <z3++.h>
 
@@ -35,7 +35,7 @@ class Z3SolverReachabilityMap
     SymbolMap _symbolMap;
 
     /// The Z3 solver used for incremental re-computation of reachability.
-    Z3Solver _solver;
+    std::reference_wrapper<Z3Solver> _solver;
 
     /// Compute reachability for the node given the set of constraints.
     std::optional<bool> computeNodeReachability(const IR::Node *node,
@@ -43,7 +43,7 @@ class Z3SolverReachabilityMap
                                                 const z3::expr_vector &variableAssignments);
 
  public:
-    explicit Z3SolverReachabilityMap(const NodeAnnotationMap &map);
+    explicit Z3SolverReachabilityMap(Z3Solver &solver, const NodeAnnotationMap &map);
 
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;
@@ -61,4 +61,4 @@ class Z3SolverReachabilityMap
 
 }  // namespace P4Tools::Flay
 
-#endif  // BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_Z3SOLVER_REACHABILITY_H_
+#endif  // BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_Z3_REACHABILITY_MAP_H_

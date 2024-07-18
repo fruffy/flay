@@ -1,4 +1,4 @@
-#include "backends/p4tools/modules/flay/core/specialization/z3solver_reachability.h"
+#include "backends/p4tools/modules/flay/core/specialization/z3/reachability_map.h"
 
 #include <z3++.h>
 
@@ -46,8 +46,8 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(
     return false;
 }
 
-Z3SolverReachabilityMap::Z3SolverReachabilityMap(const NodeAnnotationMap &map)
-    : _symbolMap(map.reachabilitySymbolMap()) {
+Z3SolverReachabilityMap::Z3SolverReachabilityMap(Z3Solver &solver, const NodeAnnotationMap &map)
+    : _symbolMap(map.reachabilitySymbolMap()), _solver(solver) {
     Util::ScopedTimer timer("Precomputing Z3 Reachability");
     Z3Translator z3Translator(_solver);
     for (const auto &[node, reachabilityExpression] : map.reachabilityMap()) {
@@ -79,8 +79,8 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
     Z3Translator z3Translator(_solver);
-    auto variables = z3::expr_vector(_solver.mutableContext());
-    auto variableAssignments = z3::expr_vector(_solver.mutableContext());
+    auto variables = z3::expr_vector(_solver.get().mutableContext());
+    auto variableAssignments = z3::expr_vector(_solver.get().mutableContext());
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
             controlPlaneConstraint.get().computeControlPlaneAssignments();
@@ -121,8 +121,8 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const NodeSet &targetNodes, const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
     Z3Translator z3Translator(_solver);
-    auto variables = z3::expr_vector(_solver.mutableContext());
-    auto variableAssignments = z3::expr_vector(_solver.mutableContext());
+    auto variables = z3::expr_vector(_solver.get().mutableContext());
+    auto variableAssignments = z3::expr_vector(_solver.get().mutableContext());
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
             controlPlaneConstraint.get().computeControlPlaneAssignments();

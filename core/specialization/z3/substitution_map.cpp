@@ -1,4 +1,4 @@
-#include "backends/p4tools/modules/flay/core/specialization/z3_substitution_map.h"
+#include "backends/p4tools/modules/flay/core/specialization/z3/substitution_map.h"
 
 #include <z3++.h>
 
