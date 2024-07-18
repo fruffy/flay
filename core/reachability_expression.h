@@ -51,7 +51,7 @@ struct ReachabilityExpression {
 };
 
 /// Convenience type definition for a mapping of nodes to a set of reachability expressions.
-using ReachabilityMap = std::map<const IR::Node *, ReachabilityExpression, SourceIdCmp>;
+using ReachabilityMap = std::map<const IR::Node *, ReachabilityExpression *, SourceIdCmp>;
 
 }  // namespace P4Tools::Flay
 

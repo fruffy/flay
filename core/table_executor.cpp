@@ -175,19 +175,22 @@ void TableExecutor::processTableActionOptions(const TableUtils::TableProperties 
     auto tableActionList = TableUtils::buildTableActionList(table);
     auto &state = getExecutionState();
     const auto *tableActionID = ControlPlaneState::getTableActionChoice(symbolicTablePrefix());
+    const auto *tableActive = ControlPlaneState::getTableActive(symbolicTablePrefix());
 
     for (const auto *action : tableActionList) {
         const auto *actionType =
             state.getP4Action(action->expression->checkedTo<IR::MethodCallExpression>());
         const auto *actionLiteral = IR::StringLiteral::get(actionType->controlPlaneName());
 
-        auto *actionChoice = new IR::Equ(tableActionID, actionLiteral);
+        auto *actionChoice = new IR::LAnd(tableActive, new IR::Equ(tableActionID, actionLiteral));
+        tableReturnProperties.totalHitCondition = new IR::LOr(
+            tableReturnProperties.totalHitCondition, new IR::Equ(tableActionID, actionLiteral));
+
         // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
         tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
             actionChoice, IR::StringLiteral::get(action->controlPlaneName()),
             tableReturnProperties.actionRun);
-        const IR::Expression *actionHitCondition =
-            new IR::LAnd(tableReturnProperties.totalHitCondition, actionChoice);
+        const IR::Expression *actionHitCondition = actionChoice;
         state.addReachabilityMapping(action, actionHitCondition);
         // Synthesize arguments for the call based on the action parameters.
         // If the default action is not immutable, it is possible to change it to any other action
@@ -196,10 +199,8 @@ void TableExecutor::processTableActionOptions(const TableUtils::TableProperties 
             (action->getAnnotation(IR::Annotation::tableOnlyAnnotation) != nullptr)) {
             actionHitCondition = new IR::LOr(
                 actionHitCondition,
-                new IR::LAnd(
-                    new IR::LNot(tableReturnProperties.totalHitCondition),
-                    new IR::Equ(ControlPlaneState::getDefaultActionVariable(symbolicTablePrefix()),
-                                actionLiteral)));
+                new IR::Equ(ControlPlaneState::getDefaultActionVariable(symbolicTablePrefix()),
+                            actionLiteral));
         }
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();
@@ -212,6 +213,9 @@ void TableExecutor::processTableActionOptions(const TableUtils::TableProperties 
         // Finally, merge in the state of the action call.
         state.merge(actionState);
     }
+    tableReturnProperties.totalHitCondition =
+        new IR::LAnd(tableReturnProperties.totalHitCondition,
+                     ControlPlaneState::getTableActive(symbolicTablePrefix()));
 }
 
 const IR::Expression *TableExecutor::buildKeyMatches(cstring tablePrefix, const KeyMap &keyMap) {
@@ -256,11 +260,12 @@ const IR::Expression *TableExecutor::processTable() {
                                      IR::StringLiteral::get(table.controlPlaneName()))});
     }
     key = resolveKey(key);
+    const auto *tableKeyExpression =
+        buildKeyMatches(symbolicTablePrefix(), computeHitCondition(*key));
 
     const auto *actionPath = TableUtils::getDefaultActionName(table);
-    ReturnProperties tableReturnProperties{
-        buildKeyMatches(symbolicTablePrefix(), computeHitCondition(*key)),
-        IR::StringLiteral::get(actionPath->path->toString())};
+    ReturnProperties tableReturnProperties{IR::BoolLiteral::get(false),
+                                           IR::StringLiteral::get(actionPath->path->toString())};
 
     const auto &referenceState = getExecutionState().clone();
 
@@ -272,6 +277,18 @@ const IR::Expression *TableExecutor::processTable() {
     tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
         tableReturnProperties.totalHitCondition, tableReturnProperties.actionRun,
         IR::StringLiteral::get(TableUtils::getDefaultActionName(table)->toString()));
+
+    // Add the computed hit expression of the table to its control plane configuration.
+    // We substitute this match later with concrete assignments.
+    auto tableControlPlaneItem = controlPlaneConstraints().find(table.controlPlaneName());
+    if (tableControlPlaneItem != controlPlaneConstraints().end()) {
+        auto *tableControlPlaneConfiguration =
+            tableControlPlaneItem->second.get().checkedTo<TableConfiguration>();
+        tableControlPlaneConfiguration->setTableKeyMatch(tableKeyExpression);
+    } else {
+        ::error("Table %s has no control plane configuration", table.controlPlaneName());
+    }
+
     return new IR::StructExpression(
         nullptr,
         {new IR::NamedExpression("hit", tableReturnProperties.totalHitCondition),

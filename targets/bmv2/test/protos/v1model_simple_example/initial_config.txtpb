@@ -1,0 +1,22 @@
+# Table ingress.toggle_check
+entities {
+  table_entry {
+    table_id: 46418392
+    priority: 1
+    # Match field dst_eth
+    match {
+      field_id: 1
+      ternary {
+        value: "\xEE\x0A\x61\xCE\x11\xF6"
+        mask: "\x00\x00\x00\x00\x00\x00"
+      }
+    }
+    # Action ingress.check
+    action {
+      action {
+        action_id: 31006061
+      }
+    }
+  }
+}
+

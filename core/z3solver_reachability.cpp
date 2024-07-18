@@ -12,57 +12,38 @@ namespace P4Tools::Flay {
 
 Z3ReachabilityExpression::Z3ReachabilityExpression(ReachabilityExpression reachabilityExpression,
                                                    z3::expr z3Condition)
-    : ReachabilityExpression(reachabilityExpression), z3Condition(std::move(z3Condition)) {}
+    : ReachabilityExpression(reachabilityExpression), _z3Condition(std::move(z3Condition)) {}
 
-const z3::expr &Z3ReachabilityExpression::getZ3Condition() const { return z3Condition; }
+z3::expr &Z3ReachabilityExpression::getZ3Condition() { return _z3Condition; }
 
-std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(const IR::Node *node) {
+std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(
+    const IR::Node *node, const z3::expr_vector &variables,
+    const z3::expr_vector &variableAssignments) {
     auto it = find(node);
     if (it == end()) {
         ::error("Reachability mapping for node %1% does not exist.", node);
         return std::nullopt;
     }
-    bool hasChanged = false;
     auto *reachabilityExpression = it->second;
-    const auto &reachabilityCondition = reachabilityExpression->getZ3Condition();
+    auto &reachabilityCondition = reachabilityExpression->getZ3Condition();
+    auto newExpr = reachabilityCondition.substitute(variables, variableAssignments).simplify();
     auto reachabilityAssignment = reachabilityExpression->getReachability();
-    {
-        auto expressionVector = z3::expr_vector(_solver.mutableContext());
-        expressionVector.push_back(reachabilityCondition);
-        auto solverResult = _solver.checkSat(expressionVector);
-        /// Solver returns unknown, better leave this alone.
-        if (!solverResult.has_value()) {
-            ::warning("Solver returned unknown result for %1%.", node);
-            return reachabilityAssignment.has_value();
+    auto declKind = newExpr.decl().decl_kind();
+    if (declKind == Z3_decl_kind::Z3_OP_FALSE || declKind == Z3_decl_kind::Z3_OP_TRUE) {
+        if (newExpr.bool_value() == Z3_lbool::Z3_L_TRUE) {
+            reachabilityExpression->setReachability(true);
+            return !reachabilityAssignment.has_value() || !reachabilityAssignment.value();
         }
-
-        /// There is no way to satisfy the condition. It is always false.
-        if (!solverResult.value()) {
+        if (newExpr.bool_value() == Z3_lbool::Z3_L_FALSE) {
             reachabilityExpression->setReachability(false);
             return !reachabilityAssignment.has_value() || reachabilityAssignment.value();
         }
     }
-    {
-        auto expressionVector = z3::expr_vector(_solver.mutableContext());
-        expressionVector.push_back(!reachabilityCondition);
-        auto solverResult = _solver.checkSat(expressionVector);
-        /// Solver returns unknown, better leave this alone.
-        if (!solverResult.has_value()) {
-            ::warning("Solver returned unknown result for %1%.", node);
-            return reachabilityAssignment.has_value();
-        }
-        /// There is no way to falsify the condition. It is always true.
-        if (!solverResult.value()) {
-            reachabilityExpression->setReachability(true);
-            return !reachabilityAssignment.has_value() || !reachabilityAssignment.value();
-        }
-
-        if (solverResult.value()) {
-            reachabilityExpression->setReachability(std::nullopt);
-            return reachabilityAssignment.has_value();
-        }
+    if (reachabilityAssignment.has_value()) {
+        reachabilityExpression->setReachability(std::nullopt);
+        return true;
     }
-    return hasChanged;
+    return false;
 }
 
 Z3SolverReachabilityMap::Z3SolverReachabilityMap(const NodeAnnotationMap &map)
@@ -71,8 +52,11 @@ Z3SolverReachabilityMap::Z3SolverReachabilityMap(const NodeAnnotationMap &map)
     Z3Translator z3Translator(_solver);
     for (const auto &[node, reachabilityExpression] : map.reachabilityMap()) {
         (*this)[node] = new Z3ReachabilityExpression(
-            reachabilityExpression,
-            z3Translator.translate(reachabilityExpression.getCondition()).simplify());
+            *reachabilityExpression,
+            z3Translator.translate(reachabilityExpression->getCondition()).simplify());
+        // printInfo("Computing reachability for %1%:\t%2%", node,
+        //           reachabilityExpression->getCondition());
+        // printInfo("##############");
     }
 }
 
@@ -94,33 +78,28 @@ std::optional<bool> Z3SolverReachabilityMap::isNodeReachable(const IR::Node *nod
 std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
-    _solver.push();
     Z3Translator z3Translator(_solver);
+    auto variables = z3::expr_vector(_solver.mutableContext());
+    auto variableAssignments = z3::expr_vector(_solver.mutableContext());
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
             controlPlaneConstraint.get().computeControlPlaneAssignments();
         for (const auto &constraint : controlPlaneAssignments) {
-            _solver.asrt((z3::operator==(z3Translator.translate(&constraint.first.get()),
-                                         z3Translator.translate(&constraint.second.get()))));
+            // printInfo("Added constraint: %1% -> %2%", constraint.first.get(),
+            //           constraint.second.get());
+            variables.push_back(z3Translator.translate(&constraint.first.get()));
+            variableAssignments.push_back(z3Translator.translate(&constraint.second.get()));
         }
-    }
-    auto result = _solver.checkSat();
-    if (result == std::nullopt || !result.value()) {
-        ::error("Unreachable constraints");
-        _solver.pop();
-        return std::nullopt;
     }
 
     bool hasChanged = false;
     for (auto &pair : *this) {
-        auto result = computeNodeReachability(pair.first);
+        auto result = computeNodeReachability(pair.first, variables, variableAssignments);
         if (!result.has_value()) {
-            _solver.pop();
             return std::nullopt;
         }
         hasChanged |= result.value();
     }
-    _solver.pop();
     return hasChanged;
 }
 
@@ -141,33 +120,28 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
 std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const NodeSet &targetNodes, const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
-    _solver.push();
     Z3Translator z3Translator(_solver);
+    auto variables = z3::expr_vector(_solver.mutableContext());
+    auto variableAssignments = z3::expr_vector(_solver.mutableContext());
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
         const auto &controlPlaneAssignments =
             controlPlaneConstraint.get().computeControlPlaneAssignments();
         for (const auto &constraint : controlPlaneAssignments) {
-            _solver.asrt((z3::operator==(z3Translator.translate(&constraint.first.get()),
-                                         z3Translator.translate(&constraint.second.get()))));
+            // printInfo("Added constraint: %1% -> %2%", constraint.first.get(),
+            //           constraint.second.get());
+            variables.push_back(z3Translator.translate(&constraint.first.get()));
+            variableAssignments.push_back(z3Translator.translate(&constraint.second.get()));
         }
-    }
-    auto result = _solver.checkSat();
-    if (result == std::nullopt || !result.value()) {
-        ::error("Unreachable constraints");
-        _solver.pop();
-        return std::nullopt;
     }
 
     bool hasChanged = false;
     for (const auto *node : targetNodes) {
-        auto result = computeNodeReachability(node);
+        auto result = computeNodeReachability(node, variables, variableAssignments);
         if (!result.has_value()) {
-            _solver.pop();
             return std::nullopt;
         }
         hasChanged |= result.value();
     }
-    _solver.pop();
     return hasChanged;
 }
 

@@ -3,6 +3,8 @@
 
 #include <z3++.h>
 
+#include <utility>
+
 #include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/modules/flay/core/node_map.h"
 #include "backends/p4tools/modules/flay/core/reachability_map.h"
@@ -14,14 +16,14 @@ namespace P4Tools::Flay {
 class Z3ReachabilityExpression : public ReachabilityExpression {
  private:
     /// The condition for the expression to be executable in Z3 form.
-    z3::expr z3Condition;
+    z3::expr _z3Condition;
 
  public:
     explicit Z3ReachabilityExpression(ReachabilityExpression reachabilityExpression,
                                       z3::expr z3Condition);
 
     /// @returns the precomputed Z3 condition.
-    [[nodiscard]] const z3::expr &getZ3Condition() const;
+    [[nodiscard]] z3::expr &getZ3Condition();
 };
 
 class Z3SolverReachabilityMap
@@ -36,7 +38,9 @@ class Z3SolverReachabilityMap
     Z3Solver _solver;
 
     /// Compute reachability for the node given the set of constraints.
-    std::optional<bool> computeNodeReachability(const IR::Node *node);
+    std::optional<bool> computeNodeReachability(const IR::Node *node,
+                                                const z3::expr_vector &variables,
+                                                const z3::expr_vector &variableAssignments);
 
  public:
     explicit Z3SolverReachabilityMap(const NodeAnnotationMap &map);

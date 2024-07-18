@@ -5,6 +5,7 @@
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
+#include "backends/p4tools/modules/flay/core/substitute_placeholders.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::ControlPlaneState {
@@ -238,6 +239,10 @@ bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
+void TableConfiguration::setTableKeyMatch(const IR::Expression *tableKeyMatch) {
+    _tableKeyMatch = tableKeyMatch;
+}
+
 int TableConfiguration::addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace) {
     if (replace) {
         _tableEntries.erase(tableMatchEntry);
@@ -262,9 +267,12 @@ ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments() c
     if (_tableEntries.size() == 0) {
         return defaultAssignments;
     }
+
     for (const auto &tableEntry : _tableEntries) {
         const auto &actionAssignments = tableEntry.get().actionAssignment();
-        const auto *constraint = tableEntry.get().computeControlPlaneConstraint();
+        const auto keyAssignments = tableEntry.get().computeControlPlaneAssignments();
+        const auto *constraint = _tableKeyMatch->apply(SubstituteSymbolicVariable(keyAssignments));
+
         for (const auto &[variable, assignment] : actionAssignments) {
             auto it = defaultAssignments.find(variable);
             if (it != defaultAssignments.end()) {

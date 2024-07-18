@@ -13,10 +13,10 @@ bool NodeAnnotationMap::initializeReachabilityMapping(const IR::Node *node,
 
     auto it = _reachabilityMap.find(node);
     if (it != _reachabilityMap.end()) {
-        it->second.addCondition(cond);
+        it->second->addCondition(cond);
         return false;
     }
-    return _reachabilityMap.emplace(node, ReachabilityExpression(cond)).second;
+    return _reachabilityMap.emplace(node, new ReachabilityExpression(cond)).second;
 }
 
 bool NodeAnnotationMap::initializeExpressionMapping(const IR::Expression *expression,
@@ -47,8 +47,8 @@ void NodeAnnotationMap::mergeAnnotationMapping(const NodeAnnotationMap &otherMap
 
 void NodeAnnotationMap::substitutePlaceholders(Transform &substitute) {
     for (auto &[node, reachabilityExpression] : _reachabilityMap) {
-        reachabilityExpression.setCondition(
-            reachabilityExpression.getCondition()->apply(substitute));
+        reachabilityExpression->setCondition(
+            reachabilityExpression->getCondition()->apply(substitute));
     }
     // TODO: Substitions for the expression map.
     P4C_UNIMPLEMENTED("NodeAnnotationMap::substitutePlaceholders not implemented");

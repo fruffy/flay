@@ -318,6 +318,9 @@ class TableConfiguration : public ControlPlaneItem {
     /// The set of table entries in the configuration.
     TableEntrySet _tableEntries;
 
+    /// The match key expression for the table . This is derived from the data-plane analysis.
+    const IR::Expression *_tableKeyMatch = IR::BoolLiteral::get(false);
+
     /// Second-order sorting function for table entries. Sorts entries by priority.
     class CompareTableMatch {
      public:
@@ -329,6 +332,9 @@ class TableConfiguration : public ControlPlaneItem {
                                 TableEntrySet tableEntries);
 
     bool operator<(const ControlPlaneItem &other) const override;
+
+    /// Set the table key match expression.
+    void setTableKeyMatch(const IR::Expression *tableKeyMatch);
 
     /// Adds a new table entry.
     int addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace);
