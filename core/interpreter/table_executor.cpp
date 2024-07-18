@@ -284,7 +284,8 @@ const IR::Expression *TableExecutor::processTable() {
     if (tableControlPlaneItem != controlPlaneConstraints().end()) {
         auto *tableControlPlaneConfiguration =
             tableControlPlaneItem->second.get().checkedTo<TableConfiguration>();
-        tableControlPlaneConfiguration->setTableKeyMatch(tableKeyExpression);
+        tableControlPlaneConfiguration->setTableKeyMatch(
+            SimplifyExpression::simplify(tableKeyExpression));
     } else {
         ::error("Table %s has no control plane configuration", table.controlPlaneName());
     }

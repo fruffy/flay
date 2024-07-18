@@ -41,21 +41,18 @@ class AbstractReachabilityMap {
     virtual std::optional<bool> isNodeReachable(const IR::Node *node) const = 0;
 };
 
-class SolverReachabilityMap : private ReachabilityMap, public AbstractReachabilityMap {
+class IRReachabilityMap : private ReachabilityMap, public AbstractReachabilityMap {
  private:
     /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the
     /// reachability map. This map can we used for incremental re-computation of reachability.
     SymbolMap _symbolMap;
 
-    /// The solver used to compute reachability.
-    std::reference_wrapper<AbstractSolver> _solver;
-
     /// Compute reachability for the node given the set of constraints.
-    std::optional<bool> computeNodeReachability(const IR::Node *node,
-                                                const std::vector<const Constraint *> &constraints);
+    std::optional<bool> computeNodeReachability(
+        const IR::Node *node, const ControlPlaneAssignmentSet &controlPlaneAssignments);
 
  public:
-    explicit SolverReachabilityMap(AbstractSolver &solver, const NodeAnnotationMap &map);
+    explicit IRReachabilityMap(const NodeAnnotationMap &map);
 
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

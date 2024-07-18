@@ -7,7 +7,6 @@
 #include "backends/p4tools/modules/flay/core/interpreter/compiler_result.h"
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
 #include "backends/p4tools/modules/flay/core/specialization/passes/specializer.h"
-#include "backends/p4tools/modules/flay/core/specialization/substitution_map.h"
 #include "frontends/p4/toP4/toP4.h"
 
 namespace P4Tools::Flay {
@@ -48,14 +47,14 @@ inline double measureSizeDifference(const IR::P4Program &programBefore,
     return (beforeLength - measureProgramSize(programAfter)) * (100.0 / beforeLength);
 }
 
-enum ReachabilityMapType { kz3Precomputed, kZ3Default };
+enum ReachabilityMapType { kZ3Precomputed, kDefault };
 
 struct FlayServiceOptions {
     /// If useSymbolSet is true, we only check whether the symbols in the set have
     /// changed.
     bool useSymbolSet = true;
     /// The type of map to initialize.
-    ReachabilityMapType mapType = ReachabilityMapType::kz3Precomputed;
+    ReachabilityMapType mapType = ReachabilityMapType::kZ3Precomputed;
 };
 
 struct FlayServiceStatistics {
@@ -93,6 +92,9 @@ class FlayServiceBase {
     /// using static analysis.
     std::reference_wrapper<const FlayCompilerResult> _compilerResult;
 
+    /// The optional Z3Solver. Only not NULL when options.mapType is set to kZ3Precomputed.
+    std::unique_ptr<Z3Solver> _z3Solver;
+
     /// The reachability map used by the server. Derived from the input argument.
     std::reference_wrapper<AbstractReachabilityMap> _reachabilityMap;
 
@@ -129,9 +131,6 @@ class FlayServiceBase {
 
     /// Output the optimized program to file.
     void outputOptimizedProgram(const std::filesystem::path &optimizedOutputFile) const;
-
-    static AbstractReachabilityMap &initializeReachabilityMap(
-        ReachabilityMapType mapType, const NodeAnnotationMap &nodeAnnotationMap);
 
     /// @returns the original program.
     [[nodiscard]] const IR::P4Program &originalProgram() const;
