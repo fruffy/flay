@@ -3,7 +3,7 @@
 #include <utility>
 
 #include "backends/p4tools/common/lib/variables.h"
-#include "backends/p4tools/modules/flay/core/program_info.h"
+#include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
 
 namespace P4Tools::Flay::Fpga {
 

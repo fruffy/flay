@@ -1,8 +1,8 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_TOFINO_BASE_TABLE_EXECUTOR_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_TOFINO_BASE_TABLE_EXECUTOR_H_
 
-#include "backends/p4tools/modules/flay/core/expression_resolver.h"
-#include "backends/p4tools/modules/flay/core/table_executor.h"
+#include "backends/p4tools/modules/flay/core/interpreter/expression_resolver.h"
+#include "backends/p4tools/modules/flay/core/interpreter/table_executor.h"
 #include "ir/ir.h"
 
 namespace P4Tools::Flay::Tofino {

@@ -5,7 +5,7 @@
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
-#include "backends/p4tools/modules/flay/core/expression_resolver.h"
+#include "backends/p4tools/modules/flay/core/interpreter/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/constants.h"
 #include "ir/irutils.h"
 #include "lib/cstring.h"

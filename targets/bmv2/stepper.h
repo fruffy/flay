@@ -1,9 +1,9 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_STEPPER_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_STEPPER_H_
 
-#include "backends/p4tools/modules/flay/core/execution_state.h"
-#include "backends/p4tools/modules/flay/core/program_info.h"
-#include "backends/p4tools/modules/flay/core/stepper.h"
+#include "backends/p4tools/modules/flay/core/interpreter/execution_state.h"
+#include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
+#include "backends/p4tools/modules/flay/core/interpreter/stepper.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
 

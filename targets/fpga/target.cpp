@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "backends/p4tools/common/lib/util.h"
-#include "backends/p4tools/modules/flay/control_plane/protobuf_utils.h"
+#include "backends/p4tools/modules/flay/core/control_plane/protobuf_utils.h"
 #include "backends/p4tools/modules/flay/targets/fpga/symbolic_state.h"
 #include "backends/p4tools/modules/flay/targets/fpga/xsa/program_info.h"
 #include "backends/p4tools/modules/flay/targets/fpga/xsa/stepper.h"

@@ -2,10 +2,10 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_TARGET_H_
 
 #include "backends/p4tools/common/lib/arch_spec.h"
-#include "backends/p4tools/modules/flay/core/execution_state.h"
-#include "backends/p4tools/modules/flay/core/program_info.h"
-#include "backends/p4tools/modules/flay/core/stepper.h"
-#include "backends/p4tools/modules/flay/core/target.h"
+#include "backends/p4tools/modules/flay/core/interpreter/execution_state.h"
+#include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
+#include "backends/p4tools/modules/flay/core/interpreter/stepper.h"
+#include "backends/p4tools/modules/flay/core/interpreter/target.h"
 #include "ir/ir.h"
 
 namespace P4Tools::Flay::V1Model {

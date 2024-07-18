@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <vector>
 
-#include "backends/p4tools/modules/flay/core/program_info.h"
+#include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 #include "lib/cstring.h"

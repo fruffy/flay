@@ -5,7 +5,7 @@
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-#include "backends/p4tools/modules/flay/core/externs.h"
+#include "backends/p4tools/modules/flay/core/interpreter/externs.h"
 #include "backends/p4tools/modules/flay/targets/fpga/base/table_executor.h"
 #include "ir/irutils.h"
 

@@ -5,8 +5,8 @@
 
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/common/lib/variables.h"
-#include "backends/p4tools/modules/flay/control_plane/control_plane_objects.h"
-#include "backends/p4tools/modules/flay/control_plane/return_macros.h"
+#include "backends/p4tools/modules/flay/core/control_plane/control_plane_objects.h"
+#include "backends/p4tools/modules/flay/core/lib/return_macros.h"
 #include "backends/p4tools/modules/flay/targets/tofino/constants.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
 

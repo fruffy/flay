@@ -4,8 +4,8 @@
 #include <utility>
 
 #include "backends/p4tools/common/lib/arch_spec.h"
-#include "backends/p4tools/modules/flay/core/program_info.h"
-#include "backends/p4tools/modules/flay/core/target.h"
+#include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
+#include "backends/p4tools/modules/flay/core/interpreter/target.h"
 
 namespace P4Tools::Flay::Fpga {
 
