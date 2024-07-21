@@ -36,15 +36,6 @@ struct IsSemanticallyLessPairComparator {
 using ControlPlaneAssignmentSet =
     std::map<std::reference_wrapper<const IR::SymbolicVariable>,
              std::reference_wrapper<const IR::Expression>, IR::IsSemanticallyLessComparator>;
-struct IsSemanticallyLessControlPlaneAssignmentSetComparator {
-    bool operator()(const ControlPlaneAssignmentSet &s1,
-                    const ControlPlaneAssignmentSet &s2) const {
-        return std::lexicographical_compare(s1.begin(), s1.end(), s2.begin(), s2.end(),
-                                            IsSemanticallyLessPairComparator());
-    }
-};
-using ControlPlaneAssignmentVector =
-    std::vector<std::pair<const IR::SymbolicVariable *, const IR::Literal *>>;
 
 inline const IR::Expression *computeConstraintExpression(
     const ControlPlaneAssignmentSet &constraints) {

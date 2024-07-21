@@ -12,7 +12,8 @@
 #include "backends/p4tools/modules/flay/core/control_plane/p4runtime/flaytests.pb.h"
 #pragma GCC diagnostic pop
 
-#include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
+#include "backends/p4tools/modules/flay/core/control_plane/control_plane_item.h"
+#include "backends/p4tools/modules/flay/core/control_plane/symbols.h"
 
 /// Parses a Protobuf text message file and converts the instructions contained
 /// within into P4C-IR nodes. These IR-nodes are structured to represent a

@@ -4,7 +4,7 @@
 #include <map>
 #include <optional>
 
-#include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
+#include "backends/p4tools/modules/flay/core/control_plane/symbols.h"
 #include "ir/ir.h"
 
 namespace P4Tools::Flay {
