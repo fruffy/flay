@@ -28,4 +28,19 @@ ControlPlaneAssignmentSet CloneSession::computeControlPlaneAssignments() const {
     return assignmentSet;
 }
 
+Z3ControlPlaneAssignmentSet CloneSession::computeZ3ControlPlaneAssignments() const {
+    Z3ControlPlaneAssignmentSet assignmentSet;
+    const auto *cloneActive = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(),
+                                                                  cstring("clone_session_active"));
+    if (!sessionId.has_value()) {
+        assignmentSet.add(*cloneActive, Z3Cache::set(IR::BoolLiteral::get(false)));
+    } else {
+        assignmentSet.add(*cloneActive, Z3Cache::set(IR::BoolLiteral::get(true)));
+        assignmentSet.add(
+            *Bmv2ControlPlaneState::getCloneSessionId(IR::Type_Bits::get(32)),
+            Z3Cache::set(IR::Constant::get(IR::Type_Bits::get(32), sessionId.value())));
+    }
+    return assignmentSet;
+}
+
 }  // namespace P4Tools::Flay::V1Model

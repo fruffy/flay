@@ -1,8 +1,11 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_CONTROL_PLANE_ITEM_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_CONTROL_PLANE_ITEM_H_
 
+#include <z3++.h>
+
 #include <map>
 
+#include "backends/p4tools/modules/flay/core/lib/z3_cache.h"
 #include "ir/ir.h"
 #include "ir/node.h"
 #include "lib/castable.h"
@@ -57,6 +60,51 @@ inline const IR::Expression *computeConstraintExpression(
     return matchExpression;
 }
 
+class Z3ControlPlaneAssignmentSet
+    : private std::map<std::reference_wrapper<const IR::SymbolicVariable>, z3::expr,
+                       IR::IsSemanticallyLessComparator> {
+ public:
+    Z3ControlPlaneAssignmentSet() = default;
+
+    // [[nodiscard]] z3::expr_vector symbolicVariables() const { return _symbolicVariables; }
+
+    // [[nodiscard]] z3::expr_vector assignments() const { return _assignments; }
+
+    void add(const IR::SymbolicVariable &var, z3::expr assignment) { emplace(var, assignment); }
+
+    void addConditionally(const IR::SymbolicVariable &var, const z3::expr &condition,
+                          z3::expr assignment) {
+        auto it = find(var);
+        if (it == end()) {
+            emplace(var, assignment);
+        } else {
+            it->second = z3::ite(condition, assignment, it->second);
+        }
+    }
+
+    [[nodiscard]] z3::expr substitute(z3::expr toSubstitute) const {
+        z3::expr_vector substitutionVariables(toSubstitute.ctx());
+        z3::expr_vector substitutionAssignments(toSubstitute.ctx());
+        for (const auto &match : *this) {
+            substitutionVariables.push_back(Z3Cache::set(&match.first.get()));
+            substitutionAssignments.push_back(match.second);
+        }
+        return toSubstitute.substitute(substitutionVariables, substitutionAssignments);
+    }
+
+    void merge(const Z3ControlPlaneAssignmentSet &other) {
+        for (const auto &match : other) {
+            add(match.first.get(), match.second);
+        }
+    }
+
+    void mergeConditionally(const z3::expr &condition, const Z3ControlPlaneAssignmentSet &other) {
+        for (const auto &match : other) {
+            addConditionally(match.first.get(), condition, match.second);
+        }
+    }
+};
+
 /// A control plane item is any control plane construct that can influence program execution.
 /// An example is a table entry executing a particular action and matching on a particular set
 /// of keys.
@@ -73,6 +121,9 @@ class ControlPlaneItem : public ICastable {
 
     /// Get the control plane assignments produced by the control plane item.
     [[nodiscard]] virtual ControlPlaneAssignmentSet computeControlPlaneAssignments() const = 0;
+
+    /// Get the control plane constraints produced by the control plane item.
+    [[nodiscard]] virtual Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const = 0;
 };
 
 /// The constraints imposed by the control plane on the program. The map key is a unique

@@ -34,16 +34,12 @@ class Z3SolverReachabilityMap
     /// reachability map. This map can we used for incremental re-computation of reachability.
     SymbolMap _symbolMap;
 
-    /// The Z3 solver used for incremental re-computation of reachability.
-    std::reference_wrapper<Z3Solver> _solver;
-
     /// Compute reachability for the node given the set of constraints.
     std::optional<bool> computeNodeReachability(const IR::Node *node,
-                                                const z3::expr_vector &variables,
-                                                const z3::expr_vector &variableAssignments);
+                                                const Z3ControlPlaneAssignmentSet &assignmentSet);
 
  public:
-    explicit Z3SolverReachabilityMap(Z3Solver &solver, const NodeAnnotationMap &map);
+    explicit Z3SolverReachabilityMap(const NodeAnnotationMap &map);
 
     std::optional<bool> recomputeReachability(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

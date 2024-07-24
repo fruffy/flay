@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <utility>
 
-#include "backends/p4tools/common/lib/logging.h"
 #include "lib/timer.h"
 
 namespace P4Tools::Flay {
@@ -17,8 +16,7 @@ Z3ReachabilityExpression::Z3ReachabilityExpression(ReachabilityExpression reacha
 z3::expr &Z3ReachabilityExpression::getZ3Condition() { return _z3Condition; }
 
 std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(
-    const IR::Node *node, const z3::expr_vector &variables,
-    const z3::expr_vector &variableAssignments) {
+    const IR::Node *node, const Z3ControlPlaneAssignmentSet &assignments) {
     auto it = find(node);
     if (it == end()) {
         ::error("Reachability mapping for node %1% does not exist.", node);
@@ -26,7 +24,7 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(
     }
     auto *reachabilityExpression = it->second;
     auto &reachabilityCondition = reachabilityExpression->getZ3Condition();
-    auto newExpr = reachabilityCondition.substitute(variables, variableAssignments).simplify();
+    auto newExpr = assignments.substitute(reachabilityCondition).simplify();
     auto reachabilityAssignment = reachabilityExpression->getReachability();
     auto declKind = newExpr.decl().decl_kind();
     if (declKind == Z3_decl_kind::Z3_OP_FALSE || declKind == Z3_decl_kind::Z3_OP_TRUE) {
@@ -46,14 +44,13 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(
     return false;
 }
 
-Z3SolverReachabilityMap::Z3SolverReachabilityMap(Z3Solver &solver, const NodeAnnotationMap &map)
-    : _symbolMap(map.reachabilitySymbolMap()), _solver(solver) {
+Z3SolverReachabilityMap::Z3SolverReachabilityMap(const NodeAnnotationMap &map)
+    : _symbolMap(map.reachabilitySymbolMap()) {
     Util::ScopedTimer timer("Precomputing Z3 Reachability");
-    Z3Translator z3Translator(_solver);
     for (const auto &[node, reachabilityExpression] : map.reachabilityMap()) {
         (*this)[node] = new Z3ReachabilityExpression(
             *reachabilityExpression,
-            z3Translator.translate(reachabilityExpression->getCondition()).simplify());
+            Z3Cache::set(reachabilityExpression->getCondition()).simplify());
         // printInfo("Computing reachability for %1%:\t%2%", node,
         //           reachabilityExpression->getCondition());
         // printInfo("##############");
@@ -78,23 +75,14 @@ std::optional<bool> Z3SolverReachabilityMap::isNodeReachable(const IR::Node *nod
 std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
-    Z3Translator z3Translator(_solver);
-    auto variables = z3::expr_vector(_solver.get().mutableContext());
-    auto variableAssignments = z3::expr_vector(_solver.get().mutableContext());
+    Z3ControlPlaneAssignmentSet assignmentSet;
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
-        const auto &controlPlaneAssignments =
-            controlPlaneConstraint.get().computeControlPlaneAssignments();
-        for (const auto &constraint : controlPlaneAssignments) {
-            // printInfo("Added constraint: %1% -> %2%", constraint.first.get(),
-            //           constraint.second.get());
-            variables.push_back(z3Translator.translate(&constraint.first.get()));
-            variableAssignments.push_back(z3Translator.translate(&constraint.second.get()));
-        }
+        assignmentSet.merge(controlPlaneConstraint.get().computeZ3ControlPlaneAssignments());
     }
 
     bool hasChanged = false;
     for (auto &pair : *this) {
-        auto result = computeNodeReachability(pair.first, variables, variableAssignments);
+        auto result = computeNodeReachability(pair.first, assignmentSet);
         if (!result.has_value()) {
             return std::nullopt;
         }
@@ -120,23 +108,14 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
 std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     const NodeSet &targetNodes, const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
-    Z3Translator z3Translator(_solver);
-    auto variables = z3::expr_vector(_solver.get().mutableContext());
-    auto variableAssignments = z3::expr_vector(_solver.get().mutableContext());
+    Z3ControlPlaneAssignmentSet assignmentSet;
     for (const auto &[entityName, controlPlaneConstraint] : controlPlaneConstraints) {
-        const auto &controlPlaneAssignments =
-            controlPlaneConstraint.get().computeControlPlaneAssignments();
-        for (const auto &constraint : controlPlaneAssignments) {
-            // printInfo("Added constraint: %1% -> %2%", constraint.first.get(),
-            //           constraint.second.get());
-            variables.push_back(z3Translator.translate(&constraint.first.get()));
-            variableAssignments.push_back(z3Translator.translate(&constraint.second.get()));
-        }
+        assignmentSet.merge(controlPlaneConstraint.get().computeZ3ControlPlaneAssignments());
     }
 
     bool hasChanged = false;
     for (const auto *node : targetNodes) {
-        auto result = computeNodeReachability(node, variables, variableAssignments);
+        auto result = computeNodeReachability(node, assignmentSet);
         if (!result.has_value()) {
             return std::nullopt;
         }

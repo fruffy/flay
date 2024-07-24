@@ -30,6 +30,8 @@ class CloneSession : public ControlPlaneItem {
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
 
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
+
     DECLARE_TYPEINFO(CloneSession);
 };
 
