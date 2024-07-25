@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <set>
 #include <utility>
 
@@ -27,21 +28,32 @@ namespace P4Tools::Flay {
 /**************************************************************************************************
 TableMatchKeys
 **************************************************************************************************/
-class TableMatchKey : public ControlPlaneItem {
+class TableMatchKey : public Z3ControlPlaneItem {
     /// The control plane identifier for this match key.
     cstring _name;
 
+    /// The computed key expression.
+    const IR::Expression *_computedKey = nullptr;
+
  public:
-    explicit TableMatchKey(cstring name);
+    explicit TableMatchKey(cstring name, const IR::Expression *computedKey);
 
     /// @returns the control plane identifier for this match key.
     [[nodiscard]] cstring name() const;
 
+    /// @returns the computed key expression.
+    [[nodiscard]] const IR::Expression *computedKey() const { return _computedKey; }
+
     bool operator<(const ControlPlaneItem &other) const override;
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
 
     [[nodiscard]] virtual const IR::Expression *computeControlPlaneConstraint() const {
         P4C_UNIMPLEMENTED("computeControlPlaneConstraint");
+    }
+
+    [[nodiscard]] virtual std::optional<z3::expr> computeZ3ControlPlaneConstraint() const {
+        P4C_UNIMPLEMENTED("computeZ3ControlPlaneConstraint");
     }
 
     DECLARE_TYPEINFO(TableMatchKey);
@@ -68,6 +80,7 @@ class ExactTableMatchKey : public TableMatchKey {
     [[nodiscard]] const IR::Expression *keyExpression() const;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+    [[nodiscard]] std::optional<z3::expr> computeZ3ControlPlaneConstraint() const override;
 
     DECLARE_TYPEINFO(ExactTableMatchKey);
 };
@@ -88,7 +101,7 @@ class TernaryTableMatchKey : public TableMatchKey {
 
  public:
     TernaryTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                         const IR::SymbolicVariable *mask, const IR::Expression *_keyExpression);
+                         const IR::SymbolicVariable *mask, const IR::Expression *keyExpression);
 
     /// @returns the symbolic variable that represents the table match key.
     [[nodiscard]] const IR::SymbolicVariable *variable() const;
@@ -100,6 +113,7 @@ class TernaryTableMatchKey : public TableMatchKey {
     [[nodiscard]] const IR::SymbolicVariable *mask() const;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+    [[nodiscard]] std::optional<z3::expr> computeZ3ControlPlaneConstraint() const override;
 
     DECLARE_TYPEINFO(TernaryTableMatchKey);
 };
@@ -132,6 +146,7 @@ class LpmTableMatchKey : public TableMatchKey {
     [[nodiscard]] const IR::SymbolicVariable *prefix() const;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+    [[nodiscard]] std::optional<z3::expr> computeZ3ControlPlaneConstraint() const override;
 
     DECLARE_TYPEINFO(LpmTableMatchKey);
 };
@@ -156,6 +171,7 @@ class OptionalMatchKey : public TableMatchKey {
     [[nodiscard]] const IR::Expression *keyExpression() const;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+    [[nodiscard]] std::optional<z3::expr> computeZ3ControlPlaneConstraint() const override;
 
     DECLARE_TYPEINFO(OptionalMatchKey);
 };
@@ -180,6 +196,7 @@ class SelectorMatchKey : public TableMatchKey {
     [[nodiscard]] const IR::Expression *keyExpression() const;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+    [[nodiscard]] std::optional<z3::expr> computeZ3ControlPlaneConstraint() const override;
 
     DECLARE_TYPEINFO(SelectorMatchKey);
 };
@@ -209,6 +226,7 @@ class RangeTableMatchKey : public TableMatchKey {
     [[nodiscard]] const IR::Expression *keyExpression() const;
 
     [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
+    [[nodiscard]] std::optional<z3::expr> computeZ3ControlPlaneConstraint() const override;
 
     DECLARE_TYPEINFO(RangeTableMatchKey);
 };
@@ -217,41 +235,40 @@ class RangeTableMatchKey : public TableMatchKey {
 TableMatchEntry
 **************************************************************************************************/
 
-class TableMatchEntry : public ControlPlaneItem {
+class TableMatchEntry : public Z3ControlPlaneItem {
  protected:
     /// The action that will be executed by this entry.
     ControlPlaneAssignmentSet _actionAssignment;
 
+    /// The action that will be executed by this entry in Z3 form.
+    Z3ControlPlaneAssignmentSet _z3ActionAssignment;
+
     /// The priority of this entry.
     int32_t _priority;
-
-    /// The expression which needs to be true to execute the action.
-    const IR::Expression *_matchExpression;
-
-    /// The resulting assignment once the match expression is true.
-    const IR::Expression *_actionAssignmentExpression;
 
     /// The set of control plane assignments produced by this entry.
     ControlPlaneAssignmentSet _matches;
 
+    /// The action that will be executed by this entry in Z3 form.
+    Z3ControlPlaneAssignmentSet _z3Matches;
+
  public:
     explicit TableMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority,
-                             const ControlPlaneAssignmentSet &matches);
+                             ControlPlaneAssignmentSet matches);
 
     /// @returns the action that will be executed by this entry.
     [[nodiscard]] ControlPlaneAssignmentSet actionAssignment() const;
 
-    /// @returns the expression correlating to the action that will be executed by this entry.
-    [[nodiscard]] const IR::Expression *actionAssignmentExpression() const;
+    /// @returns the action that will be executed by this entry.
+    [[nodiscard]] Z3ControlPlaneAssignmentSet z3ActionAssignment() const;
 
     /// @returns the priority of this entry.
     [[nodiscard]] int32_t priority() const;
 
     bool operator<(const ControlPlaneItem &other) const override;
 
-    [[nodiscard]] virtual const IR::Expression *computeControlPlaneConstraint() const;
-
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(TableMatchEntry);
 };
@@ -260,21 +277,20 @@ class TableMatchEntry : public ControlPlaneItem {
 TableDefaultAction
 **************************************************************************************************/
 
-class TableDefaultAction : public ControlPlaneItem {
+class TableDefaultAction : public Z3ControlPlaneItem {
     /// The action that will be executed by this entry.
     ControlPlaneAssignmentSet _actionAssignment;
 
-    /// The resulting assignment once the match expression is true.
-    const IR::Expression *_actionAssignmentExpression;
+    /// The action that will be executed by this entry in Z3 form.
+    Z3ControlPlaneAssignmentSet _z3ActionAssignment;
 
  public:
     explicit TableDefaultAction(ControlPlaneAssignmentSet actionAssignment);
 
     bool operator<(const ControlPlaneItem &other) const override;
 
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const;
-
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(TableDefaultAction);
 };
@@ -289,11 +305,8 @@ class WildCardMatchEntry : public TableMatchEntry {
  public:
     explicit WildCardMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority);
 
-    bool operator<(const ControlPlaneItem &other) const override;
-
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
-
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(WildCardMatchEntry);
 };
@@ -308,7 +321,7 @@ using TableEntrySet =
 
 /// Concrete configuration of a control plane table. May contain arbitrary many table match
 /// entries.
-class TableConfiguration : public ControlPlaneItem {
+class TableConfiguration : public Z3ControlPlaneItem {
     /// The control plane name of the table that is being configured.
     cstring _tableName;
 
@@ -349,6 +362,7 @@ class TableConfiguration : public ControlPlaneItem {
     void setDefaultTableAction(TableDefaultAction defaultTableAction);
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(TableConfiguration);
 };
@@ -360,7 +374,7 @@ ParserValueSet
 /// Implements a parser value set as specified in
 /// https://p4.org/p4-spec/docs/P4-16-working-spec.html#sec-value-set.
 /// TODO: Actually implement all the elments in the value set.
-class ParserValueSet : public ControlPlaneItem {
+class ParserValueSet : public Z3ControlPlaneItem {
     cstring _name;
 
  public:
@@ -369,6 +383,7 @@ class ParserValueSet : public ControlPlaneItem {
     bool operator<(const ControlPlaneItem &other) const override;
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(ParserValueSet);
 };
@@ -380,7 +395,7 @@ ActionProfile
 /// An action profile. Action profiles are programmed like a table, but each table associated
 /// with the respective table shares the action profile configuration. Hence, we use a set of
 /// table control plane names to represent this data structure.
-class ActionProfile : public ControlPlaneItem {
+class ActionProfile : public Z3ControlPlaneItem {
     /// The control plane name of the action profile.
     cstring _name;
 
@@ -404,6 +419,7 @@ class ActionProfile : public ControlPlaneItem {
     void addAssociatedTable(cstring table);
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(ActionProfile);
 };
@@ -415,7 +431,7 @@ ActionSelector
 /// An action selector. Action selectors are programmed like a table, but each table associated
 /// with the respective table shares the action selector configuration. Hence, we use a set of
 /// table control plane names to represent this data structure.
-class ActionSelector : public ControlPlaneItem {
+class ActionSelector : public Z3ControlPlaneItem {
     /// The reference to the action profile associated with the selector.
     std::reference_wrapper<ActionProfile> _actionProfile;
 
@@ -439,6 +455,7 @@ class ActionSelector : public ControlPlaneItem {
     void addAssociatedTable(cstring table);
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(ActionSelector);
 };
@@ -453,6 +470,7 @@ class TableActionSelectorConfiguration : public TableConfiguration {
                                               TableEntrySet tableEntries);
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
+    [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
 
     DECLARE_TYPEINFO(TableActionSelectorConfiguration);
 };

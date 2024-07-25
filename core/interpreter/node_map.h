@@ -1,7 +1,6 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_NODE_MAP_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_NODE_MAP_H_
 
-#include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/interpreter/reachability_expression.h"
 #include "backends/p4tools/modules/flay/core/interpreter/substitution_expression.h"
 #include "ir/ir.h"
@@ -16,7 +15,7 @@ class NodeAnnotationMap {
     ReachabilityMap _reachabilityMap;
 
     /// A mapping of expressions to their values in the node annotation map.
-    ExpressionMap _expressionMap;
+    SubstitutionMap _substitutionMap;
 
     /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the
     /// node annotation map. This map can we used for incremental re-computation.
@@ -52,7 +51,7 @@ class NodeAnnotationMap {
     [[nodiscard]] ReachabilityMap reachabilityMap() const;
 
     /// @returns the expression map associated with the node annotation map.
-    [[nodiscard]] ExpressionMap expressionMap() const;
+    [[nodiscard]] SubstitutionMap substitutionMap() const;
 };
 
 }  // namespace P4Tools::Flay

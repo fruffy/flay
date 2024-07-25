@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "backends/p4tools/common/lib/table_utils.h"
+#include "backends/p4tools/modules/flay/core/control_plane/control_plane_objects.h"
 #include "backends/p4tools/modules/flay/core/interpreter/execution_state.h"
 #include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
 #include "ir/ir.h"

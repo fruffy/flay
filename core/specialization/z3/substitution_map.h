@@ -41,16 +41,12 @@ class Z3SolverSubstitutionMap : private Z3ExpressionMap, public AbstractSubstitu
     /// substitution map. This map can we used for incremental re-computation of substitution.
     SymbolMap _symbolMap;
 
-    /// The solver used to compute substitution.
-    std::reference_wrapper<Z3Solver> _solver;
-
     /// Compute substitution for the node given the set of constraints.
     std::optional<bool> computeNodeSubstitution(const IR::Expression *expression,
-                                                const z3::expr_vector &variables,
-                                                const z3::expr_vector &variableAssignments);
+                                                const Z3ControlPlaneAssignmentSet &assignmentSet);
 
  public:
-    explicit Z3SolverSubstitutionMap(Z3Solver &solver, const NodeAnnotationMap &map);
+    explicit Z3SolverSubstitutionMap(const NodeAnnotationMap &map);
 
     std::optional<bool> recomputeSubstitution(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

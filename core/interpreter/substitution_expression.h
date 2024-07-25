@@ -4,7 +4,7 @@
 #include <map>
 #include <optional>
 
-#include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
+#include "backends/p4tools/modules/flay/core/control_plane/symbols.h"
 #include "ir/ir.h"
 
 namespace P4Tools::Flay {
@@ -56,7 +56,7 @@ struct SubstitutionExpression {
 
 /// Maps an expression with validation source information to its value as collected in the Flay
 /// analysis.
-using ExpressionMap = std::map<const IR::Expression *, SubstitutionExpression *, SourceIdCmp>;
+using SubstitutionMap = std::map<const IR::Expression *, SubstitutionExpression *, SourceIdCmp>;
 
 }  // namespace P4Tools::Flay
 

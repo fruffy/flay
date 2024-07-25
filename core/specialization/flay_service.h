@@ -92,9 +92,6 @@ class FlayServiceBase {
     /// using static analysis.
     std::reference_wrapper<const FlayCompilerResult> _compilerResult;
 
-    /// The optional Z3Solver. Only not NULL when options.mapType is set to kZ3Precomputed.
-    std::unique_ptr<Z3Solver> _z3Solver;
-
     /// The reachability map used by the server. Derived from the input argument.
     std::reference_wrapper<AbstractReachabilityMap> _reachabilityMap;
 

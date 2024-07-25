@@ -28,13 +28,13 @@ bool NodeAnnotationMap::initializeExpressionMapping(const IR::Expression *expres
     for (const auto &symbol : collectedSymbols) {
         _expressionSymbolMap[symbol.get()].emplace(expression);
     }
-    auto result = _expressionMap.emplace(expression, new SubstitutionExpression(cond, value));
+    auto result = _substitutionMap.emplace(expression, new SubstitutionExpression(cond, value));
     return result.second;
 }
 
 void NodeAnnotationMap::mergeAnnotationMapping(const NodeAnnotationMap &otherMap) {
     _reachabilityMap.insert(otherMap._reachabilityMap.begin(), otherMap._reachabilityMap.end());
-    _expressionMap.insert(otherMap._expressionMap.begin(), otherMap._expressionMap.end());
+    _substitutionMap.insert(otherMap._substitutionMap.begin(), otherMap._substitutionMap.end());
 
     for (const auto &symbol : otherMap.reachabilitySymbolMap()) {
         _reachabilitySymbolMap[symbol.first.get()].insert(symbol.second.begin(),
@@ -60,6 +60,6 @@ SymbolMap NodeAnnotationMap::expressionSymbolMap() const { return _expressionSym
 
 ReachabilityMap NodeAnnotationMap::reachabilityMap() const { return _reachabilityMap; }
 
-ExpressionMap NodeAnnotationMap::expressionMap() const { return _expressionMap; }
+SubstitutionMap NodeAnnotationMap::substitutionMap() const { return _substitutionMap; }
 
 }  // namespace P4Tools::Flay

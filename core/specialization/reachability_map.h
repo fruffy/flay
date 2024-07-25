@@ -1,13 +1,10 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_REACHABILITY_MAP_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_REACHABILITY_MAP_H_
 
-#include <functional>
 #include <optional>
 
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_item.h"
-#include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
-#include "ir/solver.h"
 
 namespace P4Tools::Flay {
 

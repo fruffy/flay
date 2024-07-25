@@ -12,20 +12,29 @@ bool CloneSession::operator<(const ControlPlaneItem &other) const {
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
-void CloneSession::setSessionId(uint32_t sessionId) { this->sessionId = sessionId; }
+void CloneSession::setSessionId(uint32_t sessionId) {
+    _controlPlaneAssignments.clear();
+    _z3ControlPlaneAssignments.clear();
 
-ControlPlaneAssignmentSet CloneSession::computeControlPlaneAssignments() const {
-    ControlPlaneAssignmentSet assignmentSet;
+    _sessionId = sessionId;
     const auto *cloneActive = ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(),
                                                                   cstring("clone_session_active"));
-    if (!sessionId.has_value()) {
-        assignmentSet.emplace(*cloneActive, *IR::BoolLiteral::get(false));
-    } else {
-        assignmentSet.emplace(*cloneActive, *IR::BoolLiteral::get(true));
-        assignmentSet.emplace(*Bmv2ControlPlaneState::getCloneSessionId(IR::Type_Bits::get(32)),
-                              *IR::Constant::get(IR::Type_Bits::get(32), sessionId.value()));
+    auto sessionIdHasValue = _sessionId.has_value();
+    _controlPlaneAssignments.emplace(*cloneActive, *IR::BoolLiteral::get(sessionIdHasValue));
+    if (sessionIdHasValue) {
+        _controlPlaneAssignments.emplace(
+            *Bmv2ControlPlaneState::getCloneSessionId(IR::Type_Bits::get(32)),
+            *IR::Constant::get(IR::Type_Bits::get(32), _sessionId.value()));
     }
-    return assignmentSet;
+    _z3ControlPlaneAssignments.merge(_controlPlaneAssignments);
+}
+
+ControlPlaneAssignmentSet CloneSession::computeControlPlaneAssignments() const {
+    return _controlPlaneAssignments;
+}
+
+Z3ControlPlaneAssignmentSet CloneSession::computeZ3ControlPlaneAssignments() const {
+    return _z3ControlPlaneAssignments;
 }
 
 }  // namespace P4Tools::Flay::V1Model

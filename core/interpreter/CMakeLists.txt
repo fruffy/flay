@@ -17,5 +17,5 @@ set(FLAY_INTERPRETER_SOURCES
 
 add_library(flay-interpreter STATIC ${FLAY_INTERPRETER_SOURCES})
 
-target_link_libraries(flay-interpreter PRIVATE flay-control-plane ${P4C_LIB_DEPS})
-add_dependencies(flay-interpreter flay-lib p4tools-common)
+target_link_libraries(flay-interpreter PRIVATE flay-control-plane flay-lib ${P4C_LIB_DEPS})
+add_dependencies(flay-interpreter p4tools-common)
