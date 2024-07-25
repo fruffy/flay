@@ -4,8 +4,6 @@
 #include <cstdint>
 
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_item.h"
-#include "ir/ir.h"
-#include "ir/irutils.h"
 #include "lib/rtti.h"
 
 namespace P4Tools::Flay::V1Model {

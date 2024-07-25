@@ -30,7 +30,7 @@ Z3SolverSubstitutionMap
 Z3SolverSubstitutionMap::Z3SolverSubstitutionMap(const NodeAnnotationMap &map)
     : _symbolMap(map.expressionSymbolMap()) {
     Util::ScopedTimer timer("Precomputing Z3 Substitution Map");
-    for (auto &[node, substitutionExpression] : map.expressionMap()) {
+    for (auto &[node, substitutionExpression] : map.substitutionMap()) {
         auto *z3SubstitutionExpression = new Z3SubstitutionExpression(
             substitutionExpression->condition(), substitutionExpression->originalExpression(),
             Z3Cache::set(substitutionExpression->originalExpression()).simplify());
@@ -49,6 +49,14 @@ std::optional<bool> Z3SolverSubstitutionMap::computeNodeSubstitution(
     auto original = it->second->originalZ3Expression();
     auto newExpr = assignmentSet.substitute(original).simplify();
     auto previousSubstitution = it->second->substitution();
+    auto declKind = newExpr.decl().decl_kind();
+    if (declKind == Z3_decl_kind::Z3_OP_FALSE || declKind == Z3_decl_kind::Z3_OP_TRUE) {
+        const auto *newSubstitution =
+            IR::BoolLiteral::get(newExpr.is_true(), expression->getSourceInfo());
+        it->second->setSubstitution(newSubstitution);
+        return !previousSubstitution.has_value() ||
+               !previousSubstitution.value()->equiv(*newSubstitution);
+    }
     if (newExpr.is_numeral()) {
         const auto *newSubstitution = IR::Constant::get(
             expression->type,
@@ -58,6 +66,7 @@ std::optional<bool> Z3SolverSubstitutionMap::computeNodeSubstitution(
         return !previousSubstitution.has_value() ||
                !previousSubstitution.value()->equiv(*newSubstitution);
     }
+
     if (previousSubstitution.has_value()) {
         it->second->unsetSubstitution();
         return true;

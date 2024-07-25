@@ -1,12 +1,9 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_SUBSTITUTION_MAP_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_SUBSTITUTION_MAP_H_
 
-#include <functional>
 #include <optional>
 
-#include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_item.h"
-#include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
 
 namespace P4Tools::Flay {
@@ -41,7 +38,7 @@ class AbstractSubstitutionMap {
         const IR::Expression *expression) const = 0;
 };
 
-class SubstitutionMap : private ExpressionMap, public AbstractSubstitutionMap {
+class IrSubstitutionMap : private SubstitutionMap, public AbstractSubstitutionMap {
  private:
     /// A mapping of symbolic variables to IR nodes that depend on these symbolic variables in the
     /// substitution map. This map can we used for incremental re-computation of substitution.
@@ -52,7 +49,7 @@ class SubstitutionMap : private ExpressionMap, public AbstractSubstitutionMap {
         const IR::Expression *expression, const ControlPlaneAssignmentSet &controlPlaneAssignments);
 
  public:
-    explicit SubstitutionMap(const NodeAnnotationMap &map);
+    explicit IrSubstitutionMap(const NodeAnnotationMap &map);
 
     std::optional<bool> recomputeSubstitution(
         const ControlPlaneConstraints &controlPlaneConstraints) override;

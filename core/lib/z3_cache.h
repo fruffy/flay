@@ -5,11 +5,11 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "backends/p4tools/common/core/z3_solver.h"
-#include "ir/ir-generated.h"
 #include "ir/ir.h"
 
 namespace P4Tools {
 
+/// A central cache to translate P4C expressions to Z3 expressions.
 class Z3Cache : protected absl::flat_hash_map<const IR::Expression *, z3::expr> {
     Z3Solver _z3Solver;
     Z3Translator _z3Translator;
@@ -28,7 +28,7 @@ class Z3Cache : protected absl::flat_hash_map<const IR::Expression *, z3::expr> 
         if (it != end()) {
             return it->second;
         }
-        auto result = _z3Translator.translate(expression);
+        auto result = _z3Translator.translate(expression).simplify();
         insert({expression, result});
         return result;
     }

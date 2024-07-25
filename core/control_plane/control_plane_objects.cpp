@@ -213,11 +213,7 @@ TableMatchEntry
 
 TableMatchEntry::TableMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority,
                                  const ControlPlaneAssignmentSet &matches)
-    : _actionAssignment(std::move(actionAssignment)),
-      _priority(priority),
-      _matchExpression(computeConstraintExpression(matches)),
-      _actionAssignmentExpression(computeConstraintExpression(_actionAssignment)),
-      _matches(matches) {
+    : _actionAssignment(std::move(actionAssignment)), _priority(priority), _matches(matches) {
     for (const auto &assignment : _matches) {
         _z3Matches.add(assignment.first, Z3Cache::set(&assignment.second.get()));
     }
@@ -234,20 +230,11 @@ Z3ControlPlaneAssignmentSet TableMatchEntry::z3ActionAssignment() const {
     return _z3ActionAssignment;
 }
 
-const IR::Expression *TableMatchEntry::actionAssignmentExpression() const {
-    return _actionAssignmentExpression;
-}
-
 bool TableMatchEntry::operator<(const ControlPlaneItem &other) const {
     // Table match entries are only compared based on the match expression.
     return typeid(*this) == typeid(other)
-               ? _matchExpression->isSemanticallyLess(
-                     *(dynamic_cast<const TableMatchEntry &>(other))._matchExpression)
+               ? compare(_matches, (dynamic_cast<const TableMatchEntry &>(other))._matches)
                : typeid(*this).hash_code() < typeid(other).hash_code();
-}
-
-const IR::Expression *TableMatchEntry::computeControlPlaneConstraint() const {
-    return _matchExpression;
 }
 
 ControlPlaneAssignmentSet TableMatchEntry::computeControlPlaneAssignments() const {
@@ -263,8 +250,7 @@ TableDefaultAction
 **************************************************************************************************/
 
 TableDefaultAction::TableDefaultAction(ControlPlaneAssignmentSet actionAssignment)
-    : _actionAssignment(std::move(actionAssignment)),
-      _actionAssignmentExpression(computeConstraintExpression(_actionAssignment)) {
+    : _actionAssignment(std::move(actionAssignment)) {
     for (const auto &assignment : _actionAssignment) {
         _z3ActionAssignment.add(assignment.first, Z3Cache::set(&assignment.second.get()));
     }
@@ -273,13 +259,9 @@ TableDefaultAction::TableDefaultAction(ControlPlaneAssignmentSet actionAssignmen
 bool TableDefaultAction::operator<(const ControlPlaneItem &other) const {
     // Table match entries are only compared based on the match expression.
     return typeid(*this) == typeid(other)
-               ? _actionAssignmentExpression->isSemanticallyLess(
-                     *(dynamic_cast<const TableDefaultAction &>(other))._actionAssignmentExpression)
+               ? compare(_actionAssignment,
+                         (dynamic_cast<const TableDefaultAction &>(other))._actionAssignment)
                : typeid(*this).hash_code() < typeid(other).hash_code();
-}
-
-const IR::Expression *TableDefaultAction::computeControlPlaneConstraint() const {
-    return _actionAssignmentExpression;
 }
 
 ControlPlaneAssignmentSet TableDefaultAction::computeControlPlaneAssignments() const {
@@ -295,21 +277,7 @@ WildCardMatchEntry
 **************************************************************************************************/
 
 WildCardMatchEntry::WildCardMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority)
-    : TableMatchEntry(std::move(actionAssignment), priority, {}) {
-    _matchExpression = IR::BoolLiteral::get(true);
-}
-
-bool WildCardMatchEntry::operator<(const ControlPlaneItem &other) const {
-    // Table match entries are only compared based on the match expression.
-    return typeid(*this) == typeid(other)
-               ? _matchExpression->isSemanticallyLess(
-                     *(dynamic_cast<const WildCardMatchEntry &>(other))._matchExpression)
-               : typeid(*this).hash_code() < typeid(other).hash_code();
-}
-
-const IR::Expression *WildCardMatchEntry::computeControlPlaneConstraint() const {
-    return _matchExpression;
-}
+    : TableMatchEntry(std::move(actionAssignment), priority, {}) {}
 
 ControlPlaneAssignmentSet WildCardMatchEntry::computeControlPlaneAssignments() const { return {}; }
 

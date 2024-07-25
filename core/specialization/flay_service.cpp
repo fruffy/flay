@@ -39,7 +39,7 @@ AbstractSubstitutionMap &initializeSubstitutionMap(ReachabilityMapType mapType,
     if (mapType == ReachabilityMapType::kZ3Precomputed) {
         initializedSubstitutionMap = new Z3SolverSubstitutionMap(nodeAnnotationMap);
     } else {
-        initializedSubstitutionMap = new SubstitutionMap(nodeAnnotationMap);
+        initializedSubstitutionMap = new IrSubstitutionMap(nodeAnnotationMap);
     }
     return *initializedSubstitutionMap;
 }

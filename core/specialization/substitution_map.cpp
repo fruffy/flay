@@ -13,14 +13,14 @@ namespace P4Tools::Flay {
 SubstitutionMap
 **************************************************************************************************/
 
-SubstitutionMap::SubstitutionMap(const NodeAnnotationMap &map)
+IrSubstitutionMap::IrSubstitutionMap(const NodeAnnotationMap &map)
     : _symbolMap(map.expressionSymbolMap()) {
-    for (auto &pair : map.expressionMap()) {
+    for (auto &pair : map.substitutionMap()) {
         emplace(pair.first, pair.second);
     }
 }
 
-std::optional<bool> SubstitutionMap::computeNodeSubstitution(
+std::optional<bool> IrSubstitutionMap::computeNodeSubstitution(
     const IR::Expression *expression, const ControlPlaneAssignmentSet &controlPlaneAssignments) {
     auto it = find(expression);
     if (it == end()) {
@@ -50,7 +50,7 @@ std::optional<bool> SubstitutionMap::computeNodeSubstitution(
     return false;
 }
 
-std::optional<const IR::Literal *> SubstitutionMap::isExpressionConstant(
+std::optional<const IR::Literal *> IrSubstitutionMap::isExpressionConstant(
     const IR::Expression *expression) const {
     auto it = find(expression);
     if (it != end()) {
@@ -63,7 +63,7 @@ std::optional<const IR::Literal *> SubstitutionMap::isExpressionConstant(
     return std::nullopt;
 }
 
-std::optional<bool> SubstitutionMap::recomputeSubstitution(
+std::optional<bool> IrSubstitutionMap::recomputeSubstitution(
     const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.
     /// Generate IR equalities from the control plane constraints.
@@ -86,9 +86,9 @@ std::optional<bool> SubstitutionMap::recomputeSubstitution(
     return hasChanged;
 }
 
-std::optional<bool> SubstitutionMap::recomputeSubstitution(
+std::optional<bool> IrSubstitutionMap::recomputeSubstitution(
     const SymbolSet &symbolSet, const ControlPlaneConstraints &controlPlaneConstraints) {
-    Util::ScopedTimer timer("SubstitutionMap::recomputeReachability with symbol set");
+    Util::ScopedTimer timer("IrSubstitutionMap::recomputeReachability with symbol set");
     ExpressionSet targetExpressions;
     for (const auto &symbol : symbolSet) {
         auto it = _symbolMap.find(symbol);
@@ -101,7 +101,7 @@ std::optional<bool> SubstitutionMap::recomputeSubstitution(
     return recomputeSubstitution(targetExpressions, controlPlaneConstraints);
 }
 
-std::optional<bool> SubstitutionMap::recomputeSubstitution(
+std::optional<bool> IrSubstitutionMap::recomputeSubstitution(
     const ExpressionSet &targetExpressions,
     const ControlPlaneConstraints &controlPlaneConstraints) {
     /// Generate IR equalities from the control plane constraints.

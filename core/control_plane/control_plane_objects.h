@@ -246,12 +246,6 @@ class TableMatchEntry : public ControlPlaneItem {
     /// The priority of this entry.
     int32_t _priority;
 
-    /// The expression which needs to be true to execute the action.
-    const IR::Expression *_matchExpression;
-
-    /// The resulting assignment once the match expression is true.
-    const IR::Expression *_actionAssignmentExpression;
-
     /// The set of control plane assignments produced by this entry.
     ControlPlaneAssignmentSet _matches;
 
@@ -268,15 +262,10 @@ class TableMatchEntry : public ControlPlaneItem {
     /// @returns the action that will be executed by this entry.
     [[nodiscard]] Z3ControlPlaneAssignmentSet z3ActionAssignment() const;
 
-    /// @returns the expression correlating to the action that will be executed by this entry.
-    [[nodiscard]] const IR::Expression *actionAssignmentExpression() const;
-
     /// @returns the priority of this entry.
     [[nodiscard]] int32_t priority() const;
 
     bool operator<(const ControlPlaneItem &other) const override;
-
-    [[nodiscard]] virtual const IR::Expression *computeControlPlaneConstraint() const;
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
     [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
@@ -295,15 +284,10 @@ class TableDefaultAction : public ControlPlaneItem {
     /// The action that will be executed by this entry in Z3 form.
     Z3ControlPlaneAssignmentSet _z3ActionAssignment;
 
-    /// The resulting assignment once the match expression is true.
-    const IR::Expression *_actionAssignmentExpression;
-
  public:
     explicit TableDefaultAction(ControlPlaneAssignmentSet actionAssignment);
 
     bool operator<(const ControlPlaneItem &other) const override;
-
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const;
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
     [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
@@ -320,10 +304,6 @@ WildCardMatchEntry
 class WildCardMatchEntry : public TableMatchEntry {
  public:
     explicit WildCardMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority);
-
-    bool operator<(const ControlPlaneItem &other) const override;
-
-    [[nodiscard]] const IR::Expression *computeControlPlaneConstraint() const override;
 
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
     [[nodiscard]] Z3ControlPlaneAssignmentSet computeZ3ControlPlaneAssignments() const override;
