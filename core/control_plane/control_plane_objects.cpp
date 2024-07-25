@@ -108,13 +108,8 @@ const IR::Expression *createLpmKey(const IR::SymbolicVariable *variable,
     const auto *keyType = variable->type;
     auto keyWidth = keyType->width_bits();
     auto maxReturn = IR::getMaxBvVal(keyWidth);
-    auto *prefix = new IR::Sub(IR::Constant::get(keyType, keyWidth), prefixVar);
-    const IR::Expression *lpmMask = new IR::Shl(IR::Constant::get(keyType, maxReturn), prefix);
-    return new IR::LAnd(
-        // This is the actual LPM match under the shifted mask (the prefix).
-        new IR::Leq(prefixVar, IR::Constant::get(keyType, keyWidth)),
-        // The mask variable shift should not be larger than the key width.
-        new IR::Equ(new IR::BAnd(keyExpression, lpmMask), new IR::BAnd(variable, lpmMask)));
+    const IR::Expression *lpmMask = new IR::Shl(IR::Constant::get(keyType, maxReturn), prefixVar);
+    return new IR::Equ(new IR::BAnd(keyExpression, lpmMask), new IR::BAnd(variable, lpmMask));
 }
 
 }  // namespace
