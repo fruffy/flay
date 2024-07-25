@@ -3,13 +3,9 @@
 
 #include <z3++.h>
 
-#include <algorithm>
-#include <map>
-
 #include "backends/p4tools/modules/flay/core/lib/z3_cache.h"
 #include "ir/ir.h"
 #include "ir/node.h"
-#include "lib/castable.h"
 
 namespace P4Tools::Flay {
 
@@ -41,6 +37,8 @@ using ControlPlaneAssignmentSet =
     ordered_map<std::reference_wrapper<const IR::SymbolicVariable>,
                 std::reference_wrapper<const IR::Expression>, IR::IsSemanticallyLessComparator>;
 
+/// Compares two control plane assignment sets. Returns true if s1 is shorter than s2. Also returns
+/// true if a key in S1 is < S2's key or its value is < S2's value.
 inline bool compare(const ControlPlaneAssignmentSet &s1, const ControlPlaneAssignmentSet &s2) {
     auto it = s2.begin();
     for (const auto &el : s1) {
@@ -63,52 +61,6 @@ inline bool compare(const ControlPlaneAssignmentSet &s1, const ControlPlaneAssig
     }
     return it != s2.end();
 }
-
-class Z3ControlPlaneAssignmentSet
-    : private ordered_map<std::reference_wrapper<const IR::SymbolicVariable>, z3::expr,
-                          IR::IsSemanticallyLessComparator> {
- public:
-    Z3ControlPlaneAssignmentSet() = default;
-
-    void add(const IR::SymbolicVariable &var, z3::expr assignment) {
-        auto result = emplace(var, assignment);
-        if (!result.second) {
-            ::error("Duplicate Z3ControlPlaneAssignmentSet entry");
-        }
-    }
-
-    void addConditionally(const IR::SymbolicVariable &var, const z3::expr &condition,
-                          z3::expr assignment) {
-        auto it = find(var);
-        if (it == end()) {
-            emplace(var, assignment);
-        } else {
-            it->second = z3::ite(condition, assignment, it->second);
-        }
-    }
-
-    [[nodiscard]] z3::expr substitute(z3::expr toSubstitute) const {
-        z3::expr_vector substitutionVariables(toSubstitute.ctx());
-        z3::expr_vector substitutionAssignments(toSubstitute.ctx());
-        for (const auto &match : *this) {
-            substitutionVariables.push_back(Z3Cache::set(&match.first.get()));
-            substitutionAssignments.push_back(match.second);
-        }
-        return toSubstitute.substitute(substitutionVariables, substitutionAssignments);
-    }
-
-    void merge(const Z3ControlPlaneAssignmentSet &other) {
-        for (const auto &match : other) {
-            add(match.first.get(), match.second);
-        }
-    }
-
-    void mergeConditionally(const z3::expr &condition, const Z3ControlPlaneAssignmentSet &other) {
-        for (const auto &match : other) {
-            addConditionally(match.first.get(), condition, match.second);
-        }
-    }
-};
 
 }  // namespace P4Tools::Flay
 

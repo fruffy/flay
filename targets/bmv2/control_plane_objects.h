@@ -10,11 +10,14 @@ namespace P4Tools::Flay::V1Model {
 
 /// BMv2-style clone session. If no session id is set, the clone session is considered inactive.
 /// There should only be one clone session per program configuration.
-class CloneSession : public ControlPlaneItem {
-    std::optional<uint32_t> sessionId;
+class CloneSession : public Z3ControlPlaneItem {
+    std::optional<uint32_t> _sessionId;
+
+    ControlPlaneAssignmentSet _controlPlaneAssignments;
+    Z3ControlPlaneAssignmentSet _z3ControlPlaneAssignments;
 
  public:
-    explicit CloneSession(std::optional<uint32_t> sessionId) : sessionId(sessionId) {}
+    explicit CloneSession(std::optional<uint32_t> sessionId) : _sessionId(sessionId) {}
 
     ~CloneSession() override = default;
     CloneSession(const CloneSession &) = default;

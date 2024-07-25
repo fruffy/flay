@@ -34,7 +34,7 @@ AbstractReachabilityMap &initializeReachabilityMap(ReachabilityMapType mapType,
 
 AbstractSubstitutionMap &initializeSubstitutionMap(ReachabilityMapType mapType,
                                                    const NodeAnnotationMap &nodeAnnotationMap) {
-    printInfo("Creating the reachability map...");
+    printInfo("Creating the substitution map...");
     AbstractSubstitutionMap *initializedSubstitutionMap = nullptr;
     if (mapType == ReachabilityMapType::kZ3Precomputed) {
         initializedSubstitutionMap = new Z3SolverSubstitutionMap(nodeAnnotationMap);

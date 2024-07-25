@@ -36,7 +36,7 @@ TableMatchKey::TableMatchKey(cstring name, const IR::Expression *computedKey)
 cstring TableMatchKey::name() const { return _name; }
 
 bool TableMatchKey::operator<(const ControlPlaneItem &other) const {
-    return typeid(*this) == typeid(other) ? _name < static_cast<const TableMatchKey &>(other)._name
+    return typeid(*this) == typeid(other) ? _name < other.as<TableMatchKey>()._name
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
@@ -212,8 +212,10 @@ TableMatchEntry
 **************************************************************************************************/
 
 TableMatchEntry::TableMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority,
-                                 const ControlPlaneAssignmentSet &matches)
-    : _actionAssignment(std::move(actionAssignment)), _priority(priority), _matches(matches) {
+                                 ControlPlaneAssignmentSet matches)
+    : _actionAssignment(std::move(actionAssignment)),
+      _priority(priority),
+      _matches(std::move(matches)) {
     for (const auto &assignment : _matches) {
         _z3Matches.add(assignment.first, Z3Cache::set(&assignment.second.get()));
     }
@@ -232,9 +234,8 @@ Z3ControlPlaneAssignmentSet TableMatchEntry::z3ActionAssignment() const {
 
 bool TableMatchEntry::operator<(const ControlPlaneItem &other) const {
     // Table match entries are only compared based on the match expression.
-    return typeid(*this) == typeid(other)
-               ? compare(_matches, (dynamic_cast<const TableMatchEntry &>(other))._matches)
-               : typeid(*this).hash_code() < typeid(other).hash_code();
+    return typeid(*this) == typeid(other) ? compare(_matches, other.as<TableMatchEntry>()._matches)
+                                          : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
 ControlPlaneAssignmentSet TableMatchEntry::computeControlPlaneAssignments() const {
@@ -259,8 +260,7 @@ TableDefaultAction::TableDefaultAction(ControlPlaneAssignmentSet actionAssignmen
 bool TableDefaultAction::operator<(const ControlPlaneItem &other) const {
     // Table match entries are only compared based on the match expression.
     return typeid(*this) == typeid(other)
-               ? compare(_actionAssignment,
-                         (dynamic_cast<const TableDefaultAction &>(other))._actionAssignment)
+               ? compare(_actionAssignment, other.as<TableDefaultAction>()._actionAssignment)
                : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
@@ -301,9 +301,8 @@ TableConfiguration::TableConfiguration(cstring tableName, TableDefaultAction def
       _tableEntries(std::move(tableEntries)) {}
 
 bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
-    return typeid(*this) == typeid(other)
-               ? _tableName < static_cast<const TableConfiguration &>(other)._tableName
-               : typeid(*this).hash_code() < typeid(other).hash_code();
+    return typeid(*this) == typeid(other) ? _tableName < other.as<TableConfiguration>()._tableName
+                                          : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
 void TableConfiguration::setTableKeyMatch(const IR::Expression *tableKeyMatch) {
@@ -381,7 +380,7 @@ ParserValueSet
 ParserValueSet::ParserValueSet(cstring name) : _name(name) {}
 
 bool ParserValueSet::operator<(const ControlPlaneItem &other) const {
-    return typeid(*this) == typeid(other) ? _name < static_cast<const ParserValueSet &>(other)._name
+    return typeid(*this) == typeid(other) ? _name < other.as<ParserValueSet>()._name
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
