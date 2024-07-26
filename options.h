@@ -64,10 +64,44 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns true when the --skip-side-effect-ordering option has been set.
     [[nodiscard]] bool skipSideEffectOrdering() const;
 
-    FlayOptions(const FlayOptions &) = default;
-    FlayOptions(FlayOptions &&) = default;
-    FlayOptions &operator=(const FlayOptions &) = default;
-    FlayOptions &operator=(FlayOptions &&) = default;
+    /// Sets the path to the initial control plane configuration file.
+    void setControlPlaneConfig(const std::filesystem::path &path) { _controlPlaneConfig = path; }
+
+    /// Sets the server mode.
+    void setServerMode() { _serverMode = true; }
+
+    /// Sets the server address.
+    void setServerAddress(const std::string &address) { _serverAddress = address; }
+
+    /// Sets the configuration update pattern.
+    void setConfigurationUpdatePattern(const std::string &pattern) {
+        _configUpdatePattern = pattern;
+    }
+
+    /// Sets the use of placeholders.
+    void setUsePlaceholders() { _usePlaceholders = true; }
+
+    /// Sets the strict mode.
+    void setStrict() { _strict = true; }
+
+    /// Sets the path to the output file of the optimized P4 program.
+    void setOptimizedOutputDir(const std::filesystem::path &path) { _optimizedOutputDir = path; }
+
+    /// Sets the path to the user p4 info file.
+    void setP4InfoFilePath(const std::filesystem::path &path) { _p4InfoFilePath = path; }
+
+    /// Sets the control plane API to use.
+    void setControlPlaneApi(const std::string &api) { _controlPlaneApi = api; }
+
+    /// Sets the path to the user p4 info file.
+    void setUserP4Info(const std::filesystem::path &path) { _userP4Info = path; }
+
+    /// Set whether to skip parsers in the analysis and replace the parser output result with
+    /// symbolic variables.
+    void setSkipParsers() { _skipParsers = true; }
+
+    /// Set whether to skip side-effect ordering in the front end.
+    void setSkipSideEffectOrdering() { _skipSideEffectOrdering = true; }
 
  private:
     /// Path to the initial control plane configuration file.
