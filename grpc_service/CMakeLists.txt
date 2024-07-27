@@ -2,7 +2,7 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE_PREV ${CMAKE_POSITION_INDEPENDENT_CODE_PREV})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-add_library(flay-grpc OBJECT ${P4RUNTIME_RT_PROTO})
+add_library(flay-grpc OBJECT ${P4TOOLS_P4RUNTIME_RT_PROTO})
 target_link_libraries(flay-grpc PUBLIC grpc++ PRIVATE controlplane PRIVATE flay-runtime)
 
 protobuf_generate(
@@ -11,7 +11,7 @@ protobuf_generate(
   IMPORT_DIRS ${P4RUNTIME_STD_DIR} ${FLAY_P4RUNTIME_DIR} ${Protobuf_INCLUDE_DIRS} ${P4C_SOURCE_DIR}/control-plane
   PROTOC_OUT_DIR ${CMAKE_BINARY_DIR}/control-plane
   OUT_VAR FLAY_GRPC_P4RUNTIME_GEN_SRCS
-  DEPENDS ${P4RUNTIME_RT_PROTO} controlplane
+  DEPENDS ${P4TOOLS_P4RUNTIME_RT_PROTO} controlplane
   PLUGIN protoc-gen-grpc=$<TARGET_FILE:grpc_cpp_plugin>
   GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
 )
