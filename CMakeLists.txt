@@ -16,11 +16,8 @@ set(FLAY_REFERENCE_DRIVER "${flay_BINARY_DIR}/tools/flay_reference_checker")
 set(FLAY_CONTROL_PLANE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/core/control_plane)
 set(FLAY_P4RUNTIME_DIR ${FLAY_CONTROL_PLANE_DIR}/p4runtime)
 set(FLAY_P4RUNTIME_TESTS_PROTO ${FLAY_P4RUNTIME_DIR}/flaytests.proto)
-set(P4RUNTIME_DIR ${P4C_BINARY_DIR}/control-plane/p4/v1)
-set(P4RUNTIME_RT_PROTO ${P4RUNTIME_STD_DIR}/p4/v1/p4runtime.proto)
 set(FLAY_BFRUNTIME_DIR ${FLAY_CONTROL_PLANE_DIR}/bfruntime)
-set(BFRUNTIME_RT_PROTO ${FLAY_BFRUNTIME_DIR}/bfruntime.proto)
-set(BFRUNTIME_TESTS_PROTO ${FLAY_BFRUNTIME_DIR}/flaytests.proto)
+set(FLAY_BFRUNTIME_TESTS_PROTO ${FLAY_BFRUNTIME_DIR}/flaytests.proto)
 
 
 # The core of the tool.
@@ -46,7 +43,7 @@ set(FLAY_GTEST_SOURCES
 
 # Flay libraries.
 set(FLAY_LIBS
-    PRIVATE p4tools-control-plane p4tools-common flay-p4runtime controlplane
+    PRIVATE p4tools-control-plane p4tools-common flay-runtime p4tools-runtime-proto controlplane
     flay-lib flay-control-plane flay-interpreter flay-specialization ${LIBGC_LIBRARIES}
 )
 

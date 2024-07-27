@@ -8,12 +8,12 @@ add_custom_target(
 # Unity builds do not work for Protobuf...
 set(CMAKE_UNITY_BUILD_PREV ${CMAKE_UNITY_BUILD})
 set(CMAKE_UNITY_BUILD OFF)
-add_library(flay-p4runtime OBJECT ${FLAY_P4RUNTIME_TESTS_PROTO} ${BFRUNTIME_RT_PROTO} ${BFRUNTIME_TESTS_PROTO})
-target_include_directories(flay-p4runtime PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(flay-p4runtime PRIVATE controlplane)
-add_dependencies(flay-p4runtime flay_runtime_dir)
+add_library(flay-runtime OBJECT ${FLAY_P4RUNTIME_TESTS_PROTO} ${FLAY_BFRUNTIME_TESTS_PROTO})
+target_include_directories(flay-runtime PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(flay-runtime PRIVATE controlplane p4tools-runtime-proto)
+add_dependencies(flay-runtime flay_runtime_dir)
 protobuf_generate(
-  TARGET flay-p4runtime
+  TARGET flay-runtime
   LANGUAGE cpp python
   IMPORT_DIRS ${P4RUNTIME_STD_DIR} ${Protobuf_INCLUDE_DIRS} ${P4C_SOURCE_DIR}/control-plane ${P4C_SOURCE_DIR}
   PROTOC_OUT_DIR ${P4C_BINARY_DIR}
@@ -36,6 +36,6 @@ set(FLAY_CONTROL_PLANE_SOURCES
 
 add_library(flay-control-plane STATIC ${FLAY_CONTROL_PLANE_SOURCES})
 target_link_libraries(flay-control-plane
-                      PRIVATE flay-p4runtime p4tools-control-plane flay-lib ${P4C_LIB_DEPS}
+                      PRIVATE flay-runtime p4tools-control-plane flay-lib ${P4C_LIB_DEPS}
                       PUBLIC controlplane
 )

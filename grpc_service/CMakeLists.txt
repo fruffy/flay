@@ -3,7 +3,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE_PREV ${CMAKE_POSITION_INDEPENDENT_CODE_PREV}
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_library(flay-grpc OBJECT ${P4RUNTIME_RT_PROTO})
-target_link_libraries(flay-grpc PUBLIC grpc++ PRIVATE controlplane PRIVATE flay-p4runtime)
+target_link_libraries(flay-grpc PUBLIC grpc++ PRIVATE controlplane PRIVATE flay-runtime)
 
 protobuf_generate(
   TARGET flay-grpc

@@ -3,7 +3,7 @@ syntax = "proto3";
 
 package bfruntime.flaytests;
 
-import "backends/p4tools/modules/flay/core/control_plane/bfruntime/bfruntime.proto";
+import "backends/p4tools/common/control_plane/bfruntime/bfruntime.proto";
 
 message Config {
     // The entities (e.g., table entries) to install on the switch before
