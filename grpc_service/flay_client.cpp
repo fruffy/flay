@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "backends/p4tools/common/lib/logging.h"
+#include "lib/error.h"
 #include "lib/timer.h"
 #include "p4/v1/p4runtime.pb.h"
 

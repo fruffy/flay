@@ -9,7 +9,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wpedantic"
-#include "backends/p4tools/modules/flay/core/control_plane/bfruntime/bfruntime.pb.h"
+#include "backends/p4tools/common/control_plane/bfruntime/bfruntime.pb.h"
 #pragma GCC diagnostic pop
 
 namespace P4Tools::Flay {
