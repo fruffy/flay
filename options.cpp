@@ -106,27 +106,15 @@ FlayOptions::FlayOptions()
                         _userP4Info.value().c_str());
                 return false;
             }
-            if (_p4InfoFilePath.has_value()) {
-                ::error(
-                    "Both --user-p4info and --generate-p4info are specified. Please specify only "
-                    "one.");
-                return false;
-            }
             return true;
         },
-        "Write the P4Runtime control plane API description (P4Info) to the specified .txtpb file.");
+        "Use user-provided P4Runtime control plane API description (P4Info).");
     registerOption(
         "--generate-p4info", "filePath",
         [this](const char *arg) {
             _p4InfoFilePath = arg;
             if (_p4InfoFilePath.value().extension() != ".txtpb") {
                 ::error("%1% must have a .txtpb extension.", _p4InfoFilePath.value().c_str());
-                return false;
-            }
-            if (_userP4Info.has_value()) {
-                ::error(
-                    "Both --user-p4info and --generate-p4info are specified. Please specify only "
-                    "one.");
                 return false;
             }
             return true;
@@ -164,6 +152,14 @@ FlayOptions::FlayOptions()
             return true;
         },
         "Skip side-effect ordering in the front end.");
+}
+
+bool FlayOptions::validateOptions() const {
+    if (_userP4Info.has_value() && _p4InfoFilePath.has_value()) {
+        ::error("Both --user-p4info and --generate-p4info are specified. Please specify only one.");
+        return false;
+    }
+    return true;
 }
 
 std::filesystem::path FlayOptions::controlPlaneConfig() const {
