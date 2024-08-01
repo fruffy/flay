@@ -136,8 +136,6 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const CompilerOptions &
     if (program == nullptr) {
         return std::nullopt;
     }
-    // Copy the program after the (safe) mid end.
-    auto *originalProgram = program->clone();
 
     std::optional<P4::P4RuntimeAPI> p4runtimeApi;
     auto p4UserInfo = FlayOptions::get().userP4Info();
@@ -159,6 +157,8 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const CompilerOptions &
     if (program == nullptr) {
         return std::nullopt;
     }
+    // Copy the program after the (safe) mid end.
+    auto *originalProgram = program->clone();
 
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;

@@ -38,8 +38,6 @@ CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const CompilerOptions 
     if (program == nullptr) {
         return std::nullopt;
     }
-    // Copy the program after the (safe) mid end.
-    auto *originalProgram = program->clone();
     /// After the front end, get the P4Runtime API for the pna architecture.
     /// TODO: We need to implement the P4Runtime handler for Fpga.
     std::optional<P4::P4RuntimeAPI> p4runtimeApi;
@@ -62,6 +60,9 @@ CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const CompilerOptions 
     if (program == nullptr) {
         return std::nullopt;
     }
+    // Copy the program after the (safe) mid end.
+    auto *originalProgram = program->clone();
+
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
     program = program->apply(mkPrivateMidEnd(options, &refMap, &typeMap));

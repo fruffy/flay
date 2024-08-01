@@ -154,24 +154,21 @@ MidEnd FlayTarget::mkMidEnd(const CompilerOptions &options) const {
     auto *refMap = midEnd.getRefMap();
     auto *typeMap = midEnd.getTypeMap();
     midEnd.addPasses({
-        // Remove exit statements from the program.
-        // TODO: We should not depend on this pass. It has bugs.
-        new P4::RemoveExits(typeMap),
-        // Replace types introduced by 'type' with 'typedef'.
-        new P4::EliminateNewtype(refMap, typeMap),
-        // Replace serializable enum constants with their values.
-        new P4::EliminateSerEnums(refMap, typeMap),
-        // Make sure that we have no TypeDef left in the program.
-        new P4::EliminateTypedef(refMap, typeMap),
         // Sort call arguments according to the order of the function's parameters.
         new P4::OrderArguments(refMap, typeMap),
         // Replace any slices in the left side of assignments and convert them to casts.
         new P4::RemoveLeftSlices(refMap, typeMap),
         new PassRepeated({
             // Local copy propagation and dead-code elimination.
-            new P4::LocalCopyPropagation(refMap, typeMap, nullptr,
-                                         [](const Visitor::Context * /*context*/,
-                                            const IR::Expression * /*expr*/) { return true; }),
+            // Skip this if skipSideEffectOrdering is set.
+            // TODO: Pass FlayOptions as argument here.
+            FlayOptions::get().skipSideEffectOrdering()
+                ? nullptr
+                : new P4::LocalCopyPropagation(
+                      refMap, typeMap, nullptr,
+                      [](const Visitor::Context * /*context*/, const IR::Expression * /*expr*/) {
+                          return true;
+                      }),
             // Simplify control flow that has constants as conditions.
             new P4::SimplifyControlFlow(typeMap),
             // Compress member access to struct expressions.
@@ -188,6 +185,15 @@ PassManager FlayTarget::mkPrivateMidEnd(const CompilerOptions &options, P4::Refe
     midEnd.setStopOnError(true);
     midEnd.addDebugHook(options.getDebugHook(), true);
     midEnd.addPasses({
+        // Replace serializable enum constants with their values.
+        new P4::EliminateSerEnums(refMap, typeMap),
+        // Replace types introduced by 'type' with 'typedef'.
+        new P4::EliminateNewtype(refMap, typeMap),
+        // Make sure that we have no TypeDef left in the program.
+        new P4::EliminateTypedef(refMap, typeMap),
+        // Remove exit statements from the program.
+        // TODO: We should not depend on this pass. It has bugs.
+        new P4::RemoveExits(typeMap),
         // Remove loops from parsers by unrolling them as far as the stack indices allow.
         // TODO: Get rid of this pass.
         new P4::ParsersUnroll(true, refMap, typeMap),

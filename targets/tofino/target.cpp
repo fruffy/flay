@@ -41,8 +41,6 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const CompilerOption
     if (program == nullptr) {
         return std::nullopt;
     }
-    // Copy the program after the (safe) mid end.
-    auto *originalProgram = program->clone();
 
     /// After the front end, get the P4Runtime API for the tna architecture.
     /// TODO: We need to implement the P4Runtime handler for Tofino.
@@ -71,6 +69,9 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const CompilerOption
     if (program == nullptr) {
         return std::nullopt;
     }
+
+    // Copy the program after the (safe) mid end.
+    auto *originalProgram = program->clone();
 
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
