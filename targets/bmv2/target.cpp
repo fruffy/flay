@@ -164,13 +164,9 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const CompilerOptions &
     P4::TypeMap typeMap;
     program = program->apply(mkPrivateMidEnd(options, &refMap, &typeMap));
 
-    // TODO: We only need this because P4Info does not contain information on default actions.
-    program->apply(P4::ResolveReferences(&refMap));
-
-    ASSIGN_OR_RETURN(
-        auto initialControlPlaneState,
-        Bmv2ControlPlaneInitializer(refMap).generateInitialControlPlaneConstraints(program),
-        std::nullopt);
+    ASSIGN_OR_RETURN(auto initialControlPlaneState,
+                     Bmv2ControlPlaneInitializer().generateInitialControlPlaneConstraints(program),
+                     std::nullopt);
 
     return {*new FlayCompilerResult{CompilerResult(*program), *originalProgram,
                                     p4runtimeApi.value(), initialControlPlaneState}};

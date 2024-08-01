@@ -75,12 +75,10 @@ CompilerResultOrError TofinoBaseFlayTarget::runCompilerImpl(const CompilerOption
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
     program = program->apply(mkPrivateMidEnd(options, &refMap, &typeMap));
-    // TODO: We only need this because P4Info does not contain information on default actions.
-    program->apply(P4::ResolveReferences(&refMap));
 
     ASSIGN_OR_RETURN(
         auto initialControlPlaneState,
-        TofinoControlPlaneInitializer(refMap).generateInitialControlPlaneConstraints(program),
+        TofinoControlPlaneInitializer().generateInitialControlPlaneConstraints(program),
         std::nullopt);
 
     return {*new FlayCompilerResult{CompilerResult(*program), *originalProgram,
