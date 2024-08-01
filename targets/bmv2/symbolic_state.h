@@ -2,8 +2,6 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_SYMBOLIC_STATE_H_
 
 #include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
-#include "frontends/common/resolveReferences/referenceMap.h"
-#include "ir/visitor.h"
 
 namespace P4Tools::Flay::V1Model {
 
@@ -13,8 +11,7 @@ class Bmv2ControlPlaneInitializer : public ControlPlaneStateInitializer {
                       ControlPlaneAssignmentSet &keySet) override;
 
  public:
-    explicit Bmv2ControlPlaneInitializer(const P4::ReferenceMap &refMap)
-        : ControlPlaneStateInitializer(refMap) {}
+    Bmv2ControlPlaneInitializer() = default;
 
     std::optional<ControlPlaneConstraints> generateInitialControlPlaneConstraints(
         const IR::P4Program *program) override;

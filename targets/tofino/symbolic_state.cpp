@@ -8,7 +8,6 @@
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_objects.h"
 #include "backends/p4tools/modules/flay/core/lib/return_macros.h"
 #include "backends/p4tools/modules/flay/targets/tofino/constants.h"
-#include "frontends/common/resolveReferences/referenceMap.h"
 
 namespace P4Tools::Flay::Tofino {
 
@@ -61,11 +60,8 @@ bool TofinoControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
                                                       matchType, keySet);
 }
 
-namespace {
-
-std::optional<cstring> associateActionProfiles(const IR::P4Table &table,
-                                               const P4::ReferenceMap &refMap,
-                                               ControlPlaneConstraints &_defaultConstraints) {
+std::optional<cstring> TofinoControlPlaneInitializer::associateActionProfiles(
+    const IR::P4Table &table, ControlPlaneConstraints &_defaultConstraints) const {
     const auto *impl = table.properties->getProperty(cstring("implementation"));
     if (impl == nullptr) {
         return std::nullopt;
@@ -76,7 +72,7 @@ std::optional<cstring> associateActionProfiles(const IR::P4Table &table,
     const IR::IDeclaration *implementationTypeDeclaration = nullptr;
 
     if (const auto *implPath = implExpr->expression->to<IR::PathExpression>()) {
-        const auto *decl = refMap.getDeclaration(implPath->path);
+        const auto *decl = getDeclaration(implPath->path);
         if (decl == nullptr) {
             ::error("Action profile reference %1% not found.", implPath->path->name);
             return std::nullopt;
@@ -91,7 +87,7 @@ std::optional<cstring> associateActionProfiles(const IR::P4Table &table,
             ::error("Implementation instance type %1% is not a type name.", implPath->path->name);
             return std::nullopt;
         }
-        implementationTypeDeclaration = refMap.getDeclaration(declarationInstanceTypeName->path);
+        implementationTypeDeclaration = getDeclaration(declarationInstanceTypeName->path);
         implementationDeclaration = declarationInstance;
     } else {
         ::error("Unimplemented action profile type %1%.", implExpr->expression->node_type_name());
@@ -134,14 +130,12 @@ std::optional<cstring> associateActionProfiles(const IR::P4Table &table,
     return std::nullopt;
 }
 
-}  // namespace
-
 bool TofinoControlPlaneInitializer::preorder(const IR::Declaration_Instance *declaration) {
     const auto *declarationInstanceTypeName = declaration->type->to<IR::Type_Name>();
     if (declarationInstanceTypeName == nullptr) {
         return false;
     }
-    const auto *implTypeDeclaration = refMap().getDeclaration(declarationInstanceTypeName->path);
+    const auto *implTypeDeclaration = getDeclaration(declarationInstanceTypeName->path);
     if (implTypeDeclaration == nullptr) {
         return false;
     }
@@ -166,8 +160,7 @@ bool TofinoControlPlaneInitializer::preorder(const IR::Declaration_Instance *dec
                     actionProfileReference);
             return false;
         }
-        const auto *actionProfileDeclaration =
-            refMap().getDeclaration(actionProfileReferencePath->path);
+        const auto *actionProfileDeclaration = getDeclaration(actionProfileReferencePath->path);
         auto actionProfileName = actionProfileDeclaration->controlPlaneName();
         ActionProfile *actionProfileObject = nullptr;
         auto constraintObject = _defaultConstraints.find(actionProfileName);
@@ -194,13 +187,11 @@ bool TofinoControlPlaneInitializer::preorder(const IR::P4Table *table) {
     auto tableName = table->controlPlaneName();
 
     // TODO: Consume the returned value here?
-    associateActionProfiles(*table, refMap(), _defaultConstraints);
+    associateActionProfiles(*table, _defaultConstraints);
 
-    ASSIGN_OR_RETURN(auto defaultActionConstraints,
-                     computeDefaultActionConstraints(table, refMap()), false);
+    ASSIGN_OR_RETURN(auto defaultActionConstraints, computeDefaultActionConstraints(table), false);
 
-    ASSIGN_OR_RETURN(TableEntrySet initialTableEntries, initializeTableEntries(table, refMap()),
-                     false);
+    ASSIGN_OR_RETURN(TableEntrySet initialTableEntries, initializeTableEntries(table), false);
     auto config =
         *new TableConfiguration(table->controlPlaneName(),
                                 TableDefaultAction(defaultActionConstraints), initialTableEntries);

@@ -8,14 +8,12 @@
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_objects.h"
 #include "backends/p4tools/modules/flay/core/lib/return_macros.h"
-#include "frontends/common/resolveReferences/referenceMap.h"
 #include "ir/irutils.h"
 #include "lib/error.h"
 
 namespace P4Tools::Flay {
 
-ControlPlaneStateInitializer::ControlPlaneStateInitializer(const P4::ReferenceMap &refMap)
-    : _refMap(refMap) {}
+ControlPlaneStateInitializer::ControlPlaneStateInitializer() = default;
 
 ControlPlaneConstraints ControlPlaneStateInitializer::defaultConstraints() const {
     return _defaultConstraints;
@@ -122,7 +120,7 @@ std::optional<ControlPlaneAssignmentSet> ControlPlaneStateInitializer::computeEn
 }
 
 std::optional<TableEntrySet> ControlPlaneStateInitializer::initializeTableEntries(
-    const IR::P4Table *table, const P4::ReferenceMap &refMap) {
+    const IR::P4Table *table) {
     TableEntrySet initialTableEntries;
     const auto *entries = table->getEntries();
     RETURN_IF_FALSE(entries != nullptr, initialTableEntries);
@@ -138,7 +136,7 @@ std::optional<TableEntrySet> ControlPlaneStateInitializer::initializeTableEntrie
                                       ::error("Action %1% in table %2% is not a path expression.",
                                               actionCallExpression, table));
         ASSIGN_OR_RETURN_WITH_MESSAGE(
-            auto &actionDecl, refMap.getDeclaration(methodName.path, false), std::nullopt,
+            auto &actionDecl, getDeclaration(methodName.path, false), std::nullopt,
             ::error("Action reference %1% not found in the reference map", methodName));
         ASSIGN_OR_RETURN_WITH_MESSAGE(auto &action, actionDecl.to<IR::P4Action>(), std::nullopt,
                                       ::error("%1% is not a P4Action.", actionDecl));
@@ -188,8 +186,7 @@ std::optional<ControlPlaneAssignmentSet> ControlPlaneStateInitializer::computeEn
 }
 
 std::optional<ControlPlaneAssignmentSet>
-ControlPlaneStateInitializer::computeDefaultActionConstraints(const IR::P4Table *table,
-                                                              const P4::ReferenceMap &refMap) {
+ControlPlaneStateInitializer::computeDefaultActionConstraints(const IR::P4Table *table) const {
     auto tableName = table->controlPlaneName();
     const auto *defaultAction = table->getDefaultAction();
     ASSIGN_OR_RETURN_WITH_MESSAGE(
@@ -199,7 +196,7 @@ ControlPlaneStateInitializer::computeDefaultActionConstraints(const IR::P4Table 
         const auto &methodName, actionCall.method->to<IR::PathExpression>(), std::nullopt,
         ::error("Action %1% in table %2% is not a path expression.", defaultAction, table));
     ASSIGN_OR_RETURN_WITH_MESSAGE(
-        auto &decl, refMap.getDeclaration(methodName.path, false), std::nullopt,
+        auto &decl, getDeclaration(methodName.path, false), std::nullopt,
         ::error("Action reference %1% not found in the reference map.", methodName));
     ASSIGN_OR_RETURN_WITH_MESSAGE(auto &actionDecl, decl.to<IR::P4Action>(), std::nullopt,
                                   ::error("Action reference %1% is not a P4Action.", methodName));
@@ -236,10 +233,8 @@ bool ControlPlaneStateInitializer::preorder(const IR::P4Table *table) {
     TableUtils::checkTableImmutability(*table, properties);
     auto tableName = table->controlPlaneName();
 
-    ASSIGN_OR_RETURN(auto defaultActionConstraints,
-                     computeDefaultActionConstraints(table, refMap()), false);
-    ASSIGN_OR_RETURN(TableEntrySet initialTableEntries, initializeTableEntries(table, refMap()),
-                     false);
+    ASSIGN_OR_RETURN(auto defaultActionConstraints, computeDefaultActionConstraints(table), false);
+    ASSIGN_OR_RETURN(TableEntrySet initialTableEntries, initializeTableEntries(table), false);
 
     _defaultConstraints.insert(
         {tableName, *new TableConfiguration(tableName, TableDefaultAction(defaultActionConstraints),
@@ -252,7 +247,5 @@ bool ControlPlaneStateInitializer::preorder(const IR::P4ValueSet *parserValueSet
                                 *new ParserValueSet(parserValueSet->controlPlaneName()));
     return false;
 }
-
-const P4::ReferenceMap &ControlPlaneStateInitializer::refMap() const { return _refMap; }
 
 }  // namespace P4Tools::Flay

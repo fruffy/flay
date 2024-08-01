@@ -4,16 +4,13 @@
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_item.h"
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_objects.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
+#include "frontends/common/resolveReferences/resolveReferences.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
 namespace P4Tools::Flay {
 
-class ControlPlaneStateInitializer : public Inspector {
- private:
-    /// The reference map to look up specific declarations.
-    std::reference_wrapper<const P4::ReferenceMap> _refMap;
-
+class ControlPlaneStateInitializer : public Inspector, protected P4::ResolutionContext {
  protected:
     /// The default control-plane constraints as defined by a target.
     ControlPlaneConstraints _defaultConstraints;
@@ -32,8 +29,7 @@ class ControlPlaneStateInitializer : public Inspector {
 
     /// Tries to build a table control plane entry from the P4 entry member of the table.
     /// @returns std::nullopt if an error occurs when doing this.
-    std::optional<TableEntrySet> initializeTableEntries(const IR::P4Table *table,
-                                                        const P4::ReferenceMap &refMap);
+    std::optional<TableEntrySet> initializeTableEntries(const IR::P4Table *table);
 
     /// Compute the constraints imposed by any entries defined for the table.
     static std::optional<ControlPlaneAssignmentSet> computeEntryAction(
@@ -42,14 +38,14 @@ class ControlPlaneStateInitializer : public Inspector {
 
     /// Compute the constraints imposed by the default action if the table is not configured.
     /// @returns std::nullopt if an error occurs.
-    static std::optional<ControlPlaneAssignmentSet> computeDefaultActionConstraints(
-        const IR::P4Table *table, const P4::ReferenceMap &refMap);
+    std::optional<ControlPlaneAssignmentSet> computeDefaultActionConstraints(
+        const IR::P4Table *table) const;
 
     /// Get the reference map.
     [[nodiscard]] const P4::ReferenceMap &refMap() const;
 
  public:
-    explicit ControlPlaneStateInitializer(const P4::ReferenceMap &refMap);
+    ControlPlaneStateInitializer();
 
     virtual std::optional<ControlPlaneConstraints> generateInitialControlPlaneConstraints(
         const IR::P4Program *program) = 0;
