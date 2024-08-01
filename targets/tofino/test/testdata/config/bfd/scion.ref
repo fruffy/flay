@@ -4,7 +4,7 @@ Replaced node at line 1515: tbl_deliver_local.apply(); with drop();
 Eliminated node at line 1523: forward_local_ipv6:
 Replaced node at line 1548: tbl_set_local_source.apply(); with drop_2/drop();
 statement_count_before:582
-statement_count_after:596
+statement_count_after:575
 cyclomatic_complexity:126
 num_parsers_paths:14913
 

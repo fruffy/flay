@@ -6,7 +6,7 @@ Replaced node at line 323: standard_metadata.mcast_grp : exact; with 0
 Replaced node at line 324: standard_metadata.egress_rid : exact; with 0
 Replaced node at line 349: meta.fwd.out_bd: exact; with 0
 statement_count_before:46
-statement_count_after:55
+statement_count_after:45
 cyclomatic_complexity:28
 num_parsers_paths:2
 

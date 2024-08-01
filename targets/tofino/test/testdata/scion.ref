@@ -10,7 +10,7 @@ Eliminated node at line 1500: if (local_destination) {
 Eliminated node at line 1523: forward_local_ipv6:
 Replaced node at line 1548: tbl_set_local_source.apply(); with drop_2/drop();
 statement_count_before:582
-statement_count_after:581
+statement_count_after:560
 cyclomatic_complexity:126
 num_parsers_paths:14913
 
