@@ -19,6 +19,9 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     static void set(const FlayOptions &options) { get() = options; }
 
+    /// @returns if the options are valid.
+    [[nodiscard]] bool validateOptions() const override;
+
     /// @returns the path set with --config-file.
     [[nodiscard]] std::filesystem::path controlPlaneConfig() const;
 
