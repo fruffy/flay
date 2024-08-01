@@ -30,6 +30,7 @@ Replaced node at line 1220: local_metadata.route_metadata : optional @id(18) @na
 Replaced node at line 1274: local_metadata.route_metadata : ternary @id(15) @name("route_metadata") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META); with 0
 Replaced node at line 1306: local_metadata.route_metadata : ternary @id(18) @name("route_metadata") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META); with 0
 Replaced node at line 559: neighbor_id_value : exact @id(2) @format(IPV6_ADDRESS) @name("neighbor_id"); with 0
+Replaced node at line 920: replica_instance_t multicast_replica_instance = standard_metadata.egress_rid; with 0
 Replaced node at line 1056: (port_id_t)standard_metadata.egress_port : optional @id(4) @name("out_port") @sai_field(SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT); with 0
 Replaced node at line 1635: if (!(standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 1)) { with 0
 Replaced node at line 750: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2) { with 0
@@ -38,8 +39,8 @@ Replaced node at line 877: if (standard_metadata.instance_type == 1 && standard_
 Replaced node at line 877: if (standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2 && !(local_metadata.mirror_encap_vlan_id == NO_VLAN_ID || local_metadata.mirror_encap_vlan_id == INTERNAL_VLAN_ID)) { with 0
 Replaced node at line 879: } else if (!(standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 1) && !(local_metadata.vlan_id == NO_VLAN_ID || local_metadata.vlan_id == INTERNAL_VLAN_ID)) { with 0
 Replaced node at line 888: if (!(local_metadata.vlan_id == NO_VLAN_ID || local_metadata.vlan_id == INTERNAL_VLAN_ID) && !(standard_metadata.instance_type == 1 && standard_metadata.egress_rid == 2)) { with 0
-statement_count_before:341
-statement_count_after:264
+statement_count_before:342
+statement_count_after:261
 cyclomatic_complexity:154
 num_parsers_paths:208
 

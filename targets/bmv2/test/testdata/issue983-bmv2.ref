@@ -5,7 +5,7 @@ Replaced node at line 74: user_meta.fwd_meta.exp_x2 : exact; with 63487
 Replaced node at line 76: user_meta.fwd_meta.exp_x3 : exact; with 63487
 Replaced node at line 78: user_meta.fwd_meta.exp_x4 : exact; with 4294965247
 statement_count_before:19
-statement_count_after:21
+statement_count_after:18
 cyclomatic_complexity:5
 num_parsers_paths:1
 

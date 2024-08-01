@@ -5,7 +5,7 @@ Eliminated node at line 237: if (ig_md.checksum_upd_ipv4) {
 Eliminated node at line 251: if (ig_md.checksum_upd_tcp) {
 Eliminated node at line 258: if (ig_md.checksum_upd_udp) {
 statement_count_before:50
-statement_count_after:45
+statement_count_after:44
 cyclomatic_complexity:19
 num_parsers_paths:6
 

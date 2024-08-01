@@ -1,7 +1,7 @@
 Eliminated node at line 137: reg_match.apply();
 Eliminated node at line 138: reg_match_dir.apply();
 statement_count_before:18
-statement_count_after:17
+statement_count_after:16
 cyclomatic_complexity:3
 num_parsers_paths:3
 

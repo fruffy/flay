@@ -1,7 +1,7 @@
 Replaced node at line 42: if ((test.a != 1) && (test.a <= 1)) { with 0
 Replaced node at line 42: if ((test.a != 1) && (test.a <= 1)) { with 0
 statement_count_before:5
-statement_count_after:6
+statement_count_after:5
 cyclomatic_complexity:1
 num_parsers_paths:1
 

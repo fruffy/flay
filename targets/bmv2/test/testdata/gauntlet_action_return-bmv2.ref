@@ -1,9 +1,8 @@
-Eliminated node at line (unknown): { val_0/val = 2;
-  hasReturned = true; }
+Eliminated node at line 25: val = 8w2;
 Eliminated node at line 43: simple_table.apply();
 Replaced node at line 36: tmp_key : exact @name("bKiScA") ; with 2
 statement_count_before:9
-statement_count_after:8
+statement_count_after:7
 cyclomatic_complexity:2
 num_parsers_paths:1
 
