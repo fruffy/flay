@@ -12,7 +12,7 @@
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
-namespace Test {
+namespace P4Tools::Test {
 
 namespace {
 
@@ -131,4 +131,4 @@ TEST_F(P4FlayTest, Optimization04) {
 
 }  // anonymous namespace
 
-}  // namespace Test
+}  // namespace P4Tools::Test
