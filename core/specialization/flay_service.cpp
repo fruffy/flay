@@ -125,7 +125,7 @@ std::optional<bool> FlayServiceBase::checkForSemanticChange(const SymbolSet &sym
 }
 
 std::optional<bool> FlayServiceBase::checkForSemanticChange() {
-    printInfo("Checking for change in program semantics with symbol set...");
+    printInfo("Checking for change in program semantics...");
     Util::ScopedTimer timer("Check for semantics change");
     auto reachabilityResult =
         mutableReachabilityMap().recomputeReachability(controlPlaneConstraints());

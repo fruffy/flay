@@ -201,13 +201,11 @@ ControlPlaneStateInitializer::computeDefaultActionConstraints(const IR::P4Table 
     ASSIGN_OR_RETURN_WITH_MESSAGE(auto &actionDecl, decl.to<IR::P4Action>(), std::nullopt,
                                   ::error("Action reference %1% is not a P4Action.", methodName));
 
-    const auto *selectedAction = IR::StringLiteral::get(actionDecl.controlPlaneName());
-
     ControlPlaneAssignmentSet defaultActionConstraints;
     defaultActionConstraints.emplace(*ControlPlaneState::getTableActionChoice(tableName),
                                      *IR::StringLiteral::get(cstring("*NONE*")));
     defaultActionConstraints.emplace(*ControlPlaneState::getDefaultActionVariable(tableName),
-                                     *selectedAction);
+                                     *IR::StringLiteral::get(cstring("*NONE*")));
     const auto *arguments = actionCall.arguments;
     const auto *parameters = actionDecl.parameters;
     RETURN_IF_FALSE_WITH_MESSAGE(

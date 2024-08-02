@@ -28,6 +28,7 @@ p4tools_add_xfail_reason(
   issue1882-bmv2.p4 # Unknown or unimplemented extern method: extr.increment
   issue1882-1-bmv2.p4 # Unknown or unimplemented extern method: extr.increment
   issue2664-bmv2.p4 # Unknown or unimplemented extern method: ipv4_checksum.update
+  issue1193-bmv2.p4 # Unknown or unimplemented extern method: c.count
 )
 
 p4tools_add_xfail_reason(

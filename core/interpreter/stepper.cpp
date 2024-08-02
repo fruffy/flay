@@ -8,6 +8,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/interpreter/parser_stepper.h"
 #include "backends/p4tools/modules/flay/core/interpreter/target.h"
+#include "backends/p4tools/modules/flay/core/lib/simplify_expression.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
 #include "lib/cstring.h"
@@ -172,7 +173,6 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
 
     const IR::Expression *cond = nullptr;
     std::vector<const IR::SwitchCase *> accumulatedSwitchCases;
-    std::vector<const IR::Expression *> notConds;
     std::vector<std::reference_wrapper<const ExecutionState>> accumulatedStates;
     for (const auto *switchCase : switchStatement->cases) {
         // The default label must be last. Always break here.
@@ -205,12 +205,7 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             // The final condition is the accumulated label condition and NOT other conditions that
             // have previously matched.
             const auto *finalCond = cond;
-            for (const auto *notCond : notConds) {
-                finalCond = new IR::LAnd(notCond, finalCond);
-            }
-            notConds.push_back(new IR::LNot(cond));
-            cond = IR::BoolLiteral::get(false);
-            caseState.pushExecutionCondition(finalCond);
+            caseState.pushExecutionCondition(SimplifyExpression::simplify(finalCond));
             // Execute the state with the accumulated statements.
             auto &switchStepper =
                 FlayTarget::getStepper(getProgramInfo(), controlPlaneConstraints(), caseState);
@@ -222,8 +217,9 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
                 }
             }
             accumulatedSwitchCases.clear();
-            // Save the state for  later merging.
+            // Save the state for later merging.
             accumulatedStates.emplace_back(caseState);
+            cond = nullptr;
         }
     }
 

@@ -60,7 +60,6 @@ control ingress(inout Headers h, inout local_metadata_t local_metadata, inout st
 
     table toggle_check {
         key = {
-            h.ethernet.dst_addr : ternary @name("dst_eth");
         }
         actions = {
             NoAction();
