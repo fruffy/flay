@@ -55,6 +55,22 @@ std::optional<ControlPlaneAssignmentSet> produceTableMatch(
             tableKeySet.emplace(*maskSymbol, *IR::Constant::get(keyType, mask));
             return tableKeySet;
         }
+        case bfrt_proto::KeyField::kRange: {
+            const auto &[rangeMinSymbol, rangeMaxSymbol] =
+                Bmv2ControlPlaneState::getTableRange(tableName, matchField.name(), keyType);
+            symbolSet.emplace(*rangeMinSymbol);
+            symbolSet.emplace(*rangeMaxSymbol);
+            auto low = Protobuf::stringToBigInt(field.range().low());
+            auto high = Protobuf::stringToBigInt(field.range().high());
+            tableKeySet.emplace(*rangeMinSymbol, *IR::Constant::get(keyType, low));
+            tableKeySet.emplace(*rangeMaxSymbol, *IR::Constant::get(keyType, high));
+            return tableKeySet;
+        }
+        case bfrt_proto::KeyField::kOptional: {
+            auto value = Protobuf::stringToBigInt(field.optional().value());
+            tableKeySet.emplace(*keySymbol, *IR::Constant::get(keyType, value));
+            return tableKeySet;
+        }
         default:
             ::error("Unsupported table match type %1%.", field.DebugString().c_str());
     }
