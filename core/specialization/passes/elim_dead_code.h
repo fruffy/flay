@@ -27,6 +27,7 @@ class ElimDeadCode : public Transform {
     std::vector<EliminatedReplacedPair> _eliminatedNodes;
 
     const IR::Node *preorder(IR::P4Parser *parser) override;
+    const IR::Node *preorder(IR::P4Table *p4Table) override;
     const IR::Node *preorder(IR::IfStatement *stmt) override;
     const IR::Node *preorder(IR::SwitchStatement *switchStmt) override;
     const IR::Node *preorder(IR::MethodCallStatement *stmt) override;
