@@ -6,6 +6,9 @@
 
 namespace P4Tools::Flay {
 
+/// The eliminated and optionally replaced node.
+using EliminatedReplacedPair = std::pair<const IR::Node *, const IR::Node *>;
+
 /// Specialize the Program
 class FlaySpecializer : public PassManager {
     ElimDeadCode *_elimDeadCode = nullptr;
@@ -13,7 +16,7 @@ class FlaySpecializer : public PassManager {
     SubstituteExpressions *_substituteExpressions = nullptr;
 
  public:
-    explicit FlaySpecializer(P4::ReferenceMap &refMap,
+    explicit FlaySpecializer(const P4::ReferenceMap &refMap,
                              const AbstractReachabilityMap &reachabilityMap,
                              const AbstractSubstitutionMap &substitutionMap)
         : _elimDeadCode(new ElimDeadCode(refMap, reachabilityMap)),

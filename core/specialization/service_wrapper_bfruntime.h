@@ -1,9 +1,9 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_SERVICE_WRAPPER_BFRUNTIME_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_SERVICE_WRAPPER_BFRUNTIME_H_
 
+#include <utility>
 #include <vector>
 
-#include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
 #include "backends/p4tools/modules/flay/core/specialization/service_wrapper.h"
 
 #pragma GCC diagnostic push
@@ -20,12 +20,9 @@ class BfRuntimeFlayServiceWrapper : public FlayServiceWrapper {
     std::vector<bfrt_proto::WriteRequest> _controlPlaneUpdates;
 
  public:
-    BfRuntimeFlayServiceWrapper(const FlayServiceOptions &serviceOptions,
-                                const FlayCompilerResult &compilerResult,
-                                const NodeAnnotationMap &nodeAnnotationMap,
-                                const ControlPlaneConstraints &initialControlPlaneConstraints)
-        : FlayServiceWrapper(serviceOptions, compilerResult, nodeAnnotationMap,
-                             initialControlPlaneConstraints) {}
+    BfRuntimeFlayServiceWrapper(const FlayCompilerResult &compilerResult,
+                                IncrementalAnalysisMap incrementalAnalysisMap)
+        : FlayServiceWrapper(compilerResult, std::move(incrementalAnalysisMap)) {}
 
     /// Try to parse the provided pattern into update files and convert them to control-plane
     /// updates.

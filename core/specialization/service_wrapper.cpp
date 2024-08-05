@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <optional>
+#include <vector>
 
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/options.h"
@@ -35,14 +36,11 @@ std::vector<std::string> FlayServiceWrapper::findFiles(std::string_view pattern)
     return files;
 }
 
-FlayServiceStatistics FlayServiceWrapper::computeFlayServiceStatistics() const {
+std::vector<AnalysisStatistics *> FlayServiceWrapper::computeFlayServiceStatistics() const {
     return _flayService.computeFlayServiceStatistics();
 }
 
-FlayServiceWrapper::FlayServiceWrapper(
-    const FlayServiceOptions &serviceOptions, const FlayCompilerResult &compilerResult,
-    const NodeAnnotationMap &nodeAnnotationMap,
-    const ControlPlaneConstraints &initialControlPlaneConstraints)
-    : _flayService(serviceOptions, compilerResult, nodeAnnotationMap,
-                   initialControlPlaneConstraints) {}
+FlayServiceWrapper::FlayServiceWrapper(const FlayCompilerResult &compilerResult,
+                                       IncrementalAnalysisMap incrementalAnalysisMap)
+    : _flayService(compilerResult, std::move(incrementalAnalysisMap)) {}
 }  // namespace P4Tools::Flay

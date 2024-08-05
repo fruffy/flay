@@ -4,66 +4,25 @@
 
 #include <cstdlib>
 #include <fstream>
-#include <optional>
 #include <utility>
+#include <vector>
 
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/core/lib/analysis.h"
-#include "backends/p4tools/modules/flay/core/specialization/passes/specializer.h"
-#include "backends/p4tools/modules/flay/core/specialization/z3/reachability_map.h"
-#include "backends/p4tools/modules/flay/core/specialization/z3/substitution_map.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "lib/error.h"
 #include "lib/timer.h"
 
 namespace P4Tools::Flay {
 
-namespace {
-
-AbstractReachabilityMap &initializeReachabilityMap(ReachabilityMapType mapType,
-                                                   const NodeAnnotationMap &nodeAnnotationMap) {
-    printInfo("Creating the reachability map...");
-    AbstractReachabilityMap *initializedReachabilityMap = nullptr;
-    if (mapType == ReachabilityMapType::kZ3Precomputed) {
-        initializedReachabilityMap = new Z3SolverReachabilityMap(nodeAnnotationMap);
-    } else {
-        initializedReachabilityMap = new IRReachabilityMap(nodeAnnotationMap);
-    }
-    return *initializedReachabilityMap;
-}
-
-AbstractSubstitutionMap &initializeSubstitutionMap(ReachabilityMapType mapType,
-                                                   const NodeAnnotationMap &nodeAnnotationMap) {
-    printInfo("Creating the substitution map...");
-    AbstractSubstitutionMap *initializedSubstitutionMap = nullptr;
-    if (mapType == ReachabilityMapType::kZ3Precomputed) {
-        initializedSubstitutionMap = new Z3SolverSubstitutionMap(nodeAnnotationMap);
-    } else {
-        initializedSubstitutionMap = new IrSubstitutionMap(nodeAnnotationMap);
-    }
-    return *initializedSubstitutionMap;
-}
-
-}  // namespace
-
-FlayServiceBase::FlayServiceBase(const FlayServiceOptions &options,
-                                 const FlayCompilerResult &compilerResult,
-                                 const NodeAnnotationMap &nodeAnnotationMap,
-                                 ControlPlaneConstraints initialControlPlaneConstraints)
-    : _options(options),
+FlayServiceBase::FlayServiceBase(const FlayCompilerResult &compilerResult,
+                                 IncrementalAnalysisMap incrementalAnalysisMap)
+    : _incrementalAnalysisMap(std::move(incrementalAnalysisMap)),
       _originalProgram(compilerResult.getOriginalProgram()),
       _midEndProgram(compilerResult.getProgram()),
-      _optimizedProgram(&compilerResult.getOriginalProgram()),
-      _compilerResult(compilerResult),
-      _reachabilityMap(initializeReachabilityMap(options.mapType, nodeAnnotationMap)),
-      _substitutionMap(initializeSubstitutionMap(options.mapType, nodeAnnotationMap)),
-      _controlPlaneConstraints(std::move(initialControlPlaneConstraints)) {
-    printInfo("Checking whether dead code can be removed with the initial configuration...");
-    midEndProgram().apply(P4::ResolveReferences(&_refMap));
-    if (::errorCount() > 0) {
-        return;
-    }
-    checkForChangeAndSpecializeProgram();
+      _optimizedProgram(&compilerResult.getOriginalProgram()) {
+    printInfo("Specializing the program unconditionally...");
+    specializeProgram();
 }
 
 void FlayServiceBase::printOptimizedProgram() const {
@@ -89,95 +48,50 @@ const IR::P4Program &FlayServiceBase::optimizedProgram() const { return *_optimi
 
 const IR::P4Program &FlayServiceBase::midEndProgram() const { return _midEndProgram; }
 
-const FlayCompilerResult &FlayServiceBase::compilerResult() const { return _compilerResult; }
-
-const std::vector<EliminatedReplacedPair> &FlayServiceBase::eliminatedNodes() const {
-    return _eliminatedNodes;
-}
-
-AbstractReachabilityMap &FlayServiceBase::mutableReachabilityMap() { return _reachabilityMap; }
-
-AbstractSubstitutionMap &FlayServiceBase::mutableSubstitutionMap() { return _substitutionMap; }
-
-ControlPlaneConstraints &FlayServiceBase::mutableControlPlaneConstraints() {
-    return _controlPlaneConstraints;
-}
-
-const ControlPlaneConstraints &FlayServiceBase::controlPlaneConstraints() const {
-    return _controlPlaneConstraints;
-}
-
-std::optional<bool> FlayServiceBase::checkForSemanticChange(const SymbolSet &symbolSet) {
-    printInfo("Checking for change in program semantics...");
-    Util::ScopedTimer timer("Check for semantics change with symbol set");
-
-    auto reachabilityResult =
-        mutableReachabilityMap().recomputeReachability(symbolSet, controlPlaneConstraints());
-    if (!reachabilityResult.has_value()) {
-        return std::nullopt;
-    }
-    auto substitutionResult =
-        mutableSubstitutionMap().recomputeSubstitution(symbolSet, controlPlaneConstraints());
-    if (!substitutionResult.has_value()) {
-        return std::nullopt;
-    }
-    return reachabilityResult.value() || substitutionResult.value();
-}
-
-std::optional<bool> FlayServiceBase::checkForSemanticChange() {
-    printInfo("Checking for change in program semantics...");
-    Util::ScopedTimer timer("Check for semantics change");
-    auto reachabilityResult =
-        mutableReachabilityMap().recomputeReachability(controlPlaneConstraints());
-    if (!reachabilityResult.has_value()) {
-        return std::nullopt;
-    }
-    auto substitutionResult =
-        mutableSubstitutionMap().recomputeSubstitution(controlPlaneConstraints());
-    if (!substitutionResult.has_value()) {
-        return std::nullopt;
-    }
-    return reachabilityResult.value() || substitutionResult.value();
-}
-
 int FlayServiceBase::specializeProgram() {
-    printInfo("Change in semantics detected.");
-    auto flaySpecializer = FlaySpecializer(_refMap, _reachabilityMap, _substitutionMap);
-    _optimizedProgram = originalProgram().apply(flaySpecializer);
-    // Update the list of eliminated nodes.
-    _eliminatedNodes = flaySpecializer.eliminatedNodes();
-    return static_cast<int>(::errorCount() > 0);
+    Util::ScopedTimer timer("Specialize program");
+    const auto *optimizedProg = &originalProgram();
+    for (const auto &[analysisName, incrementalAnalysis] : _incrementalAnalysisMap) {
+        auto optProgram = incrementalAnalysis->specializeProgram(*optimizedProg);
+        if (!optProgram.has_value()) {
+            return EXIT_FAILURE;
+        }
+        optimizedProg = optProgram.value();
+    }
+    _optimizedProgram = optimizedProg;
+
+    return EXIT_SUCCESS;
 }
 
-std::pair<int, bool> FlayServiceBase::checkForChangeAndSpecializeProgram(
-    const SymbolSet &symbolSet) {
-    Util::ScopedTimer timer("Specialize Program with SymbolSet");
-
-    std::optional<bool> hasChangedOpt = checkForSemanticChange(symbolSet);
-    if (!hasChangedOpt.has_value()) {
-        return {EXIT_FAILURE, false};
+int FlayServiceBase::processControlPlaneUpdate(const ControlPlaneUpdate &controlPlaneUpdate) {
+    Util::ScopedTimer timer("Processing control plane update");
+    const auto *optimizedProg = &originalProgram();
+    for (const auto &[analysisName, incrementalAnalysis] : _incrementalAnalysisMap) {
+        auto optProgram =
+            incrementalAnalysis->processControlPlaneUpdate(*optimizedProg, controlPlaneUpdate);
+        if (!optProgram.has_value()) {
+            return EXIT_FAILURE;
+        }
+        optimizedProg = optProgram.value();
     }
-    bool hasChanged = hasChangedOpt.value();
-    if (!hasChanged) {
-        printInfo("Received update, but semantics have not changed. No program change necessary.");
-        return {EXIT_SUCCESS, hasChanged};
-    }
-    return {specializeProgram(), hasChanged};
+    _optimizedProgram = optimizedProg;
+    return EXIT_SUCCESS;
 }
 
-std::pair<int, bool> FlayServiceBase::checkForChangeAndSpecializeProgram() {
-    Util::ScopedTimer timer("Specialize Program");
-
-    std::optional<bool> hasChangedOpt = checkForSemanticChange();
-    if (!hasChangedOpt.has_value()) {
-        return {EXIT_FAILURE, false};
+int FlayServiceBase::processControlPlaneUpdate(
+    const std::vector<const ControlPlaneUpdate *> &controlPlaneUpdates) {
+    Util::ScopedTimer timer("Processing control plane updates");
+    const auto *optimizedProg = &originalProgram();
+    for (const auto &[analysisName, incrementalAnalysis] : _incrementalAnalysisMap) {
+        auto optProgram =
+            incrementalAnalysis->processControlPlaneUpdate(*optimizedProg, controlPlaneUpdates);
+        if (!optProgram.has_value()) {
+            return EXIT_FAILURE;
+        }
+        optimizedProg = optProgram.value();
     }
-    bool hasChanged = hasChangedOpt.value();
-    if (!hasChanged) {
-        printInfo("Received update, but semantics have not changed. No program change necessary.");
-        return {EXIT_SUCCESS, hasChanged};
-    }
-    return {specializeProgram(), hasChanged};
+    _optimizedProgram = optimizedProg;
+    return EXIT_SUCCESS;
 }
 
 void FlayServiceBase::recordProgramChange() const {
@@ -189,14 +103,20 @@ void FlayServiceBase::recordProgramChange() const {
               statementCountBefore, statementCountAfter, stmtPct);
 }
 
-FlayServiceStatistics FlayServiceBase::computeFlayServiceStatistics() const {
+std::vector<AnalysisStatistics *> FlayServiceBase::computeFlayServiceStatistics() const {
     auto statementCountBefore = countStatements(midEndProgram());
     auto statementCountAfter = countStatements(optimizedProgram());
     auto cyclomaticComplexity = computeCyclomaticComplexity(midEndProgram());
     auto numParsersPaths = ParserPathsCounter::computeParserPaths(midEndProgram());
-
-    return FlayServiceStatistics{&optimizedProgram(), eliminatedNodes(),    statementCountBefore,
-                                 statementCountAfter, cyclomaticComplexity, numParsersPaths};
+    std::vector<AnalysisStatistics *> statistics;
+    statistics.reserve(_incrementalAnalysisMap.size() + 1);
+    for (const auto &[analysisName, incrementalAnalysis] : _incrementalAnalysisMap) {
+        statistics.push_back(incrementalAnalysis->computeAnalysisStatistics());
+    }
+    statistics.push_back(new FlayServiceStatistics(&optimizedProgram(), statementCountBefore,
+                                                   statementCountAfter, cyclomaticComplexity,
+                                                   numParsersPaths));
+    return statistics;
 }
 
 }  // namespace P4Tools::Flay

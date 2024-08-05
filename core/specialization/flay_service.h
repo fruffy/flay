@@ -2,29 +2,26 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_FLAY_SERVICE_H_
 
 #include <functional>
-#include <vector>
 
-#include "backends/p4tools/modules/flay/core/interpreter/compiler_result.h"
-#include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
-#include "backends/p4tools/modules/flay/core/specialization/passes/specializer.h"
+#include "backends/p4tools/modules/flay/core/lib/incremental_analysis.h"
 #include "frontends/p4/toP4/toP4.h"
 
 namespace P4Tools::Flay {
 
 class StatementCounter : public Inspector {
-    uint64_t statementCount_ = 0;
+    uint64_t _statementCount = 0;
 
  public:
     bool preorder(const IR::AssignmentStatement * /*statement*/) override {
-        statementCount_++;
+        _statementCount++;
         return false;
     }
     bool preorder(const IR::MethodCallStatement * /*statement*/) override {
-        statementCount_++;
+        _statementCount++;
         return false;
     }
 
-    [[nodiscard]] uint64_t getStatementCount() const { return statementCount_; }
+    [[nodiscard]] uint64_t getStatementCount() const { return _statementCount; }
 };
 
 inline uint64_t countStatements(const IR::P4Program &prog) {
@@ -47,21 +44,18 @@ inline double measureSizeDifference(const IR::P4Program &programBefore,
     return (beforeLength - measureProgramSize(programAfter)) * (100.0 / beforeLength);
 }
 
-enum ReachabilityMapType { kZ3Precomputed, kDefault };
+struct FlayServiceStatistics : public AnalysisStatistics {
+    FlayServiceStatistics(const IR::P4Program *optimizedProgram, uint64_t statementCountBefore,
+                          uint64_t statementCountAfter, size_t cyclomaticComplexity,
+                          size_t numParsersPaths)
+        : optimizedProgram(optimizedProgram),
+          statementCountBefore(statementCountBefore),
+          statementCountAfter(statementCountAfter),
+          cyclomaticComplexity(cyclomaticComplexity),
+          numParsersPaths(numParsersPaths) {}
 
-struct FlayServiceOptions {
-    /// If useSymbolSet is true, we only check whether the symbols in the set have
-    /// changed.
-    bool useSymbolSet = true;
-    /// The type of map to initialize.
-    ReachabilityMapType mapType = ReachabilityMapType::kZ3Precomputed;
-};
-
-struct FlayServiceStatistics {
     // The optimized program.
     const IR::P4Program *optimizedProgram;
-    // The nodes eliminated in the program.
-    std::vector<EliminatedReplacedPair> eliminatedNodes;
     // The number of statements in the original program.
     uint64_t statementCountBefore;
     // The number of statements in the optimized program.
@@ -70,12 +64,23 @@ struct FlayServiceStatistics {
     size_t cyclomaticComplexity;
     // The total number of paths for parsers
     size_t numParsersPaths;
+
+    [[nodiscard]] std::string toFormattedString() const override {
+        std::stringstream output;
+        output << "\nstatement_count_before:" << statementCountBefore << "\n";
+        output << "statement_count_after:" << statementCountAfter << "\n";
+        output << "cyclomatic_complexity:" << cyclomaticComplexity << "\n";
+        output << "num_parsers_paths:" << numParsersPaths << "\n";
+        return output.str();
+    }
+
+    DECLARE_TYPEINFO(FlayServiceStatistics);
 };
 
 class FlayServiceBase {
  protected:
-    // Configuration options for the service.
-    FlayServiceOptions _options;
+    /// The incremental analysis.
+    IncrementalAnalysisMap _incrementalAnalysisMap;
 
     /// The original source P4 program after the front end.
     std::reference_wrapper<const IR::P4Program> _originalProgram;
@@ -87,41 +92,11 @@ class FlayServiceBase {
     /// initial data plane configuration
     const IR::P4Program *_optimizedProgram = nullptr;
 
-    /// The program info object stores the results of the compilation, which
-    /// includes the P4 program and any information extracted from the program
-    /// using static analysis.
-    std::reference_wrapper<const FlayCompilerResult> _compilerResult;
-
-    /// The reachability map used by the server. Derived from the input argument.
-    std::reference_wrapper<AbstractReachabilityMap> _reachabilityMap;
-
-    /// The expression map used by the server.
-    std::reference_wrapper<AbstractSubstitutionMap> _substitutionMap;
-
-    /// The set of active control plane constraints. These constraints are added
-    /// to every solver check to compute feasibility of a program node.
-    ControlPlaneConstraints _controlPlaneConstraints;
-
-    /// A map to look up declaration references.
-    P4::ReferenceMap _refMap;
-
-    /// The list of eliminated and optionally replaced nodes. Used for
-    /// bookkeeping.
-    std::vector<EliminatedReplacedPair> _eliminatedNodes;
-
-    /// Compute whether the semantics of the program under this control plane
-    /// configuration have changed since the last update.
-    // @returns std::nullopt if an error occurred during the computation.
-    [[nodiscard]] std::optional<bool> checkForSemanticChange();
-    [[nodiscard]] std::optional<bool> checkForSemanticChange(const SymbolSet &symbolSet);
-
     int specializeProgram();
 
  public:
-    explicit FlayServiceBase(const FlayServiceOptions &options,
-                             const FlayCompilerResult &compilerResult,
-                             const NodeAnnotationMap &nodeAnnotationMap,
-                             ControlPlaneConstraints initialControlPlaneConstraints);
+    explicit FlayServiceBase(const FlayCompilerResult &compilerResult,
+                             IncrementalAnalysisMap incrementalAnalysisMap);
 
     /// Print the optimized program to stdout;
     void printOptimizedProgram() const;
@@ -138,37 +113,15 @@ class FlayServiceBase {
     /// @returns the optimized program.
     [[nodiscard]] const IR::P4Program &optimizedProgram() const;
 
-    /// @returns the list of eliminated (and potential replaced) nodes.
-    [[nodiscard]] const std::vector<EliminatedReplacedPair> &eliminatedNodes() const;
-
-    /// @returns a reference to the compiler result that this program info object
-    /// was initialized with.
-    [[nodiscard]] const FlayCompilerResult &compilerResult() const;
-
-    /// @returns a mutable reference reachability map.
-    [[nodiscard]] AbstractReachabilityMap &mutableReachabilityMap();
-
-    /// @returns a mutable reference to the substitution map that this program
-    /// info object was initialized with.
-    [[nodiscard]] AbstractSubstitutionMap &mutableSubstitutionMap();
-
-    /// @returns a mutable reference to the control plane constraints that this
-    /// program info object was initialized with.
-    [[nodiscard]] ControlPlaneConstraints &mutableControlPlaneConstraints();
-
-    /// @returns the control plane constraints that this program info object
-    /// was initialized with.
-    [[nodiscard]] const ControlPlaneConstraints &controlPlaneConstraints() const;
-
-    /// Run specialization on the original P4 program.
-    std::pair<int, bool> checkForChangeAndSpecializeProgram();
-    std::pair<int, bool> checkForChangeAndSpecializeProgram(const SymbolSet &symbolSet);
-
     /// Compute some statistics on the changes in the program and print them out.
     void recordProgramChange() const;
 
+    int processControlPlaneUpdate(const ControlPlaneUpdate &controlPlaneUpdate);
+    int processControlPlaneUpdate(
+        const std::vector<const ControlPlaneUpdate *> &controlPlaneUpdates);
+
     /// Compute and return some statistics on the changes in the program.
-    [[nodiscard]] FlayServiceStatistics computeFlayServiceStatistics() const;
+    [[nodiscard]] std::vector<AnalysisStatistics *> computeFlayServiceStatistics() const;
 };
 
 }  // namespace P4Tools::Flay

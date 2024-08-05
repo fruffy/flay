@@ -18,10 +18,8 @@ class FlayService final : public FlayServiceBase, public p4::v1::P4Runtime::Serv
     std::promise<void> exitRequested;
 
  public:
-    explicit FlayService(const FlayServiceOptions &options,
-                         const FlayCompilerResult &compilerResult,
-                         const NodeAnnotationMap &nodeAnnotationMap,
-                         ControlPlaneConstraints initialControlPlaneConstraints);
+    explicit FlayService(const FlayCompilerResult &compilerResult,
+                         IncrementalAnalysisMap incrementalAnalysisMap);
 
     /// Start the Flay gRPC server and listen to incoming requests.
     bool startServer(const std::string &serverAddress);
