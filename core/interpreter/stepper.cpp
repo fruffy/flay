@@ -193,6 +193,8 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
         }
         // We fall through, so add the statements to execute to a list.
         accumulatedSwitchCases.push_back(switchCase);
+        // Add the switch case to the reachability map.
+        executionState.addReachabilityMapping(switchCase, cond);
         // Nothing to do with this statement. Fall through to the next case.
         if (switchCase->statement == nullptr) {
             continue;
@@ -204,16 +206,13 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             auto &caseState = executionState.clone();
             // The final condition is the accumulated label condition and NOT other conditions that
             // have previously matched.
-            const auto *finalCond = cond;
-            caseState.pushExecutionCondition(SimplifyExpression::simplify(finalCond));
+            caseState.pushExecutionCondition(SimplifyExpression::simplify(cond));
             // Execute the state with the accumulated statements.
             auto &switchStepper =
                 FlayTarget::getStepper(getProgramInfo(), controlPlaneConstraints(), caseState);
-            for (const auto *switchCase : accumulatedSwitchCases) {
-                // Add the switch case to the reachability map.
-                executionState.addReachabilityMapping(switchCase, finalCond);
-                if (switchCase->statement != nullptr) {
-                    switchCase->statement->apply(switchStepper);
+            for (const auto *accumulatedSwitchCase : accumulatedSwitchCases) {
+                if (accumulatedSwitchCase->statement != nullptr) {
+                    accumulatedSwitchCase->statement->apply(switchStepper);
                 }
             }
             accumulatedSwitchCases.clear();

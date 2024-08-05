@@ -7,7 +7,6 @@
 
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/constants.h"
-#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/lib/symbolic_env.h"
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/modules/flay/core/interpreter/expression_resolver.h"
@@ -204,8 +203,7 @@ void TableExecutor::processTableActionOptions(
         const IR::Expression *actionHitCondition = nullptr;
         /// Only actions not marked @defaultonly can be executed by the control plane.
         if (action->getAnnotation(IR::Annotation::defaultOnlyAnnotation) == nullptr) {
-            actionHitCondition =
-                new IR::LAnd(tableActive, new IR::Equ(tableActionID, actionLiteral));
+            actionHitCondition = new IR::Equ(tableActionID, actionLiteral);
         } else {
             // If the action can only be a default action, the only way to execute it is by setting
             // it as default action.
@@ -223,10 +221,6 @@ void TableExecutor::processTableActionOptions(
                                 actionLiteral)));
         }
         state.addReachabilityMapping(action, actionHitCondition);
-        // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
-        tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
-            actionHitCondition, IR::StringLiteral::get(action->controlPlaneName()),
-            tableReturnProperties.actionRun);
         // We get the control plane name of the action we are calling.
         cstring actionName = actionType->controlPlaneName();
         const auto &parameters = actionType->parameters;
@@ -238,6 +232,10 @@ void TableExecutor::processTableActionOptions(
         callAction(getProgramInfo(), controlPlaneConstraints(), actionState, actionType, arguments);
         // Finally, merge in the state of the action call.
         state.merge(actionState);
+        // We use action->controlPlaneName() here, NOT actionType. TODO: Clean this up?
+        tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
+            actionHitCondition, IR::StringLiteral::get(action->controlPlaneName()),
+            tableReturnProperties.actionRun);
     }
 }
 
@@ -274,9 +272,9 @@ const IR::Expression *TableExecutor::processTable() {
         tableKeyExpression = IR::BoolLiteral::get(false);
     }
 
-    const auto *actionPath = TableUtils::getDefaultActionName(table);
-    ReturnProperties tableReturnProperties{IR::BoolLiteral::get(false),
-                                           IR::StringLiteral::get(actionPath->path->toString())};
+    const auto *defaultActionPath = TableUtils::getDefaultActionName(table);
+    ReturnProperties tableReturnProperties{
+        IR::BoolLiteral::get(false), IR::StringLiteral::get(defaultActionPath->path->toString())};
 
     const auto &referenceState = getExecutionState().clone();
 
@@ -285,10 +283,6 @@ const IR::Expression *TableExecutor::processTable() {
 
     // Execute all other possible action options. Get the combination of all possible hits.
     processTableActionOptions(properties, referenceState, tableReturnProperties);
-    tableReturnProperties.actionRun = SimplifyExpression::produceSimplifiedMux(
-        tableReturnProperties.totalHitCondition, tableReturnProperties.actionRun,
-        IR::StringLiteral::get(TableUtils::getDefaultActionName(table)->toString()));
-
     // Add the computed hit expression of the table to its control plane configuration.
     // We substitute this match later with concrete assignments.
     auto tableControlPlaneItem = controlPlaneConstraints().find(table.controlPlaneName());
