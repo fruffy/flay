@@ -3,9 +3,6 @@
 
 #include <z3++.h>
 
-#include <utility>
-
-#include "backends/p4tools/common/core/z3_solver.h"
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
 #include "backends/p4tools/modules/flay/core/specialization/reachability_map.h"
 

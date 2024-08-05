@@ -8,6 +8,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/expression_resolver.h"
 #include "backends/p4tools/modules/flay/core/interpreter/parser_stepper.h"
 #include "backends/p4tools/modules/flay/core/interpreter/target.h"
+#include "backends/p4tools/modules/flay/core/lib/simplify_expression.h"
 #include "ir/id.h"
 #include "ir/irutils.h"
 #include "lib/cstring.h"
@@ -172,7 +173,6 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
 
     const IR::Expression *cond = nullptr;
     std::vector<const IR::SwitchCase *> accumulatedSwitchCases;
-    std::vector<const IR::Expression *> notConds;
     std::vector<std::reference_wrapper<const ExecutionState>> accumulatedStates;
     for (const auto *switchCase : switchStatement->cases) {
         // The default label must be last. Always break here.
@@ -193,6 +193,8 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
         }
         // We fall through, so add the statements to execute to a list.
         accumulatedSwitchCases.push_back(switchCase);
+        // Add the switch case to the reachability map.
+        executionState.addReachabilityMapping(switchCase, cond);
         // Nothing to do with this statement. Fall through to the next case.
         if (switchCase->statement == nullptr) {
             continue;
@@ -204,26 +206,19 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             auto &caseState = executionState.clone();
             // The final condition is the accumulated label condition and NOT other conditions that
             // have previously matched.
-            const auto *finalCond = cond;
-            for (const auto *notCond : notConds) {
-                finalCond = new IR::LAnd(notCond, finalCond);
-            }
-            notConds.push_back(new IR::LNot(cond));
-            cond = IR::BoolLiteral::get(false);
-            caseState.pushExecutionCondition(finalCond);
+            caseState.pushExecutionCondition(SimplifyExpression::simplify(cond));
             // Execute the state with the accumulated statements.
             auto &switchStepper =
                 FlayTarget::getStepper(getProgramInfo(), controlPlaneConstraints(), caseState);
-            for (const auto *switchCase : accumulatedSwitchCases) {
-                // Add the switch case to the reachability map.
-                executionState.addReachabilityMapping(switchCase, finalCond);
-                if (switchCase->statement != nullptr) {
-                    switchCase->statement->apply(switchStepper);
+            for (const auto *accumulatedSwitchCase : accumulatedSwitchCases) {
+                if (accumulatedSwitchCase->statement != nullptr) {
+                    accumulatedSwitchCase->statement->apply(switchStepper);
                 }
             }
             accumulatedSwitchCases.clear();
-            // Save the state for  later merging.
+            // Save the state for later merging.
             accumulatedStates.emplace_back(caseState);
+            cond = nullptr;
         }
     }
 

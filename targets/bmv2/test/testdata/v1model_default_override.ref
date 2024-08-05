@@ -1,5 +1,5 @@
-Eliminated node at line 73: toggle_check.apply();
-Eliminated node at line 75: if (check_l3) {
+Eliminated node at line 72: toggle_check.apply();
+Eliminated node at line 74: if (check_l3) {
 statement_count_before:7
 statement_count_after:5
 cyclomatic_complexity:3

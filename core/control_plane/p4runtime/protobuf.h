@@ -23,7 +23,6 @@ namespace P4Tools::Flay::P4Runtime {
 
 /// Convert a Protobuf P4Runtime entity object into a set of IR-based
 /// control-plane constraints. Use the
-/// @param irToIdMap to lookup the nodes associated with P4Runtime Ids.
 /// @param symbolSet tracks the symbols used in this conversion.
 [[nodiscard]] int updateControlPlaneConstraintsWithEntityMessage(
     const p4::v1::Entity &entity, const p4::config::v1::P4Info &p4Info,

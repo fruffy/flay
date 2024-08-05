@@ -1,6 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_SYMBOLS_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_SYMBOLS_H_
 
+#include "ir/compare.h"
 #include "ir/ir.h"
 #include "ir/irutils.h"
 

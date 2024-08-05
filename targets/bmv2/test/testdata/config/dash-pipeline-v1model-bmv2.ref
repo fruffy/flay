@@ -86,6 +86,7 @@ Eliminated node at line (unknown): { if (meta.encap_data.dash_encapsulation == d
 Eliminated node at line 1214: if (meta.eni_data.dscp_mode == dash_tunnel_dscp_mode_t.PIPE_MODEL) {
 Eliminated node at line 957: if (meta.meter_policy_en == 1) {
 Eliminated node at line 963: meta.meter_class = meta.policy_meter_class;
+Eliminated node at line 977: eni_meter.apply();
 Replaced node at line 335: hdr.customer_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.customer_ethernet.dst_addr : overlay_dmac); with 0
 Replaced node at line 335: hdr.customer_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.customer_ethernet.dst_addr : overlay_dmac); with 0
 Replaced node at line 335: hdr.customer_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.customer_ethernet.dst_addr : overlay_dmac); with 0
@@ -129,7 +130,7 @@ Replaced node at line 957: if (meta.meter_policy_en == 1) { with 0
 Replaced node at line 962: if (meta.meter_policy_en == 1) { with 0
 Replaced node at line 967: if (meta.meter_class == 0 || meta.mapping_meter_class_override == 1) { with 0
 statement_count_before:547
-statement_count_after:457
+statement_count_after:456
 cyclomatic_complexity:208
 num_parsers_paths:280
 

@@ -146,7 +146,17 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
 
     // Filter out any actions which are @defaultonly.
     auto tableActionList = TableUtils::buildTableActionList(table);
+    ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &defaultAction, table.getDefaultAction(), stmt,
+                                  ::error("Table %1% does not have a default action.", tableDecl));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        const auto &defaultActionCall, defaultAction.to<IR::MethodCallExpression>(), stmt,
+        ::error("%1% is not a method call expression.", table.getDefaultAction()));
     for (const auto *action : tableActionList) {
+        // Do not remove the default action.
+        if (defaultActionCall.method->toString() ==
+            action->expression->checkedTo<IR::MethodCallExpression>()->method->toString()) {
+            continue;
+        }
         // We return if a single action is executable for the current table.
         ASSIGN_OR_RETURN(auto reachability, _reachabilityMap.get().isNodeReachable(action), stmt);
 
@@ -159,17 +169,14 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     // Action annotated with `@defaultonly` is ignored before. If no action can be reachable
     // based on previous analysis, we replace the apply call to the default action call.
     // Only when the default action has an empty body, we remove the apply.
-    const auto *defaultAction = table.getDefaultAction()->to<IR::MethodCallExpression>();
-    if (defaultAction != nullptr) {
-        auto decl = getActionDecl(_refMap, *defaultAction);
-        if (decl.has_value() && !decl.value()->body->components.empty()) {
-            printInfo("---DEAD_CODE--- Replacing call %1% with default action %2%", stmt,
-                      defaultAction);
-            auto *replacement =
-                new IR::MethodCallStatement(defaultAction->getSourceInfo(), defaultAction);
-            _eliminatedNodes.emplace_back(stmt, replacement);
-            return replacement;
-        }
+    auto decl = getActionDecl(_refMap, defaultActionCall);
+    if (decl.has_value() && !decl.value()->body->components.empty()) {
+        printInfo("---DEAD_CODE--- Replacing call %1% with default action %2%", stmt,
+                  defaultActionCall);
+        auto *replacement =
+            new IR::MethodCallStatement(defaultActionCall.getSourceInfo(), &defaultActionCall);
+        _eliminatedNodes.emplace_back(stmt, replacement);
+        return replacement;
     }
 
     // There is no action to execute other than an empty action, remove the table.

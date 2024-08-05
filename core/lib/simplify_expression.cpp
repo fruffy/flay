@@ -7,6 +7,7 @@
 #include "backends/p4tools/modules/flay/core/lib/expression_strength_reduction.h"
 #include "backends/p4tools/modules/flay/options.h"
 #include "frontends/common/constantFolding.h"
+#include "ir/compare.h"
 #include "ir/irutils.h"
 #include "ir/pass_manager.h"
 #include "lib/timer.h"

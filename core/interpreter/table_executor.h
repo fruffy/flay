@@ -49,7 +49,7 @@ class TableExecutor {
                                    ReturnProperties &tableReturnProperties) const;
 
     /// Produce a single key match expression from a map of keys.
-    static const IR::Expression *buildKeyMatches(cstring tablePrefix, const KeyMap &keyMap);
+    static const IR::Expression *buildKeyMatches(const KeyMap &keyMap);
 
  protected:
     /// Computes a series of boolean conditions that must be true for the table to hit a particular
