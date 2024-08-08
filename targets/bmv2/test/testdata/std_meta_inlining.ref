@@ -1,3 +1,4 @@
+Eliminated node at line 24: actions = { send_to_cpu(standard_metadata); }
 Eliminated node at line 27: t0.apply();
 statement_count_before:4
 statement_count_after:3

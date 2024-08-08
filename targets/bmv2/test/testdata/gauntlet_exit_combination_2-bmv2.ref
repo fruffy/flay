@@ -1,3 +1,4 @@
+Eliminated node at line 34: dummy();
 Eliminated node at line 39: dummy: {
 statement_count_before:6
 statement_count_after:3

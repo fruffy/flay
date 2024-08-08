@@ -1,3 +1,7 @@
+Eliminated node at line 678: ipv4_forward;
+Eliminated node at line 888: set_result_drop_ip;
+Eliminated node at line 889: set_result_drop_pkt;
+Eliminated node at line 890: set_result_redirect;
 Replaced node at line 972: result_match.apply(); with set_result(1023, 0);
 Eliminated node at line 977: ipv4_lpm.apply();
 Replaced node at line 877: meta.p0f_metadata.quirk_zero_id: exact; //none with 0

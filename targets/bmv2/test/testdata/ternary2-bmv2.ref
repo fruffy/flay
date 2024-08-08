@@ -1,3 +1,11 @@
+Eliminated node at line 73: setb1;
+Eliminated node at line 81: setbyte(hdrs.extra[0].b1);
+Eliminated node at line 82: act1;
+Eliminated node at line 83: act2;
+Eliminated node at line 84: act3;
+Eliminated node at line 91: actions = { setbyte(hdrs.data.b2); noop; }
+Eliminated node at line 95: actions = { setbyte(hdrs.extra[1].b1); noop; }
+Eliminated node at line 99: actions = { setbyte(hdrs.extra[2].b2); noop; }
 Eliminated node at line 102: test1.apply();
 Eliminated node at line 104: act1: { tbl1.apply(); }
 Eliminated node at line 105: act2: { tbl2.apply(); }

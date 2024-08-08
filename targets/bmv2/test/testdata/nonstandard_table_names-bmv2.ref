@@ -1,3 +1,8 @@
+Eliminated node at line 39: increment;
+Eliminated node at line 49: increment;
+Eliminated node at line 59: increment;
+Eliminated node at line 69: increment;
+Eliminated node at line 79: increment;
 Eliminated node at line 84: simple_table_1.apply();
 Eliminated node at line 85: simple_table_2.apply();
 Eliminated node at line 86: simple_table_3.apply();

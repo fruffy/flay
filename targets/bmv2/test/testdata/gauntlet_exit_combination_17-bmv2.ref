@@ -1,3 +1,5 @@
+Eliminated node at line 33: dummy_action();
+Eliminated node at line 41: dummy_action();
 Eliminated node at line 46: dummy_action: {
 Eliminated node at line (unknown): 
 statement_count_before:7

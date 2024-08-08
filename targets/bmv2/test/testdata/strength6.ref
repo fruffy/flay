@@ -1,3 +1,7 @@
+Eliminated node at line 44: case1;
+Eliminated node at line 45: case2;
+Eliminated node at line 46: case3;
+Eliminated node at line 47: case4;
 Replaced node at line 51: apply { t.apply(); } with case0();
 statement_count_before:8
 statement_count_after:8

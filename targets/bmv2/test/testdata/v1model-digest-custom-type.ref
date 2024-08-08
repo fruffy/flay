@@ -1,5 +1,10 @@
+Eliminated node at line 125: set_dmac;
+Eliminated node at line 126: drop;
+Eliminated node at line 143: set_nhop;
+Eliminated node at line 144: drop;
 Eliminated node at line 160: ipv4_lpm.apply();
 Eliminated node at line 161: forward.apply();
+Eliminated node at line 184: rewrite_mac;
 Eliminated node at line 192: send_frame.apply();
 Replaced node at line 181: standard_metadata.egress_port: exact; with 0
 statement_count_before:19

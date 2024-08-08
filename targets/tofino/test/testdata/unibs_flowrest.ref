@@ -1,3 +1,13 @@
+Eliminated node at line 305: actions = {@defaultonly nop; SetCode0;}
+Eliminated node at line 311: actions = {@defaultonly nop; SetCode1;}
+Eliminated node at line 317: actions = {@defaultonly nop; SetCode2;}
+Eliminated node at line 323: actions = {@defaultonly nop; SetCode3;}
+Eliminated node at line 329: actions = {@defaultonly nop; SetCode4;}
+Eliminated node at line 337: actions = {@defaultonly nop; SetClass0;}
+Eliminated node at line 343: actions = {@defaultonly nop; SetClass1;}
+Eliminated node at line 349: actions = {@defaultonly nop; SetClass2;}
+Eliminated node at line 360: actions = {set_final_class; @defaultonly nop;}
+Eliminated node at line 374: actions = {set_flow_action; @defaultonly set_miss_flow_action;}
 Replaced node at line 386: flow_action_table.apply(); with set_miss_flow_action();
 Eliminated node at line 390: if (hdr.recirc.isValid()){
 Eliminated node at line 505: if (ig_dprsr_md.digest_type == 1) {

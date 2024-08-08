@@ -1,3 +1,8 @@
+Eliminated node at line 125: set_ifid;
+Eliminated node at line 145: set_src_ifid_md;
+Eliminated node at line 171: l2_switch;
+Eliminated node at line 172: route;
+Eliminated node at line 195: mcast_route;
 Eliminated node at line 202: ing_port.apply();
 Eliminated node at line 203: ing_src_ifid.apply();
 Replaced node at line 204: ing_dmac.apply(); with flood();

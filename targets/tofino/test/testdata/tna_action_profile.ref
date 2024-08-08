@@ -1,3 +1,8 @@
+Eliminated node at line 128: set_port;
+Eliminated node at line 147: set_nexthop;
+Eliminated node at line 148: send_to_cpu;
+Eliminated node at line 160: set_nexthop;
+Eliminated node at line 161: send_to_cpu;
 Eliminated node at line 177: vid = hdr.vlan_tag.vid;
 Eliminated node at line 183: forward.apply();
 Eliminated node at line (unknown): 

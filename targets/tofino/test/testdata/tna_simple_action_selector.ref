@@ -1,3 +1,4 @@
+Eliminated node at line 122: set_port;
 Eliminated node at line 134: forward.apply();
 statement_count_before:6
 statement_count_after:5

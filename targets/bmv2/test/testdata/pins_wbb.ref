@@ -1,3 +1,5 @@
+Eliminated node at line 314: @proto_id(1) acl_wbb_ingress_copy();
+Eliminated node at line 315: @proto_id(2) acl_wbb_ingress_trap();
 Eliminated node at line 325: ttl = headers.ipv4.ttl;
 Eliminated node at line 326: } else if (headers.ipv6.isValid()) {
 Eliminated node at line 329: acl_wbb_ingress_table.apply();

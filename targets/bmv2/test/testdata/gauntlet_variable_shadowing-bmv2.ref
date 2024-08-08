@@ -1,3 +1,4 @@
+Eliminated node at line 34: a_0();
 Eliminated node at line 42: t_0.apply();
 statement_count_before:7
 statement_count_after:6

@@ -1,3 +1,4 @@
+Eliminated node at line 49: actions = { set_data; }
 Eliminated node at line 53: t.apply();
 Replaced node at line 50: key = { meta.data[0].da : exact;} with 0
 statement_count_before:2

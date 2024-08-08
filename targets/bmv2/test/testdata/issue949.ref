@@ -1,3 +1,4 @@
+Eliminated node at line 60: setDest;
 Eliminated node at line 65: bool didHit = someTable.apply().hit;
 statement_count_before:6
 statement_count_after:5

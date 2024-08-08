@@ -1,4 +1,11 @@
+Eliminated node at line 67: rewrite_mac;
+Eliminated node at line 68: _drop;
 Eliminated node at line 76: send_frame.apply();
+Eliminated node at line 102: bcast;
+Eliminated node at line 108: set_dmac;
+Eliminated node at line 109: _drop;
+Eliminated node at line 118: set_nhop;
+Eliminated node at line 119: _drop;
 Eliminated node at line 128: ipv4_lpm.apply();
 Eliminated node at line 129: forward.apply();
 Eliminated node at line 132: broadcast.apply();
