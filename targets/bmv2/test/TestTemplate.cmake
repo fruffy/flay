@@ -45,7 +45,9 @@ function(p4tools_add_test_with_args)
   endif()
 
   file(APPEND ${__testfile} "${driver} --target ${target} --arch ${arch} "
-                            "${test_args} \"$@\" --file ${p4test}\n"
+                            "${test_args} \"$@\" --file ${p4test} --optimized-output-dir ${__testfolder}\n")
+  file(APPEND ${__testfile} "${CMAKE_BINARY_DIR}/p4c-bm2-ss --target ${target} --arch ${arch} "
+                            "${__testfolder}/optimized.final.p4 || echo \"Failed BMv2 compilation.\"\n"
   )
 
   execute_process(COMMAND chmod +x ${__testfile})
