@@ -60,6 +60,7 @@ const IR::Node *ElimDeadCode::preorder(IR::IfStatement *stmt) {
 
 const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
     IR::Vector<IR::SwitchCase> filteredSwitchCases;
+    bool previousFallThrough = false;
     for (const auto *switchCase : switchStmt->cases) {
         if (switchCase->label->is<IR::DefaultExpression>()) {
             filteredSwitchCases.push_back(switchCase);
@@ -67,17 +68,34 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
         }
         auto isreachabilityOpt = _reachabilityMap.get().isNodeReachable(switchCase);
         if (!isreachabilityOpt.has_value()) {
+            printInfo("---DEAD_CODE--- SwitchCase %1% can be executed.", switchCase->label);
             filteredSwitchCases.push_back(switchCase);
+            previousFallThrough = switchCase->statement == nullptr;
             continue;
         }
         auto reachability = isreachabilityOpt.value();
         if (reachability) {
             filteredSwitchCases.push_back(switchCase);
-            printInfo("---DEAD_CODE--- %1% is always true.", switchCase->label);
-            break;
+            printInfo("---DEAD_CODE--- SwitchCase %1% is always true.", switchCase->label);
+            previousFallThrough = switchCase->statement == nullptr;
+            if (switchCase->statement != nullptr) {
+                break;
+            }
+            continue;
         }
         printInfo("---DEAD_CODE--- %1% can be deleted.", switchCase->label);
         _eliminatedNodes.emplace_back(switchCase, nullptr);
+        // We are removing a statement that had previous fall-through labels.
+        if (previousFallThrough && !filteredSwitchCases.empty() &&
+            switchCase->statement != nullptr) {
+            auto *previous = filteredSwitchCases.back()->clone();
+            printInfo("---DEAD_CODE--- Merging statements of %1% into %2%.", switchCase->label,
+                      previous->label);
+            previous->statement = switchCase->statement;
+            filteredSwitchCases.pop_back();
+            filteredSwitchCases.push_back(previous);
+        }
+        previousFallThrough = switchCase->statement == nullptr;
     }
     if (filteredSwitchCases.empty()) {
         return new IR::EmptyStatement(switchStmt->getSourceInfo());
