@@ -1,3 +1,4 @@
+Eliminated node at line 102: actions = { do_forward; NoAction; }
 Replaced node at line 109: tbl_fwd.apply(); with do_forward(2);
 statement_count_before:19
 statement_count_after:19

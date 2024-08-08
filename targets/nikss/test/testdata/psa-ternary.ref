@@ -1,3 +1,8 @@
+Eliminated node at line 97: actions = { do_change_src_addr; NoAction; }
+Eliminated node at line 107: actions = { do_change_dst_addr; NoAction; }
+Eliminated node at line 118: actions = { do_change_protocol; NoAction; }
+Eliminated node at line 129: actions = { do_change_diffserv; NoAction; }
+Eliminated node at line 140: actions = { do_modify_eth_type; NoAction; }
 Eliminated node at line 149: tbl_ternary_0.apply();
 Eliminated node at line 150: tbl_ternary_2.apply();
 Eliminated node at line 151: tbl_ternary_1.apply();

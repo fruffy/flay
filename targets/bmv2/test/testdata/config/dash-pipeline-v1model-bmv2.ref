@@ -14,13 +14,45 @@ Eliminated node at line 574: meta.overlay_data.dmac = (overlay_dmac == 0 ? meta.
 Eliminated node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac);
 Eliminated node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac);
 Eliminated node at line 365: hdr.u0_ethernet.dst_addr = (overlay_dmac == 0 ? hdr.u0_ethernet.dst_addr : overlay_dmac);
+Eliminated node at line 1024: accept;
 Eliminated node at line 1051: if (dash_tunnel_dscp_mode == dash_tunnel_dscp_mode_t.PIPE_MODEL) {
 Eliminated node at line 1056: if (meta.is_overlay_ip_v6 == 1) {
 Eliminated node at line 1074: if (meta.direction == dash_direction_t.OUTBOUND) {
+Eliminated node at line 1098: set_eni_attrs;
+Eliminated node at line 1114: permit;
+Eliminated node at line 1126: tunnel_decap(hdr, meta);
+Eliminated node at line 1127: tunnel_decap_pa_validate;
 Eliminated node at line 1134: if (meta.is_overlay_ip_v6 == 1) {
+Eliminated node at line 871: set_eni;
+Eliminated node at line 486: permit;
+Eliminated node at line 487: permit_and_continue;
+Eliminated node at line 489: deny_and_continue;
+Eliminated node at line 505: permit;
+Eliminated node at line 506: permit_and_continue;
+Eliminated node at line 508: deny_and_continue;
+Eliminated node at line 524: permit;
+Eliminated node at line 525: permit_and_continue;
+Eliminated node at line 527: deny_and_continue;
+Eliminated node at line 714: route_vnet_direct(hdr, meta);
+Eliminated node at line 715: route_direct(hdr, meta);
+Eliminated node at line 716: route_service_tunnel(hdr, meta);
+Eliminated node at line 739: set_tunnel_mapping(hdr, meta);
+Eliminated node at line 740: set_private_link_mapping(hdr, meta);
+Eliminated node at line 754: set_vnet_attrs;
+Eliminated node at line 486: permit;
+Eliminated node at line 487: permit_and_continue;
+Eliminated node at line 489: deny_and_continue;
+Eliminated node at line 505: permit;
+Eliminated node at line 506: permit_and_continue;
+Eliminated node at line 508: deny_and_continue;
+Eliminated node at line 524: permit;
+Eliminated node at line 525: permit_and_continue;
+Eliminated node at line 527: deny_and_continue;
 Eliminated node at line 988: } else if (packet_action == 1) {
 Eliminated node at line 897: if (meta.is_overlay_ip_v6 == 1) {
 Eliminated node at line 901: if (meta.is_overlay_ip_v6 == 0) {
+Eliminated node at line 911: check_ip_addr_family;
+Eliminated node at line 923: set_policy_meter_class;
 Eliminated node at line 1152: if (meta.is_fast_path_icmp_flow_redirection_packet) {
 Eliminated node at line 1156: meta.encap_data.underlay_sip = hdr.u0_ipv4.dst_addr;
 Eliminated node at line 1155: if (vip.apply().hit) {

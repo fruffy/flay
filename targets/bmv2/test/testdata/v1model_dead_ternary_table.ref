@@ -1,3 +1,5 @@
+Eliminated node at line 74: check();
+Eliminated node at line 89: acl_drop(s);
 Eliminated node at line 95: toggle_check.apply();
 Eliminated node at line 98: if (h.ipv4.isValid() && check_l3) {
 statement_count_before:10

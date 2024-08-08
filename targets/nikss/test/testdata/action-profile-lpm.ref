@@ -1,3 +1,5 @@
+Eliminated node at line 51: actions = { NoAction; a1; a2; }
+Eliminated node at line 51: actions = { NoAction; a1; a2; }
 Eliminated node at line 56: tbl.apply();
 statement_count_before:11
 statement_count_after:10

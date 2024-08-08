@@ -1,3 +1,9 @@
+Eliminated node at line 84: actions = { set_dst; NoAction; }
+Eliminated node at line 93: actions = { set_dst; NoAction; }
+Eliminated node at line 102: actions = { set_dst; NoAction; }
+Eliminated node at line 111: actions = { set_dst; NoAction; }
+Eliminated node at line 152: actions = { set_dst; NoAction; }
+Eliminated node at line 162: actions = { set_dst; NoAction; }
 Replaced node at line 167: tbl_default.apply(); with set_dst(340277520782485789054823377486907615914);
 Eliminated node at line 169: tbl_exact.apply();
 Eliminated node at line 170: tbl_lpm.apply();

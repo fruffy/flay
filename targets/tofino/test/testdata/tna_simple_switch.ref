@@ -1,3 +1,56 @@
+Eliminated node at line 239: actions = { set_port_attributes; }
+Eliminated node at line 256: set_bd_attributes;
+Eliminated node at line 146: malformed_pkt;
+Eliminated node at line 147: valid_pkt_untagged;
+Eliminated node at line 148: valid_pkt_tagged;
+Eliminated node at line 177: valid_ipv4_pkt;
+Eliminated node at line 178: malformed_pkt;
+Eliminated node at line 205: valid_ipv6_pkt;
+Eliminated node at line 206: malformed_pkt;
+Eliminated node at line 360: drop;
+Eliminated node at line 361: end; // END
+Eliminated node at line 362: end_x; // END.X
+Eliminated node at line 363: end_t; // END.T
+Eliminated node at line 364: end_dx2; // END.DX2
+Eliminated node at line 365: end_dx2v; // END.DX2V
+Eliminated node at line 366: end_dt2u; // END.DT2U
+Eliminated node at line 367: end_dt2m; // END.DT2M
+Eliminated node at line 368: end_dx4; // END.DX4
+Eliminated node at line 369: end_dx6; // END.DX6
+Eliminated node at line 370: end_dt4; // END.DT4
+Eliminated node at line 372: end_dt6; // END.DT6
+Eliminated node at line 373: end_b6; // END.B6
+Eliminated node at line 374: end_b6_red; // END.B6.Red
+Eliminated node at line 375: end_b6_encaps; // END.B6.Encaps
+Eliminated node at line 376: end_b6_encaps_red; // END.B6.Encaps.Red
+Eliminated node at line 380: end_map; end_m_gtp6_d; end_m_gtp6_e; end_m_gtp4_d; end_limit;
+Eliminated node at line 380: end_map; end_m_gtp6_d; end_m_gtp6_e; end_m_gtp4_d; end_limit;
+Eliminated node at line 380: end_map; end_m_gtp6_d; end_m_gtp6_e; end_m_gtp4_d; end_limit;
+Eliminated node at line 380: end_map; end_m_gtp6_d; end_m_gtp6_e; end_m_gtp4_d; end_limit;
+Eliminated node at line 380: end_map; end_m_gtp6_d; end_m_gtp6_e; end_m_gtp4_d; end_limit;
+Eliminated node at line 381: end_as; end_ad; static_proxy; dynamic_proxy;
+Eliminated node at line 381: end_as; end_ad; static_proxy; dynamic_proxy;
+Eliminated node at line 381: end_as; end_ad; static_proxy; dynamic_proxy;
+Eliminated node at line 381: end_as; end_ad; static_proxy; dynamic_proxy;
+Eliminated node at line 391: t;
+Eliminated node at line 392: t_insert;
+Eliminated node at line 393: t_insert_red;
+Eliminated node at line 394: t_encaps;
+Eliminated node at line 395: t_encaps_red;
+Eliminated node at line 396: t_encaps_l2;
+Eliminated node at line 397: t_encaps_l2_red;
+Eliminated node at line 297: dmac_hit;
+Eliminated node at line 329: fib_hit;
+Eliminated node at line 344: fib_hit;
+Eliminated node at line 378: fib_hit;
+Eliminated node at line 393: fib_hit;
+Eliminated node at line 438: set_nexthop_attributes;
+Eliminated node at line 453: set_nexthop_attributes;
+Eliminated node at line 475: rewrite_ipv4;
+Eliminated node at line 476: rewrite_ipv6;
+Eliminated node at line 494: rewrite_smac;
+Eliminated node at line 542: set_port;
+Eliminated node at line 595: rmac_hit;
 Eliminated node at line 265: port_mapping.apply();
 Eliminated node at line 266: port_vlan_to_bd_mapping.apply();
 Eliminated node at line 213: validate_ethernet.apply();
@@ -8,6 +61,12 @@ Eliminated node at line 503: NoAction : { ecmp.apply(); }
 Eliminated node at line 507: if (routed) {
 Replaced node at line 305: dmac.apply(); with mac_dmac_miss_0/dmac_miss();
 Eliminated node at line 551: lag.apply();
+Eliminated node at line 442: decap_inner_tcp;
+Eliminated node at line 691: rewrite_ipv6;
+Eliminated node at line 779: rewrite_srh_0; // No SRH
+Eliminated node at line 780: rewrite_srh_1; // SRH with 1 segment
+Eliminated node at line 781: rewrite_srh_2; // SRH with 2 segments
+Eliminated node at line 782: rewrite_srh_3; // SRH with 3 segments
 Eliminated node at line 797: ipv6_rewrite.apply();
 Eliminated node at line 798: srh_rewrite.apply();
 Replaced node at line 249: ig_md.ifindex : exact; with 0

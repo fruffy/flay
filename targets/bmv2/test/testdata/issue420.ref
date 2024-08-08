@@ -1,4 +1,5 @@
 Eliminated node at line 41: hdr.ethernet.srcAddr = 48w0xdeadbeeff00d;
+Eliminated node at line 57: actions = { foo; NoAction; }
 Eliminated node at line 61: tbl1.apply();
 statement_count_before:5
 statement_count_after:3

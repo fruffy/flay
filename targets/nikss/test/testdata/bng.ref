@@ -1,3 +1,13 @@
+Eliminated node at line 326: permit();
+Eliminated node at line 327: permit_with_internal_vlan();
+Eliminated node at line 378: route;
+Eliminated node at line 402: set_vlan;
+Eliminated node at line 403: set_double_vlan;
+Eliminated node at line 440: punt_to_cpu;
+Eliminated node at line 470: term_enabled_v4;
+Eliminated node at line 495: set_session;
+Eliminated node at line 496: drop;
+Eliminated node at line 518: qos_prio;
 Replaced node at line 527: ingress_port_vlan.apply(); with deny();
 Replaced node at line 528: fwd_classifier.apply(); with set_forwarding_type(0);
 Eliminated node at line (unknown): { if (local_metadata.fwd_type == 2) {
@@ -10,6 +20,8 @@ Eliminated node at line 558: if (t_line_session_map.apply().hit) {
 Eliminated node at line 558: if (t_line_session_map.apply().hit) {
 Eliminated node at line (unknown): 
 Eliminated node at line 577: hdr.bmd.push_double_vlan = local_metadata.push_double_vlan == true ? 8w1 : 8w0;
+Eliminated node at line 623: push_vlan;
+Eliminated node at line 624: pop_vlan;
 Replaced node at line 657: egress_vlan.apply(); with drop_3/drop();
 Replaced node at line 465: local_metadata.bng.line_id : exact @name("line_id"); with 0
 Replaced node at line 491: local_metadata.bng.line_id : exact @name("line_id"); with 0

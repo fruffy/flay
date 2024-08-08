@@ -1,3 +1,9 @@
+Eliminated node at line 131: foo1;
+Eliminated node at line 132: foo2;
+Eliminated node at line 141: foo1;
+Eliminated node at line 142: foo2;
+Eliminated node at line 149: foo1;
+Eliminated node at line 150: foo2;
 Eliminated node at line 160: t0.apply();
 Eliminated node at line 161: t1.apply();
 Eliminated node at line 176: t2.apply();

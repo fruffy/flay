@@ -1,5 +1,8 @@
+Eliminated node at line 107: set_l2ptr_and_prio;
+Eliminated node at line 124: set_bd_dmac_intf;
 Replaced node at line 133: ipv4_da_lpm.apply(); with my_drop();
 Replaced node at line 134: mac_da.apply(); with my_drop_2/my_drop();
+Eliminated node at line 155: rewrite_mac;
 Replaced node at line 162: send_frame.apply(); with my_drop_3/my_drop();
 Replaced node at line 121: meta.fwd_metadata.l2ptr: exact; with 0
 Replaced node at line 152: meta.fwd_metadata.out_bd: exact; with 0

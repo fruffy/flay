@@ -1,3 +1,6 @@
+Eliminated node at line 90: hit;
+Eliminated node at line 120: route;
+Eliminated node at line 121: nat;
 Replaced node at line 128: forward.apply(); with miss();
 Eliminated node at line 130: ipRoute.apply();
 Replaced node at line 115: vrf : exact; with 0

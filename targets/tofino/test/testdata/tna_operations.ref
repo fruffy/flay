@@ -1,3 +1,5 @@
+Eliminated node at line 106: hit;
+Eliminated node at line 121: hit_dst;
 Replaced node at line 130: forward.apply(); with miss();
 Eliminated node at line 131: forward_dst.apply();
 statement_count_before:15

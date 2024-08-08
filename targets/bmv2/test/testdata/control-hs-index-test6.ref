@@ -1,3 +1,4 @@
+Eliminated node at line 47: actions = { set_data; }
 Eliminated node at line 51: t.apply();
 statement_count_before:13
 statement_count_after:8

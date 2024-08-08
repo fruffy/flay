@@ -1,3 +1,5 @@
+Eliminated node at line 165: actions = { forwardPacket;
+Eliminated node at line 166: dropPacket;
 Eliminated node at line 188: filter.apply();
 statement_count_before:18
 statement_count_after:17

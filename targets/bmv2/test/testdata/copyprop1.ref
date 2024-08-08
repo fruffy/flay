@@ -1,3 +1,4 @@
+Eliminated node at line 33: actions = { a1; }
 Eliminated node at line 40: t1.apply();
 Eliminated node at line 42: t1.apply();
 statement_count_before:7

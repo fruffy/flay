@@ -86,12 +86,13 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
         }
         printInfo("---DEAD_CODE--- SwitchCase %1% can be deleted.", switchCase->label);
         _eliminatedNodes.emplace_back(switchCase, nullptr);
+        printInfo("---DEAD_CODE--- Switchcase %1% can be deleted.", switchCase->label);
         // We are removing a statement that had previous fall-through labels.
         if (previousFallThrough && !filteredSwitchCases.empty() &&
             switchCase->statement != nullptr) {
             auto *previous = filteredSwitchCases.back()->clone();
-            printInfo("---DEAD_CODE--- Merging statements of %1% into %2%.", switchCase->label,
-                      previous->label);
+            printInfo("---DEAD_CODE--- Merging statements of switchcase %1% into switchcase %2%.",
+                      switchCase->label, previous->label);
             previous->statement = switchCase->statement;
             filteredSwitchCases.pop_back();
             filteredSwitchCases.push_back(previous);

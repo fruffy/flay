@@ -1,3 +1,6 @@
+Eliminated node at line 109: bridge_add_ig_intr_md;
+Eliminated node at line 110: bridge_add_example_hdr;
+Eliminated node at line 122: set_output_port;
 Eliminated node at line 127: bridge_md_ctrl.apply();
 Eliminated node at line 129: output_port.apply();
 statement_count_before:34

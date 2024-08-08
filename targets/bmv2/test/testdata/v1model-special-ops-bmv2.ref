@@ -1,5 +1,14 @@
+Eliminated node at line 234: set_l2ptr;
+Eliminated node at line 235: set_mcast_grp;
+Eliminated node at line 236: do_resubmit;
+Eliminated node at line 237: do_clone_i2e;
+Eliminated node at line 254: set_bd_dmac_intf;
 Replaced node at line 297: ipv4_da_lpm.apply(); with my_drop_2/my_drop();
 Replaced node at line 300: mac_da.apply(); with my_drop_3/my_drop();
+Eliminated node at line 326: actions = { set_out_bd; }
+Eliminated node at line 352: rewrite_mac;
+Eliminated node at line 353: do_recirculate;
+Eliminated node at line 354: do_clone_e2e;
 Eliminated node at line 380: get_multicast_copy_out_bd.apply();
 Replaced node at line 382: send_frame.apply(); with my_drop_4/my_drop();
 Replaced node at line 323: standard_metadata.mcast_grp : exact; with 0

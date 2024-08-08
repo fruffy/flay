@@ -1,3 +1,5 @@
+Eliminated node at line 103: hit;
+Eliminated node at line 126: route;
 Replaced node at line 133: forward.apply(); with miss();
 Eliminated node at line 134: ipRoute.apply();
 statement_count_before:16

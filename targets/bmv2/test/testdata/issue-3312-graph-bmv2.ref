@@ -1,3 +1,4 @@
+Eliminated node at line 54: actions = { add; sub; }
 Replaced node at line 73: t2.apply(); with add_1/add();
 statement_count_before:6
 statement_count_after:5

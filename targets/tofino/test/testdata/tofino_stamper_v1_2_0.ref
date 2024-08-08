@@ -1,3 +1,12 @@
+Eliminated node at line 367: send;
+Eliminated node at line 380: send;
+Eliminated node at line 381: send_to_mc_group;
+Eliminated node at line 393: send;
+Eliminated node at line 404: add_timestamp_header_tcp;
+Eliminated node at line 416: add_timestamp2_tcp;
+Eliminated node at line 426: add_timestamp_header_udp;
+Eliminated node at line 437: add_timestamp2_udp;
+Eliminated node at line 447: duplicate_to_dut;
 Eliminated node at line 457: t_l1_forwarding.apply();
 Eliminated node at line 458: t_l2_forwarding.apply();
 Eliminated node at line 462: t_l3_forwarding.apply();
@@ -10,6 +19,8 @@ Eliminated node at line 488: if(meta.l4_metadata.added_empty_header == 1w0x1 || 
 Eliminated node at line 492: if(meta.l4_metadata.timestamp2 == 1w0x1){
 Eliminated node at line 510: if(meta.l4_metadata.added_empty_header == 1w0x1){
 Eliminated node at line 541: if(meta.l4_metadata.updateChecksum == 1w0x1){
+Eliminated node at line 840: change_mac;
+Eliminated node at line 850: change_empty_field;
 Eliminated node at line 856: broadcast_mac.apply();
 Eliminated node at line 867: t_mark_duplicate.apply();
 Replaced node at line 248: } else if(meta.timestamp_metadata.delta < min_value) { with 0

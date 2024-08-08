@@ -1,3 +1,12 @@
+Eliminated node at line 903: create_bridge_hdr;
+Eliminated node at line 1024: set_ingress_interface;
+Eliminated node at line 1128: deliver_local_ipv6;
+Eliminated node at line 1129: deliver_local_service_ipv6;
+Eliminated node at line 1151: deliver_local_ipv6;
+Eliminated node at line 1152: deliver_local_service_ipv6;
+Eliminated node at line 1194: set_local_source_ipv6;
+Eliminated node at line 1253: forward_remote_ipv6;
+Eliminated node at line 1254: forward_local_ipv6;
 Eliminated node at line 1272: bool local_destination = tbl_check_local.apply().hit;
 Eliminated node at line 1279: hdr.scion_hop_1.mac = hdr.bridge.hop_field_1.hop_field.mac;
 Eliminated node at line 1330: tbl_select_accelerator.apply();

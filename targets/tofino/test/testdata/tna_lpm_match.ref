@@ -1,3 +1,5 @@
+Eliminated node at line 97: hit;
+Eliminated node at line 119: route;
 Replaced node at line 128: forward.apply(); with miss();
 Eliminated node at line 129: alpm_forward.apply();
 Replaced node at line 92: vrf : exact; with 0

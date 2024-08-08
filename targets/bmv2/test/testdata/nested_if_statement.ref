@@ -2,6 +2,8 @@ Eliminated node at line 87: x = 0;
 Eliminated node at line 89: x = 1;
 Eliminated node at line 91: x = 2;
 Eliminated node at line 93: x = 3;
+Eliminated node at line 113: ipv4_forward;
+Eliminated node at line 114: drop;
 Eliminated node at line 123: ipv4_lpm.apply();
 statement_count_before:11
 statement_count_after:6

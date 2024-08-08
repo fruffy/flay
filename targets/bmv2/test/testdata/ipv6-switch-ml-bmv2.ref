@@ -1,4 +1,7 @@
+Eliminated node at line 68: actions = {set_mcast_grp;}
 Eliminated node at line 73: ipv6_tbl.apply();
+Eliminated node at line 88: actions = { set_out_bd; }
+Eliminated node at line 101: actions = {rewrite_mac; drop;}
 Eliminated node at line 107: get_multicast_copy_out_bd.apply();
 Replaced node at line 108: send_frame.apply(); with drop();
 Replaced node at line 85: standard_metadata.mcast_grp : exact; with 0
