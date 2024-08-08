@@ -1,3 +1,5 @@
+Eliminated node at line 56: redirect;
+Eliminated node at line 58: my_drop;
 Eliminated node at line 64: t.apply();
 statement_count_before:4
 statement_count_after:3

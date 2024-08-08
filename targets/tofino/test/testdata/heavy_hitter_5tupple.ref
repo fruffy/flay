@@ -1,6 +1,7 @@
 Replaced node at line 185: tbl_compute_hash.apply(); with compute_hash();
 Replaced node at line 186: tbl_update_bloom_filter.apply(); with update_bloom_filter();
 Replaced node at line 189: tbl_drop_table.apply(); with drop();
+Eliminated node at line 295: bytes_count_malicious_egress;
 Replaced node at line 341: tbl_do_add_timestamp.apply(); with do_add_timestamp();
 Eliminated node at line (unknown): 
 Eliminated node at line 344: if (!do_bytes_count_malicious_egress.apply().hit){

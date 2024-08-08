@@ -1,3 +1,5 @@
+Eliminated node at line 87: set_color;
+Eliminated node at line 98: set_color_direct;
 Eliminated node at line 105: meter_color.apply();
 Eliminated node at line 106: direct_meter_color.apply();
 statement_count_before:10

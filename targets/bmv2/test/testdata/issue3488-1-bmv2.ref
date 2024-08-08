@@ -1,3 +1,8 @@
+Eliminated node at line 121: action1;
+Eliminated node at line 122: action2;
+Eliminated node at line 123: action3;
+Eliminated node at line 139: action4;
+Eliminated node at line 153: action5;
 Eliminated node at line 164: action1: // Fall-through
 Eliminated node at line 165: action2: {
 Eliminated node at line 169: post_tbl3.apply();

@@ -1,3 +1,5 @@
+Eliminated node at line 40: action_1();
+Eliminated node at line 41: action_2();
 Eliminated node at line 46: action_1: {
 Eliminated node at line 49: action_2: {
 statement_count_before:4

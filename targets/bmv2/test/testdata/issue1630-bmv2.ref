@@ -1,3 +1,5 @@
+Eliminated node at line 137: ipv4_forward;
+Eliminated node at line 138: drop;
 Eliminated node at line 149: ipv4_lpm.apply();
 statement_count_before:12
 statement_count_after:11
