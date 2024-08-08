@@ -186,15 +186,16 @@ bool FlayStepper::preorder(const IR::SwitchStatement *switchStatement) {
             const auto *path = switchCaseLabel->checkedTo<IR::PathExpression>();
             switchCaseLabel = IR::StringLiteral::get(path->path->toString());
         }
+        const auto *switchCaseEquality = new IR::Equ(switchExpr, switchCaseLabel);
         if (cond == nullptr) {
-            cond = new IR::Equ(switchExpr, switchCaseLabel);
+            cond = switchCaseEquality;
         } else {
-            cond = new IR::LOr(cond, new IR::Equ(switchExpr, switchCaseLabel));
+            cond = new IR::LOr(cond, switchCaseEquality);
         }
         // We fall through, so add the statements to execute to a list.
         accumulatedSwitchCases.push_back(switchCase);
         // Add the switch case to the reachability map.
-        executionState.addReachabilityMapping(switchCase, cond);
+        executionState.addReachabilityMapping(switchCase, switchCaseEquality);
         // Nothing to do with this statement. Fall through to the next case.
         if (switchCase->statement == nullptr) {
             continue;
