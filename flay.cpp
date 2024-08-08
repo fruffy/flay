@@ -101,8 +101,12 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     const auto &flayOptions = FlayOptions::get();
 
     // If we write to the optimized program to file, also dump the program after the midend.
-    if (FlayOptions::get().optimizedOutputDir() != std::nullopt) {
-        auto midendOutputFile = FlayOptions::get().optimizedOutputDir().value() / "midend.p4";
+    auto optimizedOutputDir = flayOptions.optimizedOutputDir();
+    if (optimizedOutputDir != std::nullopt) {
+        if (!std::filesystem::exists(optimizedOutputDir.value())) {
+            std::filesystem::create_directory(optimizedOutputDir.value());
+        }
+        auto midendOutputFile = optimizedOutputDir.value() / "midend.p4";
         std::ofstream output(midendOutputFile);
         if (!output.is_open()) {
             ::error("Could not open file %1% for writing.", midendOutputFile.c_str());
@@ -187,6 +191,14 @@ std::optional<std::vector<AnalysisStatistics *>> optimizeProgramImpl(
     if (programInfo == nullptr || ::errorCount() > 0) {
         ::error("P4Flay encountered errors during preprocessing.");
         return std::nullopt;
+    }
+
+    // If we write to the optimized program to file, also dump the program after the midend.
+    auto optimizedOutputDir = flayOptions.optimizedOutputDir();
+    if (optimizedOutputDir != std::nullopt) {
+        if (!std::filesystem::exists(optimizedOutputDir.value())) {
+            std::filesystem::create_directory(optimizedOutputDir.value());
+        }
     }
 
     PartialEvaluationOptions partialEvaluationOptions;

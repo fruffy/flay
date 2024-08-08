@@ -90,4 +90,19 @@ p4tools_add_xfail_reason(
   "Reachability mapping for node .* already exists"
 )
 
-
+p4tools_add_xfail_reason(
+  "flay-bmv2-v1model"
+  "Failed BMv2 compilation."
+  # This test uses a feature currently unsupported in the BMv2 back-end.
+  issue907-bmv2.p4
+  # These tests use a table key with type 'error'
+  issue1062-bmv2.p4
+  # This reads stack.next
+  issue692-bmv2.p4
+  # These test use computations in the verify/update checksum controls - unsupported
+  issue1765-1-bmv2.p4
+  # This test tries to hash (via the hash extern) a value that isn't a tuple - unsupported
+  hashing-non-tuple-bmv2.p4
+  # Similarly, this test hashes on a bit input.
+  issue584-1-bmv2.p4
+)
