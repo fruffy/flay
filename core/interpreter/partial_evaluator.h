@@ -9,27 +9,17 @@
 #include "backends/p4tools/modules/flay/core/interpreter/compiler_result.h"
 #include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
 #include "backends/p4tools/modules/flay/core/lib/incremental_analysis.h"
-#include "backends/p4tools/modules/flay/core/specialization/passes/specializer.h"
+#include "backends/p4tools/modules/flay/core/specialization/passes/specialization_statistics.h"
 #include "backends/p4tools/modules/flay/core/specialization/reachability_map.h"
 #include "backends/p4tools/modules/flay/core/specialization/substitution_map.h"
 #include "backends/p4tools/modules/flay/options.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wpedantic"
-#include "backends/p4tools/common/control_plane/bfruntime/bfruntime.pb.h"
-#include "p4/v1/p4runtime.pb.h"
-#pragma GCC diagnostic pop
 
 namespace P4Tools::Flay {
 
 enum ReachabilityMapType { kZ3Precomputed, kDefault };
 
 struct PartialEvaluationOptions {
-    /// If useSymbolSet is true, we only check whether the symbols in the set have
-    /// changed.
-    bool useSymbolSet = true;
     /// The type of map to initialize.
     ReachabilityMapType mapType = ReachabilityMapType::kZ3Precomputed;
 };
@@ -41,32 +31,7 @@ struct PartialEvaluationStatistics : public AnalysisStatistics {
     // The nodes eliminated in the program.
     std::vector<EliminatedReplacedPair> eliminatedNodes;
 
-    std::string toFormattedString() const override {
-        std::stringstream output;
-        for (const auto &elimRepl : eliminatedNodes) {
-            auto [node, replaced] = elimRepl;
-            if (node->getSourceInfo().isValid()) {
-                auto sourceFragment = node->getSourceInfo().toSourceFragment(false).trim();
-                if (replaced == nullptr) {
-                    output << "Eliminated node at line "
-                           << node->getSourceInfo().toPosition().sourceLine << ": "
-                           << sourceFragment;
-                } else {
-                    output << "Replaced node at line "
-                           << node->getSourceInfo().toPosition().sourceLine << ": "
-                           << sourceFragment << " with ";
-                    replaced->dbprint(output);
-                }
-            } else {
-                ::warning("Invalid source information for node %1%. This should be fixed", node);
-                output << "Eliminated node at line (unknown): " << node;
-            }
-            if (elimRepl != eliminatedNodes.back()) {
-                output << "\n";
-            }
-        }
-        return output.str();
-    }
+    [[nodiscard]] std::string toFormattedString() const override;
     DECLARE_TYPEINFO(PartialEvaluationStatistics);
 };
 
@@ -109,7 +74,6 @@ class PartialEvaluation : public IncrementalAnalysis {
  protected:
     std::optional<bool> checkForSemanticsChange() override;
     std::optional<bool> checkForSemanticsChange(const SymbolSet &symbolSet) override;
-
     std::optional<const IR::P4Program *> specializeProgram(const IR::P4Program &program) override;
 
  public:

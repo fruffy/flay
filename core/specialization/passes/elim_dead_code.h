@@ -3,6 +3,7 @@
 
 #include <functional>
 
+#include "backends/p4tools/modules/flay/core/specialization/passes/specialization_statistics.h"
 #include "backends/p4tools/modules/flay/core/specialization/reachability_map.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
 #include "frontends/common/resolveReferences/resolveReferences.h"
@@ -13,9 +14,6 @@
 #include "ir/visitor.h"
 
 namespace P4Tools::Flay {
-
-/// The eliminated and optionally replaced node.
-using EliminatedReplacedPair = std::pair<const IR::Node *, const IR::Node *>;
 
 /// This compiler pass looks up program nodes in the reachability map and deletes nodes which are
 /// not executable according to the computation in the map.

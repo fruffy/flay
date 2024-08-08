@@ -152,6 +152,13 @@ FlayOptions::FlayOptions()
             return true;
         },
         "Skip side-effect ordering in the front end.");
+    registerOption(
+        "--no-symbol-set", "useSymbolSet",
+        [this](const char *) {
+            _useSymbolSet = false;
+            return true;
+        },
+        "Disable using a symbol set.");
 }
 
 bool FlayOptions::validateOptions() const {
@@ -197,5 +204,39 @@ std::string_view FlayOptions::controlPlaneApi() const { return _controlPlaneApi;
 bool FlayOptions::skipParsers() const { return _skipParsers; }
 
 bool FlayOptions::skipSideEffectOrdering() const { return _skipSideEffectOrdering; }
+
+bool FlayOptions::useSymbolSet() const { return _useSymbolSet; }
+
+void FlayOptions::setControlPlaneConfig(const std::filesystem::path &path) {
+    _controlPlaneConfig = path;
+}
+
+void FlayOptions::setServerMode() { _serverMode = true; }
+
+void FlayOptions::setServerAddress(const std::string &address) { _serverAddress = address; }
+
+void FlayOptions::setConfigurationUpdatePattern(const std::string &pattern) {
+    _configUpdatePattern = pattern;
+}
+
+void FlayOptions::setUsePlaceholders() { _usePlaceholders = true; }
+
+void FlayOptions::setStrict() { _strict = true; }
+
+void FlayOptions::setOptimizedOutputDir(const std::filesystem::path &path) {
+    _optimizedOutputDir = path;
+}
+
+void FlayOptions::setP4InfoFilePath(const std::filesystem::path &path) { _p4InfoFilePath = path; }
+
+void FlayOptions::setControlPlaneApi(const std::string &api) { _controlPlaneApi = api; }
+
+void FlayOptions::setUserP4Info(const std::filesystem::path &path) { _userP4Info = path; }
+
+void FlayOptions::setSkipParsers() { _skipParsers = true; }
+
+void FlayOptions::setSkipSideEffectOrdering() { _skipSideEffectOrdering = true; }
+
+void FlayOptions::setUseSymbolSet() { _useSymbolSet = true; }
 
 }  // namespace P4Tools

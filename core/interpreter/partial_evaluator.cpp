@@ -19,6 +19,31 @@
 
 namespace P4Tools::Flay {
 
+std::string PartialEvaluationStatistics::toFormattedString() const {
+    std::stringstream output;
+    for (const auto &elimRepl : eliminatedNodes) {
+        auto [node, replaced] = elimRepl;
+        if (node->getSourceInfo().isValid()) {
+            auto sourceFragment = node->getSourceInfo().toSourceFragment(false).trim();
+            if (replaced == nullptr) {
+                output << "Eliminated node at line "
+                       << node->getSourceInfo().toPosition().sourceLine << ": " << sourceFragment;
+            } else {
+                output << "Replaced node at line " << node->getSourceInfo().toPosition().sourceLine
+                       << ": " << sourceFragment << " with ";
+                replaced->dbprint(output);
+            }
+        } else {
+            ::warning("Invalid source information for node %1%. This should be fixed", node);
+            output << "Eliminated node at line (unknown): " << node;
+        }
+        if (elimRepl != eliminatedNodes.back()) {
+            output << "\n";
+        }
+    }
+    return output.str();
+}
+
 namespace {
 
 AbstractReachabilityMap *initializeReachabilityMap(ReachabilityMapType mapType,

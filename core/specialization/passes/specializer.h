@@ -3,11 +3,9 @@
 
 #include "backends/p4tools/modules/flay/core/specialization/passes//substitute_expressions.h"
 #include "backends/p4tools/modules/flay/core/specialization/passes/elim_dead_code.h"
+#include "backends/p4tools/modules/flay/core/specialization/passes/specialization_statistics.h"
 
 namespace P4Tools::Flay {
-
-/// The eliminated and optionally replaced node.
-using EliminatedReplacedPair = std::pair<const IR::Node *, const IR::Node *>;
 
 /// Specialize the Program
 class FlaySpecializer : public PassManager {
