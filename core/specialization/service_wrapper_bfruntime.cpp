@@ -4,14 +4,11 @@
 
 #include <cstdlib>
 #include <optional>
-#include <utility>
 
 #include "backends/p4tools/common/lib/logging.h"
-#include "backends/p4tools/modules/flay/core/control_plane/bfruntime/protobuf.h"
 #include "backends/p4tools/modules/flay/core/control_plane/protobuf_utils.h"
 #include "backends/p4tools/modules/flay/options.h"
 #include "lib/error.h"
-#include "lib/timer.h"
 
 namespace P4Tools::Flay {
 
@@ -44,23 +41,16 @@ int BfRuntimeFlayServiceWrapper::run() {
     }
     for (size_t updateIdx = 0; updateIdx < _controlPlaneUpdates.size(); updateIdx++) {
         const auto &controlPlaneUpdate = _controlPlaneUpdates[updateIdx];
-        SymbolSet symbolSet;
+        std::vector<const ControlPlaneUpdate *> bfRuntimeUpdates;
         for (const auto &update : controlPlaneUpdate.updates()) {
-            Util::ScopedTimer timer("processWrapperMessage");
-            auto result = BfRuntime::updateControlPlaneConstraintsWithEntityMessage(
-                update.entity(), *_flayService.compilerResult().getP4RuntimeApi().p4Info,
-                _flayService.mutableControlPlaneConstraints(), update.type(), symbolSet);
-            if (result != EXIT_SUCCESS) {
-                return EXIT_FAILURE;
-            }
+            bfRuntimeUpdates.emplace_back(new BfRuntimeControlPlaneUpdate(update));
         }
-        auto result = _flayService.checkForChangeAndSpecializeProgram(symbolSet);
-        if (result.first != EXIT_SUCCESS) {
+        auto result = _flayService.processControlPlaneUpdate(bfRuntimeUpdates);
+        if (result != EXIT_SUCCESS) {
             return EXIT_FAILURE;
         }
-        if (result.second) {
-            _flayService.recordProgramChange();
-        }
+
+        _flayService.recordProgramChange();
         if (FlayOptions::get().optimizedOutputDir() != std::nullopt) {
             outputOptimizedProgram(std::filesystem::path(_controlPlaneUpdateFileNames[updateIdx])
                                        .replace_extension(".p4"));

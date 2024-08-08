@@ -5,12 +5,12 @@ set(FLAY_INTERPRETER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/externs.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/node_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/parser_stepper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/partial_evaluator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/program_info.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/reachability_expression.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/stepper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/substitute_placeholders.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/substitution_expression.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/symbolic_executor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/table_executor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/target.cpp
 )

@@ -3,11 +3,13 @@
 #include <cstdlib>
 #include <fstream>
 #include <functional>
+#include <memory>
 #include <optional>
+#include <vector>
 
 #include "backends/p4tools/common/compiler/compiler_target.h"
 #include "backends/p4tools/common/lib/logging.h"
-#include "backends/p4tools/modules/flay/core/interpreter/symbolic_executor.h"
+#include "backends/p4tools/modules/flay/core/interpreter/partial_evaluator.h"
 #include "backends/p4tools/modules/flay/core/interpreter/target.h"
 #include "backends/p4tools/modules/flay/core/lib/return_macros.h"
 #include "backends/p4tools/modules/flay/core/specialization/service_wrapper_bfruntime.h"
@@ -49,20 +51,18 @@ int runServer(const FlayOptions &flayOptions, const FlayCompilerResult &flayComp
 }
 #endif
 
-std::optional<FlayServiceStatistics> runServiceWrapper(const FlayOptions &flayOptions,
-                                                       const FlayCompilerResult &flayCompilerResult,
-                                                       const ExecutionState &executionState,
-                                                       const ControlPlaneConstraints &constraints) {
-    FlayServiceOptions serviceOptions;
+std::optional<std::vector<AnalysisStatistics *>> runServiceWrapper(
+    const FlayOptions &flayOptions, const FlayCompilerResult &compilerResult,
+    IncrementalAnalysisMap incrementalAnalysisMap) {
     auto controlPlaneApi = flayOptions.controlPlaneApi();
     // TODO: Make this target-specific?
     FlayServiceWrapper *serviceWrapper = nullptr;
     if (controlPlaneApi == "P4RUNTIME") {
-        serviceWrapper = new P4RuntimeFlayServiceWrapper(
-            serviceOptions, flayCompilerResult, executionState.nodeAnnotationMap(), constraints);
+        serviceWrapper =
+            new P4RuntimeFlayServiceWrapper(compilerResult, std::move(incrementalAnalysisMap));
     } else if (controlPlaneApi == "BFRUNTIME") {
-        serviceWrapper = new BfRuntimeFlayServiceWrapper(
-            serviceOptions, flayCompilerResult, executionState.nodeAnnotationMap(), constraints);
+        serviceWrapper =
+            new BfRuntimeFlayServiceWrapper(compilerResult, std::move(incrementalAnalysisMap));
     } else {
         ::error("Unsupported control plane API %1%.", controlPlaneApi.data());
         return std::nullopt;
@@ -123,15 +123,11 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
                                                                P4::P4RuntimeFormat::TEXT_PROTOBUF);
     }
 
-    printInfo("Computing initial control plane constraints...");
-    // Gather the initial control-plane configuration. Also from a file input, if present.
-    ASSIGN_OR_RETURN(auto constraints,
-                     FlayTarget::computeControlPlaneConstraints(flayCompilerResult, flayOptions),
-                     EXIT_FAILURE);
-
-    printInfo("Running analysis...");
-    SymbolicExecutor symbolicExecutor(*programInfo, constraints);
-    symbolicExecutor.run();
+    // printInfo("Running analysis...");
+    // SymbolicExecutor symbolicExecutor;
+    // ASSIGN_OR_RETURN(const auto &analysisResult,
+    //                  symbolicExecutor.run(flayOptions, flayCompilerResult, *programInfo),
+    //                  EXIT_FAILURE);
 
 #ifdef FLAY_WITH_GRPC
     printInfo("Starting the service...");
@@ -144,14 +140,22 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
                          constraints);
     }
 #endif
-
-    RETURN_IF_FALSE(runServiceWrapper(flayOptions, flayCompilerResult,
-                                      symbolicExecutor.executionState(), constraints),
-                    EXIT_FAILURE);
+    PartialEvaluationOptions partialEvaluationOptions;
+    IncrementalAnalysisMap incrementalAnalysisMap;
+    auto [result, inserted] = incrementalAnalysisMap.emplace(
+        "partialEvaluation",
+        std::make_unique<PartialEvaluation>(flayOptions, flayCompilerResult, *programInfo,
+                                            partialEvaluationOptions));
+    if (result->second->initialize() != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    RETURN_IF_FALSE(
+        runServiceWrapper(flayOptions, flayCompilerResult, std::move(incrementalAnalysisMap)),
+        EXIT_FAILURE);
     return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-std::optional<FlayServiceStatistics> optimizeProgramImpl(
+std::optional<std::vector<AnalysisStatistics *>> optimizeProgramImpl(
     std::optional<std::reference_wrapper<const std::string>> program,
     const FlayOptions &flayOptions) {
     // Register supported Flay targets.
@@ -184,22 +188,21 @@ std::optional<FlayServiceStatistics> optimizeProgramImpl(
         ::error("P4Flay encountered errors during preprocessing.");
         return std::nullopt;
     }
-    printInfo("Computing initial control plane constraints...");
-    // Gather the initial control-plane configuration. Also from a file input, if present.
-    ASSIGN_OR_RETURN(auto constraints,
-                     FlayTarget::computeControlPlaneConstraints(flayCompilerResult, flayOptions),
-                     std::nullopt);
 
-    printInfo("Running analysis...");
-    SymbolicExecutor symbolicExecutor(*programInfo, constraints);
-    symbolicExecutor.run();
-
-    return runServiceWrapper(flayOptions, flayCompilerResult, symbolicExecutor.executionState(),
-                             constraints);
+    PartialEvaluationOptions partialEvaluationOptions;
+    IncrementalAnalysisMap incrementalAnalysisMap;
+    auto [result, inserted] = incrementalAnalysisMap.emplace(
+        "partialEvaluation",
+        std::make_unique<PartialEvaluation>(flayOptions, flayCompilerResult, *programInfo,
+                                            partialEvaluationOptions));
+    if (result->second->initialize() != EXIT_SUCCESS) {
+        return std::nullopt;
+    }
+    return runServiceWrapper(flayOptions, flayCompilerResult, std::move(incrementalAnalysisMap));
 }
 
-std::optional<FlayServiceStatistics> Flay::optimizeProgram(const std::string &program,
-                                                           const FlayOptions &flayOptions) {
+std::optional<std::vector<AnalysisStatistics *>> Flay::optimizeProgram(
+    const std::string &program, const FlayOptions &flayOptions) {
     try {
         return optimizeProgramImpl(program, flayOptions);
     } catch (const std::exception &e) {
@@ -211,7 +214,8 @@ std::optional<FlayServiceStatistics> Flay::optimizeProgram(const std::string &pr
     return std::nullopt;
 }
 
-std::optional<FlayServiceStatistics> Flay::optimizeProgram(const FlayOptions &flayOptions) {
+std::optional<std::vector<AnalysisStatistics *>> Flay::optimizeProgram(
+    const FlayOptions &flayOptions) {
     try {
         return optimizeProgramImpl(std::nullopt, flayOptions);
     } catch (const std::exception &e) {

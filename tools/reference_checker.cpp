@@ -7,7 +7,6 @@
 #include "backends/p4tools/modules/flay/core/lib/return_macros.h"
 #include "backends/p4tools/modules/flay/flay.h"
 #include "backends/p4tools/modules/flay/register.h"
-#include "frontends/common/options.h"
 #include "frontends/common/parser_options.h"
 #include "lib/compile_context.h"
 #include "lib/error.h"
@@ -227,35 +226,9 @@ int run(const ReferenceCheckerOptions &options, const FlayOptions &flayOptions) 
     }
 
     std::stringstream flayOptimizationOutput;
-    for (const auto &elimRepl : flayServiceStatistics.eliminatedNodes) {
-        auto [node, replaced] = elimRepl;
-        if (node->getSourceInfo().isValid()) {
-            auto sourceFragment = node->getSourceInfo().toSourceFragment(false).trim();
-            if (replaced == nullptr) {
-                flayOptimizationOutput << "Eliminated node at line "
-                                       << node->getSourceInfo().toPosition().sourceLine << ": "
-                                       << sourceFragment;
-            } else {
-                flayOptimizationOutput << "Replaced node at line "
-                                       << node->getSourceInfo().toPosition().sourceLine << ": "
-                                       << sourceFragment << " with ";
-                replaced->dbprint(flayOptimizationOutput);
-            }
-        } else {
-            ::warning("Invalid source information for node %1%. This should be fixed", node);
-            flayOptimizationOutput << "Eliminated node at line (unknown): " << node;
-        }
-        if (elimRepl != flayServiceStatistics.eliminatedNodes.back()) {
-            flayOptimizationOutput << "\n";
-        }
+    for (const auto *statistic : flayServiceStatistics) {
+        flayOptimizationOutput << *statistic;
     }
-    flayOptimizationOutput << "\nstatement_count_before:"
-                           << flayServiceStatistics.statementCountBefore << "\n";
-    flayOptimizationOutput << "statement_count_after:" << flayServiceStatistics.statementCountAfter
-                           << "\n";
-    flayOptimizationOutput << "cyclomatic_complexity:" << flayServiceStatistics.cyclomaticComplexity
-                           << "\n";
-    flayOptimizationOutput << "num_parsers_paths:" << flayServiceStatistics.numParsersPaths << "\n";
 
     if (options.doOverwriteReferences()) {
         auto referencePath = getFilePath(options, options.getInputFile().stem(), ".ref");

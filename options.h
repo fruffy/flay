@@ -67,44 +67,48 @@ class FlayOptions : public AbstractP4cToolOptions {
     /// @returns true when the --skip-side-effect-ordering option has been set.
     [[nodiscard]] bool skipSideEffectOrdering() const;
 
+    /// @returns false when the --no-symbol-set option has been set.
+    [[nodiscard]] bool useSymbolSet() const;
+
     /// Sets the path to the initial control plane configuration file.
-    void setControlPlaneConfig(const std::filesystem::path &path) { _controlPlaneConfig = path; }
+    void setControlPlaneConfig(const std::filesystem::path &path);
 
     /// Sets the server mode.
-    void setServerMode() { _serverMode = true; }
+    void setServerMode();
 
     /// Sets the server address.
-    void setServerAddress(const std::string &address) { _serverAddress = address; }
+    void setServerAddress(const std::string &address);
 
     /// Sets the configuration update pattern.
-    void setConfigurationUpdatePattern(const std::string &pattern) {
-        _configUpdatePattern = pattern;
-    }
+    void setConfigurationUpdatePattern(const std::string &pattern);
 
     /// Sets the use of placeholders.
-    void setUsePlaceholders() { _usePlaceholders = true; }
+    void setUsePlaceholders();
 
     /// Sets the strict mode.
-    void setStrict() { _strict = true; }
+    void setStrict();
 
     /// Sets the path to the output file of the optimized P4 program.
-    void setOptimizedOutputDir(const std::filesystem::path &path) { _optimizedOutputDir = path; }
+    void setOptimizedOutputDir(const std::filesystem::path &path);
 
     /// Sets the path to the user p4 info file.
-    void setP4InfoFilePath(const std::filesystem::path &path) { _p4InfoFilePath = path; }
+    void setP4InfoFilePath(const std::filesystem::path &path);
 
     /// Sets the control plane API to use.
-    void setControlPlaneApi(const std::string &api) { _controlPlaneApi = api; }
+    void setControlPlaneApi(const std::string &api);
 
     /// Sets the path to the user p4 info file.
-    void setUserP4Info(const std::filesystem::path &path) { _userP4Info = path; }
+    void setUserP4Info(const std::filesystem::path &path);
 
     /// Set whether to skip parsers in the analysis and replace the parser output result with
     /// symbolic variables.
-    void setSkipParsers() { _skipParsers = true; }
+    void setSkipParsers();
 
     /// Set whether to skip side-effect ordering in the front end.
-    void setSkipSideEffectOrdering() { _skipSideEffectOrdering = true; }
+    void setSkipSideEffectOrdering();
+
+    /// Set whether to use the symbol set.
+    void setUseSymbolSet();
 
  private:
     /// Path to the initial control plane configuration file.
@@ -149,6 +153,9 @@ class FlayOptions : public AbstractP4cToolOptions {
 
     /// Skip side-effect ordering in the front end.
     bool _skipSideEffectOrdering = false;
+
+    /// If useSymbolSet is true, we only check whether the symbols in the set have changed.
+    bool _useSymbolSet = true;
 };
 
 }  // namespace P4Tools

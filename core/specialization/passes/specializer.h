@@ -3,6 +3,7 @@
 
 #include "backends/p4tools/modules/flay/core/specialization/passes//substitute_expressions.h"
 #include "backends/p4tools/modules/flay/core/specialization/passes/elim_dead_code.h"
+#include "backends/p4tools/modules/flay/core/specialization/passes/specialization_statistics.h"
 
 namespace P4Tools::Flay {
 
@@ -13,7 +14,7 @@ class FlaySpecializer : public PassManager {
     SubstituteExpressions *_substituteExpressions = nullptr;
 
  public:
-    explicit FlaySpecializer(P4::ReferenceMap &refMap,
+    explicit FlaySpecializer(const P4::ReferenceMap &refMap,
                              const AbstractReachabilityMap &reachabilityMap,
                              const AbstractSubstitutionMap &substitutionMap)
         : _elimDeadCode(new ElimDeadCode(refMap, reachabilityMap)),

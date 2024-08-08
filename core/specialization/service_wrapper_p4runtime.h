@@ -1,6 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_SERVICE_WRAPPER_P4RUNTIME_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_SERVICE_WRAPPER_P4RUNTIME_H_
 
+#include <utility>
 #include <vector>
 
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
@@ -20,12 +21,9 @@ class P4RuntimeFlayServiceWrapper : public FlayServiceWrapper {
     std::vector<p4::v1::WriteRequest> _controlPlaneUpdates;
 
  public:
-    P4RuntimeFlayServiceWrapper(const FlayServiceOptions &serviceOptions,
-                                const FlayCompilerResult &compilerResult,
-                                const NodeAnnotationMap &nodeAnnotationMap,
-                                const ControlPlaneConstraints &initialControlPlaneConstraints)
-        : FlayServiceWrapper(serviceOptions, compilerResult, nodeAnnotationMap,
-                             initialControlPlaneConstraints) {}
+    P4RuntimeFlayServiceWrapper(const FlayCompilerResult &compilerResult,
+                                IncrementalAnalysisMap incrementalAnalysisMap)
+        : FlayServiceWrapper(compilerResult, std::move(incrementalAnalysisMap)) {}
 
     /// Try to parse the provided pattern into update files and convert them to control-plane
     /// updates.

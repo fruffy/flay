@@ -21,10 +21,8 @@ class FlayServiceWrapper {
     FlayServiceBase _flayService;
 
  public:
-    FlayServiceWrapper(const FlayServiceOptions &serviceOptions,
-                       const FlayCompilerResult &compilerResult,
-                       const NodeAnnotationMap &nodeAnnotationMap,
-                       const ControlPlaneConstraints &initialControlPlaneConstraints);
+    FlayServiceWrapper(const FlayCompilerResult &compilerResult,
+                       IncrementalAnalysisMap incrementalAnalysisMap);
     virtual ~FlayServiceWrapper() = default;
 
     /// Try to parse the provided pattern into update files and convert them to control-plane
@@ -38,7 +36,7 @@ class FlayServiceWrapper {
     void outputOptimizedProgram(const std::filesystem::path &optimizedOutputFile);
 
     /// Compute and return some statistics on the changes in the program.
-    [[nodiscard]] FlayServiceStatistics computeFlayServiceStatistics() const;
+    [[nodiscard]] std::vector<AnalysisStatistics *> computeFlayServiceStatistics() const;
 };
 
 }  // namespace P4Tools::Flay

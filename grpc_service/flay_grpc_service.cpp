@@ -12,38 +12,23 @@
 
 namespace P4Tools::Flay {
 
-FlayService::FlayService(const FlayServiceOptions &options,
-                         const FlayCompilerResult &compilerResult,
-                         const NodeAnnotationMap &nodeAnnotationMap,
-                         ControlPlaneConstraints initialControlPlaneConstraints)
-    : FlayServiceBase(options, compilerResult, nodeAnnotationMap,
-                      std::move(initialControlPlaneConstraints)) {}
+FlayService::FlayService(const FlayCompilerResult &compilerResult,
+                         IncrementalAnalysisMap incrementalAnalysisMap)
+    : FlayServiceBase(compilerResult, std::move(incrementalAnalysisMap)) {}
 
 grpc::Status FlayService::Write(grpc::ServerContext * /*context*/,
                                 const p4::v1::WriteRequest *request,
                                 p4::v1::WriteResponse * /*response*/) {
     SymbolSet symbolSet;
+    std::vector<const ControlPlaneUpdate *> p4RuntimeUpdates;
     for (const auto &update : request->updates()) {
-        Util::ScopedTimer timer("processMessage");
-        auto result = P4Runtime::updateControlPlaneConstraintsWithEntityMessage(
-            update.entity(), *compilerResult().getP4RuntimeApi().p4Info,
-            mutableControlPlaneConstraints(), update.type(), symbolSet);
-        if (result != EXIT_SUCCESS) {
-            return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
-        }
+        p4RuntimeUpdates.emplace_back(new P4RuntimeControlPlaneUpdate(update));
     }
-    auto result = checkForChangeAndSpecializeProgram(symbolSet);
-    if (result.first != EXIT_SUCCESS) {
-        return {grpc::StatusCode::INTERNAL, "Encountered problems while updating dead code."};
+    auto result = processControlPlaneUpdate(p4RuntimeUpdates);
+    if (result != EXIT_SUCCESS) {
+        return {grpc::StatusCode::INTERNAL, "Failed to process update message"};
     }
-    auto statementCountBefore = countStatements(originalProgram());
-    auto statementCountAfter = countStatements(optimizedProgram());
-    float stmtPct = 100.0F * (1.0F - static_cast<float>(statementCountAfter) /
-                                         static_cast<float>(statementCountBefore));
-    printInfo("Number of statements - Before: %1% After: %2% Total reduction in statements = %3%%%",
-              statementCountBefore, statementCountAfter, stmtPct);
-
-    P4Tools::printPerformanceReport();
+    recordProgramChange();
     return grpc::Status::OK;
 }
 
