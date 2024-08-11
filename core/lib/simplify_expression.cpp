@@ -198,12 +198,10 @@ class ExpressionRewriter : public PassManager {
         setName("ExpressionRewriter");
         // Lifted from frontends/p4/optimizeExpression.
         addPasses({
-            new PassRepeated({
-                new P4::ConstantFolding(nullptr, nullptr, false),
-                new ExpressionStrengthReduction(),
-                new FoldMuxConditionDown(),
-                new LiftMuxConditions(),
-            }),
+            // new P4::ConstantFolding(nullptr, nullptr, false),
+            // new ExpressionStrengthReduction(),
+            new FoldMuxConditionDown(),
+            new LiftMuxConditions(),
         });
         auto &options = FlayOptions::get();
         if (options.collapseDataPlaneOperations() && !options.skipParsers()) {
