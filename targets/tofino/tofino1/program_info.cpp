@@ -10,7 +10,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 Tofino1ProgramInfo::Tofino1ProgramInfo(
     const FlayCompilerResult &compilerResult,
@@ -55,4 +55,4 @@ std::vector<const IR::Node *> Tofino1ProgramInfo::processDeclaration(
     return cmds;
 }
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino

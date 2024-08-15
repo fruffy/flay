@@ -9,7 +9,7 @@
 #include "backends/p4tools/modules/flay/core/lib/z3_cache.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::ControlPlaneState {
+namespace P4::P4Tools::ControlPlaneState {
 
 const IR::SymbolicVariable *getParserValueSetConfigured(cstring parserValueSetName) {
     return ToolsVariables::getSymbolicVariable(IR::Type_Boolean::get(),
@@ -20,9 +20,9 @@ const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName) {
     return new IR::SymbolicVariable(IR::Type_String::get(), tableName + "_default_action");
 }
 
-}  // namespace P4Tools::ControlPlaneState
+}  // namespace P4::P4Tools::ControlPlaneState
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /**************************************************************************************************
 TableMatchKeys
@@ -361,7 +361,7 @@ Z3ControlPlaneAssignmentSet TableConfiguration::computeZ3ControlPlaneAssignments
     }
     auto z3TableKeyMatchOpt = Z3Cache::get(_tableKeyMatch);
     if (!z3TableKeyMatchOpt.has_value()) {
-        ::error("Failed to get Z3 table key match");
+        ::P4::error("Failed to get Z3 table key match");
         return defaultAssignments;
     }
     auto &z3TableKeyMatch = z3TableKeyMatchOpt.value();
@@ -469,4 +469,4 @@ Z3ControlPlaneAssignmentSet TableActionSelectorConfiguration::computeZ3ControlPl
     return {};
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

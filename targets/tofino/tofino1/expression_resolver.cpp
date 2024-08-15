@@ -9,7 +9,7 @@
 #include "backends/p4tools/modules/flay/targets/tofino/tofino1/table_executor.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 Tofino1ExpressionResolver::Tofino1ExpressionResolver(const ProgramInfo &programInfo,
                                                      ControlPlaneConstraints &constraints,
@@ -35,4 +35,4 @@ const IR::Expression *Tofino1ExpressionResolver::processExtern(
     return TofinoBaseExpressionResolver::processExtern(externInfo);
 }
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino

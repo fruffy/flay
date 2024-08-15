@@ -24,7 +24,7 @@
 #include "p4/config/v1/p4info.pb.h"
 #pragma GCC diagnostic pop
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 using namespace ::P4::literals;
 
@@ -148,7 +148,7 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const CompilerOptions &
     } else {
         /// After the front end, get the P4Runtime API for the V1model architecture.
         p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "v1model"_cs);
-        if (::errorCount() > 0) {
+        if (::P4::errorCount() > 0) {
             return std::nullopt;
         }
     }
@@ -172,4 +172,4 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const CompilerOptions &
                                     p4runtimeApi.value(), initialControlPlaneState}};
 }
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model

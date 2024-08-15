@@ -12,7 +12,7 @@
 #include "lib/error.h"
 #include "lib/options.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 namespace {
 
@@ -50,7 +50,7 @@ class ReferenceCheckerOptions : public FlayOptions {
             [this](const char *arg) {
                 file = arg;
                 if (!std::filesystem::exists(file)) {
-                    ::error("The input P4 program '%s' does not exist.", file.c_str());
+                    ::P4::error("The input P4 program '%s' does not exist.", file.c_str());
                     return false;
                 }
                 return true;
@@ -108,22 +108,22 @@ class ReferenceCheckerOptions : public FlayOptions {
         auto *unprocessedOptions = process(argc, argv);
         if (unprocessedOptions != nullptr && !unprocessedOptions->empty()) {
             for (const auto &option : *unprocessedOptions) {
-                ::error("Unprocessed input: %s", option);
+                ::P4::error("Unprocessed input: %s", option);
             }
             return EXIT_FAILURE;
         }
         if (file.empty()) {
-            ::error("No input file specified.");
+            ::P4::error("No input file specified.");
             return EXIT_FAILURE;
         }
         if (!_referenceFile.has_value() && !_referenceFolder.has_value()) {
-            ::error(
+            ::P4::error(
                 "Neither a reference file nor a reference folder have been specified. Use either "
                 "--reference-file or --reference-folder.");
             return EXIT_FAILURE;
         }
         if (_referenceFile.has_value() && _referenceFolder.has_value()) {
-            ::error(
+            ::P4::error(
                 "Both a reference file and a reference folder have been specified. Use only one.");
             return EXIT_FAILURE;
         }
@@ -168,7 +168,7 @@ int compareAgainstReference(const std::stringstream &flayOptimizationOutput,
     printInfo("Running diff command: \"%s\"", command.str());
     FILE *pipe = popen(command.str().c_str(), "r");
     if (pipe == nullptr) {
-        ::error("Unable to create pipe to diff command.");
+        ::P4::error("Unable to create pipe to diff command.");
         return EXIT_FAILURE;
     }
     // Read and print the output of the diff command.
@@ -178,7 +178,7 @@ int compareAgainstReference(const std::stringstream &flayOptimizationOutput,
         result << buffer;
     }
     if (pclose(pipe) != 0) {
-        ::error("Diff command failed.\n%1%", result.str());
+        ::P4::error("Diff command failed.\n%1%", result.str());
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
@@ -198,12 +198,12 @@ std::optional<std::filesystem::path> getFilePath(const ReferenceCheckerOptions &
         try {
             std::filesystem::create_directories(referenceFolder);
         } catch (const std::exception &err) {
-            ::error("Unable to create directory %1%: %2%", referenceFolder.c_str(), err.what());
+            ::P4::error("Unable to create directory %1%: %2%", referenceFolder.c_str(), err.what());
             return std::nullopt;
         }
         referencePath = referenceFolder / referencePath;
     } else {
-        ::error("Neither a reference file nor a reference folder have been specified.");
+        ::P4::error("Neither a reference file nor a reference folder have been specified.");
         return std::nullopt;
     }
     return referencePath.replace_extension(suffix);
@@ -249,8 +249,8 @@ int run(const ReferenceCheckerOptions &options, const FlayOptions &flayOptions) 
     if (referenceFolderOpt.has_value()) {
         auto referenceFolder = std::filesystem::absolute(referenceFolderOpt.value());
         if (!std::filesystem::is_directory(referenceFolder)) {
-            ::error("Reference folder %1% does not exist or is not a folder.",
-                    referenceFolder.c_str());
+            ::P4::error("Reference folder %1% does not exist or is not a folder.",
+                        referenceFolder.c_str());
             return EXIT_FAILURE;
         }
         auto referenceName = options.getInputFile().stem();
@@ -261,32 +261,34 @@ int run(const ReferenceCheckerOptions &options, const FlayOptions &flayOptions) 
                 return compareAgainstReference(flayOptimizationOutput, referenceFile);
             }
         }
-        ::error("Reference file not found in folder.");
+        ::P4::error("Reference file not found in folder.");
         return EXIT_FAILURE;
     }
-    ::error("Neither a reference file nor a reference folder have been specified.");
+    ::P4::error("Neither a reference file nor a reference folder have been specified.");
     return EXIT_FAILURE;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 int main(int argc, char *argv[]) {
-    P4Tools::Flay::registerFlayTargets();
+    P4::P4Tools::Flay::registerFlayTargets();
 
     // Set up the options.
-    auto *compileContext = new P4Tools::CompileContext<P4Tools::Flay::ReferenceCheckerOptions>();
-    AutoCompileContext autoContext(
-        new P4CContextWithOptions<P4Tools::Flay::ReferenceCheckerOptions>());
+    auto *compileContext =
+        new P4::P4Tools::CompileContext<P4::P4Tools::Flay::ReferenceCheckerOptions>();
+    P4::AutoCompileContext autoContext(
+        new P4::P4CContextWithOptions<P4::P4Tools::Flay::ReferenceCheckerOptions>());
     // Process command-line options.
     if (compileContext->options().processOptions(argc, argv) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
-    auto *flayContext = new P4Tools::CompileContext<P4Tools::FlayOptions>(*compileContext);
-    AutoCompileContext autoContext2(flayContext);
+    auto *flayContext =
+        new P4::P4Tools::CompileContext<P4::P4Tools::Flay::FlayOptions>(*compileContext);
+    P4::AutoCompileContext autoContext2(flayContext);
     // Run the reference checker.
-    auto result = P4Tools::Flay::run(compileContext->options(), flayContext->options());
+    auto result = P4::P4Tools::Flay::run(compileContext->options(), flayContext->options());
     if (result == EXIT_FAILURE) {
         return EXIT_FAILURE;
     }
-    return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return ::P4::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

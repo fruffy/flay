@@ -7,7 +7,7 @@
 #include "backends/p4tools/modules/flay/core/control_plane/symbols.h"
 #include "ir/ir.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /**************************************************************************************************
 SubstitutionExpression
@@ -58,6 +58,6 @@ struct SubstitutionExpression {
 /// analysis.
 using SubstitutionMap = std::map<const IR::Expression *, SubstitutionExpression *, SourceIdCmp>;
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_SUBSTITUTION_EXPRESSION_H_ */

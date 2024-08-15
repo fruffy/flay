@@ -11,7 +11,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 FpgaBaseTableExecutor::FpgaBaseTableExecutor(const IR::P4Table &table,
                                              ExpressionResolver &callingResolver)
@@ -55,4 +55,4 @@ const TableMatchKey *FpgaBaseTableExecutor::computeTargetMatchType(
     return TableExecutor::computeTargetMatchType(keyField);
 }
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga

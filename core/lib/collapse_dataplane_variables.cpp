@@ -1,6 +1,6 @@
 #include "backends/p4tools/modules/flay/core/lib/collapse_dataplane_variables.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 namespace {
 
@@ -219,4 +219,4 @@ const IR::Node *DataPlaneVariablePropagator::preorder(IR::Mux *mux) {
     return mux;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

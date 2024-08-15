@@ -1,6 +1,6 @@
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 bool NodeAnnotationMap::initializeReachabilityMapping(const IR::Node *node,
                                                       const IR::Expression *cond) {
@@ -62,4 +62,4 @@ ReachabilityMap NodeAnnotationMap::reachabilityMap() const { return _reachabilit
 
 SubstitutionMap NodeAnnotationMap::substitutionMap() const { return _substitutionMap; }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

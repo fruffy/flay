@@ -13,7 +13,7 @@
 #include "ir/pass_manager.h"
 #include "ir/visitor.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// This compiler pass looks up program nodes in the reachability map and deletes nodes which are
 /// not executable according to the computation in the map.
@@ -53,6 +53,6 @@ class ReferenceResolver : public PassManager {
     }
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_PASSES_ELIM_DEAD_CODE_H_ */

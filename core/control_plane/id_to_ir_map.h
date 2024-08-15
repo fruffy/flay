@@ -7,7 +7,7 @@
 #include "control-plane/p4RuntimeArchHandler.h"
 #include "ir/ir.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// The mapping from P4Runtime IDs to IR nodes. Currently a simple std::map.
 using P4RuntimeIdtoIrNodeMap = std::map<P4::ControlPlaneAPI::p4rt_id_t, const IR::Node *>;
@@ -37,6 +37,6 @@ class P4RuntimeToIRMapper : public Inspector {
     [[nodiscard]] P4RuntimeIdtoIrNodeMap getP4RuntimeIdtoIrNodeMap() const;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_ID_TO_IR_MAP_H_ */

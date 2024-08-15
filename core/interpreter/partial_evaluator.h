@@ -15,7 +15,7 @@
 #include "backends/p4tools/modules/flay/options.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 enum ReachabilityMapType { kZ3Precomputed, kDefault };
 
@@ -91,6 +91,6 @@ class PartialEvaluation : public IncrementalAnalysis {
     DECLARE_TYPEINFO(PartialEvaluation);
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_PARTIAL_EVALUATOR_H_ */

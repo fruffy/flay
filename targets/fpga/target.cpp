@@ -21,7 +21,7 @@
 #include "p4/config/v1/p4info.pb.h"
 #pragma GCC diagnostic pop
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 using namespace ::P4::literals;
 
@@ -51,7 +51,7 @@ CompilerResultOrError FpgaBaseFlayTarget::runCompilerImpl(const CompilerOptions 
     } else {
         /// After the front end, get the P4Runtime API for the V1model architecture.
         p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "pna"_cs);
-        if (::errorCount() > 0) {
+        if (::P4::errorCount() > 0) {
             return std::nullopt;
         }
     }
@@ -156,4 +156,4 @@ FlayStepper &XsaFlayTarget::getStepperImpl(const ProgramInfo &programInfo,
                                executionState);
 }
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga

@@ -9,7 +9,7 @@
 #include "backends/p4tools/modules/flay/targets/fpga/base/table_executor.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 FpgaBaseExpressionResolver::FpgaBaseExpressionResolver(const ProgramInfo &programInfo,
                                                        ControlPlaneConstraints &constraints,
@@ -36,4 +36,4 @@ const IR::Expression *FpgaBaseExpressionResolver::processExtern(
     return ExpressionResolver::processExtern(externInfo);
 }
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga

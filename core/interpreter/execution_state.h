@@ -9,7 +9,7 @@
 #include "ir/ir.h"
 #include "ir/node.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Represents state of execution after having reached a program point.
 class ExecutionState : public AbstractExecutionState {
@@ -116,6 +116,6 @@ class ExecutionState : public AbstractExecutionState {
     ExecutionState(const ExecutionState &) = default;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_EXECUTION_STATE_H_ */

@@ -17,7 +17,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 V1ModelExpressionResolver::V1ModelExpressionResolver(const ProgramInfo &programInfo,
                                                      ControlPlaneConstraints &constraints,
@@ -751,4 +751,4 @@ const IR::Expression *V1ModelExpressionResolver::processExtern(
     return ExpressionResolver::processExtern(externInfo);
 }
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model

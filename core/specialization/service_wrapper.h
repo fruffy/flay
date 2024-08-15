@@ -6,7 +6,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
 #include "backends/p4tools/modules/flay/core/specialization/flay_service.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Wrapper class to simplify benchmarking and the collection of statistics.
 class FlayServiceWrapper {
@@ -39,6 +39,6 @@ class FlayServiceWrapper {
     [[nodiscard]] std::vector<AnalysisStatistics *> computeFlayServiceStatistics() const;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif  // BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_SERVICE_WRAPPER_H_

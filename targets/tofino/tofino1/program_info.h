@@ -10,7 +10,7 @@
 #include "lib/cstring.h"
 #include "lib/ordered_map.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 class Tofino1ProgramInfo : public TofinoBaseProgramInfo {
  private:
@@ -26,6 +26,6 @@ class Tofino1ProgramInfo : public TofinoBaseProgramInfo {
     DECLARE_TYPEINFO(Tofino1ProgramInfo, TofinoBaseProgramInfo);
 };
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_TOFINO_TOFINO1_PROGRAM_INFO_H_ */

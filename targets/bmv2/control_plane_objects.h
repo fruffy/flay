@@ -6,7 +6,7 @@
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_item.h"
 #include "lib/rtti.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 /// BMv2-style clone session. If no session id is set, the clone session is considered inactive.
 /// There should only be one clone session per program configuration.
@@ -36,6 +36,6 @@ class CloneSession : public Z3ControlPlaneItem {
     DECLARE_TYPEINFO(CloneSession);
 };
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_CONTROL_PLANE_OBJECTS_H_ */

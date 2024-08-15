@@ -16,7 +16,7 @@
 #include "p4/v1/p4runtime.pb.h"
 #pragma GCC diagnostic pop
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class FlayClient {
  public:
@@ -34,6 +34,6 @@ class FlayClient {
     std::unique_ptr<p4::v1::P4Runtime::Stub> stub_;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif  // BACKENDS_P4TOOLS_MODULES_FLAY_GRPC_SERVICE_FLAY_CLIENT_H_

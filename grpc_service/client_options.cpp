@@ -9,7 +9,7 @@
 #include "backends/p4tools/common/lib/logging.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 FlayClientOptions::FlayClientOptions(std::string_view message) : Options(message) {
     // Register some common options.
@@ -49,8 +49,8 @@ FlayClientOptions::FlayClientOptions(std::string_view message) : Options(message
         [this](const char *arg) {
             auto protoUpdate = std::filesystem::path(arg);
             if (!std::filesystem::exists(protoUpdate)) {
-                ::error("%1% does not exist. Please provide a valid file path.",
-                        protoUpdate.c_str());
+                ::P4::error("%1% does not exist. Please provide a valid file path.",
+                            protoUpdate.c_str());
                 return false;
             }
             protoUpdates.emplace_back(protoUpdate);
@@ -75,4 +75,4 @@ std::vector<std::filesystem::path> FlayClientOptions::getProtoUpdates() const {
     return protoUpdates;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

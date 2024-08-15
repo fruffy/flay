@@ -13,7 +13,7 @@
 #include "lib/cstring.h"
 #include "lib/null.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 FpgaBaseProgramInfo::FpgaBaseProgramInfo(
     const FlayCompilerResult &compilerResult,
@@ -52,4 +52,4 @@ const FlayCompilerResult &FpgaBaseProgramInfo::getCompilerResult() const {
     return *ProgramInfo::getCompilerResult().checkedTo<FlayCompilerResult>();
 }
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga

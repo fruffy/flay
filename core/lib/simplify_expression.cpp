@@ -12,7 +12,7 @@
 #include "ir/pass_manager.h"
 #include "lib/timer.h"
 
-namespace P4Tools {
+namespace P4::P4Tools {
 
 namespace {
 
@@ -203,7 +203,7 @@ class ExpressionRewriter : public PassManager {
             new FoldMuxConditionDown(),
             new LiftMuxConditions(),
         });
-        auto &options = FlayOptions::get();
+        auto &options = Flay::FlayOptions::get();
         if (options.collapseDataPlaneOperations() && !options.skipParsers()) {
             addPasses({new Flay::DataPlaneVariablePropagator()});
         }
@@ -213,10 +213,10 @@ class ExpressionRewriter : public PassManager {
 const IR::Expression *simplify(const IR::Expression *expr) {
     static ExpressionRewriter REWRITER;
     expr = expr->apply(REWRITER);
-    BUG_CHECK(::errorCount() == 0, "Encountered errors while trying to simplify expressions.");
+    BUG_CHECK(::P4::errorCount() == 0, "Encountered errors while trying to simplify expressions.");
     return expr;
 }
 
 }  // namespace SimplifyExpression
 
-}  // namespace P4Tools
+}  // namespace P4::P4Tools

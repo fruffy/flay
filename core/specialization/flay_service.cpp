@@ -13,7 +13,7 @@
 #include "lib/error.h"
 #include "lib/timer.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 FlayServiceBase::FlayServiceBase(const FlayCompilerResult &compilerResult,
                                  IncrementalAnalysisMap incrementalAnalysisMap)
@@ -34,7 +34,7 @@ void FlayServiceBase::outputOptimizedProgram(
     const std::filesystem::path &optimizedOutputFile) const {
     std::ofstream output(optimizedOutputFile);
     if (!output.is_open()) {
-        ::error("Could not open file %1% for writing.", optimizedOutputFile.c_str());
+        ::P4::error("Could not open file %1% for writing.", optimizedOutputFile.c_str());
         return;
     }
     P4::ToP4 toP4(&output, false);
@@ -119,4 +119,4 @@ std::vector<AnalysisStatistics *> FlayServiceBase::computeFlayServiceStatistics(
     return statistics;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

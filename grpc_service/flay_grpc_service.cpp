@@ -10,7 +10,7 @@
 #include "backends/p4tools/modules/flay/core/specialization/flay_service.h"
 #include "lib/timer.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 FlayService::FlayService(const FlayCompilerResult &compilerResult,
                          IncrementalAnalysisMap incrementalAnalysisMap)
@@ -39,7 +39,7 @@ bool FlayService::startServer(const std::string &serverAddress) {
 
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
     if (!server) {
-        ::error("Failed to start the Flay service.");
+        ::P4::error("Failed to start the Flay service.");
         return false;
     }
 
@@ -55,4 +55,4 @@ bool FlayService::startServer(const std::string &serverAddress) {
     return true;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

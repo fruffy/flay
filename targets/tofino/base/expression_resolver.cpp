@@ -12,7 +12,7 @@
 #include "backends/p4tools/modules/flay/targets/tofino/constants.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 TofinoBaseExpressionResolver::TofinoBaseExpressionResolver(const ProgramInfo &programInfo,
                                                            ControlPlaneConstraints &constraints,
@@ -336,7 +336,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      {"Wred.execute"_cs,
       {"val"_cs, "index"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
-          ::warning("WRED not fully implemented. Returning dummy value.");
+          ::P4::warning("WRED not fully implemented. Returning dummy value.");
           auto valueLabel = externInfo.externObjectRef.path->toString() + "_" +
                             externInfo.methodName + "_" +
                             std::to_string(externInfo.originalCall.clone_id) + "_return";
@@ -349,7 +349,7 @@ const ExternMethodImpls EXTERN_METHOD_IMPLS(
      {"DirectWred.execute"_cs,
       {"val"_cs},
       [](const ExternMethodImpls::ExternInfo &externInfo) {
-          ::warning("WRED not fully implemented. Returning dummy value.");
+          ::P4::warning("WRED not fully implemented. Returning dummy value.");
           auto valueLabel = externInfo.externObjectRef.path->toString() + "_" +
                             externInfo.methodName + "_" +
                             std::to_string(externInfo.originalCall.clone_id) + "_return";
@@ -704,4 +704,4 @@ const IR::Expression *TofinoBaseExpressionResolver::processExtern(
     return ExpressionResolver::processExtern(externInfo);
 }
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino

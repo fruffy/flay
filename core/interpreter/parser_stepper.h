@@ -12,7 +12,7 @@
 #include "ir/node.h"
 #include "ir/visitor.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class ParserStepper : public Inspector {
  public:
@@ -56,6 +56,6 @@ class ParserStepper : public Inspector {
     const std::vector<ParserExitState> &getParserExitStates() const;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_PARSER_STEPPER_H_ */

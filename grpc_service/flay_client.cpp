@@ -9,7 +9,7 @@
 #include "lib/timer.h"
 #include "p4/v1/p4runtime.pb.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 FlayClient::FlayClient(const std::shared_ptr<grpc::Channel> &channel)
     : stub_(p4::v1::P4Runtime::NewStub(channel)) {}
@@ -34,7 +34,7 @@ std::optional<p4::v1::WriteRequest> FlayClient::parseWriteRequestFile(
     if (google::protobuf::TextFormat::Parse(input, &request)) {
         printInfo("Parsed configuration: %1%", request.DebugString());
     } else {
-        ::error("WriteRequest not valid (partial content: %1%", request.ShortDebugString());
+        ::P4::error("WriteRequest not valid (partial content: %1%", request.ShortDebugString());
         return std::nullopt;
     }
     // Close the open file.
@@ -42,4 +42,4 @@ std::optional<p4::v1::WriteRequest> FlayClient::parseWriteRequestFile(
     return request;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

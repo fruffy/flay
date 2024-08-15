@@ -3,7 +3,7 @@
 
 #include "ir/ir.h"
 
-namespace P4Tools {
+namespace P4::P4Tools {
 
 namespace SimplifyExpression {
 
@@ -18,6 +18,6 @@ const IR::Expression *simplify(const IR::Expression *expr);
 
 };  // namespace SimplifyExpression
 
-}  // namespace P4Tools
+}  // namespace P4::P4Tools
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_LIB_SIMPLIFY_EXPRESSION_H_ */

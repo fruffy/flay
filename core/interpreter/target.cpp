@@ -44,7 +44,7 @@
 #include "backends/p4tools/modules/flay/core/control_plane/p4runtime/flaytests.pb.h"
 #pragma GCC diagnostic pop
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 FlayTarget::FlayTarget(const std::string &deviceName, const std::string &archName)
     : CompilerTarget(TOOL_NAME, deviceName, archName) {}
@@ -143,8 +143,9 @@ std::optional<ControlPlaneConstraints> FlayTarget::computeControlPlaneConstraint
         }
     }
 
-    ::error("Control plane file format %1% for control plane %2% not supported for this target.",
-            confPath.extension().c_str(), options.controlPlaneApi().data());
+    ::P4::error(
+        "Control plane file format %1% for control plane %2% not supported for this target.",
+        confPath.extension().c_str(), options.controlPlaneApi().data());
     return std::nullopt;
 }
 
@@ -229,4 +230,4 @@ ICompileContext *FlayTarget::makeContext() const {
     return new P4Tools::CompileContext<FlayOptions>();
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

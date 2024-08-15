@@ -6,7 +6,7 @@
 #include "ir/node.h"
 #include "ir/visitor.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class DataPlaneVariablePropagator : public Transform {
     const IR::Node *postorder(IR::Operation_Unary *unary_op) override;
@@ -22,6 +22,6 @@ class DataPlaneVariablePropagator : public Transform {
     DataPlaneVariablePropagator();
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_LIB_COLLAPSE_DATAPLANE_VARIABLES_H_ */

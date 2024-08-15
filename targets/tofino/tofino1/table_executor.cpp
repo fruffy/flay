@@ -11,7 +11,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 namespace {
 
@@ -48,16 +48,16 @@ std::optional<const IR::IDeclaration *> checkForActionProfileOrSelector(
     if (implTypeDeclaration->name == "ActionSelector") {
         constexpr int kexpectedArgumentSize = 5;
         if (declarationArguments->size() < kexpectedArgumentSize) {
-            ::error("Action selector %1% requires %2% arguments, but only %3% were provided.",
-                    implTypeDeclaration->controlPlaneName(), kexpectedArgumentSize,
-                    declarationArguments->size());
+            ::P4::error("Action selector %1% requires %2% arguments, but only %3% were provided.",
+                        implTypeDeclaration->controlPlaneName(), kexpectedArgumentSize,
+                        declarationArguments->size());
             return std::nullopt;
         }
         const auto *actionProfileReference = declarationArguments->at(0)->expression;
         const auto *actionProfileReferencePath = actionProfileReference->to<IR::PathExpression>();
         if (actionProfileReferencePath == nullptr) {
-            ::error("Action profile reference %1% is not a path expression.",
-                    actionProfileReference);
+            ::P4::error("Action profile reference %1% is not a path expression.",
+                        actionProfileReference);
             return std::nullopt;
         }
         return state.findDecl(actionProfileReferencePath);
@@ -82,4 +82,4 @@ Tofino1TableExecutor::Tofino1TableExecutor(const IR::P4Table &table,
     _actionProfileOrSelector = checkForActionProfileOrSelector(table, getExecutionState());
 }
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino

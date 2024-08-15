@@ -5,7 +5,7 @@
 #include "backends/p4tools/modules/flay/core/specialization/passes/elim_dead_code.h"
 #include "backends/p4tools/modules/flay/core/specialization/passes/specialization_statistics.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Specialize the Program
 class FlaySpecializer : public PassManager {
@@ -35,6 +35,6 @@ class FlaySpecializer : public PassManager {
     }
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_PASSES_SPECIALIZER_H_ */

@@ -10,9 +10,9 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 XsaTableExecutor::XsaTableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver)
     : FpgaBaseTableExecutor(table, callingResolver) {}
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga

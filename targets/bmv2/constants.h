@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 enum Vbmv2_gress_t { BMV2_INGRESS, BMV2_EGRESS };
 
@@ -42,6 +42,6 @@ class V1ModelConstants {
     static constexpr int DROP_PORT = 511;
 };
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_CONSTANTS_H_ */

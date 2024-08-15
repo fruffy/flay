@@ -19,7 +19,7 @@
 #include "lib/null.h"
 #include "midend/saturationElim.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 ExpressionResolver::ExpressionResolver(const ProgramInfo &programInfo,
                                        ControlPlaneConstraints &constraints,
@@ -533,4 +533,4 @@ const IR::Expression *ExpressionResolver::computeResult(const IR::Node *node) {
     return getResult();
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

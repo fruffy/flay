@@ -7,7 +7,7 @@
 #include "backends/p4tools/common/core/z3_solver.h"
 #include "ir/ir.h"
 
-namespace P4Tools {
+namespace P4::P4Tools {
 
 /// Memoizes P4C expressions which have been translated to Z3 expressions.
 class Z3Cache : protected absl::flat_hash_map<const IR::Expression *, z3::expr> {
@@ -68,6 +68,6 @@ class Z3Cache : protected absl::flat_hash_map<const IR::Expression *, z3::expr> 
     static z3::context &context() { return getInstance()._z3Solver.mutableContext(); }
 };
 
-}  // namespace P4Tools
+}  // namespace P4::P4Tools
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_LIB_Z3_CACHE_H_ */

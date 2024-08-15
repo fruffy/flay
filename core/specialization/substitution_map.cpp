@@ -7,7 +7,7 @@
 #include "lib/error.h"
 #include "lib/timer.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /**************************************************************************************************
 SubstitutionMap
@@ -24,7 +24,7 @@ std::optional<bool> IrSubstitutionMap::computeNodeSubstitution(
     const IR::Expression *expression, const ControlPlaneAssignmentSet &controlPlaneAssignments) {
     auto it = find(expression);
     if (it == end()) {
-        ::error("Substitution mapping for node %1% does not exist.", expression);
+        ::P4::error("Substitution mapping for node %1% does not exist.", expression);
         return std::nullopt;
     }
 
@@ -56,7 +56,7 @@ std::optional<const IR::Literal *> IrSubstitutionMap::isExpressionConstant(
     if (it != end()) {
         return it->second->substitution();
     }
-    ::warning(
+    ::P4::warning(
         "Unable to find node %1% in the expression map of this execution state. There might be "
         "issues with the source information.",
         expression);
@@ -124,4 +124,4 @@ std::optional<bool> IrSubstitutionMap::recomputeSubstitution(
     return hasChanged;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

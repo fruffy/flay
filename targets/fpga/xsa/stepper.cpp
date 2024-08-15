@@ -5,7 +5,7 @@
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 const XsaProgramInfo &XsaFlayStepper::getProgramInfo() const {
     return *FpgaBaseFlayStepper::getProgramInfo().checkedTo<XsaProgramInfo>();
@@ -34,4 +34,4 @@ void XsaFlayStepper::initializeParserState(const IR::P4Parser &parser) {
                                                      thirtyTwoBitType, parserErrorLabel));
 }
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga

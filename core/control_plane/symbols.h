@@ -5,7 +5,7 @@
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Utility function to compare IR nodes in a set. We use their source info.
 struct SourceIdCmp {
@@ -48,6 +48,6 @@ class SymbolCollector : public Inspector {
     }
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_SYMBOLS_H_ */

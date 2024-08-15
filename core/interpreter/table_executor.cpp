@@ -19,7 +19,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 namespace {
 
@@ -292,7 +292,7 @@ const IR::Expression *TableExecutor::processTable() {
         tableControlPlaneConfiguration->setTableKeyMatch(
             SimplifyExpression::simplify(tableKeyExpression));
     } else {
-        ::error("Table %s has no control plane configuration", table.controlPlaneName());
+        ::P4::error("Table %s has no control plane configuration", table.controlPlaneName());
     }
 
     return new IR::StructExpression(
@@ -303,4 +303,4 @@ const IR::Expression *TableExecutor::processTable() {
          new IR::NamedExpression("table_name", IR::StringLiteral::get(table.controlPlaneName()))});
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

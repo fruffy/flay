@@ -13,7 +13,7 @@
 #include "lib/big_int.h"
 #include "lib/error.h"
 
-namespace P4Tools::Flay::Protobuf {
+namespace P4::P4Tools::Flay::Protobuf {
 
 /// Helper function, which converts a Protobuf byte string into a big integer
 /// (boost cpp_int).
@@ -35,14 +35,14 @@ template <class T>
     int fd = open(inputFile.c_str(),
                   O_RDONLY);  // NOLINT, we are forced to use open here.
     RETURN_IF_FALSE_WITH_MESSAGE(fd > 0, std::nullopt,
-                                 ::error("Failed to open file %1%", inputFile.c_str()));
+                                 ::P4::error("Failed to open file %1%", inputFile.c_str()));
     google::protobuf::io::ZeroCopyInputStream *input =
         new google::protobuf::io::FileInputStream(fd);
 
     RETURN_IF_FALSE_WITH_MESSAGE(google::protobuf::TextFormat::Parse(input, &protoObject),
                                  std::nullopt,
-                                 ::error("Failed to parse configuration \"%1%\" for file %2%",
-                                         protoObject.ShortDebugString(), inputFile.c_str()));
+                                 ::P4::error("Failed to parse configuration \"%1%\" for file %2%",
+                                             protoObject.ShortDebugString(), inputFile.c_str()));
 
     printFeature("flay_protobuf", 4, "Parsed configuration: %1%", protoObject.DebugString());
     // Close the open file.
@@ -50,6 +50,6 @@ template <class T>
     return protoObject;
 }
 
-}  // namespace P4Tools::Flay::Protobuf
+}  // namespace P4::P4Tools::Flay::Protobuf
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_PROTOBUF_UTILS_H_ */

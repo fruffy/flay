@@ -8,7 +8,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/target.h"
 #include "ir/ir.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 class V1ModelFlayTarget : public FlayTarget {
  private:
@@ -35,6 +35,6 @@ class V1ModelFlayTarget : public FlayTarget {
                                           const IR::P4Program *program) const final;
 };
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_TARGET_H_ */

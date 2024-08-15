@@ -18,7 +18,7 @@
 #include "ir/vector.h"
 #include "lib/cstring.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Encapsulates a set of extern method implementations.
 class ExternMethodImpls {
@@ -101,6 +101,6 @@ class ExternMethodImpls {
     explicit ExternMethodImpls(const ImplList &implList);
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_EXTERNS_H_ */

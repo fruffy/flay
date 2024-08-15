@@ -7,7 +7,7 @@
 #include "ir/ir.h"
 #include "ir/node.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// The set of concrete mappings of symbolic control plane variables for table match keys.
 /// TODO: Make this an unordered set.
@@ -62,6 +62,6 @@ inline bool compare(const ControlPlaneAssignmentSet &s1, const ControlPlaneAssig
     return it != s2.end();
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_CONTROL_PLANE_ASSIGNMENT_H_ */

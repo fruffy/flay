@@ -10,7 +10,7 @@
 #include "backends/p4tools/modules/flay/targets/fpga/xsa/table_executor.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 XsaExpressionResolver::XsaExpressionResolver(const ProgramInfo &programInfo,
                                              ControlPlaneConstraints &constraints,
@@ -61,4 +61,4 @@ const IR::Expression *XsaExpressionResolver::processExtern(
     return FpgaBaseExpressionResolver::processExtern(externInfo);
 }
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga

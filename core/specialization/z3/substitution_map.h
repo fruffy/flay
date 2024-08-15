@@ -12,7 +12,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
 #include "backends/p4tools/modules/flay/core/specialization/substitution_map.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /**************************************************************************************************
 Z3SubstitutionExpression
@@ -63,6 +63,6 @@ class Z3SolverSubstitutionMap : private Z3ExpressionMap, public AbstractSubstitu
         const IR::Expression *expression) const override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_Z3_SUBSTITUTION_MAP_H_ */

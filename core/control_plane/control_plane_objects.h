@@ -11,7 +11,7 @@
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::ControlPlaneState {
+namespace P4::P4Tools::ControlPlaneState {
 
 /// @returns the symbolic boolean variable indicating whether this particular parser value set has
 /// been configured by the control plane.
@@ -21,9 +21,9 @@ const IR::SymbolicVariable *getParserValueSetConfigured(cstring parserValueSetNa
 /// particular table.
 const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName);
 
-}  // namespace P4Tools::ControlPlaneState
+}  // namespace P4::P4Tools::ControlPlaneState
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /**************************************************************************************************
 TableMatchKeys
@@ -475,6 +475,6 @@ class TableActionSelectorConfiguration : public TableConfiguration {
     DECLARE_TYPEINFO(TableActionSelectorConfiguration);
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_CONTROL_PLANE_OBJECTS_H_ */

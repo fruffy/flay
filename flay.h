@@ -5,7 +5,7 @@
 #include "backends/p4tools/modules/flay/core/specialization/flay_service.h"
 #include "backends/p4tools/modules/flay/options.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// This is main implementation of the P4Flay tool.
 class Flay : public AbstractP4cTool<FlayOptions> {
@@ -27,6 +27,6 @@ class Flay : public AbstractP4cTool<FlayOptions> {
         const FlayOptions &flayOptions);
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_FLAY_H_ */

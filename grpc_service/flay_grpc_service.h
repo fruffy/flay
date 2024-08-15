@@ -11,7 +11,7 @@
 #include "control-plane/p4/v1/p4runtime.grpc.pb.h"
 #pragma GCC diagnostic pop
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class FlayService final : public FlayServiceBase, public p4::v1::P4Runtime::Service {
     /// For exiting the gRPC server (useful for benchmarking).
@@ -29,6 +29,6 @@ class FlayService final : public FlayServiceBase, public p4::v1::P4Runtime::Serv
                        p4::v1::WriteResponse * /*response*/) override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif  // BACKENDS_P4TOOLS_MODULES_FLAY_GRPC_SERVICE_FLAY_GRPC_SERVICE_H_

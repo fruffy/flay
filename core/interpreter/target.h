@@ -11,7 +11,7 @@
 #include "backends/p4tools/modules/flay/options.h"
 #include "ir/ir.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class FlayTarget : public CompilerTarget {
  public:
@@ -73,6 +73,6 @@ class FlayTarget : public CompilerTarget {
     [[nodiscard]] MidEnd mkMidEnd(const CompilerOptions &options) const override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_TARGET_H_ */

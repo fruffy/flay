@@ -6,7 +6,7 @@
 #include "backends/p4tools/modules/flay/core/lib/incremental_analysis.h"
 #include "frontends/p4/toP4/toP4.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class StatementCounter : public Inspector {
     uint64_t _statementCount = 0;
@@ -124,6 +124,6 @@ class FlayServiceBase {
     [[nodiscard]] std::vector<AnalysisStatistics *> computeFlayServiceStatistics() const;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif  // BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_FLAY_SERVICE_H_

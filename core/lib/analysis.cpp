@@ -3,7 +3,7 @@
 #include "backends/p4tools/common/compiler/reachability.h"
 #include "backends/p4tools/common/lib/logging.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 size_t computeCyclomaticComplexity(const IR::P4Program &program) {
     auto *currentDCG = new P4Tools::NodesCallGraph("NodesCallGraph");
@@ -116,4 +116,4 @@ size_t ParserPathsCounter::countPathsSub(DCGVertexType node) {
     return count;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

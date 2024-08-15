@@ -3,7 +3,7 @@
 
 #include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 class TofinoControlPlaneInitializer : public ControlPlaneStateInitializer {
     bool computeMatch(const IR::Expression &entryKey, const IR::SymbolicVariable &keySymbol,
@@ -25,6 +25,6 @@ class TofinoControlPlaneInitializer : public ControlPlaneStateInitializer {
         const IR::P4Program *program) override;
 };
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_TOFINO_SYMBOLIC_STATE_H_ */

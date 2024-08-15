@@ -9,7 +9,7 @@
 #include "backends/p4tools/modules/flay/core/lib/return_macros.h"
 #include "backends/p4tools/modules/flay/targets/tofino/constants.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 bool TofinoControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
                                                  const IR::SymbolicVariable &keySymbol,
@@ -31,16 +31,16 @@ bool TofinoControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
         if (const auto *rangeExpr = entryKey.to<IR::Range>()) {
             ASSIGN_OR_RETURN_WITH_MESSAGE(
                 const auto &minExpr, rangeExpr->left->to<IR::Literal>(), false,
-                ::error("Left mask element %1% is not a literal.", rangeExpr->left));
+                ::P4::error("Left mask element %1% is not a literal.", rangeExpr->left));
             ASSIGN_OR_RETURN_WITH_MESSAGE(
                 const auto &maxExpr, rangeExpr->right->to<IR::Literal>(), false,
-                ::error("Right mask element %1% is not a literal.", rangeExpr->right));
+                ::P4::error("Right mask element %1% is not a literal.", rangeExpr->right));
             keySet.emplace(*minKey, minExpr);
             keySet.emplace(*maxKey, maxExpr);
             return true;
         }
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,
-                                      ::error("Entry %1% is not a literal.", entryKey));
+                                      ::P4::error("Entry %1% is not a literal.", entryKey));
         keySet.emplace(*minKey, exactValue);
         keySet.emplace(*maxKey, exactValue);
         return true;
@@ -51,7 +51,7 @@ bool TofinoControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
             return true;
         }
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,
-                                      ::error("Entry %1% is not a literal.", entryKey));
+                                      ::P4::error("Entry %1% is not a literal.", entryKey));
         keySet.emplace(keySymbol, exactValue);
         return true;
     }
@@ -74,23 +74,25 @@ std::optional<cstring> TofinoControlPlaneInitializer::associateActionProfiles(
     if (const auto *implPath = implExpr->expression->to<IR::PathExpression>()) {
         const auto *decl = getDeclaration(implPath->path);
         if (decl == nullptr) {
-            ::error("Action profile reference %1% not found.", implPath->path->name);
+            ::P4::error("Action profile reference %1% not found.", implPath->path->name);
             return std::nullopt;
         }
         const auto *declarationInstance = decl->to<IR::Declaration_Instance>();
         if (declarationInstance == nullptr) {
-            ::error("Action profile reference %1% is not an instance.", implPath->path->name);
+            ::P4::error("Action profile reference %1% is not an instance.", implPath->path->name);
             return std::nullopt;
         }
         const auto *declarationInstanceTypeName = declarationInstance->type->to<IR::Type_Name>();
         if (declarationInstanceTypeName == nullptr) {
-            ::error("Implementation instance type %1% is not a type name.", implPath->path->name);
+            ::P4::error("Implementation instance type %1% is not a type name.",
+                        implPath->path->name);
             return std::nullopt;
         }
         implementationTypeDeclaration = getDeclaration(declarationInstanceTypeName->path);
         implementationDeclaration = declarationInstance;
     } else {
-        ::error("Unimplemented action profile type %1%.", implExpr->expression->node_type_name());
+        ::P4::error("Unimplemented action profile type %1%.",
+                    implExpr->expression->node_type_name());
         return std::nullopt;
     }
     auto declarationControlPlaneName = implementationDeclaration->controlPlaneName();
@@ -101,7 +103,7 @@ std::optional<cstring> TofinoControlPlaneInitializer::associateActionProfiles(
             actionSelector = it->second.get().to<ActionSelector>();
         }
         if (actionSelector == nullptr) {
-            ::error("Could not find action selector %1%.", declarationControlPlaneName);
+            ::P4::error("Could not find action selector %1%.", declarationControlPlaneName);
             return std::nullopt;
         }
         actionSelector->addAssociatedTable(table.controlPlaneName());
@@ -114,19 +116,19 @@ std::optional<cstring> TofinoControlPlaneInitializer::associateActionProfiles(
             actionProfile = it->second.get().to<ActionProfile>();
         }
         if (actionProfile == nullptr) {
-            ::error("Could not find action profile %1%.", declarationControlPlaneName);
+            ::P4::error("Could not find action profile %1%.", declarationControlPlaneName);
             return std::nullopt;
         }
         actionProfile->addAssociatedTable(table.controlPlaneName());
         return actionProfile->name();
     }
     if (implementationTypeDeclaration->getName() == "Alpm") {
-        ::warning("Implementation type %1% is not yet supported for tables.",
-                  implementationTypeDeclaration);
+        ::P4::warning("Implementation type %1% is not yet supported for tables.",
+                      implementationTypeDeclaration);
         return std::nullopt;
     }
-    ::error("Implementation type %1% is not an action selector or action profile.",
-            implementationTypeDeclaration->getName());
+    ::P4::error("Implementation type %1% is not an action selector or action profile.",
+                implementationTypeDeclaration->getName());
     return std::nullopt;
 }
 
@@ -148,16 +150,16 @@ bool TofinoControlPlaneInitializer::preorder(const IR::Declaration_Instance *dec
         const auto *declarationArguments = declaration->arguments;
         constexpr int kMinimumExpectedArgumentSize = 5;
         if (declarationArguments->size() < kMinimumExpectedArgumentSize) {
-            ::error("Action selector %1% requires %2% arguments, but only %3% were provided.",
-                    implTypeDeclaration->controlPlaneName(), kMinimumExpectedArgumentSize,
-                    declarationArguments->size());
+            ::P4::error("Action selector %1% requires %2% arguments, but only %3% were provided.",
+                        implTypeDeclaration->controlPlaneName(), kMinimumExpectedArgumentSize,
+                        declarationArguments->size());
             return false;
         }
         const auto *actionProfileReference = declarationArguments->at(0)->expression;
         const auto *actionProfileReferencePath = actionProfileReference->to<IR::PathExpression>();
         if (actionProfileReferencePath == nullptr) {
-            ::error("Action profile reference %1% is not a path expression.",
-                    actionProfileReference);
+            ::P4::error("Action profile reference %1% is not a path expression.",
+                        actionProfileReference);
             return false;
         }
         const auto *actionProfileDeclaration = getDeclaration(actionProfileReferencePath->path);
@@ -168,7 +170,7 @@ bool TofinoControlPlaneInitializer::preorder(const IR::Declaration_Instance *dec
             actionProfileObject = constraintObject->second.get().to<ActionProfile>();
         }
         if (actionProfileObject == nullptr) {
-            ::error(
+            ::P4::error(
                 "The action selector must reference an existing action profile but action profile "
                 "%1% was not found.",
                 actionProfileName);
@@ -207,10 +209,10 @@ std::optional<ControlPlaneConstraints>
 TofinoControlPlaneInitializer::generateInitialControlPlaneConstraints(
     const IR::P4Program *program) {
     program->apply(*this);
-    if (::errorCount() > 0) {
+    if (::P4::errorCount() > 0) {
         return std::nullopt;
     }
     return defaultConstraints();
 }
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino

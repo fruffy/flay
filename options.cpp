@@ -7,21 +7,21 @@
 #include "backends/p4tools/modules/flay/toolname.h"
 #include "lib/error.h"
 
-namespace P4Tools {
+namespace P4::P4Tools::Flay {
 
 FlayOptions &FlayOptions::get() { return P4Tools::CompileContext<FlayOptions>::get().options(); }
 
 const std::set<std::string> K_SUPPORTED_CONTROL_PLANES = {"P4RUNTIME", "BFRUNTIME"};
 
 FlayOptions::FlayOptions()
-    : AbstractP4cToolOptions(Flay::TOOL_NAME, "Remove control-plane dead code from a P4 program.") {
+    : AbstractP4cToolOptions(TOOL_NAME, "Remove control-plane dead code from a P4 program.") {
     registerOption(
         "--config-file", "controlPlaneConfig",
         [this](const char *arg) {
             _controlPlaneConfig = std::filesystem::path(arg);
             if (!std::filesystem::exists(_controlPlaneConfig.value())) {
-                ::error("%1% does not exist. Please provide a valid file path.",
-                        _controlPlaneConfig.value().c_str());
+                ::P4::error("%1% does not exist. Please provide a valid file path.",
+                            _controlPlaneConfig.value().c_str());
                 return false;
             }
             return true;
@@ -47,7 +47,7 @@ FlayOptions::FlayOptions()
         "--server-address", "serverAddress",
         [this](const char *arg) {
             if (!_serverMode) {
-                ::warning(
+                ::P4::warning(
                     "Server mode was not active but a server address was provided. Enabling server "
                     "mode.");
                 _serverMode = true;
@@ -102,8 +102,8 @@ FlayOptions::FlayOptions()
         [this](const char *arg) {
             _userP4Info = arg;
             if (!std::filesystem::exists(_userP4Info.value())) {
-                ::error("%1% does not exist. Please provide a valid file path.",
-                        _userP4Info.value().c_str());
+                ::P4::error("%1% does not exist. Please provide a valid file path.",
+                            _userP4Info.value().c_str());
                 return false;
             }
             return true;
@@ -114,7 +114,7 @@ FlayOptions::FlayOptions()
         [this](const char *arg) {
             _p4InfoFilePath = arg;
             if (_p4InfoFilePath.value().extension() != ".txtpb") {
-                ::error("%1% must have a .txtpb extension.", _p4InfoFilePath.value().c_str());
+                ::P4::error("%1% must have a .txtpb extension.", _p4InfoFilePath.value().c_str());
                 return false;
             }
             return true;
@@ -129,7 +129,7 @@ FlayOptions::FlayOptions()
             return true;
             if (K_SUPPORTED_CONTROL_PLANES.find(_controlPlaneApi) ==
                 K_SUPPORTED_CONTROL_PLANES.end()) {
-                ::error(
+                ::P4::error(
                     "Test back end %1% not implemented for this target. Supported back ends are "
                     "%2%.",
                     _controlPlaneApi, Utils::containerToString(K_SUPPORTED_CONTROL_PLANES));
@@ -163,7 +163,8 @@ FlayOptions::FlayOptions()
 
 bool FlayOptions::validateOptions() const {
     if (_userP4Info.has_value() && _p4InfoFilePath.has_value()) {
-        ::error("Both --user-p4info and --generate-p4info are specified. Please specify only one.");
+        ::P4::error(
+            "Both --user-p4info and --generate-p4info are specified. Please specify only one.");
         return false;
     }
     return true;
@@ -239,4 +240,4 @@ void FlayOptions::setSkipSideEffectOrdering() { _skipSideEffectOrdering = true; 
 
 void FlayOptions::setUseSymbolSet() { _useSymbolSet = true; }
 
-}  // namespace P4Tools
+}  // namespace P4::P4Tools::Flay

@@ -5,7 +5,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/stepper.h"
 #include "backends/p4tools/modules/flay/targets/fpga/base/program_info.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 class FpgaBaseFlayStepper : public FlayStepper {
  protected:
@@ -19,6 +19,6 @@ class FpgaBaseFlayStepper : public FlayStepper {
     void initializeState() override;
 };
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_FPGA_BASE_STEPPER_H_ */

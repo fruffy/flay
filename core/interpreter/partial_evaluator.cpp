@@ -17,7 +17,7 @@
 #include "lib/error.h"
 #include "lib/timer.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 std::string PartialEvaluationStatistics::toFormattedString() const {
     std::stringstream output;
@@ -34,7 +34,7 @@ std::string PartialEvaluationStatistics::toFormattedString() const {
                 replaced->dbprint(output);
             }
         } else {
-            ::warning("Invalid source information for node %1%. This should be fixed", node);
+            ::P4::warning("Invalid source information for node %1%. This should be fixed", node);
             output << "Eliminated node at line (unknown): " << node;
         }
         if (elimRepl != eliminatedNodes.back()) {
@@ -122,7 +122,7 @@ std::optional<const IR::P4Program *> PartialEvaluation::specializeProgram(
     const IR::P4Program &program) {
     auto flaySpecializer = FlaySpecializer(_refMap, *_reachabilityMap, *_substitutionMap);
     const auto *optimizedProgram = program.apply(flaySpecializer);
-    if (::errorCount() > 0) {
+    if (::P4::errorCount() > 0) {
         return std::nullopt;
     }
     // Update the list of eliminated nodes.
@@ -148,7 +148,7 @@ std::optional<SymbolSet> PartialEvaluation::convertControlPlaneUpdate(
             return std::nullopt;
         }
     } else {
-        ::error("Unknown control plane update type: %1%", typeid(controlPlaneUpdate).name());
+        ::P4::error("Unknown control plane update type: %1%", typeid(controlPlaneUpdate).name());
         return std::nullopt;
     }
     return symbolSet;
@@ -210,4 +210,4 @@ int PartialEvaluation::initialize() {
     return new PartialEvaluationStatistics{_eliminatedNodes};
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

@@ -10,7 +10,7 @@
 #include "lib/cstring.h"
 #include "lib/ordered_map.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 class XsaProgramInfo : public FpgaBaseProgramInfo {
  private:
@@ -26,6 +26,6 @@ class XsaProgramInfo : public FpgaBaseProgramInfo {
     DECLARE_TYPEINFO(XsaProgramInfo, FpgaBaseProgramInfo);
 };
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_FPGA_XSA_PROGRAM_INFO_H_ */

@@ -5,7 +5,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/table_executor.h"
 #include "ir/ir.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 /// Executes a table and synthesizes control plane action parameters.
 class TofinoBaseTableExecutor : public TableExecutor {
@@ -18,6 +18,6 @@ class TofinoBaseTableExecutor : public TableExecutor {
     explicit TofinoBaseTableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver);
 };
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_TOFINO_BASE_TABLE_EXECUTOR_H_ */

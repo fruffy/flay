@@ -8,7 +8,7 @@
 #include "ir/ir.h"
 #include "ir/visitor.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 size_t computeCyclomaticComplexity(const IR::P4Program &program);
 
@@ -49,6 +49,6 @@ class ParserPathsCounter : public Inspector {
     size_t countPathsSub(DCGVertexType node);
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_LIB_ANALYSIS_H_ */

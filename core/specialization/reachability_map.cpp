@@ -5,7 +5,7 @@
 #include "lib/error.h"
 #include "lib/timer.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 IRReachabilityMap::IRReachabilityMap(const NodeAnnotationMap &map)
     : _symbolMap(map.reachabilitySymbolMap()) {
@@ -18,7 +18,7 @@ std::optional<bool> IRReachabilityMap::computeNodeReachability(
     const IR::Node *node, const ControlPlaneAssignmentSet &controlPlaneAssignments) {
     auto it = find(node);
     if (it == end()) {
-        ::error("Reachability mapping for node %1% does not exist.", node);
+        ::P4::error("Reachability mapping for node %1% does not exist.", node);
         return std::nullopt;
     }
     auto *reachabilityExpression = it->second;
@@ -47,7 +47,7 @@ std::optional<bool> IRReachabilityMap::isNodeReachable(const IR::Node *node) con
     if (it != end()) {
         return it->second->getReachability();
     }
-    ::warning(
+    ::P4::warning(
         "Unable to find node %1% in the reachability map of this execution state. There might be "
         "issues with the source information.",
         node);
@@ -113,4 +113,4 @@ std::optional<bool> IRReachabilityMap::recomputeReachability(
     return hasChanged;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

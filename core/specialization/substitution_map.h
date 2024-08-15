@@ -6,7 +6,7 @@
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_item.h"
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class AbstractSubstitutionMap {
  public:
@@ -66,6 +66,6 @@ class IrSubstitutionMap : private SubstitutionMap, public AbstractSubstitutionMa
         const IR::Expression *expression) const override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_SUBSTITUTION_MAP_H_ */

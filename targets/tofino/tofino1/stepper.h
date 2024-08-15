@@ -7,7 +7,7 @@
 #include "backends/p4tools/modules/flay/targets/tofino/tofino1/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/tofino/tofino1/program_info.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 class Tofino1FlayStepper : public TofinoBaseFlayStepper {
  protected:
@@ -23,6 +23,6 @@ class Tofino1FlayStepper : public TofinoBaseFlayStepper {
     Tofino1ExpressionResolver &createExpressionResolver() const override;
 };
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_TOFINO_TOFINO1_STEPPER_H_ */

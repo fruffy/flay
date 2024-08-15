@@ -19,7 +19,7 @@
 /// within into P4C-IR nodes. These IR-nodes are structured to represent a
 /// control-plane configuration that maps to the semantic data-plane
 /// representation of the program.
-namespace P4Tools::Flay::P4Runtime {
+namespace P4::P4Tools::Flay::P4Runtime {
 
 /// Convert a Protobuf P4Runtime entity object into a set of IR-based
 /// control-plane constraints. Use the
@@ -38,6 +38,6 @@ namespace P4Tools::Flay::P4Runtime {
     const p4::config::v1::P4Info &p4Info, ControlPlaneConstraints &controlPlaneConstraints,
     SymbolSet &symbolSet);
 
-}  // namespace P4Tools::Flay::P4Runtime
+}  // namespace P4::P4Tools::Flay::P4Runtime
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_P4RUNTIME_PROTOBUF_H_ */

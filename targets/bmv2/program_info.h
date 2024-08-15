@@ -10,7 +10,7 @@
 #include "lib/cstring.h"
 #include "lib/ordered_map.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 class Bmv2V1ModelProgramInfo : public ProgramInfo {
  private:
@@ -44,6 +44,6 @@ class Bmv2V1ModelProgramInfo : public ProgramInfo {
     DECLARE_TYPEINFO(Bmv2V1ModelProgramInfo);
 };
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_PROGRAM_INFO_H_ */

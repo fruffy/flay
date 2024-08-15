@@ -7,7 +7,7 @@
 
 #include "lib/options.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Encapsulates and processes command-line options for a compiler-based tool. Implementations
 /// should use the singleton pattern and define a static get() for obtaining the singleton
@@ -43,6 +43,6 @@ class FlayClientOptions : protected Util::Options {
     std::vector<std::filesystem::path> protoUpdates;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_GRPC_SERVICE_CLIENT_OPTIONS_H_ */

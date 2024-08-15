@@ -7,7 +7,7 @@
 #include "backends/p4tools/modules/flay/core/control_plane/symbols.h"
 #include "ir/ir.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// A reachability expression encodes the condition need for an expression to be executable and the
 /// current calculated result assigned to that expression. If the assignment is std::nullopt, the
@@ -53,6 +53,6 @@ struct ReachabilityExpression {
 /// Convenience type definition for a mapping of nodes to a set of reachability expressions.
 using ReachabilityMap = std::map<const IR::Node *, ReachabilityExpression *, SourceIdCmp>;
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_REACHABILITY_EXPRESSION_H_ */

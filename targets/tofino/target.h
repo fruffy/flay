@@ -8,7 +8,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/target.h"
 #include "ir/ir.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 class TofinoBaseFlayTarget : public FlayTarget {
  protected:
@@ -39,6 +39,6 @@ class Tofino1FlayTarget : public TofinoBaseFlayTarget {
                                               ExecutionState &executionState) const final;
 };
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_TOFINO_TARGET_H_ */
