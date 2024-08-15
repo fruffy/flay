@@ -1,0 +1,5 @@
+- port_limit      : 2
+  version         : 2
+#List of interfaces. Change to suit your setup. Use ./dpdk_setup_ports.py -s to see available options
+  interfaces: ['br_0', 'br_1']
+
