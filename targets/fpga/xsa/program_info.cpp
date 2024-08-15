@@ -10,7 +10,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 XsaProgramInfo::XsaProgramInfo(const FlayCompilerResult &compilerResult,
                                ordered_map<cstring, const IR::Type_Declaration *> inputBlocks)
@@ -54,4 +54,4 @@ std::vector<const IR::Node *> XsaProgramInfo::processDeclaration(
     return cmds;
 }
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga

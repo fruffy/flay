@@ -6,7 +6,7 @@
 #include "ir/ir.h"
 #include "ir/visitor.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Annotates P4C nodes with specific information (e.g., reachability or the present value).
 class NodeAnnotationMap {
@@ -54,5 +54,5 @@ class NodeAnnotationMap {
     [[nodiscard]] SubstitutionMap substitutionMap() const;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_NODE_MAP_H_ */

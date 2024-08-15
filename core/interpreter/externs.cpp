@@ -9,7 +9,7 @@
 #include "lib/exceptions.h"
 #include "lib/null.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 std::optional<ExternMethodImpls::MethodImpl> ExternMethodImpls::find(
     const IR::PathExpression &externObjectRef, const IR::ID &methodName,
@@ -98,4 +98,4 @@ ExternMethodImpls::ExternMethodImpls(const ImplList &inputImplList) {
     }
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

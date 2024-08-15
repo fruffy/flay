@@ -10,7 +10,7 @@
 #include "ir/ir.h"
 #include "ir/vector.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Forward declaration of the calling expression resolver.
 class ExpressionResolver;
@@ -99,6 +99,6 @@ class TableExecutor {
     virtual ~TableExecutor() = default;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_TABLE_EXECUTOR_H_ */

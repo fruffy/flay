@@ -11,7 +11,7 @@
 #include "lib/timer.h"
 
 int main(int argc, char **argv) {
-    setup_signals();
+    P4::setup_signals();
     std::vector<const char *> args;
     args.reserve(argc);
     for (int i = 0; i < argc; ++i) {
@@ -20,16 +20,16 @@ int main(int argc, char **argv) {
 
     int result = EXIT_SUCCESS;
     try {
-        Util::ScopedTimer timer("Flay Main");
-        result = P4Tools::Flay::Flay().main(P4Tools::Flay::TOOL_NAME, args);
-    } catch (const Util::CompilerBug &e) {
+        P4::Util::ScopedTimer timer("Flay Main");
+        result = P4::P4Tools::Flay::Flay().main(P4::P4Tools::Flay::TOOL_NAME, args);
+    } catch (const P4::Util::CompilerBug &e) {
         std::cerr << "Internal error: " << e.what() << '\n';
         std::cerr << "Please submit a bug report with your code." << '\n';
         result = EXIT_FAILURE;
-    } catch (const Util::CompilerUnimplemented &e) {
+    } catch (const P4::Util::CompilerUnimplemented &e) {
         std::cerr << e.what() << '\n';
         result = EXIT_FAILURE;
-    } catch (const Util::CompilationError &e) {
+    } catch (const P4::Util::CompilationError &e) {
         std::cerr << e.what() << '\n';
         result = EXIT_FAILURE;
     } catch (const std::exception &e) {
@@ -40,6 +40,6 @@ int main(int argc, char **argv) {
         std::cerr << "Internal error. Please submit a bug report with your code." << '\n';
         result = EXIT_FAILURE;
     }
-    P4Tools::printPerformanceReport();
+    P4::P4Tools::printPerformanceReport();
     return result;
 }

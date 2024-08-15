@@ -4,7 +4,7 @@
 
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 ProgramInfo::ProgramInfo(const FlayCompilerResult &compilerResult)
     : compilerResult(compilerResult) {}
@@ -29,4 +29,4 @@ cstring ProgramInfo::getCanonicalBlockName(cstring programBlockName) const {
     BUG("Unable to find var %s in the canonical block map.", programBlockName);
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

@@ -6,7 +6,7 @@
 #include "ir/node.h"
 #include "ir/visitor.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class SubstitutePlaceHolders : public Transform {
     /// A helper visitor which replaces placeholder variables with a symbolic variable with the same
@@ -28,6 +28,6 @@ class SubstitutePlaceHolders : public Transform {
     const IR::Expression *preorder(IR::Placeholder *placeholder) override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_SUBSTITUTE_PLACEHOLDERS_H_ */

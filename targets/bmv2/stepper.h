@@ -7,7 +7,7 @@
 #include "backends/p4tools/modules/flay/targets/bmv2/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/bmv2/program_info.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 class V1ModelFlayStepper : public FlayStepper {
  protected:
@@ -25,6 +25,6 @@ class V1ModelFlayStepper : public FlayStepper {
     V1ModelExpressionResolver &createExpressionResolver() const override;
 };
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_STEPPER_H_ */

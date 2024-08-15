@@ -14,7 +14,7 @@
 #include "lib/exceptions.h"
 #include "lib/null.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 Bmv2V1ModelProgramInfo::Bmv2V1ModelProgramInfo(
     const FlayCompilerResult &compilerResult,
@@ -91,4 +91,4 @@ const FlayCompilerResult &Bmv2V1ModelProgramInfo::getCompilerResult() const {
     return *ProgramInfo::getCompilerResult().checkedTo<FlayCompilerResult>();
 }
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model

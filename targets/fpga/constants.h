@@ -1,7 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_FPGA_CONSTANTS_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_FPGA_CONSTANTS_H_
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 class FpgaBaseConstants {
  public:
@@ -13,6 +13,6 @@ class FpgaBaseConstants {
     static constexpr const char *MATCH_KIND_RANGE = "range";
 };
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_FPGA_CONSTANTS_H_ */

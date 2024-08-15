@@ -22,7 +22,7 @@
 #include "p4/v1/p4runtime.pb.h"
 #pragma GCC diagnostic pop
 
-namespace P4Tools::Flay::P4Runtime {
+namespace P4::P4Tools::Flay::P4Runtime {
 
 namespace {
 
@@ -79,7 +79,7 @@ std::optional<ControlPlaneAssignmentSet> produceTableMatch(
             return tableKeySet;
         }
         default:
-            ::error("Unsupported table match type %1%.", field.DebugString().c_str());
+            ::P4::error("Unsupported table match type %1%.", field.DebugString().c_str());
     }
     return std::nullopt;
 }
@@ -108,7 +108,7 @@ std::optional<ControlPlaneAssignmentSet> produceTableMatchForMissingField(
             return tableKeySet;
         }
         default:
-            ::error("Unsupported match type %1%.", matchField.DebugString());
+            ::P4::error("Unsupported match type %1%.", matchField.DebugString());
     }
     return std::nullopt;
 }
@@ -134,9 +134,9 @@ std::optional<ControlPlaneAssignmentSet> convertTableAction(const p4::v1::Action
     }
     RETURN_IF_FALSE_WITH_MESSAGE(
         tblAction.params().size() == p4Action.params().size(), std::nullopt,
-        ::error("Action configuration \"%1%\" and target action \"%2%\" "
-                "have parameters of different number.",
-                p4Action.ShortDebugString(), tblAction.ShortDebugString()));
+        ::P4::error("Action configuration \"%1%\" and target action \"%2%\" "
+                    "have parameters of different number.",
+                    p4Action.ShortDebugString(), tblAction.ShortDebugString()));
     std::map<uint32_t, const p4::config::v1::Action_Param *> paramMap;
     for (const auto &param : p4Action.params()) {
         paramMap.emplace(param.id(), &param);
@@ -144,8 +144,8 @@ std::optional<ControlPlaneAssignmentSet> convertTableAction(const p4::v1::Action
     for (const auto &paramConfig : tblAction.params()) {
         auto paramIt = paramMap.find(paramConfig.param_id());
         RETURN_IF_FALSE_WITH_MESSAGE(paramIt != paramMap.end(), std::nullopt,
-                                     ::error("Parameter %1% of action %2% not found.",
-                                             paramConfig.DebugString(), actionName));
+                                     ::P4::error("Parameter %1% of action %2% not found.",
+                                                 paramConfig.DebugString(), actionName));
         const auto *paramType = IR::Type_Bits::get(paramIt->second->bitwidth());
         auto paramName = paramIt->second->name();
         const auto *actionArg =
@@ -168,25 +168,26 @@ std::optional<TableMatchEntry *> produceTableEntry(cstring tableName,
                                                    SymbolSet &symbolSet) {
     RETURN_IF_FALSE_WITH_MESSAGE(
         tableEntry.action().has_action(), std::nullopt,
-        ::error("Table entry %1% has no action.", tableEntry.DebugString()));
+        ::P4::error("Table entry %1% has no action.", tableEntry.DebugString()));
 
     auto tableAction = tableEntry.action().action();
     auto actionId = tableAction.action_id();
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &p4Action, P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, actionId), std::nullopt,
-        ::error("Action ID %1% not found in the P4Info.", actionId));
+        ::P4::error("Action ID %1% not found in the P4Info.", actionId));
     ASSIGN_OR_RETURN(const auto &tableActionAssignmentSet,
                      convertTableAction(tableAction, tableName, p4Action, symbolSet, false),
                      std::nullopt);
     ControlPlaneAssignmentSet tableKeySet;
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &p4InfoTable, P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId), std::nullopt,
-        ::error("Table ID %1% not found in the P4Info.", actionId));
+        ::P4::error("Table ID %1% not found in the P4Info.", actionId));
 
-    RETURN_IF_FALSE_WITH_MESSAGE(
-        tableEntry.match().size() <= p4InfoTable.match_fields().size(), std::nullopt,
-        ::error("Table entry %1% has %2% matches, but P4Info has %3%.", tableEntry.DebugString(),
-                tableEntry.match().size(), p4InfoTable.match_fields().size()));
+    RETURN_IF_FALSE_WITH_MESSAGE(tableEntry.match().size() <= p4InfoTable.match_fields().size(),
+                                 std::nullopt,
+                                 ::P4::error("Table entry %1% has %2% matches, but P4Info has %3%.",
+                                             tableEntry.DebugString(), tableEntry.match().size(),
+                                             p4InfoTable.match_fields().size()));
     // Use this map to look up which match fields are present in the control plane entry.
     // TODO: Cache this somehow?
     auto matchMap = std::map<uint32_t, p4::v1::FieldMatch>();
@@ -220,19 +221,20 @@ int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::v1::TableEn
     auto tblId = tableEntry.table_id();
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &p4Table, P4::ControlPlaneAPI::findP4RuntimeTable(p4Info, tblId), EXIT_FAILURE,
-        ::error("Table ID %1% not found in the P4Info.", tblId));
+        ::P4::error("Table ID %1% not found in the P4Info.", tblId));
     cstring tableName = p4Table.preamble().name();
 
     auto it = controlPlaneConstraints.find(tableName);
     RETURN_IF_FALSE_WITH_MESSAGE(
         it != controlPlaneConstraints.end(), EXIT_FAILURE,
-        ::error("Configuration for table %1% not found in the control plane constraints. It should "
-                "have already been initialized at this point.",
-                tableName));
+        ::P4::error(
+            "Configuration for table %1% not found in the control plane constraints. It should "
+            "have already been initialized at this point.",
+            tableName));
 
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &tableResult, it->second.get().to<TableConfiguration>(), EXIT_FAILURE,
-        ::error("Configuration result is not a TableConfiguration.", tableName));
+        ::P4::error("Configuration result is not a TableConfiguration.", tableName));
 
     if (tableEntry.is_default_action()) {
         auto defaultAction = tableEntry.action().action();
@@ -240,7 +242,7 @@ int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::v1::TableEn
             auto &p4Action,
             P4::ControlPlaneAPI::findP4RuntimeAction(p4Info, defaultAction.action_id()),
             EXIT_FAILURE,
-            ::error("Action ID %1% not found in the P4Info.", defaultAction.action_id()));
+            ::P4::error("Action ID %1% not found in the P4Info.", defaultAction.action_id()));
         ASSIGN_OR_RETURN(auto defaultActionExpr,
                          convertTableAction(defaultAction, tableName, p4Action, symbolSet, true),
                          EXIT_FAILURE);
@@ -249,7 +251,8 @@ int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::v1::TableEn
 
     RETURN_IF_FALSE_WITH_MESSAGE(
         !p4Table.is_const_table(), EXIT_FAILURE,
-        ::error("Trying to insert an entry into table '%1%', which is a const table.", tableName));
+        ::P4::error("Trying to insert an entry into table '%1%', which is a const table.",
+                    tableName));
 
     ASSIGN_OR_RETURN(auto *tableMatchEntry,
                      produceTableEntry(tableName, tblId, p4Info, tableEntry, symbolSet),
@@ -260,14 +263,14 @@ int updateTableEntry(const p4::config::v1::P4Info &p4Info, const p4::v1::TableEn
     } else if (updateType == p4::v1::Update::INSERT) {
         RETURN_IF_FALSE_WITH_MESSAGE(
             tableResult.addTableEntry(*tableMatchEntry, false) == EXIT_SUCCESS, EXIT_FAILURE,
-            ::error("Table entry \"%1%\" already exists.", tableEntry.ShortDebugString()));
+            ::P4::error("Table entry \"%1%\" already exists.", tableEntry.ShortDebugString()));
     } else if (updateType == p4::v1::Update::DELETE) {
-        RETURN_IF_FALSE_WITH_MESSAGE(tableResult.deleteTableEntry(*tableMatchEntry) != 0,
-                                     EXIT_FAILURE,
-                                     ::error("Table entry %1% not found and can not be deleted.",
-                                             tableEntry.ShortDebugString()));
+        RETURN_IF_FALSE_WITH_MESSAGE(
+            tableResult.deleteTableEntry(*tableMatchEntry) != 0, EXIT_FAILURE,
+            ::P4::error("Table entry %1% not found and can not be deleted.",
+                        tableEntry.ShortDebugString()));
     } else {
-        ::error("Unsupported update type %1%.", updateType);
+        ::P4::error("Unsupported update type %1%.", updateType);
         return EXIT_FAILURE;
     }
 
@@ -286,7 +289,7 @@ int updateControlPlaneConstraintsWithEntityMessage(const p4::v1::Entity &entity,
                                          updateType, symbolSet) == EXIT_SUCCESS,
                         EXIT_FAILURE)
     } else {
-        ::error("Unsupported control plane entry %1%.", entity.DebugString().c_str());
+        ::P4::error("Unsupported control plane entry %1%.", entity.DebugString().c_str());
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
@@ -306,4 +309,4 @@ int updateControlPlaneConstraints(const ::p4runtime::flaytests::Config &protoCon
     return EXIT_SUCCESS;
 }
 
-}  // namespace P4Tools::Flay::P4Runtime
+}  // namespace P4::P4Tools::Flay::P4Runtime

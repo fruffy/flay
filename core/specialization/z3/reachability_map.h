@@ -6,7 +6,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/node_map.h"
 #include "backends/p4tools/modules/flay/core/specialization/reachability_map.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// A Z3ReachabilityExpression extends the ReachabilityExpression class with precomputed Z3
 /// expressions. This significantly can improve performance for complex programs.
@@ -52,6 +52,6 @@ class Z3SolverReachabilityMap
     std::optional<bool> isNodeReachable(const IR::Node *node) const override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif  // BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_Z3_REACHABILITY_MAP_H_

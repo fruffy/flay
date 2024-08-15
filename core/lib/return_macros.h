@@ -1,7 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_FLAY_CORE_LIB_RETURN_MACROS_H_
 #define BACKENDS_P4TOOLS_MODULES_FLAY_CORE_LIB_RETURN_MACROS_H_
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// If @param inputFunction evaluates to false, returns @param ret.
 // NOLINTNEXTLINE
@@ -52,6 +52,6 @@ namespace P4Tools::Flay {
     ASSIGN_OR_RETURN_WITH_MESSAGE_IMPL(STATUS_MACROS_CONCAT_NAME(temporary, __LINE__),           \
                                        targetVariable, inputFunction, returnValue, errorFunction)
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_LIB_RETURN_MACROS_H_ */

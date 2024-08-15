@@ -8,7 +8,7 @@
 #include "ir/ir.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class ControlPlaneStateInitializer : public Inspector, protected P4::ResolutionContext {
  protected:
@@ -58,6 +58,6 @@ class ControlPlaneStateInitializer : public Inspector, protected P4::ResolutionC
     bool preorder(const IR::P4ValueSet *parserValueSet) override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_SYMBOLIC_STATE_H_ */

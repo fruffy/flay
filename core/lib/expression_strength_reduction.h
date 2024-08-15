@@ -3,7 +3,7 @@
 
 #include "ir/ir.h"
 
-namespace P4Tools {
+namespace P4::P4Tools {
 
 class ExpressionStrengthReduction final : public Transform {
  protected:
@@ -51,6 +51,6 @@ class ExpressionStrengthReduction final : public Transform {
     const IR::Node *postorder(IR::ArrayIndex *expr) override;
 };
 
-}  // namespace P4Tools
+}  // namespace P4::P4Tools
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_LIB_EXPRESSION_STRENGTH_REDUCTION_H_ */

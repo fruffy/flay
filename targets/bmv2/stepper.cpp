@@ -11,7 +11,7 @@
 #include "ir/irutils.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 const Bmv2V1ModelProgramInfo &V1ModelFlayStepper::getProgramInfo() const {
     return *FlayStepper::getProgramInfo().checkedTo<Bmv2V1ModelProgramInfo>();
@@ -80,4 +80,4 @@ V1ModelExpressionResolver &V1ModelFlayStepper::createExpressionResolver() const 
                                           getExecutionState());
 }
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model

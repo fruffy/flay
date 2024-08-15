@@ -10,7 +10,7 @@
 #include "lib/castable.h"
 #include "lib/cstring.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Stores target-specific information about a P4 program.
 class ProgramInfo : public ICastable {
@@ -54,6 +54,6 @@ class ProgramInfo : public ICastable {
     [[nodiscard]] cstring getCanonicalBlockName(cstring programBlockName) const;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_PROGRAM_INFO_H_ */

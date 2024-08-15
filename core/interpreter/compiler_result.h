@@ -7,7 +7,7 @@
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_item.h"
 #include "control-plane/p4RuntimeSerializer.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Extends the CompilerResult with the associated P4RuntimeApi
 class FlayCompilerResult : public CompilerResult {
@@ -38,6 +38,6 @@ class FlayCompilerResult : public CompilerResult {
     [[nodiscard]] const ControlPlaneConstraints &getDefaultControlPlaneConstraints() const;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_INTERPRETER_COMPILER_RESULT_H_ */

@@ -2,7 +2,7 @@
 
 #include "control-plane/p4RuntimeSymbolTable.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 P4RuntimeIdtoIrNodeMap P4RuntimeToIRMapper::getP4RuntimeIdtoIrNodeMap() const { return idToIrMap; }
 
@@ -25,7 +25,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4Table *table) {
             const auto *nameAnnot = keyElement->getAnnotation(IR::Annotation::nameAnnotation);
             // Some hidden tables do not have any key name annotations.
             if (nameAnnot == nullptr) {
-                ::error("Non-constant table key without an annotation");
+                ::P4::error("Non-constant table key without an annotation");
                 return false;
             }
             auto combinedName = tableName + "_" + nameAnnot->getName();
@@ -35,12 +35,12 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4Table *table) {
                                                                       p4RuntimeKeyId.value()),
                                   keyElement);
             } else {
-                ::error("%1% not found in the P4Runtime ID map.", keyElement);
+                ::P4::error("%1% not found in the P4Runtime ID map.", keyElement);
                 return false;
             }
         }
     } else {
-        ::error("%1% not found in the P4Runtime ID map.", table);
+        ::P4::error("%1% not found in the P4Runtime ID map.", table);
     }
 
     return false;
@@ -56,7 +56,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::Type_Header *hdr) {
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), hdr);
     } else {
-        ::error("%1% not found in the P4Runtime ID map.", hdr);
+        ::P4::error("%1% not found in the P4Runtime ID map.", hdr);
     }
     return false;
 }
@@ -69,7 +69,7 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4ValueSet *valueSet) {
     if (p4RuntimeId.has_value()) {
         idToIrMap.emplace(p4RuntimeId.value(), valueSet);
     } else {
-        ::error("%1% not found in the P4Runtime ID map.", valueSet);
+        ::P4::error("%1% not found in the P4Runtime ID map.", valueSet);
     }
     return false;
 }
@@ -90,14 +90,14 @@ bool P4RuntimeToIRMapper::preorder(const IR::P4Action *action) {
                                                                       paramP4RuntimeId.value()),
                                   param);
             } else {
-                ::error("Parameter %1% not found in the P4Runtime ID map.", param);
+                ::P4::error("Parameter %1% not found in the P4Runtime ID map.", param);
                 return false;
             }
         }
     } else {
-        ::error("P4 action %1% not found in the P4Runtime ID map.", action);
+        ::P4::error("P4 action %1% not found in the P4Runtime ID map.", action);
     }
     return false;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

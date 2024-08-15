@@ -8,7 +8,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/target.h"
 #include "ir/ir.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 class FpgaBaseFlayTarget : public FlayTarget {
  protected:
@@ -39,6 +39,6 @@ class XsaFlayTarget : public FpgaBaseFlayTarget {
                                               ExecutionState &executionState) const final;
 };
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_FPGA_TARGET_H_ */

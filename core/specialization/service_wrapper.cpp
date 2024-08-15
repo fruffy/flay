@@ -9,7 +9,7 @@
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/options.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 void FlayServiceWrapper::outputOptimizedProgram(
     const std::filesystem::path &optimizedOutputFileName) {
@@ -43,4 +43,4 @@ std::vector<AnalysisStatistics *> FlayServiceWrapper::computeFlayServiceStatisti
 FlayServiceWrapper::FlayServiceWrapper(const FlayCompilerResult &compilerResult,
                                        IncrementalAnalysisMap incrementalAnalysisMap)
     : _flayService(compilerResult, std::move(incrementalAnalysisMap)) {}
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

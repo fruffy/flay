@@ -4,7 +4,7 @@
 #include "backends/p4tools/common/lib/variables.h"
 #include "ir/irutils.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 bool CloneSession::operator<(const ControlPlaneItem &other) const {
     // There is only one clone session active at a time. We ignore the session id.
@@ -37,4 +37,4 @@ Z3ControlPlaneAssignmentSet CloneSession::computeZ3ControlPlaneAssignments() con
     return _z3ControlPlaneAssignments;
 }
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model

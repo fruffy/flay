@@ -14,7 +14,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 FlayStepper::FlayStepper(const ProgramInfo &programInfo, ControlPlaneConstraints &constraints,
                          ExecutionState &executionState)
@@ -244,4 +244,4 @@ bool FlayStepper::preorder(const IR::MethodCallStatement *callStatement) {
     return false;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

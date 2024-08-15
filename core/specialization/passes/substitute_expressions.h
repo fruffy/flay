@@ -10,7 +10,7 @@
 #include "ir/node.h"
 #include "ir/visitor.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// This compiler pass looks up program nodes in the expression map and substitutes any node in the
 /// map can be replaced with a constant.
@@ -38,6 +38,6 @@ class SubstituteExpressions : public Transform {
     [[nodiscard]] std::vector<EliminatedReplacedPair> eliminatedNodes() const;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_PASSES_SUBSTITUTE_EXPRESSIONS_H_ */

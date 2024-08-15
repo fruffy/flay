@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /**************************************************************************************************
 SubstitutionExpression
@@ -29,4 +29,4 @@ SubstitutionExpression::SubstitutionExpression(const IR::Expression *condition,
                                                const IR::Expression *originalExpression)
     : _condition(condition), _originalExpression(originalExpression) {}
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

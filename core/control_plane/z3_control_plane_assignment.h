@@ -8,7 +8,7 @@
 #include "ir/ir.h"
 #include "ir/node.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// The Z3 version of a ControlPlaneAssignmentSet. A little bit more restricted.
 class Z3ControlPlaneAssignmentSet
@@ -21,7 +21,7 @@ class Z3ControlPlaneAssignmentSet
     bool add(const IR::SymbolicVariable &var, z3::expr assignment) {
         auto result = emplace(var, assignment);
         if (!result.second) {
-            ::error("Entry for `%1%` already in the set", var);
+            ::P4::error("Entry for `%1%` already in the set", var);
         }
         return result.second;
     }
@@ -93,6 +93,6 @@ class Z3ControlPlaneAssignmentSet
     }
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_Z3_CONTROL_PLANE_ASSIGNMENT_H_ */

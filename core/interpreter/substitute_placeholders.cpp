@@ -2,7 +2,7 @@
 
 #include "lib/map.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 const IR::Expression *SubstitutePlaceHolders::SymbolizePlaceHolders::preorder(
     IR::Placeholder *placeholder) {
@@ -25,4 +25,4 @@ SubstitutePlaceHolders::SubstitutePlaceHolders(const ExecutionState &state) : st
     visitDagOnce = false;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

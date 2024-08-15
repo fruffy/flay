@@ -3,7 +3,7 @@
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
 
-namespace P4Tools::Flay::Tofino {
+namespace P4::P4Tools::Flay::Tofino {
 
 const Tofino1ProgramInfo &Tofino1FlayStepper::getProgramInfo() const {
     return *TofinoBaseFlayStepper::getProgramInfo().checkedTo<Tofino1ProgramInfo>();
@@ -59,4 +59,4 @@ void Tofino1FlayStepper::initializeParserState(const IR::P4Parser &parser) {
     }
 }
 
-}  // namespace P4Tools::Flay::Tofino
+}  // namespace P4::P4Tools::Flay::Tofino

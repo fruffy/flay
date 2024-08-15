@@ -6,7 +6,7 @@
 #include "midend/convertEnums.h"
 #include "midend/convertErrors.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 FlayCompilerResult::FlayCompilerResult(CompilerResult compilerResult,
                                        const IR::P4Program &originalProgram,
@@ -25,4 +25,4 @@ const ControlPlaneConstraints &FlayCompilerResult::getDefaultControlPlaneConstra
     return defaultControlPlaneConstraints;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

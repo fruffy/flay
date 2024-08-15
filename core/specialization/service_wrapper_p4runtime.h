@@ -13,7 +13,7 @@
 #include "p4/v1/p4runtime.pb.h"
 #pragma GCC diagnostic pop
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// Wrapper class to simplify benchmarking and the collection of statistics.
 class P4RuntimeFlayServiceWrapper : public FlayServiceWrapper {
@@ -33,6 +33,6 @@ class P4RuntimeFlayServiceWrapper : public FlayServiceWrapper {
     [[nodiscard]] int run() override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif  // BACKENDS_P4TOOLS_MODULES_FLAY_CORE_SPECIALIZATION_SERVICE_WRAPPER_P4RUNTIME_H_

@@ -3,7 +3,7 @@
 
 #include "backends/p4tools/modules/flay/core/control_plane/symbolic_state.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 class FpgaControlPlaneInitializer : public ControlPlaneStateInitializer {
     bool computeMatch(const IR::Expression &entryKey, const IR::SymbolicVariable &keySymbol,
@@ -17,6 +17,6 @@ class FpgaControlPlaneInitializer : public ControlPlaneStateInitializer {
         const IR::P4Program *program) override;
 };
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_FPGA_SYMBOLIC_STATE_H_ */

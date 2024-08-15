@@ -7,7 +7,7 @@
 #include "ir/node.h"
 #include "ir/visitor.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 class SubstituteSymbolicVariable : public Transform {
     /// Reference to an existing execution state.
@@ -19,6 +19,6 @@ class SubstituteSymbolicVariable : public Transform {
     const IR::Expression *preorder(IR::SymbolicVariable *placeholder) override;
 };
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_SUBSTITUTE_VARIABLE_H_ */

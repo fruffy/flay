@@ -25,7 +25,7 @@
 #include "lib/error.h"
 #include "lib/nullstream.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 void Flay::registerTarget() {
     // Register all available compiler targets.
@@ -41,13 +41,13 @@ int runServer(const FlayOptions &flayOptions, const FlayCompilerResult &flayComp
     // Initialize the flay service, which includes a dead code eliminator.
     FlayService service(serviceOptions, flayCompilerResult, executionState.nodeAnnotationMap(),
                         constraints);
-    if (::errorCount() > 0) {
-        ::error("Encountered errors trying to starting the service.");
+    if (::P4::errorCount() > 0) {
+        ::P4::error("Encountered errors trying to starting the service.");
         return EXIT_FAILURE;
     }
     printInfo("Starting flay server...");
     service.startServer(flayOptions.getServerAddress());
-    return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return ::P4::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 #endif
 
@@ -64,7 +64,7 @@ std::optional<std::vector<AnalysisStatistics *>> runServiceWrapper(
         serviceWrapper =
             new BfRuntimeFlayServiceWrapper(compilerResult, std::move(incrementalAnalysisMap));
     } else {
-        ::error("Unsupported control plane API %1%.", controlPlaneApi.data());
+        ::P4::error("Unsupported control plane API %1%.", controlPlaneApi.data());
         return std::nullopt;
     }
     if (flayOptions.hasConfigurationUpdatePattern()) {
@@ -87,15 +87,15 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     // Make sure the input result corresponds to the result we expect.
     ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &flayCompilerResult,
                                   compilerResult.to<FlayCompilerResult>(), EXIT_FAILURE,
-                                  ::error("Expected a FlayCompilerResult."));
+                                  ::P4::error("Expected a FlayCompilerResult."));
 
     const auto *programInfo = FlayTarget::produceProgramInfo(compilerResult);
     if (programInfo == nullptr) {
-        ::error("Program not supported by target device and architecture.");
+        ::P4::error("Program not supported by target device and architecture.");
         return EXIT_FAILURE;
     }
-    if (::errorCount() > 0) {
-        ::error("Flay: Encountered errors during preprocessing. Exiting");
+    if (::P4::errorCount() > 0) {
+        ::P4::error("Flay: Encountered errors during preprocessing. Exiting");
         return EXIT_FAILURE;
     }
     const auto &flayOptions = FlayOptions::get();
@@ -109,7 +109,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
         auto midendOutputFile = optimizedOutputDir.value() / "midend.p4";
         std::ofstream output(midendOutputFile);
         if (!output.is_open()) {
-            ::error("Could not open file %1% for writing.", midendOutputFile.c_str());
+            ::P4::error("Could not open file %1% for writing.", midendOutputFile.c_str());
             return EXIT_FAILURE;
         }
         P4::ToP4 toP4(&output, false);
@@ -138,7 +138,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     // If server mode is active, start the server and exit once it has finished.
     if (flayOptions.serverModeActive()) {
         if (flayOptions.controlPlaneApi() != "P4RUNTIME") {
-            ::error("Server mode requires P4RUNTIME as --control-plane option.");
+            ::P4::error("Server mode requires P4RUNTIME as --control-plane option.");
         }
         return runServer(flayOptions, flayCompilerResult, symbolicExecutor.getExecutionState(),
                          constraints);
@@ -156,7 +156,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     RETURN_IF_FALSE(
         runServiceWrapper(flayOptions, flayCompilerResult, std::move(incrementalAnalysisMap)),
         EXIT_FAILURE);
-    return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return ::P4::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 std::optional<std::vector<AnalysisStatistics *>> optimizeProgramImpl(
@@ -176,7 +176,7 @@ std::optional<std::vector<AnalysisStatistics *>> optimizeProgramImpl(
             std::nullopt);
     } else {
         RETURN_IF_FALSE_WITH_MESSAGE(!flayOptions.file.empty(), std::nullopt,
-                                     ::error("Expected a file input."));
+                                     ::P4::error("Expected a file input."));
         // Run the compiler to get an IR and invoke the tool.
         ASSIGN_OR_RETURN(compilerResult,
                          P4Tools::CompilerTarget::runCompiler(flayOptions, TOOL_NAME),
@@ -185,11 +185,11 @@ std::optional<std::vector<AnalysisStatistics *>> optimizeProgramImpl(
 
     ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &flayCompilerResult,
                                   compilerResult.value().get().to<FlayCompilerResult>(),
-                                  std::nullopt, ::error("Expected a FlayCompilerResult."));
+                                  std::nullopt, ::P4::error("Expected a FlayCompilerResult."));
 
     const auto *programInfo = FlayTarget::produceProgramInfo(flayCompilerResult);
-    if (programInfo == nullptr || ::errorCount() > 0) {
-        ::error("P4Flay encountered errors during preprocessing.");
+    if (programInfo == nullptr || ::P4::errorCount() > 0) {
+        ::P4::error("P4Flay encountered errors during preprocessing.");
         return std::nullopt;
     }
 
@@ -239,4 +239,4 @@ std::optional<std::vector<AnalysisStatistics *>> Flay::optimizeProgram(
     return std::nullopt;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

@@ -2,7 +2,7 @@
 
 #include "lib/map.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 const IR::Expression *SubstituteSymbolicVariable::preorder(IR::SymbolicVariable *placeholder) {
     auto value = symbolicVariables.find(*placeholder);
@@ -19,4 +19,4 @@ SubstituteSymbolicVariable::SubstituteSymbolicVariable(
     visitDagOnce = false;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

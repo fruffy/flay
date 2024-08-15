@@ -1,6 +1,6 @@
 #include "backends/p4tools/modules/flay/core/interpreter/reachability_expression.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 const IR::Expression *ReachabilityExpression::getCondition() const { return _cond; }
 
@@ -25,4 +25,4 @@ void ReachabilityExpression::addCondition(const IR::Expression *cond) {
     _cond = new IR::LOr(_cond, cond);
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

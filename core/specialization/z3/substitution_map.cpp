@@ -7,7 +7,7 @@
 #include "lib/error.h"
 #include "lib/timer.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /**************************************************************************************************
 Z3SubstitutionExpression
@@ -42,7 +42,7 @@ std::optional<bool> Z3SolverSubstitutionMap::computeNodeSubstitution(
     const IR::Expression *expression, const Z3ControlPlaneAssignmentSet &assignmentSet) {
     auto it = find(expression);
     if (it == end()) {
-        ::error("Substitution mapping for node %1% does not exist.", expression);
+        ::P4::error("Substitution mapping for node %1% does not exist.", expression);
         return std::nullopt;
     }
 
@@ -81,7 +81,7 @@ std::optional<const IR::Literal *> Z3SolverSubstitutionMap::isExpressionConstant
     if (it != end()) {
         return it->second->substitution();
     }
-    ::warning(
+    ::P4::warning(
         "Unable to find node %1% in the expression map of this execution state. There might be "
         "issues with the source information.",
         expression);
@@ -141,4 +141,4 @@ std::optional<bool> Z3SolverSubstitutionMap::recomputeSubstitution(
     return hasChanged;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

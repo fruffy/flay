@@ -6,7 +6,7 @@
 
 #include "backends/p4tools/common/options.h"
 
-namespace P4Tools {
+namespace P4::P4Tools::Flay {
 
 /// Encapsulates and processes command-line options for P4Testgen.
 class FlayOptions : public AbstractP4cToolOptions {
@@ -158,6 +158,6 @@ class FlayOptions : public AbstractP4cToolOptions {
     bool _useSymbolSet = true;
 };
 
-}  // namespace P4Tools
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_OPTIONS_H_ */

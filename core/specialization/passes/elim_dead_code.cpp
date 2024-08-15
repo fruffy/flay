@@ -10,7 +10,7 @@
 #include "ir/vector.h"
 #include "lib/error.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 ElimDeadCode::ElimDeadCode(const P4::ReferenceMap &refMap,
                            const AbstractReachabilityMap &reachabilityMap)
@@ -114,24 +114,24 @@ std::optional<const IR::P4Action *> getActionDecl(const P4::ReferenceMap &refMap
     if (const auto *tableAction = expr.to<IR::MethodCallExpression>()) {
         const auto *actionPath = tableAction->method->to<IR::PathExpression>();
         if (actionPath == nullptr) {
-            ::error("Action reference %1% is not a path expression.", tableAction->method);
+            ::P4::error("Action reference %1% is not a path expression.", tableAction->method);
             return std::nullopt;
         }
         actionDeclPath = actionPath->path;
     } else if (const auto *tableAction = expr.to<IR::PathExpression>()) {
         actionDeclPath = tableAction->path;
     } else {
-        ::error("Unsupported action reference %1%.", expr);
+        ::P4::error("Unsupported action reference %1%.", expr);
         return std::nullopt;
     }
     const auto *actionDecl = refMap.getDeclaration(actionDeclPath, false);
     if (actionDecl == nullptr) {
-        ::error("Unable to find action declaration %1%.", actionDeclPath);
+        ::P4::error("Unable to find action declaration %1%.", actionDeclPath);
         return std::nullopt;
     }
     const auto *action = actionDecl->to<IR::P4Action>();
     if (action == nullptr) {
-        ::error("%1% is not an action.", actionDecl);
+        ::P4::error("%1% is not an action.", actionDecl);
         return std::nullopt;
     }
     return action;
@@ -164,11 +164,12 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
 
     // Filter out any actions which are @defaultonly.
     auto tableActionList = TableUtils::buildTableActionList(table);
-    ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &defaultAction, table.getDefaultAction(), stmt,
-                                  ::error("Table %1% does not have a default action.", tableDecl));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        const auto &defaultAction, table.getDefaultAction(), stmt,
+        ::P4::error("Table %1% does not have a default action.", tableDecl));
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         const auto &defaultActionCall, defaultAction.to<IR::MethodCallExpression>(), stmt,
-        ::error("%1% is not a method call expression.", table.getDefaultAction()));
+        ::P4::error("%1% is not a method call expression.", table.getDefaultAction()));
     for (const auto *action : tableActionList) {
         // Do not remove the default action.
         if (defaultActionCall.method->toString() ==
@@ -207,4 +208,4 @@ std::vector<EliminatedReplacedPair> ElimDeadCode::eliminatedNodes() const {
     return _eliminatedNodes;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

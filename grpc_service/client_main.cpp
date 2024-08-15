@@ -5,7 +5,7 @@
 #include "backends/p4tools/modules/flay/grpc_service/flay_client.h"
 #include "lib/error.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 void run(const FlayClientOptions &options) {
     enableInformationLogging();
@@ -21,8 +21,8 @@ void run(const FlayClientOptions &options) {
         }
         auto result = client.sendWriteRequest(request.value());
         if (!result.ok()) {
-            ::error("Code %1% - Failed to send write request. Reason: %2%", result.error_code(),
-                    result.error_message());
+            ::P4::error("Code %1% - Failed to send write request. Reason: %2%", result.error_code(),
+                        result.error_message());
             return;
         }
     }
@@ -30,22 +30,22 @@ void run(const FlayClientOptions &options) {
     printPerformanceReport();
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
-class FlayClientContext : public BaseCompileContext {};
+class FlayClientContext : public P4::BaseCompileContext {};
 
 int main(int argc, char *argv[]) {
     // Set up the compilation context and the options.
-    AutoCompileContext autoP4FlayClientContext(new FlayClientContext);
-    P4Tools::Flay::FlayClientOptions options("A Flay gRPC client.");
+    P4::AutoCompileContext autoP4FlayClientContext(new FlayClientContext);
+    P4::P4Tools::Flay::FlayClientOptions options("A Flay gRPC client.");
 
     // Process command-line options.
     options.process(argc, argv);
-    if (::errorCount() != 0) {
+    if (::P4::errorCount() != 0) {
         return EXIT_FAILURE;
     }
 
     // Run the Flay client.
-    P4Tools::Flay::run(options);
-    return ::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    P4::P4Tools::Flay::run(options);
+    return ::P4::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

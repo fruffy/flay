@@ -5,7 +5,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/table_executor.h"
 #include "ir/ir.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 /// Executes a table and synthesizes control plane action parameters.
 class V1ModelTableExecutor : public TableExecutor {
@@ -18,6 +18,6 @@ class V1ModelTableExecutor : public TableExecutor {
     explicit V1ModelTableExecutor(const IR::P4Table &table, ExpressionResolver &callingResolver);
 };
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_BMV2_TABLE_EXECUTOR_H_ */

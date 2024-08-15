@@ -11,7 +11,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay::V1Model {
+namespace P4::P4Tools::Flay::V1Model {
 
 V1ModelTableExecutor::V1ModelTableExecutor(const IR::P4Table &table,
                                            ExpressionResolver &callingResolver)
@@ -55,4 +55,4 @@ const TableMatchKey *V1ModelTableExecutor::computeTargetMatchType(
     return TableExecutor::computeTargetMatchType(keyField);
 }
 
-}  // namespace P4Tools::Flay::V1Model
+}  // namespace P4::P4Tools::Flay::V1Model

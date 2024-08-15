@@ -7,7 +7,7 @@
 #include "backends/p4tools/modules/flay/core/control_plane/z3_control_plane_assignment.h"
 #include "lib/castable.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// A control plane item is any control plane construct that can influence program execution.
 /// An example is a table entry executing a particular action and matching on a particular set
@@ -30,6 +30,6 @@ class Z3ControlPlaneItem : public ControlPlaneItem {
 /// identifier of the object, typically its control plane name.
 using ControlPlaneConstraints = std::map<cstring, std::reference_wrapper<Z3ControlPlaneItem>>;
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_CONTROL_PLANE_CONTROL_PLANE_ITEM_H_ */

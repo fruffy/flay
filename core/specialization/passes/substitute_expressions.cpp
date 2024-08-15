@@ -8,7 +8,7 @@
 #include "ir/vector.h"
 #include "lib/error.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 SubstituteExpressions::SubstituteExpressions(const P4::ReferenceMap &refMap,
                                              const AbstractSubstitutionMap &substitutionMap)
@@ -42,12 +42,12 @@ const IR::Node *SubstituteExpressions::preorder(IR::MethodCallExpression *call) 
     } else if (const auto *actionType = callType->to<IR::Type_Action>()) {
         paramList = actionType->parameters;
     } else {
-        ::warning("Unexpected type %1% for call %2%.", callType, call);
+        ::P4::warning("Unexpected type %1% for call %2%.", callType, call);
         return call;
     }
     if (call->arguments->size() > paramList->size()) {
-        ::error("%1%: Expected lesser or equals than %2% arguments, got %3%.", call,
-                paramList->size(), call->arguments->size());
+        ::P4::error("%1%: Expected lesser or equals than %2% arguments, got %3%.", call,
+                    paramList->size(), call->arguments->size());
         return call;
     }
     bool hasChanged = false;
@@ -62,8 +62,9 @@ const IR::Node *SubstituteExpressions::preorder(IR::MethodCallExpression *call) 
         hasChanged = true;
         auto subst = SubstituteExpressions(_refMap, _substitutionMap);
         const auto *ret = call->arguments->at(idx)->apply(subst);
-        ASSIGN_OR_RETURN_WITH_MESSAGE(auto &newArg, ret->to<IR::Argument>(), call,
-                                      ::error("Resolved argument %1% is not an argument.", ret));
+        ASSIGN_OR_RETURN_WITH_MESSAGE(
+            auto &newArg, ret->to<IR::Argument>(), call,
+            ::P4::error("Resolved argument %1% is not an argument.", ret));
         argumentList->push_back(&newArg);
     }
     if (hasChanged) {
@@ -104,4 +105,4 @@ std::vector<EliminatedReplacedPair> SubstituteExpressions::eliminatedNodes() con
     return _eliminatedNodes;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

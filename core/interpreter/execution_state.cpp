@@ -13,7 +13,7 @@
 #include "lib/source_file.h"
 #include "lib/timer.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 ExecutionState::ExecutionState(const IR::P4Program *program)
     : AbstractExecutionState(program), executionCondition(nullptr) {}
@@ -193,4 +193,4 @@ ExecutionState &ExecutionState::create(const IR::P4Program *program) {
 
 ExecutionState &ExecutionState::clone() const { return *new ExecutionState(*this); }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

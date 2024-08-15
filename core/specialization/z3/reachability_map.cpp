@@ -7,7 +7,7 @@
 
 #include "lib/timer.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 Z3ReachabilityExpression::Z3ReachabilityExpression(ReachabilityExpression reachabilityExpression,
                                                    z3::expr z3Condition)
@@ -19,7 +19,7 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(
     const IR::Node *node, const Z3ControlPlaneAssignmentSet &assignments) {
     auto it = find(node);
     if (it == end()) {
-        ::error("Reachability mapping for node %1% does not exist.", node);
+        ::P4::error("Reachability mapping for node %1% does not exist.", node);
         return std::nullopt;
     }
     auto *reachabilityExpression = it->second;
@@ -65,7 +65,7 @@ std::optional<bool> Z3SolverReachabilityMap::isNodeReachable(const IR::Node *nod
         // reachabilityNode->getCondition());
         return reachabilityNode->getReachability();
     }
-    ::warning(
+    ::P4::warning(
         "Unable to find node %1% in the reachability map of this execution state. There might be "
         "issues with the source information.",
         node);
@@ -124,4 +124,4 @@ std::optional<bool> Z3SolverReachabilityMap::recomputeReachability(
     return hasChanged;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

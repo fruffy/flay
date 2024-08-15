@@ -10,7 +10,7 @@
 #include "backends/p4tools/modules/flay/options.h"
 #include "lib/error.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 int BfRuntimeFlayServiceWrapper::parseControlUpdatesFromPattern(std::string_view pattern) {
     auto files = findFiles(pattern);
@@ -26,8 +26,8 @@ int BfRuntimeFlayServiceWrapper::parseControlUpdatesFromPattern(std::string_view
 }
 
 int BfRuntimeFlayServiceWrapper::run() {
-    if (::errorCount() > 0) {
-        ::error("Encountered errors trying to starting the service.");
+    if (::P4::errorCount() > 0) {
+        ::P4::error("Encountered errors trying to starting the service.");
         return EXIT_FAILURE;
     }
     _flayService.recordProgramChange();
@@ -60,4 +60,4 @@ int BfRuntimeFlayServiceWrapper::run() {
     return EXIT_SUCCESS;
 }
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay

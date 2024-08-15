@@ -7,7 +7,7 @@
 #include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
 #include "backends/p4tools/modules/flay/core/interpreter/target.h"
 
-namespace P4Tools::Flay::Fpga {
+namespace P4::P4Tools::Flay::Fpga {
 
 const FpgaBaseProgramInfo &FpgaBaseFlayStepper::getProgramInfo() const {
     return *FlayStepper::getProgramInfo().checkedTo<FpgaBaseProgramInfo>();
@@ -34,4 +34,4 @@ FpgaBaseFlayStepper::FpgaBaseFlayStepper(const FpgaBaseProgramInfo &programInfo,
                                          ExecutionState &executionState)
     : FlayStepper(programInfo, constraints, executionState) {}
 
-}  // namespace P4Tools::Flay::Fpga
+}  // namespace P4::P4Tools::Flay::Fpga

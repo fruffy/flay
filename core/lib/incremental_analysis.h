@@ -15,7 +15,7 @@
 #include "p4/v1/p4runtime.pb.h"
 #pragma GCC diagnostic pop
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 /// A thin wrapper for control-plane updates.
 struct ControlPlaneUpdate : public ICastable {
@@ -155,6 +155,6 @@ class IncrementalAnalysis : public ICastable {
 /// A map of incremental analysis instances. The name can be used for disambiguation and filtering.
 using IncrementalAnalysisMap = ordered_map<std::string, std::unique_ptr<IncrementalAnalysis>>;
 
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
 
 #endif /* BACKENDS_P4TOOLS_MODULES_FLAY_CORE_LIB_INCREMENTAL_ANALYSIS_H_ */

@@ -12,7 +12,7 @@
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
 
-namespace P4Tools::Flay {
+namespace P4::P4Tools::Flay {
 
 ParserStepper::ParserStepper(FlayStepper &stepper) : stepper(stepper) {}
 
@@ -211,4 +211,4 @@ const std::vector<ParserStepper::ParserExitState> &ParserStepper::getParserExitS
 void ParserStepper::addParserExitState(const ExecutionState &state) {
     parserExitStates.emplace_back(state);
 }
-}  // namespace P4Tools::Flay
+}  // namespace P4::P4Tools::Flay
