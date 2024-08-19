@@ -4,6 +4,7 @@
 
 #include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/modules/flay/core/lib/return_macros.h"
+#include "backends/p4tools/modules/flay/options.h"
 #include "ir/node.h"
 #include "ir/vector.h"
 #include "lib/error.h"
@@ -13,6 +14,13 @@ namespace P4::P4Tools::Flay {
 SubstituteExpressions::SubstituteExpressions(const P4::ReferenceMap &refMap,
                                              const AbstractSubstitutionMap &substitutionMap)
     : _substitutionMap(substitutionMap), _refMap(refMap) {}
+
+const IR::Node *SubstituteExpressions::preorder(IR::P4Parser *parser) {
+    if (FlayOptions::get().skipParsers()) {
+        prune();
+    }
+    return parser;
+}
 
 const IR::Node *SubstituteExpressions::preorder(IR::Declaration_Variable *declaration) {
     if (declaration->initializer != nullptr) {
