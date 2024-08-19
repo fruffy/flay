@@ -126,4 +126,11 @@ endif()
 file(CREATE_LINK ${P4C_SOURCE_DIR}/pyproject.toml ${flay_SOURCE_DIR}/pyproject.toml SYMBOLIC)
 file(CREATE_LINK ${P4C_SOURCE_DIR}/.clang-tidy ${flay_SOURCE_DIR}/.clang-tidy SYMBOLIC)
 file(CREATE_LINK ${P4C_SOURCE_DIR}/.clang-format ${flay_SOURCE_DIR}/.clang-format SYMBOLIC)
-file(CREATE_LINK ${P4C_SOURCE_DIR}/CPPLINT.cfg ${flay_SOURCE_DIR}/CPPLINT.cfg SYMBOLIC)
+# Copy the current CPPLint configuration to the flay directory and modify the root.
+file(CREATE_LINK ${P4C_SOURCE_DIR}/CPPLINT.cfg ${flay_SOURCE_DIR}/CPPLINT.cfg)
+message(STATUS "Running sed command:")
+# Note we need to use bash to make this work.
+execute_process(COMMAND bash "-c" "sed -i 's|^root=[^ ]*|root=${P4C_SOURCE_DIR}|' ${flay_SOURCE_DIR}/CPPLINT.cfg" RESULT_VARIABLE rv COMMAND_ECHO STDOUT)
+if(NOT rv EQUAL 0)
+  message(WARNING "Failed to modify CPPLINT.cfg")
+endif()
