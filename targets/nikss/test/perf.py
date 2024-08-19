@@ -1,11 +1,10 @@
+import json
 import os
 import pprint
 import sys
 import time
-import json
 
 from backends.p4tools.modules.flay.targets.nikss.common import P4EbpfTest
-
 from tools import testutils
 
 trex_path = "/mnt/storage/Projekte/trex-core/scripts/automation/trex_control_plane/interactive"
@@ -207,10 +206,12 @@ class PerfTest(P4EbpfTest):
             rx_example(tx_port=0, rx_port=1, burst_size=10000000, pps=1000000), "Failed"
         )
         stats = testutils.exec_process(
-         "/mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/bpftool/src/bpftool prog show name xdp_ingress_func -j"
+            "/mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/bpftool/src/bpftool prog show name xdp_ingress_func -j"
         )
         if stats.output:
             stats_obj = json.loads(stats.output)
             testutils.log.info(stats_obj)
-            print("Nanoseconds spent per packet: %s" % {stats_obj["run_time_ns"]/stats_obj["run_cnt"]})
-
+            print(
+                "Nanoseconds spent per packet: %s"
+                % {stats_obj["run_time_ns"] / stats_obj["run_cnt"]}
+            )

@@ -14,7 +14,7 @@
 namespace P4::P4Tools::Flay::Nikss {
 
 NikssBaseTableExecutor::NikssBaseTableExecutor(const IR::P4Table &table,
-                                             ExpressionResolver &callingResolver)
+                                               ExpressionResolver &callingResolver)
     : TableExecutor(table, callingResolver) {}
 
 const TableMatchKey *NikssBaseTableExecutor::computeTargetMatchType(

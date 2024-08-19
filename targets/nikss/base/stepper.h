@@ -13,8 +13,8 @@ class NikssBaseFlayStepper : public FlayStepper {
 
  public:
     explicit NikssBaseFlayStepper(const NikssBaseProgramInfo &programInfo,
-                                 ControlPlaneConstraints &constraints,
-                                 ExecutionState &executionState);
+                                  ControlPlaneConstraints &constraints,
+                                  ExecutionState &executionState);
 
     void initializeState() override;
 };

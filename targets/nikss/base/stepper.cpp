@@ -30,8 +30,8 @@ void NikssBaseFlayStepper::initializeState() {
 }
 
 NikssBaseFlayStepper::NikssBaseFlayStepper(const NikssBaseProgramInfo &programInfo,
-                                         ControlPlaneConstraints &constraints,
-                                         ExecutionState &executionState)
+                                           ControlPlaneConstraints &constraints,
+                                           ExecutionState &executionState)
     : FlayStepper(programInfo, constraints, executionState) {}
 
 }  // namespace P4::P4Tools::Flay::Nikss

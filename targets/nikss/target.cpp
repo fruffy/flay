@@ -7,9 +7,9 @@
 
 #include "backends/p4tools/common/lib/util.h"
 #include "backends/p4tools/modules/flay/core/control_plane/protobuf_utils.h"
-#include "backends/p4tools/modules/flay/targets/nikss/symbolic_state.h"
 #include "backends/p4tools/modules/flay/targets/nikss/psa/program_info.h"
 #include "backends/p4tools/modules/flay/targets/nikss/psa/stepper.h"
+#include "backends/p4tools/modules/flay/targets/nikss/symbolic_state.h"
 #include "ir/ir.h"
 #include "lib/cstring.h"
 #include "lib/exceptions.h"
@@ -33,7 +33,7 @@ NikssBaseFlayTarget::NikssBaseFlayTarget(const std::string &deviceName, const st
     : FlayTarget(deviceName, archName){};
 
 CompilerResultOrError NikssBaseFlayTarget::runCompilerImpl(const CompilerOptions &options,
-                                                          const IR::P4Program *program) const {
+                                                           const IR::P4Program *program) const {
     program = runFrontend(options, program);
     if (program == nullptr) {
         return std::nullopt;

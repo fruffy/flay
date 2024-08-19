@@ -35,9 +35,10 @@ from pathlib import Path
 import ptf
 import ptf.testutils as ptfutils
 import pyroute2
-import tools.testutils as testutils
 from ptf.base_tests import BaseTest
 from pyroute2 import NetNS
+
+import tools.testutils as testutils
 
 TEST_PIPELINE_ID = 1
 TEST_PIPELINE_MOUNT_PATH = "/sys/fs/bpf/pipeline{}".format(TEST_PIPELINE_ID)
@@ -85,7 +86,6 @@ class P4EbpfTest(BaseTest):
 
         testutils.log.info("Using test params: %s", ptfutils.test_params_get())
         self.interfaces = ptfutils.test_param_get("interfaces").split(",")
-
 
         self.ebpf_object = ptfutils.test_param_get("ebpf_object")
         if self.ebpf_object is None:
@@ -186,9 +186,7 @@ class P4EbpfTest(BaseTest):
         return ptfutils.test_param_get("trace") == "True"
 
     def clone_session_create(self, id):
-        self.exec_cmd(
-            "nikss-ctl clone-session create pipe {} id {}".format(TEST_PIPELINE_ID, id)
-        )
+        self.exec_cmd("nikss-ctl clone-session create pipe {} id {}".format(TEST_PIPELINE_ID, id))
 
     def clone_session_add_member(self, clone_session, egress_port, instance=1, cos=0):
         self.exec_cmd(
@@ -198,9 +196,7 @@ class P4EbpfTest(BaseTest):
         )
 
     def clone_session_delete(self, id):
-        self.exec_cmd(
-            "nikss-ctl clone-session delete pipe {} id {}".format(TEST_PIPELINE_ID, id)
-        )
+        self.exec_cmd("nikss-ctl clone-session delete pipe {} id {}".format(TEST_PIPELINE_ID, id))
 
     def multicast_group_create(self, group):
         self.exec_cmd(

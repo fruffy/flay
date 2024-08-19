@@ -12,8 +12,8 @@ namespace P4::P4Tools::Flay::Nikss {
 class NikssBaseExpressionResolver : public ExpressionResolver {
  public:
     explicit NikssBaseExpressionResolver(const ProgramInfo &programInfo,
-                                        ControlPlaneConstraints &constraints,
-                                        ExecutionState &executionState);
+                                         ControlPlaneConstraints &constraints,
+                                         ExecutionState &executionState);
 
  protected:
     const IR::Expression *processTable(const IR::P4Table *table) override;

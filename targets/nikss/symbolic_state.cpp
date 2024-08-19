@@ -10,10 +10,10 @@
 namespace P4::P4Tools::Flay::Nikss {
 
 bool NikssControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
-                                               const IR::SymbolicVariable &keySymbol,
-                                               cstring tableName, cstring fieldName,
-                                               cstring matchType,
-                                               ControlPlaneAssignmentSet &keySet) {
+                                                const IR::SymbolicVariable &keySymbol,
+                                                cstring tableName, cstring fieldName,
+                                                cstring matchType,
+                                                ControlPlaneAssignmentSet &keySet) {
     if (matchType == NikssBaseConstants::MATCH_KIND_RANGE) {
         cstring minName = tableName + "_range_min_" + fieldName;
         cstring maxName = tableName + "_range_max_" + fieldName;

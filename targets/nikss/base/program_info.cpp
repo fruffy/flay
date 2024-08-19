@@ -26,7 +26,7 @@ NikssBaseProgramInfo::getProgrammableBlocks() const {
 }
 
 const IR::PathExpression *NikssBaseProgramInfo::getBlockParam(cstring blockLabel,
-                                                             size_t paramIndex) const {
+                                                              size_t paramIndex) const {
     // Retrieve the block and get the parameter type.
     // TODO: This should be necessary, we should be able to this using only the arch spec.
     // TODO: Make this more general and lift it into program_info core.

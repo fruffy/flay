@@ -24,7 +24,7 @@ class NikssBaseProgramInfo : public ProgramInfo {
                                                              size_t blockIdx) const = 0;
 
     explicit NikssBaseProgramInfo(const FlayCompilerResult &compilerResult,
-                                 ordered_map<cstring, const IR::Type_Declaration *> inputBlocks);
+                                  ordered_map<cstring, const IR::Type_Declaration *> inputBlocks);
 
  public:
     /// @returns the programmable blocks of the program. Should be 6.

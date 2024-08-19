@@ -65,8 +65,7 @@ FILE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = Path(ARGS.rootdir).absolute()
 sys.path.append(str(ROOT_DIR))
 
-from backends.ebpf.targets.ebpfenv import \
-    Bridge  # pylint: disable=wrong-import-position
+from backends.ebpf.targets.ebpfenv import Bridge  # pylint: disable=wrong-import-position
 from tools import testutils  # pylint: disable=wrong-import-position
 
 
@@ -140,16 +139,10 @@ class PTFTestEnv:
         interface_list: str,
     ) -> int:
         """Compile the input P4 program using p4c-ebpf."""
-        raise NotImplementedError(
-            "method compile_program not implemented for this class"
-        )
+        raise NotImplementedError("method compile_program not implemented for this class")
 
-    def run_simple_switch_grpc(
-        self, switchlog: Path, grpc_port: int
-    ) -> Optional[subprocess.Popen]:
-        raise NotImplementedError(
-            "method run_simple_switch_grpc not implemented for this class"
-        )
+    def run_simple_switch_grpc(self, switchlog: Path, grpc_port: int) -> Optional[subprocess.Popen]:
+        raise NotImplementedError("method run_simple_switch_grpc not implemented for this class")
 
     def run_ptf(self, ebpf_obj: Path, info_name: Path, interface_list: str) -> int:
         raise NotImplementedError("method run_ptf not implemented for this class")
@@ -202,12 +195,8 @@ class VethEnv(PTFTestEnv):
             testutils.log.error("Unable to run compile_program without a bridge.")
             return testutils.FAILURE
         """Compile the input P4 program using p4c-ebpf."""
-        testutils.log.info(
-            "---------------------- Compiling with p4c-ebpf ----------------------"
-        )
-        p4args = (
-            f"--p4runtime-files {info_name} --Wdisable=unused --max-ternary-masks 3"
-        )
+        testutils.log.info("---------------------- Compiling with p4c-ebpf ----------------------")
+        p4args = f"--p4runtime-files {info_name} --Wdisable=unused --max-ternary-masks 3"
         next_idx = 0
         for intf in interface_list.split(","):
             if intf != "psa_recirc":
@@ -224,21 +213,19 @@ class VethEnv(PTFTestEnv):
         if self.options.p4c_additional_args:
             p4args = p4args + " " + self.options.p4c_additional_args
 
-        cargs = f"-DPSA_PORT_RECIRCULATE={get_dataplane_port_number(self.bridge.ns_name, 'psa_recirc')}"
+        cargs = (
+            f"-DPSA_PORT_RECIRCULATE={get_dataplane_port_number(self.bridge.ns_name, 'psa_recirc')}"
+        )
         _, returncode = testutils.exec_process(
             f"make -f {ROOT_DIR}/backends/ebpf/runtime/kernel.mk BPFOBJ={ebpf_obj} P4FILE={self.options.p4_file} "
             f"ARGS='{cargs}' P4C={self.options.rootdir}/build/p4c-ebpf P4ARGS='{p4args}' psa",
             shell=True,
         )
         if returncode != testutils.SUCCESS:
-            testutils.log.error(
-                "Failed to compile the eBPF program %s.", self.options.p4_file
-            )
+            testutils.log.error("Failed to compile the eBPF program %s.", self.options.p4_file)
         return returncode
 
-    def run_simple_switch_grpc(
-        self, switchlog: Path, grpc_port: int
-    ) -> Optional[subprocess.Popen]:
+    def run_simple_switch_grpc(self, switchlog: Path, grpc_port: int) -> Optional[subprocess.Popen]:
         if not self.bridge:
             testutils.log.error("Unable to run simple_switch_grpc without a bridge.")
             return None
