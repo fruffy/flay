@@ -4,14 +4,13 @@ import pprint
 import sys
 import time
 
-from backends.p4tools.modules.flay.targets.nikss.common import P4EbpfTest
+from backends.p4tools.modules.flay.targets.nikss.test.common import P4EbpfTest
 from tools import testutils
 
-trex_path = "/mnt/storage/Projekte/trex-core/scripts/automation/trex_control_plane/interactive"
+trex_path = "/mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/trex/automation/trex_control_plane/interactive"
 sys.path.insert(0, trex_path)
 
-
-scripts_path = "/mnt/storage/Projekte/trex-core/scripts/"
+scripts_path = "/mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/trex/"
 STL_PROFILES_PATH = os.path.join(scripts_path, 'stl')
 EXT_LIBS_PATH = os.path.join(scripts_path, 'external_libs')
 assert os.path.isdir(STL_PROFILES_PATH)
@@ -193,20 +192,27 @@ class PerfTest(P4EbpfTest):
     def runTest(self) -> None:
         # testutils.exec_process("wireshark & ", shell=True)
         # time.sleep(3)
-        self.trex_proc = testutils.exec_process(
-            "cd /mnt/storage/Projekte/trex-core/scripts && ./t-rex-64 --software -i --cfg /mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/switch_cfg.yaml >/dev/null 2>&1 &",
+
+        self.table_add(
+            table="ingress_tbl_switching",
+            key=["00:00:00:00:00:01"],
+            action=1,
+            data=[2],
+        )
+
+        trex_proc = testutils.exec_process(
+            "cd /mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/trex && ./t-rex-64 --software -i --cfg /mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/test/switch_cfg.yaml >/dev/null 2>&1 &",
             shell=True,
             capture_output=False,
         )
-        if self.trex_proc is None:
-            print("Failed to start trex")
-            return
+        if trex_proc is None:
+            self.fail("Failed to start trex")
         time.sleep(2)
         self.assertTrue(
             rx_example(tx_port=0, rx_port=1, burst_size=10000000, pps=1000000), "Failed"
         )
         stats = testutils.exec_process(
-            "/mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/bpftool/src/bpftool prog show name xdp_ingress_func -j"
+            "/mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/bpftool/bpftool prog show name xdp_ingress_func -j"
         )
         if stats.output:
             stats_obj = json.loads(stats.output)

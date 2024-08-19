@@ -38,6 +38,10 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
         send_to_port(ostd, output_port);
     }
 
+    action forward_to_one() {
+        send_to_port(ostd, (PortId_t) PORT1);
+    }
+
     table tbl_switching {
         key = {
             headers.ethernet.dst_addr : exact;
@@ -45,12 +49,13 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
 
         actions = {
             forward;
+            forward_to_one;
         }
+        default_action = forward_to_one;
     }
 
     apply {
         tbl_switching.apply();
-        send_to_port(ostd, (PortId_t) PORT1);
     }
 
 }

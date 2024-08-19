@@ -65,7 +65,7 @@ FILE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = Path(ARGS.rootdir).absolute()
 sys.path.append(str(ROOT_DIR))
 
-from backends.ebpf.targets.ebpfenv import Bridge  # pylint: disable=wrong-import-position
+from backends.ebpf.targets.ebpfenv import Bridge, BridgeConfiguration  # pylint: disable=wrong-import-position
 from tools import testutils  # pylint: disable=wrong-import-position
 
 
@@ -119,7 +119,7 @@ class PTFTestEnv:
             "---------------------- Creating a namespace ----------------------",
         )
         random.seed(datetime.now().timestamp())
-        bridge = Bridge(str(uuid.uuid4()))
+        bridge = Bridge(str(uuid.uuid4()), BridgeConfiguration(mtu=1500, bpf_kernel_stats=True))
         result = bridge.create_virtual_env(num_ifaces)
         if result != testutils.SUCCESS:
             bridge.ns_del()
@@ -159,10 +159,6 @@ class VethEnv(PTFTestEnv):
         self.bridge.ns_exec("ip link add name psa_cpu type dummy")
         self.bridge.ns_exec("ip link set dev psa_recirc up")
         self.bridge.ns_exec("ip link set dev psa_cpu up")
-        self.bridge.ns_exec("sysctl -w net.ipv6.conf.all.disable_ipv6=1")
-        self.bridge.ns_exec("sysctl -w net.ipv6.conf.all.autoconf=0")
-        self.bridge.ns_exec("sysctl -w net.ipv6.conf.all.accept_ra=0")
-        self.bridge.ns_exec("sysctl -w kernel.bpf_stats_enabled=1")
 
     def __del__(self) -> None:
         if self.bridge:
@@ -252,15 +248,6 @@ class VethEnv(PTFTestEnv):
         testutils.log.info("---------------------- Run PTF test ----------------------")
         # Add the tools PTF folder to the python path, it contains the base test.
         pypath = ROOT_DIR.joinpath("tools/ptf")
-        # Show list of the tests
-        test_list_cmd = (
-            f"ptf --pypath {pypath} --pypath {ROOT_DIR} "
-            f"--log-file {self.options.testdir.joinpath('ptf.log')} "
-            f"--test-dir {self.options.testdir} --list"
-        )
-        returncode = self.bridge.ns_exec(test_list_cmd)
-        if returncode != testutils.SUCCESS:
-            return returncode
         ifaces = self.get_iface_str(num_ifaces=self.options.num_ifaces, prefix="br_")
         test_params = (
             f"interfaces='psa_recirc,{interface_list}'"
