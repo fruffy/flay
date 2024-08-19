@@ -121,3 +121,9 @@ if(ENABLE_GTESTS)
   endif()
 
 endif()
+
+# Create some symlinks to configurations of static analysis tools.
+file(CREATE_LINK ${P4C_SOURCE_DIR}/pyproject.toml ${flay_SOURCE_DIR}/pyproject.toml SYMBOLIC)
+file(CREATE_LINK ${P4C_SOURCE_DIR}/.clang-tidy ${flay_SOURCE_DIR}/.clang-tidy SYMBOLIC)
+file(CREATE_LINK ${P4C_SOURCE_DIR}/.clang-format ${flay_SOURCE_DIR}/.clang-format SYMBOLIC)
+file(CREATE_LINK ${P4C_SOURCE_DIR}/CPPLINT.cfg ${flay_SOURCE_DIR}/CPPLINT.cfg SYMBOLIC)
