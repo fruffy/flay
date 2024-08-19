@@ -44,7 +44,7 @@ control ingress(inout headers_t headers, inout local_metadata_t local_metadata, 
 
     table tbl_switching {
         key = {
-            headers.ethernet.dst_addr : exact;
+            headers.ethernet.dst_addr : ternary;
         }
 
         actions = {

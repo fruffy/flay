@@ -1,2 +1,2 @@
-bpftool/bpftool
-trex
+test/bpftool/bpftool
+test/trex

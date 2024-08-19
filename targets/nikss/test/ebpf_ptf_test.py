@@ -24,11 +24,8 @@
 """
 
 import json
-import logging
-import os
 import shlex
 import subprocess
-import sys
 import time
 from pathlib import Path
 
@@ -36,7 +33,6 @@ import ptf
 import ptf.testutils as ptfutils
 import pyroute2
 from ptf.base_tests import BaseTest
-from pyroute2 import NetNS
 
 import tools.testutils as testutils
 
@@ -77,6 +73,7 @@ class P4EbpfTest(BaseTest):
 
     skip: bool = False
     skip_reason: str = ""
+    test_dir: Path = Path()
 
     def setUp(self) -> None:
         super(P4EbpfTest, self).setUp()
@@ -90,6 +87,14 @@ class P4EbpfTest(BaseTest):
         self.ebpf_object = ptfutils.test_param_get("ebpf_object")
         if self.ebpf_object is None:
             self.fail("ebpf_object is not set")
+
+        test_dir_opt = ptfutils.test_param_get("test_dir")
+        if not test_dir_opt:
+            self.fail("test_dir is not set")
+        self.test_dir = Path(test_dir_opt)
+        if not self.test_dir.is_dir():
+            self.fail(f"test_dir {self.test_dir} does not exist")
+
         self.dataplane = ptf.dataplane_instance
         self.dataplane.flush()
         self.exec_cmd("mount bpffs /sys/fs/bpf -t bpf")
@@ -122,13 +127,13 @@ class P4EbpfTest(BaseTest):
             stderr_data = ""
         if stdout_data is None:
             stdout_data = ""
-        testutils.log.info("STDOUT: %s", stdout_data.decode("utf-8"))
-        testutils.log.info("STDERR: %s", stderr_data.decode("utf-8"))
         if process.returncode != 0:
-            testutils.log.info("Command failed: %s", command)
-            testutils.log.info("Return code: %d", process.returncode)
+            testutils.log.error("Command failed: %s", command)
+            testutils.log.error("STDOUT: %s", stdout_data.decode("utf-8"))
+            testutils.log.error("STDERR: %s", stderr_data.decode("utf-8"))
+            testutils.log.error("Return code: %d", process.returncode)
             if do_fail:
-                self.fail("Command failed (see above for details): {}".format(str(do_fail)))
+                self.fail("Command failed (see log for details): {}".format(str(do_fail)))
         return process.returncode, stdout_data, stderr_data
 
     def add_port(self, dev):

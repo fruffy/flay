@@ -1,49 +1,51 @@
 import json
-import os
-import pprint
 import sys
 import time
+from pathlib import Path
+from typing import Optional
 
-from backends.p4tools.modules.flay.targets.nikss.test.common import P4EbpfTest
+import ptf.testutils as ptfutils  # type: ignore
+from backends.p4tools.modules.flay.targets.nikss.test.ebpf_ptf_test import P4EbpfTest
+
 from tools import testutils
 
-trex_path = "/mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/trex/automation/trex_control_plane/interactive"
-sys.path.insert(0, trex_path)
+ROOT_DIR_OPT: Optional[str] = ptfutils.test_param_get("root_dir")
+assert ROOT_DIR_OPT
+ROOT_DIR: Path = Path(ROOT_DIR_OPT)
 
-scripts_path = "/mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/trex/"
-STL_PROFILES_PATH = os.path.join(scripts_path, 'stl')
-EXT_LIBS_PATH = os.path.join(scripts_path, 'external_libs')
-assert os.path.isdir(STL_PROFILES_PATH)
-assert os.path.isdir(EXT_LIBS_PATH)
+NIKSS_PATH: Path = ROOT_DIR.joinpath("backends/p4tools/modules/flay/targets/nikss/")
+trex_path = NIKSS_PATH.joinpath("test/trex/")
+trex_py_path = trex_path.joinpath("automation/trex_control_plane/interactive")
+sys.path.insert(0, str(trex_py_path))
 
-assert os.path.isdir(STL_PROFILES_PATH), 'Could not determine STL profiles path'
-assert os.path.isdir(EXT_LIBS_PATH), 'Could not determine external_libs path'
-from trex.stl.api import *
+import backends.p4tools.modules.flay.targets.nikss.test.trex.automation\
+    .trex_control_plane.interactive.trex.stl.api as trex
 
 
 def rx_example(tx_port: int, rx_port: int, burst_size: int, pps: int) -> bool:
 
-    print(
-        f"\nGoing to inject {burst_size} packets on port {tx_port} - checking RX stats on port {rx_port}\n"
+    testutils.log.info(
+        "Going to inject %s packets on port %s -"
+        " checking RX stats on port %s", burst_size, tx_port, rx_port
     )
 
     # create client
-    c = STLClient()
+    c = trex.STLClient()
     passed = True
 
     try:
-        pkt = STLPktBuilder(
-            pkt=Ether(src="00:11:22:33:44:55", dst="00:77:66:55:44:33")
-            / IP(src="16.0.0.1", dst="48.0.0.1")
-            / UDP(dport=12, sport=1025)
+        pkt = trex.STLPktBuilder(
+            pkt=trex.Ether(src="00:11:22:33:44:55", dst="00:77:66:55:44:33")
+            / trex.IP(src="16.0.0.1", dst="48.0.0.1")
+            / trex.UDP(dport=12, sport=1025)
             / 'at_least_16_bytes_payload_needed'
         )
         total_pkts = burst_size
-        s1 = STLStream(
+        s1 = trex.STLStream(
             name='rx',
             packet=pkt,
-            flow_stats=STLFlowLatencyStats(pg_id=5),
-            mode=STLTXSingleBurst(total_pkts=total_pkts, pps=pps),
+            flow_stats=trex.STLFlowLatencyStats(pg_id=5),
+            mode=trex.STLTXSingleBurst(total_pkts=total_pkts, pps=pps),
         )
 
         # connect to server
@@ -55,36 +57,38 @@ def rx_example(tx_port: int, rx_port: int, burst_size: int, pps: int) -> bool:
         # add both streams to ports
         c.add_streams([s1], ports=[tx_port])
 
-        print("\nInjecting {0} packets on port {1}\n".format(total_pkts, tx_port))
+        testutils.log.info("Injecting %s packets with size %s on port %s", total_pkts, pkt.get_pkt_len(), tx_port)
 
-        rc = rx_iteration(c, tx_port, rx_port, total_pkts, pkt.get_pkt_len())
+        rc = rx_iteration(c, tx_port, rx_port, total_pkts, pkt.get_pkt_len(), pps)
         if not rc:
             passed = False
 
-    except STLError as e:
+    except trex.STLError as e:
         passed = False
-        print(e)
+        testutils.log.error(e)
 
     finally:
         c.disconnect()
 
     if passed:
-        print("\nTest passed :-)\n")
+        testutils.log.info("Test passed :-)")
     else:
-        print("\nTest failed :-(\n")
+        testutils.log.error("Test failed :-(")
     return passed
 
 
 # RX one iteration
-def rx_iteration(c: STLClient, tx_port: int, rx_port: int, total_pkts: int, pkt_len: int) -> bool:
+def rx_iteration(
+    c: trex.STLClient, tx_port: int, rx_port: int, total_pkts: int, pkt_len: int, pps: int
+) -> bool:
 
     c.clear_stats()
 
     c.start(ports=[tx_port])
     pgids = c.get_active_pgids()
-    print("Currently used pgids: {0}".format(pgids))
+    testutils.log.info("Currently used pgids: %s", pgids)
 
-    for i in range(1, 8):
+    for _ in range(1, int(total_pkts / pps)):
         time.sleep(1)
         stats = c.get_pgid_stats(pgids['latency'])
         flow_stats = stats['flow_stats'].get(5)
@@ -94,10 +98,9 @@ def rx_iteration(c: STLClient, tx_port: int, rx_port: int, total_pkts: int, pkt_
         tx_bps = flow_stats['tx_bps'][tx_port]
         rx_bps_l1 = flow_stats['rx_bps_l1'][rx_port]
         tx_bps_l1 = flow_stats['tx_bps_l1'][tx_port]
-        print(
-            "rx_pps:{0} tx_pps:{1}, rx_bps:{2}/{3} tx_bps:{4}/{5}".format(
-                rx_pps, tx_pps, rx_bps, rx_bps_l1, tx_bps, tx_bps_l1
-            )
+        testutils.log.info(
+            "rx_pps:%s tx_pps:%s, rx_bps:%s/%s tx_bps:%s/%s",
+            rx_pps, tx_pps, rx_bps, rx_bps_l1, tx_bps, tx_bps_l1
         )
     c.wait_on_traffic(ports=[tx_port])
     stats = c.get_pgid_stats(pgids['latency'])
@@ -105,10 +108,10 @@ def rx_iteration(c: STLClient, tx_port: int, rx_port: int, total_pkts: int, pkt_
     global_lat_stats = stats['latency']
     lat_stats = global_lat_stats.get(5)
     if not flow_stats:
-        print("no flow stats available")
+        testutils.log.error("no flow stats available")
         return False
     if not lat_stats:
-        print("no latency stats available")
+        testutils.log.error("no latency stats available")
         return False
 
     tx_pkts = flow_stats['tx_pkts'].get(tx_port, 0)
@@ -130,64 +133,62 @@ def rx_iteration(c: STLClient, tx_port: int, rx_port: int, total_pkts: int, pkt_
     hist = lat['histogram']
 
     if c.get_warnings():
-        print("\n\n*** test had warnings ****\n\n")
+        testutils.log.error("\n\n*** test had warnings ****\n\n")
         for w in c.get_warnings():
-            print(w)
+            testutils.log.error(w)
         return False
 
-    print(
+    testutils.log.info(
         f'Error counters: dropped:{drops}, ooo:{ooo} dup:{dup} seq too high:{sth} seq too low:{stl}'
     )
     if old_flow:
-        print(f'Packets arriving too late after flow stopped: {old_flow}')
+        testutils.log.error(f'Packets arriving too late after flow stopped: {old_flow}')
     if bad_hdr:
-        print(f'Latency packets with corrupted info: {bad_hdr}')
-    print('Latency info:')
-    print(f"  Maximum latency(usec): {tot_max}")
-    print(f"  Minimum latency(usec): {tot_min}")
-    print(f"  Maximum latency in last sampling period (usec): {last_max}")
-    print(f"  Average latency(usec): {avg}")
-    print(f"  Jitter(usec): {jitter}")
-    print("  Latency distribution histogram:")
-    l = list(hist.keys())  # need to listify in order to be able to sort them.
-    l.sort()
-    for sample in l:
+        testutils.log.error(f'Latency packets with corrupted info: {bad_hdr}')
+    testutils.log.info('Latency info:')
+    testutils.log.info("  Maximum latency(usec): %s", tot_max)
+    testutils.log.info("  Minimum latency(usec): %s", tot_min)
+    testutils.log.info("  Maximum latency in last sampling period (usec): %s", last_max)
+    testutils.log.info("  Average latency(usec): %s", avg)
+    testutils.log.info("  Jitter(usec): %s", jitter)
+    testutils.log.info("  Latency distribution histogram:")
+    latency_list = list(hist.keys())  # need to listify in order to be able to sort them.
+    latency_list.sort()
+    for sample in latency_list:
         range_start = sample
         if range_start == 0:
             range_end = 10
         else:
             range_end = range_start + pow(10, (len(str(range_start)) - 1))
         val = hist[sample]
-        print(
-            "    Packets with latency between {0} and {1}:{2} ".format(range_start, range_end, val)
-        )
+        testutils.log.info("    Packets with latency between %s and %s:%s ", range_start, range_end, val)
 
     if tx_pkts != total_pkts:
-        print("TX pkts mismatch - got: {0}, expected: {1}".format(tx_pkts, total_pkts))
-        pprint.pprint(flow_stats)
+        testutils.log.error("TX pkts mismatch - got: %s, expected: %s", tx_pkts, total_pkts)
+        testutils.log.error(flow_stats)
         return False
-    else:
-        print("TX pkts match   - {0}".format(tx_pkts))
+    testutils.log.info("TX pkts match   - %s", tx_pkts)
 
     if tx_bytes != (total_pkts * (pkt_len + 4)):  # +4 for ethernet CRC
-        print(
-            "TX bytes mismatch - got: {0}, expected: {1}".format(tx_bytes, (total_pkts * pkt_len))
+        testutils.log.error(
+            "TX bytes mismatch - got: %s, expected: %s", tx_bytes, total_pkts * pkt_len
         )
-        pprint.pprint(flow_stats)
+        testutils.log.error(flow_stats)
         return False
-    else:
-        print("TX bytes match  - {0}".format(tx_bytes))
+    testutils.log.info("TX bytes match  - %s", tx_bytes)
 
     if rx_pkts != total_pkts:
-        print("RX pkts mismatch - got: {0}, expected: {1}".format(rx_pkts, total_pkts))
-        pprint.pprint(flow_stats)
+        testutils.log.error("RX pkts mismatch - got: %s, expected: %s", rx_pkts, total_pkts)
+        testutils.log.error(flow_stats)
         return False
-    else:
-        print("RX pkts match   - {0}".format(rx_pkts))
+    testutils.log.info("RX pkts match   - %s", rx_pkts)
     return True
 
 
 class PerfTest(P4EbpfTest):
+
+    def setUp(self) -> None:
+        super().setUp()
 
     def runTest(self) -> None:
         # testutils.exec_process("wireshark & ", shell=True)
@@ -200,24 +201,27 @@ class PerfTest(P4EbpfTest):
             data=[2],
         )
 
-        trex_proc = testutils.exec_process(
-            "cd /mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/trex && ./t-rex-64 --software -i --cfg /mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/test/switch_cfg.yaml >/dev/null 2>&1 &",
-            shell=True,
-            capture_output=False,
+        switch_config = NIKSS_PATH.joinpath('test/switch_cfg.yaml')
+        # TODO: Figure out output here?
+        # trex_log = self.test_dir.joinpath("trex.log")
+        trex_proc = testutils.open_process(
+            f"./t-rex-64 --software -i --cfg {switch_config} > /dev/null 2>&1",
+            cwd=trex_path,
         )
         if trex_proc is None:
             self.fail("Failed to start trex")
+            return
         time.sleep(2)
-        self.assertTrue(
-            rx_example(tx_port=0, rx_port=1, burst_size=10000000, pps=1000000), "Failed"
-        )
+        result = rx_example(tx_port=0, rx_port=1, burst_size=10000000, pps=1000000), "Failed"
+        self.assertTrue(result)
         stats = testutils.exec_process(
-            "/mnt/storage/Projekte/gauntlet/modules/p4c/backends/p4tools/modules/flay/targets/nikss/bpftool/bpftool prog show name xdp_ingress_func -j"
+            f"{NIKSS_PATH.joinpath('test/bpftool/bpftool')} prog show name xdp_ingress_func -j"
         )
+        trex_proc.terminate()
         if stats.output:
             stats_obj = json.loads(stats.output)
             testutils.log.info(stats_obj)
-            print(
-                "Nanoseconds spent per packet: %s"
-                % {stats_obj["run_time_ns"] / stats_obj["run_cnt"]}
-            )
+            if isinstance(stats_obj, list):
+                stats_obj = stats_obj[0]
+            per_pkt_ns: float = stats_obj["run_cnt"] / stats_obj["run_time_ns"]
+            testutils.log.info("Nanoseconds spent per packet: %s" % {per_pkt_ns})
