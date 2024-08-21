@@ -5,9 +5,13 @@ from pathlib import Path
 from typing import Optional
 
 import ptf.testutils as ptfutils  # type: ignore
-from backends.p4tools.modules.flay.targets.nikss.test.ebpf_ptf_test import P4EbpfTest
 
+from backends.p4tools.modules.flay.targets.nikss.test.ebpf_ptf_test import P4EbpfTest, TEST_PIPELINE_ID
+from google.protobuf import text_format
 from tools import testutils
+from backends.p4tools.modules.flay.targets.nikss.test.p4rt_to_nikss import P4rtToNikss
+from p4.config.v1 import p4info_pb2 as p4info
+from p4.v1 import p4runtime_pb2 as p4rt
 
 ROOT_DIR_OPT: Optional[str] = ptfutils.test_param_get("root_dir")
 assert ROOT_DIR_OPT
@@ -184,22 +188,56 @@ def rx_iteration(
     testutils.log.info("RX pkts match   - %s", rx_pkts)
     return True
 
+test_proto: str = r"""
+updates {
+    entity {
+      # Table ingress.toggle_check
+      table_entry {
+        table_id: 49220983
+        priority: 1
+        # Match field dst_eth
+        match {
+          field_id: 1
+          exact {
+            value: "\x00\x00\x00\x00\x00\x01"
+          }
+        }
+        # Action ingress.check
+        action {
+          action {
+            action_id: 26512162
+            params {
+              param_id: 1
+              value: "\x01"
+            }
+        }
+      }
+    }
+  },
+  type: INSERT
+}
+"""
+parsed_proto: p4rt.WriteRequest = text_format.Parse(test_proto, p4rt.WriteRequest())
 
 class PerfTest(P4EbpfTest):
 
     def setUp(self) -> None:
         super().setUp()
+        self.p4info =  Path(ptfutils.test_param_get("p4info"))
 
     def runTest(self) -> None:
         # testutils.exec_process("wireshark & ", shell=True)
         # time.sleep(3)
-
-        self.table_add(
-            table="ingress_tbl_switching",
-            key=["00:00:00:00:00:01"],
-            action=1,
-            data=[2],
-        )
+        p4rt_nikss = P4rtToNikss(self.p4info, TEST_PIPELINE_ID)
+        cmds = p4rt_nikss.translate_write_request(parsed_proto)
+        # self.table_add(
+        #     table="ingress_tbl_switching",
+        #     key=["00:00:00:00:00:01"],
+        #     action=1,
+        #     data=[self.dataplane_interfaces["1"]],
+        # )
+        for cmd in cmds:
+            result = testutils.exec_process(cmd, capture_output=False)
 
         switch_config = NIKSS_PATH.joinpath('test/switch_cfg.yaml')
         # TODO: Figure out output here?
@@ -220,8 +258,8 @@ class PerfTest(P4EbpfTest):
         trex_proc.terminate()
         if stats.output:
             stats_obj = json.loads(stats.output)
-            testutils.log.info(stats_obj)
             if isinstance(stats_obj, list):
-                stats_obj = stats_obj[0]
-            per_pkt_ns: float = stats_obj["run_cnt"] / stats_obj["run_time_ns"]
-            testutils.log.info("Nanoseconds spent per packet: %s" % {per_pkt_ns})
+                testutils.log.warning("Stats object is a list, not a dict: %s", stats_obj)
+            else:
+                per_pkt_ns: float = stats_obj["run_cnt"] / stats_obj["run_time_ns"]
+                testutils.log.info("Nanoseconds spent per packet: %s" % {per_pkt_ns})

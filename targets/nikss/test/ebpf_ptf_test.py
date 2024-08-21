@@ -32,9 +32,8 @@ from pathlib import Path
 import ptf
 import ptf.testutils as ptfutils
 import pyroute2
-from ptf.base_tests import BaseTest
-
 import tools.testutils as testutils
+from ptf.base_tests import BaseTest
 
 TEST_PIPELINE_ID = 1
 TEST_PIPELINE_MOUNT_PATH = "/sys/fs/bpf/pipeline{}".format(TEST_PIPELINE_ID)
@@ -74,6 +73,7 @@ class P4EbpfTest(BaseTest):
     skip: bool = False
     skip_reason: str = ""
     test_dir: Path = Path()
+    dataplane_interfaces : dict = {}
 
     def setUp(self) -> None:
         super(P4EbpfTest, self).setUp()
@@ -84,6 +84,8 @@ class P4EbpfTest(BaseTest):
         testutils.log.info("Using test params: %s", ptfutils.test_params_get())
         self.interfaces = ptfutils.test_param_get("interfaces").split(",")
 
+        for interface in self.interfaces:
+            self.dataplane_interfaces[interface] = pyroute2.IPRoute().get_links(ifname=interface)[0]["index"]
         self.ebpf_object = ptfutils.test_param_get("ebpf_object")
         if self.ebpf_object is None:
             self.fail("ebpf_object is not set")

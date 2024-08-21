@@ -257,12 +257,12 @@ class VethEnv(PTFTestEnv):
             f";xdp='{ 'True' if self.options.xdp else 'False'}';"
             f"packet_wait_time='0.1';test_dir='{self.options.testdir}';"
             f"ebpf_object='{ebpf_object}';"
-            f"root_dir='{ROOT_DIR}';"
+            f"root_dir='{ROOT_DIR}';p4info='{info_name}';"
         )
         run_ptf_cmd = (
             f"ptf --pypath {pypath} --pypath {ROOT_DIR} {ifaces} "
             f"--log-file {self.options.testdir.joinpath('ptf.log')} "
-            f"--test-params={test_params} --test-dir {self.options.testdir} -q"
+            f"--test-params={test_params} --test-dir {self.options.testdir}"
         )
         returncode = self.bridge.ns_exec(run_ptf_cmd)
         return returncode
