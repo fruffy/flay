@@ -5,32 +5,41 @@ from pathlib import Path
 from typing import Optional
 
 import ptf.testutils as ptfutils  # type: ignore
+from google.protobuf import text_format  # type: ignore
+from p4.config.v1 import p4info_pb2 as p4info  # type: ignore
+from p4.v1 import p4runtime_pb2 as p4rt  # type: ignore
 
-from backends.p4tools.modules.flay.targets.nikss.test.ebpf_ptf_test import P4EbpfTest, TEST_PIPELINE_ID
-from google.protobuf import text_format
+from backends.p4tools.modules.flay.targets.nikss.test.ebpf_ptf_test import (
+    TEST_PIPELINE_ID,
+    P4EbpfTest,
+)
+from backends.p4tools.modules.flay.targets.nikss.test.p4rt_to_nikss import (
+    P4rtToNikss,
+    parse_write_request,
+)
 from tools import testutils
-from backends.p4tools.modules.flay.targets.nikss.test.p4rt_to_nikss import P4rtToNikss
-from p4.config.v1 import p4info_pb2 as p4info
-from p4.v1 import p4runtime_pb2 as p4rt
 
+FILE_DIR: Path = Path(__file__).resolve().parent
 ROOT_DIR_OPT: Optional[str] = ptfutils.test_param_get("root_dir")
 assert ROOT_DIR_OPT
 ROOT_DIR: Path = Path(ROOT_DIR_OPT)
 
 NIKSS_PATH: Path = ROOT_DIR.joinpath("backends/p4tools/modules/flay/targets/nikss/")
-trex_path = NIKSS_PATH.joinpath("test/trex/")
-trex_py_path = trex_path.joinpath("automation/trex_control_plane/interactive")
-sys.path.insert(0, str(trex_py_path))
-
-import backends.p4tools.modules.flay.targets.nikss.test.trex.automation\
-    .trex_control_plane.interactive.trex.stl.api as trex
+TREX_PATH = ROOT_DIR.joinpath("build/_deps/trex-src")
+TREX_PY_PATH = TREX_PATH.joinpath("automation/trex_control_plane/interactive")
+BPFTOOL_PATH = ROOT_DIR.joinpath("build/_deps/bpftool-src/bpftool")
+sys.path.insert(0, str(TREX_PY_PATH))
+sys.path.insert(0, str(TREX_PATH))
+import automation.trex_control_plane.interactive.trex.stl.api as trex
 
 
 def rx_example(tx_port: int, rx_port: int, burst_size: int, pps: int) -> bool:
 
     testutils.log.info(
-        "Going to inject %s packets on port %s -"
-        " checking RX stats on port %s", burst_size, tx_port, rx_port
+        "Going to inject %s packets on port %s -" " checking RX stats on port %s",
+        burst_size,
+        tx_port,
+        rx_port,
     )
 
     # create client
@@ -61,7 +70,9 @@ def rx_example(tx_port: int, rx_port: int, burst_size: int, pps: int) -> bool:
         # add both streams to ports
         c.add_streams([s1], ports=[tx_port])
 
-        testutils.log.info("Injecting %s packets with size %s on port %s", total_pkts, pkt.get_pkt_len(), tx_port)
+        testutils.log.info(
+            "Injecting %s packets with size %s on port %s", total_pkts, pkt.get_pkt_len(), tx_port
+        )
 
         rc = rx_iteration(c, tx_port, rx_port, total_pkts, pkt.get_pkt_len(), pps)
         if not rc:
@@ -104,7 +115,12 @@ def rx_iteration(
         tx_bps_l1 = flow_stats['tx_bps_l1'][tx_port]
         testutils.log.info(
             "rx_pps:%s tx_pps:%s, rx_bps:%s/%s tx_bps:%s/%s",
-            rx_pps, tx_pps, rx_bps, rx_bps_l1, tx_bps, tx_bps_l1
+            rx_pps,
+            tx_pps,
+            rx_bps,
+            rx_bps_l1,
+            tx_bps,
+            tx_bps_l1,
         )
     c.wait_on_traffic(ports=[tx_port])
     stats = c.get_pgid_stats(pgids['latency'])
@@ -165,7 +181,9 @@ def rx_iteration(
         else:
             range_end = range_start + pow(10, (len(str(range_start)) - 1))
         val = hist[sample]
-        testutils.log.info("    Packets with latency between %s and %s:%s ", range_start, range_end, val)
+        testutils.log.info(
+            "    Packets with latency between %s and %s:%s ", range_start, range_end, val
+        )
 
     if tx_pkts != total_pkts:
         testutils.log.error("TX pkts mismatch - got: %s, expected: %s", tx_pkts, total_pkts)
@@ -188,73 +206,40 @@ def rx_iteration(
     testutils.log.info("RX pkts match   - %s", rx_pkts)
     return True
 
-test_proto: str = r"""
-updates {
-    entity {
-      # Table ingress.toggle_check
-      table_entry {
-        table_id: 49220983
-        priority: 1
-        # Match field dst_eth
-        match {
-          field_id: 1
-          exact {
-            value: "\x00\x00\x00\x00\x00\x01"
-          }
-        }
-        # Action ingress.check
-        action {
-          action {
-            action_id: 26512162
-            params {
-              param_id: 1
-              value: "\x01"
-            }
-        }
-      }
-    }
-  },
-  type: INSERT
-}
-"""
-parsed_proto: p4rt.WriteRequest = text_format.Parse(test_proto, p4rt.WriteRequest())
 
 class PerfTest(P4EbpfTest):
 
     def setUp(self) -> None:
         super().setUp()
-        self.p4info =  Path(ptfutils.test_param_get("p4info"))
+        self.p4info = Path(ptfutils.test_param_get("p4info"))
 
     def runTest(self) -> None:
         # testutils.exec_process("wireshark & ", shell=True)
         # time.sleep(3)
         p4rt_nikss = P4rtToNikss(self.p4info, TEST_PIPELINE_ID)
-        cmds = p4rt_nikss.translate_write_request(parsed_proto)
-        # self.table_add(
-        #     table="ingress_tbl_switching",
-        #     key=["00:00:00:00:00:01"],
-        #     action=1,
-        #     data=[self.dataplane_interfaces["1"]],
-        # )
-        for cmd in cmds:
-            result = testutils.exec_process(cmd, capture_output=False)
 
-        switch_config = NIKSS_PATH.joinpath('test/switch_cfg.yaml')
+        test_proto = parse_write_request(FILE_DIR.joinpath("update_0.txtpb"))
+        cmds = p4rt_nikss.translate_write_request(test_proto)
+        for cmd in cmds:
+            proc_result = testutils.exec_process(cmd, capture_output=False)
+            if proc_result.returncode != 0:
+                self.fail("Failed to translate write request")
+                return
+
+        switch_config = FILE_DIR.joinpath('switch_cfg.yaml')
         # TODO: Figure out output here?
         # trex_log = self.test_dir.joinpath("trex.log")
         trex_proc = testutils.open_process(
             f"./t-rex-64 --software -i --cfg {switch_config} > /dev/null 2>&1",
-            cwd=trex_path,
+            cwd=TREX_PATH,
         )
         if trex_proc is None:
             self.fail("Failed to start trex")
             return
         time.sleep(2)
-        result = rx_example(tx_port=0, rx_port=1, burst_size=10000000, pps=1000000), "Failed"
+        result = rx_example(tx_port=0, rx_port=1, burst_size=10000000, pps=1000000)
         self.assertTrue(result)
-        stats = testutils.exec_process(
-            f"{NIKSS_PATH.joinpath('test/bpftool/bpftool')} prog show name xdp_ingress_func -j"
-        )
+        stats = testutils.exec_process(f"{BPFTOOL_PATH} prog show name xdp_ingress_func -j")
         trex_proc.terminate()
         if stats.output:
             stats_obj = json.loads(stats.output)

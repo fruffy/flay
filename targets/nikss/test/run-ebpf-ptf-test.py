@@ -104,17 +104,23 @@ def get_dataplane_port_number(namespace: Optional[str], interface: str) -> Any:
         return ns.link_lookup(ifname=interface)[0]
 
 
-class PTFTestEnv:
+class EbpfPtfTestEnv:
     options: Options = Options()
     switch_proc: Optional[subprocess.Popen] = None
+    bridge: Optional[Bridge] = None
 
     def __init__(self, options: Options) -> None:
         self.options = options
+        # Create the virtual environment for the test execution.
+        self.bridge = self.create_bridge(options.num_ifaces)
+        self.bridge.ns_exec("ip link add name psa_recirc type dummy")
+        self.bridge.ns_exec("ip link add name psa_cpu type dummy")
+        self.bridge.ns_exec("ip link set dev psa_recirc up")
+        self.bridge.ns_exec("ip link set dev psa_cpu up")
 
     def __del__(self) -> None:
-        if self.switch_proc:
-            # Terminate the switch process and emit its output in case of failure.
-            testutils.kill_proc_group(self.switch_proc)
+        if self.bridge:
+            self.bridge.ns_del()
 
     def create_bridge(self, num_ifaces: int) -> Bridge:
         """Create a network namespace environment."""
@@ -134,39 +140,6 @@ class PTFTestEnv:
             "---------------------- Namespace successfully created ----------------------"
         )
         return bridge
-
-    def compile_program(
-        self,
-        info_name: Path,
-        ebpf_object: Path,
-        interface_list: str,
-    ) -> int:
-        """Compile the input P4 program using p4c-ebpf."""
-        raise NotImplementedError("method compile_program not implemented for this class")
-
-    def run_simple_switch_grpc(self, switchlog: Path, grpc_port: int) -> Optional[subprocess.Popen]:
-        raise NotImplementedError("method run_simple_switch_grpc not implemented for this class")
-
-    def run_ptf(self, ebpf_obj: Path, info_name: Path, interface_list: str) -> int:
-        raise NotImplementedError("method run_ptf not implemented for this class")
-
-
-class VethEnv(PTFTestEnv):
-    bridge: Optional[Bridge] = None
-
-    def __init__(self, options: Options) -> None:
-        super().__init__(options)
-        # Create the virtual environment for the test execution.
-        self.bridge = self.create_bridge(options.num_ifaces)
-        self.bridge.ns_exec("ip link add name psa_recirc type dummy")
-        self.bridge.ns_exec("ip link add name psa_cpu type dummy")
-        self.bridge.ns_exec("ip link set dev psa_recirc up")
-        self.bridge.ns_exec("ip link set dev psa_cpu up")
-
-    def __del__(self) -> None:
-        if self.bridge:
-            self.bridge.ns_del()
-        super().__del__()
 
     def get_iface_str(self, num_ifaces: int, prefix: str = "") -> str:
         """Produce the PTF interface arguments based on the number of interfaces the PTF test uses."""
@@ -224,25 +197,6 @@ class VethEnv(PTFTestEnv):
             testutils.log.error("Failed to compile the eBPF program %s.", self.options.p4_file)
         return returncode
 
-    def run_simple_switch_grpc(self, switchlog: Path, grpc_port: int) -> Optional[subprocess.Popen]:
-        if not self.bridge:
-            testutils.log.error("Unable to run simple_switch_grpc without a bridge.")
-            return None
-        """Start simple_switch_grpc and return the process handle."""
-        testutils.log.info(
-            "---------------------- Start simple_switch_grpc ----------------------",
-        )
-        ifaces = self.get_iface_str(num_ifaces=self.options.num_ifaces)
-        thrift_port = testutils.pick_tcp_port(GRPC_ADDRESS, THRIFT_PORT)
-        simple_switch_grpc = (
-            f"simple_switch_grpc --thrift-port {thrift_port} --device-id 0 --log-file {switchlog} "
-            f"{ifaces} --log-flush -i 0@0 --no-p4 "
-            f"-- --grpc-server-addr {GRPC_ADDRESS}:{grpc_port}"
-        )
-        bridge_cmd = self.bridge.get_ns_prefix() + " " + simple_switch_grpc
-        self.switch_proc = testutils.open_process(bridge_cmd)
-        return self.switch_proc
-
     def run_ptf(self, ebpf_object: Path, info_name: Path, interface_list: str) -> int:
         if not self.bridge:
             testutils.log.error("Unable to run run_ptf without a bridge.")
@@ -258,6 +212,7 @@ class VethEnv(PTFTestEnv):
             f"packet_wait_time='0.1';test_dir='{self.options.testdir}';"
             f"ebpf_object='{ebpf_object}';"
             f"root_dir='{ROOT_DIR}';p4info='{info_name}';"
+            f"nikss_cmd='{ROOT_DIR}/build/_deps/nikss_ctl-build/nikss-ctl';"
         )
         run_ptf_cmd = (
             f"ptf --pypath {pypath} --pypath {ROOT_DIR} {ifaces} "
@@ -276,10 +231,9 @@ def run_test(options: Options) -> int:
     ebpf_object = options.testdir.joinpath(test_name.with_suffix(".o"))
     info_name = options.testdir.joinpath(test_name.with_suffix(".p4info.txtpb"))
     # Copy the test file into the test folder so that it can be picked up by PTF.
-    testutils.copy_file(options.testfile, options.testdir)
-    testutils.copy_file(options.p4_file, options.testdir)
+    testutils.link_file_into_directory([options.p4_file, options.testfile], options.testdir)
 
-    testenv: VethEnv = VethEnv(options)
+    testenv: EbpfPtfTestEnv = EbpfPtfTestEnv(options)
     interface_list = testenv.get_iface_numbers(num_ifaces=options.num_ifaces)
 
     # Compile the P4 program.
@@ -287,33 +241,15 @@ def run_test(options: Options) -> int:
     if returncode != testutils.SUCCESS:
         return returncode
 
-    # Pick available ports for the gRPC switch.
-    # switchlog = options.testdir.joinpath("switchlog")
-    # grpc_port = testutils.pick_tcp_port(GRPC_ADDRESS, P4RUNTIME_PORT)
-    # switch_proc = testenv.run_simple_switch_grpc(switchlog, grpc_port)
-    # if switch_proc is None:
-    #     return testutils.FAILURE
-    # Breath a little.
-    time.sleep(1)
     # Run the PTF test and retrieve the result.
     result = testenv.run_ptf(ebpf_object, info_name, interface_list)
     # Delete the test environment and trigger a clean up.
     del testenv
-    # Print switch log if the results were not successful.
-    # if result != testutils.SUCCESS:
-    #     if switchlog.with_suffix(".txt").exists():
-    #         switchout = switchlog.with_suffix(".txt").read_text()
-    #         testutils.log.error("######## Switch log ########\n%s", switchout)
-    #     if switch_proc.stdout:
-    #         out = switch_proc.stdout.read()
-    #         # Do not bother to print whitespace.
-    #         if out.strip():
-    #             testutils.log.error("######## Switch output ######## \n%s", out)
-    #     if switch_proc.stderr:
-    #         err = switch_proc.stderr.read()
-    #         # Do not bother to print whitespace.
-    #         if err.strip():
-    #             testutils.log.error("######## Switch errors ######## \n%s", err)
+    # Print ptf log if the results were not successful.
+    if result != testutils.SUCCESS:
+        ptf_log = options.testdir.joinpath("ptf.log")
+        if ptf_log.exists():
+            testutils.log.error("######## PTF log ########\n%s", ptf_log.read_text())
     return result
 
 

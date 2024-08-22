@@ -1,0 +1,27 @@
+updates {
+    entity {
+      # Table ingress.toggle_check
+      table_entry {
+        table_id: 49220983
+        priority: 1
+        # Match field dst_eth
+        match {
+          field_id: 1
+          exact {
+            value: "\x00\x00\x00\x00\x00\x01"
+          }
+        }
+        # Action ingress.check
+        action {
+          action {
+            action_id: 26512162
+            params {
+              param_id: 1
+              value: "\x01"
+            }
+        }
+      }
+    }
+  },
+  type: INSERT
+}

@@ -5,6 +5,7 @@ if(NOT APPLE)
     message("-- Adding Flay nikss test suite.")
     include(test/P4Tests.cmake)
   endif()
+endif()
 
   # Source files for the main flay.
   set(FLAY_SOURCES
@@ -26,4 +27,3 @@ if(NOT APPLE)
       ${CMAKE_CURRENT_SOURCE_DIR}/target.cpp
       PARENT_SCOPE)
 
-endif()

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
+from collections import Counter
 from pathlib import Path
+
 from google.protobuf import text_format
 from p4.config.v1 import p4info_pb2 as p4info
 from p4.v1 import p4runtime_pb2 as p4rt
-from collections import Counter
 
 
-def parse_p4info(file_path : Path) -> p4info.P4Info:
+def parse_p4info(file_path: Path) -> p4info.P4Info:
     """Parse a P4Info file into a P4Info object."""
 
     with file_path.open("r") as f:
@@ -16,22 +17,31 @@ def parse_p4info(file_path : Path) -> p4info.P4Info:
     return message
 
 
+def parse_write_request(file_path: Path) -> p4rt.WriteRequest:
+    """Parse a P4Info file into a P4Info object."""
+
+    with file_path.open("r") as f:
+        message = p4rt.WriteRequest()
+        text_format.Parse(f.read(), message)
+    return message
+
+
 class P4rtToNikss:
     def __init__(self, p4info: Path, pipe_id: int) -> None:
         self.p4info = parse_p4info(p4info)
         self.pipe_id = pipe_id
-        self.p4info_obj_name_map :dict = {}
-        self.p4info_obj_id_map :dict = {}
+        self.p4info_obj_name_map: dict = {}
+        self.p4info_obj_id_map: dict = {}
         self.import_p4info_names()
 
-    def hex_binary_to_int(self, hex_binary : bytes) -> int:
+    def hex_binary_to_int(self, hex_binary: bytes) -> int:
         """Converts a hex binary string (e.g., b'\x00\x00\x00\x00\x00\x00') to an integer."""
-        return int.from_bytes(hex_binary, byteorder='big')
+        return int.from_bytes(hex_binary, byteorder="big")
 
     # In order to make writing tests easier, we accept any suffix that uniquely
     # identifies the object among p4info objects of the same type.
     def import_p4info_names(self) -> None:
-        suffix_count : Counter = Counter()
+        suffix_count: Counter = Counter()
         for obj_type in [
             "tables",
             "action_profiles",
@@ -57,33 +67,38 @@ class P4rtToNikss:
                 del self.p4info_obj_name_map[key]
 
     def translate_key(self, match: p4rt.FieldMatch) -> str:
-        match_str = "key "
         if match.HasField("exact"):
-            val = self.hex_binary_to_int(match.exact.value)
-            match_str += f"{val} "
-        elif match.HasField("lpm"):
-            val = self.hex_binary_to_int(match.lpm.value)
-            mask = self.hex_binary_to_int(match.lpm.mask)
-            match_str += f"{val}/{mask} "
-        elif match.HasField("range"):
-            val = self.hex_binary_to_int(match.range.value)
-            mask = self.hex_binary_to_int(match.range.mask)
-            match_str += f"{val}-{mask} "
-        elif match.HasField("ternary"):
+            value = self.hex_binary_to_int(match.exact.value)
+            return f"key {value} "
+        if match.HasField("lpm"):
+            value = self.hex_binary_to_int(match.lpm.value)
+            prefix_len = self.hex_binary_to_int(match.lpm.prefix_len)
+            return f"key {value}/{prefix_len} "
+        if match.HasField("range"):
+            low = self.hex_binary_to_int(match.range.low)
+            high = self.hex_binary_to_int(match.range.high)
+            return f"key {low}..{high} "
+        if match.HasField("ternary"):
             val = self.hex_binary_to_int(match.ternary.value)
             mask = self.hex_binary_to_int(match.ternary.mask)
-            match_str += f"{val}^{mask} "
-        else:
-            raise NotImplementedError("Unknown match type")
-        return match_str
+            return f"key {val}^{mask} "
+        raise NotImplementedError(f"Unknown match type {match}")
 
     def translate_table_write_request(
         self, table_entry: p4rt.TableEntry, message_type: p4rt.Update.Type
     ) -> str:
         table_obj = self.p4info_obj_id_map[("tables", table_entry.table_id)]
         table_name = table_obj.preamble.name.replace(".", "_")
-        print(table_name)
-        cmd = f"nikss-ctl table add pipe {self.pipe_id} {table_name} "
+        cmd = "nikss-ctl table "
+        if message_type == p4rt.Update.INSERT:
+            cmd += "add "
+        elif message_type == p4rt.Update.MODIFY:
+            cmd += "update "
+        elif message_type == p4rt.Update.DELETE:
+            cmd += "delete "
+        else:
+            raise NotImplementedError(f"Unknown message type {message_type}")
+        cmd += f" pipe {self.pipe_id} {table_name} "
         action_entry = table_entry.action.action
         action_obj = self.p4info_obj_id_map[("actions", action_entry.action_id)]
         action_name = action_obj.preamble.name.replace(".", "_")
@@ -100,10 +115,11 @@ class P4rtToNikss:
         for update in p4rt_write_request.updates:
             entity = update.entity
             if entity.HasField("table_entry"):
-               commands.append(self.translate_table_write_request(entity.table_entry, update.type))
+                commands.append(self.translate_table_write_request(entity.table_entry, update.type))
             else:
-                raise NotImplementedError("Unknown entity type")
+                raise NotImplementedError(f"Unknown entity type {entity.WhichOneof('entity')}")
         return commands
+
 
 test_proto: str = r"""
 updates {
