@@ -32,6 +32,7 @@ jobs:
 
     - name: Build (Ubuntu 22.04)
       run: |
+        sudo apt-get install -y libgmp-dev libelf-dev zlib1g-dev libjansson-dev
         tools/ci-build.sh
       working-directory: ../p4c
 

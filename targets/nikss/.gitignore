@@ -1,1 +1,2 @@
-bpftool/bpftool
+test/bpftool/bpftool
+test/trex

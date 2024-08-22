@@ -1,6 +1,6 @@
 from ptf import testutils as ptfutils  # type: ignore
 
-from backends.p4tools.modules.flay.targets.nikss.common import P4EbpfTest
+from backends.p4tools.modules.flay.targets.nikss.ebpf_ptf_test import P4EbpfTest
 
 PORT0 = 0
 PORT1 = 1

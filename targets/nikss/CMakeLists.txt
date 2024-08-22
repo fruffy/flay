@@ -5,19 +5,7 @@ if(NOT APPLE)
     message("-- Adding Flay nikss test suite.")
     include(test/P4Tests.cmake)
   endif()
-
-  # Fetch the bpftool.
-  set(FETCHCONTENT_QUIET_PREV ${FETCHCONTENT_QUIET})
-  set(FETCHCONTENT_QUIET OFF)
-  FetchContent_Declare(
-    bpftool
-    URL https://github.com/libbpf/bpftool/releases/download/v7.4.0/bpftool-v7.4.0-amd64.tar.gz
-    URL_HASH
-      SHA256=68862a7038a269e1d4af5fed53d2b4d763f1cd82a96caa49b76596453bae0c3e
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bpftool USES_TERMINAL_DOWNLOAD TRUE
-    GIT_PROGRESS TRUE)
-  FetchContent_MakeAvailable(bpftool)
-  set(FETCHCONTENT_QUIET ${FETCHCONTENT_QUIET_PREV})
+endif()
 
   # Source files for the main flay.
   set(FLAY_SOURCES
@@ -39,4 +27,3 @@ if(NOT APPLE)
       ${CMAKE_CURRENT_SOURCE_DIR}/target.cpp
       PARENT_SCOPE)
 
-endif()

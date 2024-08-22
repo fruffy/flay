@@ -31,6 +31,9 @@
 *.out
 *.app
 
+# Python bytecode
+*.pyc
+
 .clang-format
 .clang-tidy
 CPPLINT.cfg

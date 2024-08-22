@@ -1,0 +1,11 @@
+--- automation/trex_control_plane/interactive/trex/__init__.py        2024-08-19 13:09:13.222850200 +0200
++++ automation/trex_control_plane/interactive/trex/__init__.py     2024-08-19 13:18:59.063338900 +0200
+@@ -82,7 +82,7 @@
+                         if not first_item or not first_item.startswith(full_path): # not our path
+                             del sys.modules[m_name]
+
+-            sys.path.insert(1, full_path)
++            sys.path.append(full_path)
+
+ # load the library
+ __load()
