@@ -1,3 +1,8 @@
+# This file defines how to execute Flay on P4 programs. General test utilities.
+include(${P4TOOLS_SOURCE_DIR}/cmake/TestUtils.cmake)
+# This file defines how we write the tests we generate.
+include(${CMAKE_CURRENT_LIST_DIR}/TestTemplate.cmake)
+
 # Fetch the bpftool.
 set(FETCHCONTENT_QUIET_PREV ${FETCHCONTENT_QUIET})
 set(FETCHCONTENT_QUIET OFF)
@@ -35,3 +40,47 @@ FetchContent_Declare(nikss_ctl
 FetchContent_MakeAvailable(nikss_ctl)
 
 set(FETCHCONTENT_QUIET ${FETCHCONTENT_QUIET_PREV})
+
+
+
+# ##################################################################################################
+# TEST PROGRAMS
+# ##################################################################################################
+set(PSA_SEARCH_PATTERNS "include.*psa.p4" "main")
+
+set(P4TESTS_FOR_FPGA
+  # P4Studio tests
+  "${P4C_SOURCE_DIR}/backends/ebpf/psa/examples/*.p4"
+  # Custom tests
+  "${P4C_SOURCE_DIR}/backends/ebpf/tests/p4testdata/*.p4"
+)
+
+p4c_find_tests("${P4TESTS_FOR_FPGA}" PSA_TESTS INCLUDE "${PSA_SEARCH_PATTERNS}" EXCLUDE "")
+
+# Filter some programs  because they have issues that are not captured with Xfails.
+list(REMOVE_ITEM PSA_TESTS
+  # These tests time out and require fixing.
+)
+
+# TODO: These port defines are a bit of a hack, we really shouldn't need them.
+set (EXTRA_OPTS "-I${CMAKE_CURRENT_LIST_DIR}/p4include -DPORT0=0 -DPORT1=1 -DPORT2=2 -DPORT3=3")
+set (EXTRA_OPTS "${EXTRA_OPTS} -DPSA_RECIRC=50")
+set (EXTRA_OPTS "${EXTRA_OPTS} --reference-folder ${CMAKE_CURRENT_LIST_DIR}/testdata")
+
+p4tools_add_tests(
+  TESTS
+  "${PSA_TESTS}"
+  TAG
+  "flay-nikss-psa"
+  DRIVER
+  ${FLAY_REFERENCE_DRIVER}
+  TARGET
+  "nikss"
+  ARCH
+  "psa"
+  TEST_ARGS
+  "${EXTRA_OPTS}"
+)
+
+# Include the list of failing tests.
+include(${CMAKE_CURRENT_LIST_DIR}/NikssPsaXfail.cmake)

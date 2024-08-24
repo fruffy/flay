@@ -19,7 +19,7 @@ PsaProgramInfo::PsaProgramInfo(const FlayCompilerResult &compilerResult,
     // Iterate through the (ordered) pipes of the target architecture.
     const auto *archSpec = FlayTarget::getArchSpec();
     BUG_CHECK(archSpec->getArchVectorSize() == programmableBlocks.size(),
-              "The Psa architecture requires %1% pipes (provided %2% pipes).",
+              "The PSA architecture requires %1% pipes (provided %2% pipes).",
               archSpec->getArchVectorSize(), programmableBlocks.size());
 
     /// Compute the series of nodes corresponding to the in-order execution of top-level
@@ -31,10 +31,8 @@ PsaProgramInfo::PsaProgramInfo(const FlayCompilerResult &compilerResult,
     for (const auto &declTuple : programmableBlocks) {
         blockMap.emplace(declTuple.second->getName(), declTuple.first);
         // Iterate through the (ordered) pipes of the target architecture.
-        // if (declTuple.first == "Ingress") {
         auto subResult = processDeclaration(declTuple.second, pipeIdx);
         pipelineSequence.insert(pipelineSequence.end(), subResult.begin(), subResult.end());
-        // }
         ++pipeIdx;
     }
 }
