@@ -1,0 +1,10 @@
+Eliminated node at line 149: tbl_ternary_0.apply();
+Eliminated node at line 150: tbl_ternary_2.apply();
+Eliminated node at line 151: tbl_ternary_1.apply();
+Eliminated node at line 152: tbl_ternary_3.apply();
+Eliminated node at line 153: tbl_ternary_4.apply();
+statement_count_before:22
+statement_count_after:17
+cyclomatic_complexity:6
+num_parsers_paths:3
+

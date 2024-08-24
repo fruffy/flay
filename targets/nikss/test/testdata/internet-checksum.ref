@@ -1,0 +1,7 @@
+Eliminated node at line 82: if (istd.parser_error != error.NoError) {
+Eliminated node at line (unknown): 
+statement_count_before:39
+statement_count_after:38
+cyclomatic_complexity:5
+num_parsers_paths:4
+

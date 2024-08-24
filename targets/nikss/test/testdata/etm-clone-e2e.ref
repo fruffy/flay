@@ -1,0 +1,6 @@
+Eliminated node at line 99: hdr.ethernet.dstAddr = (EthernetAddress) 0x11;
+statement_count_before:10
+statement_count_after:9
+cyclomatic_complexity:2
+num_parsers_paths:3
+
