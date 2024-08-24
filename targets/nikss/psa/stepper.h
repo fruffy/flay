@@ -2,7 +2,6 @@
 #define BACKENDS_P4TOOLS_MODULES_FLAY_TARGETS_NIKSS_PSA_STEPPER_H_
 
 #include "backends/p4tools/modules/flay/core/interpreter/execution_state.h"
-#include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
 #include "backends/p4tools/modules/flay/targets/nikss/base/stepper.h"
 #include "backends/p4tools/modules/flay/targets/nikss/psa/expression_resolver.h"
 #include "backends/p4tools/modules/flay/targets/nikss/psa/program_info.h"
@@ -16,8 +15,6 @@ class PsaFlayStepper : public NikssBaseFlayStepper {
  public:
     explicit PsaFlayStepper(const PsaProgramInfo &programInfo, ControlPlaneConstraints &constraints,
                             ExecutionState &executionState);
-
-    void initializeParserState(const IR::P4Parser &parser) override;
 
     PsaExpressionResolver &createExpressionResolver() const override;
 };

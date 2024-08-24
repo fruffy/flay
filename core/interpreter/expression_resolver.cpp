@@ -489,6 +489,15 @@ static const ExternMethodImpls EXTERN_METHOD_IMPLS(
           // Advance is a no-op for now.
           return nullptr;
       }},
+     {"packet_in.length"_cs,
+      {},
+      [](const ExternMethodImpls::ExternInfo &externInfo) {
+          // Return a symbolic length for now..
+          auto randomLabel = externInfo.externObjectRef.path->toString() + "_" +
+                             externInfo.methodName + "_" +
+                             std::to_string(externInfo.originalCall.clone_id);
+          return ToolsVariables::getSymbolicVariable(IR::Type_Bits::get(32), randomLabel);
+      }},
      {"packet_out.emit"_cs,
       {"hdr"_cs},
       [](const ExternMethodImpls::ExternInfo & /*externInfo*/) {

@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "backends/p4tools/common/lib/arch_spec.h"
+#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/interpreter/program_info.h"
 #include "backends/p4tools/modules/flay/core/interpreter/target.h"
 
@@ -27,6 +28,13 @@ void NikssBaseFlayStepper::initializeState() {
         executionState.initializeBlockParams(target, typeDecl, &archMember->blockParams);
         blockIdx++;
     }
+    // Initialize the parser error to be a symbolic variable.
+    const auto *thirtyTwoBitType = IR::Type_Bits::get(32);
+    auto *parserErrorVariable =
+        new IR::Member(thirtyTwoBitType, new IR::PathExpression("ingres_istd"), "parser_error");
+    getExecutionState().set(
+        parserErrorVariable,
+        ToolsVariables::getSymbolicVariable(thirtyTwoBitType, "*ingress_istdparser_error"_cs));
 }
 
 NikssBaseFlayStepper::NikssBaseFlayStepper(const NikssBaseProgramInfo &programInfo,

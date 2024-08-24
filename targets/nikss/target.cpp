@@ -92,60 +92,137 @@ const ProgramInfo *PsaFlayTarget::produceProgramInfoImpl(
     // The blocks in the main declaration are just the arguments in the constructor call.
     // Convert mainDecl->arguments into a vector of blocks, represented as constructor-call
     // expressions.
-    const auto blocks =
-        argumentsToTypeDeclarations(&compilerResult.getProgram(), mainDecl->arguments);
+    std::vector<const IR::Type_Declaration *> flattenedBlocks;
+
+    for (const auto *arg : *mainDecl->arguments) {
+        if (const auto *pathExpr = arg->expression->to<IR::PathExpression>()) {
+            // Look up the path expression in the top-level namespace and expect to find a
+            // declaration instance.
+            const auto *declInstance = findProgramDecl(&compilerResult.getProgram(), pathExpr->path)
+                                           ->checkedTo<IR::Declaration_Instance>();
+            // Convert declInstance->arguments into a vector of blocks.
+            auto blocks =
+                argumentsToTypeDeclarations(&compilerResult.getProgram(), declInstance->arguments);
+            flattenedBlocks.insert(flattenedBlocks.end(), blocks.begin(), blocks.end());
+        }
+    }
 
     // We should have six arguments.
-    BUG_CHECK(blocks.size() == 3, "%1%: The PSA architecture requires 3 pipes. Received %2%.",
-              mainDecl, blocks.size());
+    BUG_CHECK(flattenedBlocks.size() == 6,
+              "%1%: The PSA architecture requires 6 pipes. Received %2%.", mainDecl,
+              flattenedBlocks.size());
 
     ordered_map<cstring, const IR::Type_Declaration *> programmableBlocks;
+    std::map<int, int> declIdToGress;
 
-    // Add to Parser, MatchAction, and Deparser.
-    for (size_t idx = 0; idx < blocks.size(); ++idx) {
-        const auto *declType = blocks.at(idx);
+    // Add to parserDeclIdToGress, mauDeclIdToGress, and deparserDeclIdToGress.
+    for (size_t idx = 0; idx < flattenedBlocks.size(); ++idx) {
+        const auto *declType = flattenedBlocks.at(idx);
 
         auto canonicalName = ARCH_SPEC.getArchMember(idx)->blockName;
         programmableBlocks.emplace(canonicalName, declType);
     }
-
     return new PsaProgramInfo(*compilerResult.checkedTo<FlayCompilerResult>(), programmableBlocks);
 }
 
-const ArchSpec PsaFlayTarget::ARCH_SPEC = ArchSpec(
-    "Pipeline"_cs, {
-                       // parser Parser<H, M>(packet_in b,
-                       //                     out H hdr,
-                       //                     inout M meta,
-                       //                     inout standard_metadata_t standard_metadata);
-                       {"Parser"_cs,
-                        {
-                            nullptr,
-                            "*hdr"_cs,
-                            "*meta"_cs,
-                            "*standard_metadata"_cs,
-                        }},
-                       // control MatchAction<H, M>(inout H hdr,
-                       //                           inout M meta,
-                       //                           inout standard_metadata_t standard_metadata);
-                       {"MatchAction"_cs,
-                        {
-                            "*hdr"_cs,
-                            "*meta"_cs,
-                            "*standard_metadata"_cs,
-                        }},
-                       // control Deparser<H, M>(packet_out b,
-                       //                        in H hdr,
-                       //                        inout M meta,
-                       //                        inout standard_metadata_t standard_metadata);
-                       {"Deparser"_cs,
-                        {
-                            nullptr,
-                            "*hdr"_cs,
-                            "*meta"_cs,
-                            "*standard_metadata"_cs,
-                        }},
-                   });
+const ArchSpec PsaFlayTarget::ARCH_SPEC =
+    ArchSpec("Pipeline"_cs, {
+                                // parser IngressParser<H, M, RESUBM, RECIRCM>(
+                                //     packet_in buffer,
+                                //     out H parsed_hdr,
+                                //     inout M user_meta,
+                                //     in psa_ingress_parser_input_metadata_t istd,
+                                //     in RESUBM resubmit_meta,
+                                //     in RECIRCM recirculate_meta);
+                                {"IngressParser"_cs,
+                                 {
+                                     nullptr,
+                                     "*hdr"_cs,
+                                     "*meta"_cs,
+                                     "*ingress_istd"_cs,
+                                     "*resubmit_meta"_cs,
+                                     "*recirculate_meta"_cs,
+                                 }},
+                                // control Ingress<H, M>(
+                                //     inout H hdr, inout M user_meta,
+                                //     in    psa_ingress_input_metadata_t  istd,
+                                //     inout psa_ingress_output_metadata_t ostd);
+                                {"Ingress"_cs,
+                                 {
+                                     "*hdr"_cs,
+                                     "*meta"_cs,
+                                     "*ingres_istd"_cs,
+                                     "*ingres_ostd"_cs,
+                                 }},
+                                // control IngressDeparser<H, M, CI2EM, RESUBM, NM>(
+                                //     packet_out buffer,
+                                //     out CI2EM clone_i2e_meta,
+                                //     out RESUBM resubmit_meta,
+                                //     out NM normal_meta,
+                                //     inout H hdr,
+                                //     in M meta,
+                                //     in psa_ingress_output_metadata_t istd);
+                                {"IngressDeparser"_cs,
+                                 {
+                                     nullptr,
+                                     "*clone_i2e_meta"_cs,
+                                     "*resubmit_meta"_cs,
+                                     "*normal_meta"_cs,
+                                     "*hdr"_cs,
+                                     "*meta"_cs,
+                                     "*ingres_ostd"_cs,
+                                 }},
+                                // parser EgressParser<H, M, NM, CI2EM, CE2EM>(
+                                //     packet_in buffer,
+                                //     out H parsed_hdr,
+                                //     inout M user_meta,
+                                //     in psa_egress_parser_input_metadata_t istd,
+                                //     in NM normal_meta,
+                                //     in CI2EM clone_i2e_meta,
+                                //     in CE2EM clone_e2e_meta);
+                                {"EgressParser"_cs,
+                                 {
+                                     nullptr,
+                                     "*hdr"_cs,
+                                     "*meta"_cs,
+                                     "*egress_pistd"_cs,
+                                     "*normal_meta"_cs,
+                                     "*clone_i2e_meta"_cs,
+                                     "*clone_e2e_meta"_cs,
+                                 }},
+                                // control Egress<H, M>(
+                                //     inout H hdr,
+                                //     inout M user_meta,
+                                //     in    psa_egress_input_metadata_t  istd,
+                                //     inout psa_egress_output_metadata_t ostd);
+                                {"Egress"_cs,
+                                 {
+                                     "*hdr"_cs,
+                                     "*meta"_cs,
+                                     "*egress_istd"_cs,
+                                     "*egress_ostd"_cs,
+                                 }},
+                                // control EgressDeparser<H, M, CE2EM, RECIRCM>(
+                                //     packet_out buffer,
+                                //     out CE2EM clone_e2e_meta,
+                                //     out RECIRCM recirculate_meta,
+                                //     inout H hdr,
+                                //     in M meta,
+                                //     in psa_egress_output_metadata_t istd,
+                                //     in psa_egress_deparser_input_metadata_t edstd);
+                                {
+                                    "EgressDeparser"_cs,
+                                    {
+                                        nullptr,
+                                        "*clone_e2e_meta"_cs,
+                                        "*recirculate_meta"_cs,
+                                        "*hdr"_cs,
+                                        "*meta"_cs,
+                                        "*egress_ostd"_cs,
+                                        "*egress_dstd"_cs,
+                                    },
+                                },
+                            });
 
 const ArchSpec *PsaFlayTarget::getArchSpecImpl() const { return &ARCH_SPEC; }
 

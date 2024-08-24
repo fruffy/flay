@@ -1,0 +1,6 @@
+Eliminated node at line 89: tbl_fwd_exact_lpm.apply();
+statement_count_before:13
+statement_count_after:12
+cyclomatic_complexity:3
+num_parsers_paths:3
+
