@@ -15,6 +15,7 @@ namespace P4::P4Tools::Flay {
 int P4RuntimeFlayServiceWrapper::parseControlUpdatesFromPattern(std::string_view pattern) {
     auto files = findFiles(pattern);
     for (const auto &file : files) {
+        printInfo("Processing control plane update: %1%", file);
         auto entityOpt = Protobuf::deserializeObjectFromFile<p4::v1::WriteRequest>(file);
         if (!entityOpt.has_value()) {
             return EXIT_FAILURE;

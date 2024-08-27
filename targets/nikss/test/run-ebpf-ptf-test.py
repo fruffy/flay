@@ -86,11 +86,11 @@ class Options:
     # The number of interfaces to create for this particular test.
     num_ifaces: int = 6
     # Use XDP mode instead of TC mode.
-    xdp: bool = True
+    xdp: bool = False
     # Whether to enable tracing logs.
     trace_logs_enabled: bool = False
     # The XDP2TC mode to use.
-    xdp2tc_mode: str = "Head"
+    xdp2tc_mode: str = "Meta"
     # Additional arguments for compilation passed from the command line.
     p4c_additional_args: str = ""
 
