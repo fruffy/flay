@@ -42,7 +42,7 @@ std::optional<bool> Z3SolverSubstitutionMap::computeNodeSubstitution(
     const IR::Expression *expression, const Z3ControlPlaneAssignmentSet &assignmentSet) {
     auto it = find(expression);
     if (it == end()) {
-        ::P4::error("Substitution mapping for node %1% does not exist.", expression);
+        error("Substitution mapping for node %1% does not exist.", expression);
         return std::nullopt;
     }
 
