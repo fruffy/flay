@@ -1,6 +1,5 @@
-Eliminated node at line (unknown): 
-Eliminated node at line 683: if (!my_station.apply().hit) {
 Eliminated node at line 686: if (interfaces.apply().hit) {
+Eliminated node at line 683: if (!my_station.apply().hit) {
 Eliminated node at line 437: routes_v4.apply();
 Eliminated node at line 401: acls.apply();
 Eliminated node at line 753: if (std_meta.egress_port == 255) {
@@ -15,8 +14,8 @@ Replaced node at line 595: local_meta.ip_proto : ternary @name("app_ip_proto") ;
 Replaced node at line 610: local_meta.tunnel_peer_id: exact @name("tunnel_peer_id") ; with 0
 Replaced node at line 379: local_meta.src_iface : ternary @name("src_iface") ; with 0
 Replaced node at line 753: if (std_meta.egress_port == 255) { with 0
-statement_count_before:238
-statement_count_after:196
-cyclomatic_complexity:83
+statement_count_before:236
+statement_count_after:194
+cyclomatic_complexity:81
 num_parsers_paths:38
 

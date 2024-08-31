@@ -1,8 +1,7 @@
-Eliminated node at line 56: if (h.eth_hdr.eth_type == 1) {
-Eliminated node at line (unknown): 
+Eliminated node at line 57: return;
 Replaced node at line 56: if (h.eth_hdr.eth_type == 1) { with 2
-statement_count_before:17
-statement_count_after:16
-cyclomatic_complexity:2
+statement_count_before:15
+statement_count_after:15
+cyclomatic_complexity:1
 num_parsers_paths:1
 

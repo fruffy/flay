@@ -1,9 +1,7 @@
-Eliminated node at line 63: if (istd.parser_error != error.NoError) {
-Eliminated node at line (unknown): 
-Eliminated node at line 94: if (istd.parser_error != error.NoError) {
-Eliminated node at line (unknown): 
-statement_count_before:19
-statement_count_after:15
-cyclomatic_complexity:10
+Eliminated node at line 64: ostd.drop = true;
+Eliminated node at line 95: ostd.drop = true;
+statement_count_before:15
+statement_count_after:13
+cyclomatic_complexity:8
 num_parsers_paths:17
 
