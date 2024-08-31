@@ -4,9 +4,8 @@ Eliminated node at line (unknown): { if (local_metadata.fwd_type == 2) {
     routing_v4_0/routing_v4.apply(); }
   next_vlan_0/next_vlan.apply(); }
 Replaced node at line 540: t_line_map.apply(); with set_line(0);
+Eliminated node at line 546: return;
 Eliminated node at line 545: if(t_pppoe_cp.apply().hit) {
-Eliminated node at line 545: if(t_pppoe_cp.apply().hit) {
-Eliminated node at line (unknown): 
 Eliminated node at line 558: if (t_line_session_map.apply().hit) {
 Eliminated node at line 558: if (t_line_session_map.apply().hit) {
 Eliminated node at line (unknown): 
@@ -17,6 +16,6 @@ Replaced node at line 491: local_metadata.bng.line_id : exact @name("line_id"); 
 Replaced node at line 512: local_metadata.bng.line_id : ternary @name("line_id"); with 0
 statement_count_before:153
 statement_count_after:147
-cyclomatic_complexity:50
+cyclomatic_complexity:49
 num_parsers_paths:70
 
