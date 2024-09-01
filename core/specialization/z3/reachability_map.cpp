@@ -16,7 +16,7 @@ Z3ReachabilityExpression::Z3ReachabilityExpression(ReachabilityExpression reacha
 z3::expr &Z3ReachabilityExpression::getZ3Condition() { return _z3Condition; }
 
 std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(
-    const IR::Node *node, const Z3ControlPlaneAssignmentSet &assignments) {
+    const IR::Node *node, const Z3ControlPlaneAssignmentSet &assignmentSet) {
     auto it = find(node);
     if (it == end()) {
         ::P4::error("Reachability mapping for node %1% does not exist.", node);
@@ -24,7 +24,7 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(
     }
     auto *reachabilityExpression = it->second;
     auto &reachabilityCondition = reachabilityExpression->getZ3Condition();
-    auto newExpr = assignments.substitute(reachabilityCondition).simplify();
+    auto newExpr = assignmentSet.substitute(reachabilityCondition).simplify();
     auto reachabilityAssignment = reachabilityExpression->getReachability();
     auto declKind = newExpr.decl().decl_kind();
     if (declKind == Z3_decl_kind::Z3_OP_FALSE || declKind == Z3_decl_kind::Z3_OP_TRUE) {

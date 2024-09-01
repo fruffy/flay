@@ -17,6 +17,12 @@ class Z3ControlPlaneAssignmentSet
  public:
     Z3ControlPlaneAssignmentSet() = default;
 
+    /// Return the number of entries in the set.
+    [[nodiscard]] size_t size() const {
+        return ordered_map<std::reference_wrapper<const IR::SymbolicVariable>, z3::expr,
+                           IR::IsSemanticallyLessComparator>::size();
+    }
+
     /// Add a new variable to the set. If the variable is already in the set, returns false.
     bool add(const IR::SymbolicVariable &var, z3::expr assignment) {
         auto result = emplace(var, assignment);
@@ -38,7 +44,7 @@ class Z3ControlPlaneAssignmentSet
             /// Wildcard the result if it does not exist yet.
             // emplace(var, z3::ite(condition, assignment, Z3Cache::set(&var)));
         } else {
-            it->second = z3::ite(condition, assignment, it->second);
+            it->second = z3::ite(condition, assignment, it->second).simplify();
         }
     }
 
