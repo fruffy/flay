@@ -114,10 +114,10 @@ class IncrementalAnalysis : public ICastable {
         ASSIGN_OR_RETURN(SymbolSet symbolSet, convertControlPlaneUpdate(controlPlaneUpdate),
                          std::nullopt);
         ASSIGN_OR_RETURN(bool changeNeeded, checkForSemanticsChange(symbolSet), std::nullopt);
+        printInfo("Change in semantics detected: %1%", changeNeeded ? "yes" : "no");
         if (!changeNeeded) {
-            return &program;
+            return std::optional{nullptr};
         }
-        printInfo("Change in semantics detected.");
 
         auto newProgram = specializeProgram(program);
         return newProgram;
@@ -130,6 +130,7 @@ class IncrementalAnalysis : public ICastable {
         const IR::P4Program &program,
         const std::vector<const ControlPlaneUpdate *> &controlPlaneUpdates) {
         SymbolSet symbolSet;
+        printInfo("Processing %s control plane updates.", controlPlaneUpdates.size());
         for (const auto &update : controlPlaneUpdates) {
             ASSIGN_OR_RETURN(SymbolSet updateSymbolSet, convertControlPlaneUpdate(*update),
                              std::nullopt);
@@ -137,10 +138,10 @@ class IncrementalAnalysis : public ICastable {
         }
         if (flayOptions().useSymbolSet()) {
             ASSIGN_OR_RETURN(bool changeNeeded, checkForSemanticsChange(symbolSet), std::nullopt);
+            printInfo("Change in semantics detected: %1%", changeNeeded ? "yes" : "no");
             if (!changeNeeded) {
-                return &program;
+                return std::optional{nullptr};
             }
-            printInfo("Change in semantics detected.");
         }
 
         return specializeProgram(program);

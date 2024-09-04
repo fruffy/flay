@@ -72,9 +72,11 @@ int FlayServiceBase::processControlPlaneUpdate(const ControlPlaneUpdate &control
         if (!optProgram.has_value()) {
             return EXIT_FAILURE;
         }
-        optimizedProg = optProgram.value();
+        if (optProgram.value() != nullptr) {
+            optimizedProg = optProgram.value();
+            _optimizedProgram = optimizedProg;
+        }
     }
-    _optimizedProgram = optimizedProg;
     return EXIT_SUCCESS;
 }
 
@@ -88,9 +90,11 @@ int FlayServiceBase::processControlPlaneUpdate(
         if (!optProgram.has_value()) {
             return EXIT_FAILURE;
         }
-        optimizedProg = optProgram.value();
+        if (optProgram.value() != nullptr) {
+            optimizedProg = optProgram.value();
+            _optimizedProgram = optimizedProg;
+        }
     }
-    _optimizedProgram = optimizedProg;
     return EXIT_SUCCESS;
 }
 

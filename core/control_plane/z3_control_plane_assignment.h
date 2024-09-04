@@ -3,6 +3,8 @@
 
 #include <z3++.h>
 
+#include "backends/p4tools/common/lib/logging.h"
+#include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_assignment.h"
 #include "backends/p4tools/modules/flay/core/lib/z3_cache.h"
 #include "ir/ir.h"
@@ -27,9 +29,28 @@ class Z3ControlPlaneAssignmentSet
     bool add(const IR::SymbolicVariable &var, z3::expr assignment) {
         auto result = emplace(var, assignment);
         if (!result.second) {
-            ::P4::error("Entry for `%1%` already in the set", var);
+            error("Entry for `%1%` already in the set", var);
         }
         return result.second;
+    }
+
+    /// Replaces an assignment in the set with a symbolic wildcard that can have any value.
+    void setSymbolic(const IR::SymbolicVariable &var) {
+        auto symbolicVar =
+            Z3Cache::set(ToolsVariables::getSymbolicVariable(var.type, var.label + "*"));
+        auto it = find(var);
+        if (it == end()) {
+            emplace(var, symbolicVar);
+        } else {
+            it->second = symbolicVar;
+        }
+    }
+
+    /// Set all assignments in this set to a symbolic wildcard that can have any value.
+    void setAllSymbolic() {
+        for (const auto &[symbol, assignment] : *this) {
+            setSymbolic(symbol.get());
+        }
     }
 
     /// Add a new variable to the set. If the variable is already in the set it is wrapped in an ite
