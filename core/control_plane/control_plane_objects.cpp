@@ -311,10 +311,16 @@ void TableConfiguration::setTableKeyMatch(const IR::Expression *tableKeyMatch) {
     _tableKeyMatch = tableKeyMatch;
 }
 
-int TableConfiguration::addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace) {
+int TableConfiguration::addTableEntry(TableMatchEntry &tableMatchEntry, bool replace) {
     if (replace) {
         _tableEntries.erase(tableMatchEntry);
     }
+    auto z3TableKeyMatchOpt = Z3Cache::get(_tableKeyMatch);
+    if (!z3TableKeyMatchOpt.has_value()) {
+        error("Failed to get Z3 table key match");
+        return EXIT_FAILURE;
+    }
+    tableMatchEntry.setZ3Condition(z3TableKeyMatchOpt.value());
     return _tableEntries.emplace(tableMatchEntry).second ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -387,14 +393,16 @@ Z3ControlPlaneAssignmentSet TableConfiguration::computeZ3ControlPlaneAssignments
     Util::ScopedTimer timer("computeZ3ControlPlaneAssignments");
     auto z3TableKeyMatchOpt = Z3Cache::get(_tableKeyMatch);
     if (!z3TableKeyMatchOpt.has_value()) {
-        ::P4::error("Failed to get Z3 table key match");
+        error("Failed to get Z3 table key match");
         return defaultAssignments;
     }
-    auto &z3TableKeyMatch = z3TableKeyMatchOpt.value();
     for (const auto &tableEntry : _tableEntries) {
-        const auto constraint =
-            tableEntry.get().computeZ3ControlPlaneAssignments().substitute(z3TableKeyMatch);
-        defaultAssignments.mergeConditionally(constraint, tableEntry.get().z3ActionAssignment());
+        auto constraint = tableEntry.get()._z3Condition();
+        if (!constraint.has_value()) {
+            return defaultAssignments;
+        }
+        defaultAssignments.mergeConditionally(constraint.value(),
+                                              tableEntry.get().z3ActionAssignment());
     }
     return defaultAssignments;
 }

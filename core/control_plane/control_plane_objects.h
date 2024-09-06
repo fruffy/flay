@@ -257,6 +257,9 @@ class TableMatchEntry : public Z3ControlPlaneItem {
     /// The action that will be executed by this entry in Z3 form.
     Z3ControlPlaneAssignmentSet _z3Matches;
 
+    /// The condition of this entry. Can only be set by the parent table configuration.
+    std::optional<z3::expr> _condition;
+
  public:
     explicit TableMatchEntry(ControlPlaneAssignmentSet actionAssignment, int32_t priority,
                              ControlPlaneAssignmentSet matches);
@@ -269,6 +272,17 @@ class TableMatchEntry : public Z3ControlPlaneItem {
 
     /// @returns the priority of this entry.
     [[nodiscard]] int32_t priority() const;
+
+    /// @returns the condition to execute this entry. Set by the parent table.
+    std::optional<z3::expr> _z3Condition() const {
+        if (_condition.has_value()) {
+            return _condition.value();
+        }
+        error("Condition not set for entry.");
+        return std::nullopt;
+    }
+
+    void setZ3Condition(z3::expr condition) { _condition = _z3Matches.substitute(condition); }
 
     bool operator<(const ControlPlaneItem &other) const override;
 
@@ -355,7 +369,7 @@ class TableConfiguration : public Z3ControlPlaneItem {
     void setTableKeyMatch(const IR::Expression *tableKeyMatch);
 
     /// Adds a new table entry.
-    int addTableEntry(const TableMatchEntry &tableMatchEntry, bool replace);
+    int addTableEntry(TableMatchEntry &tableMatchEntry, bool replace);
 
     /// Delete an existing table entry.
     size_t deleteTableEntry(const TableMatchEntry &tableMatchEntry);
