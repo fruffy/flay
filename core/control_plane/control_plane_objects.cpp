@@ -8,6 +8,7 @@
 #include "backends/p4tools/modules/flay/core/control_plane/substitute_variable.h"
 #include "backends/p4tools/modules/flay/core/lib/z3_cache.h"
 #include "ir/irutils.h"
+#include "lib/timer.h"
 
 namespace P4::P4Tools::ControlPlaneState {
 
@@ -335,6 +336,22 @@ ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments() c
         return defaultAssignments;
     }
 
+    // If we have more than kMaxEntriesPerTable entries we give up.
+    // Set the entries symbolic and assume they can be executed freely.
+    if (_tableEntries.size() > kMaxEntriesPerTable) {
+        for (const auto &[symbol, assignment] : defaultAssignments) {
+            const auto *symbolicVar =
+                ToolsVariables::getSymbolicVariable(symbol.get().type, symbol.get().label + "*");
+            auto it = defaultAssignments.find(symbol);
+            if (it == defaultAssignments.end()) {
+                defaultAssignments.emplace(symbol, *symbolicVar);
+            } else {
+                it->second = *symbolicVar;
+            }
+        }
+        return defaultAssignments;
+    }
+
     for (const auto &tableEntry : _tableEntries) {
         const auto &actionAssignments = tableEntry.get().actionAssignment();
         const auto keyAssignments = tableEntry.get().computeControlPlaneAssignments();
@@ -359,6 +376,15 @@ Z3ControlPlaneAssignmentSet TableConfiguration::computeZ3ControlPlaneAssignments
     if (_tableEntries.size() == 0) {
         return defaultAssignments;
     }
+
+    // If we have more than kMaxEntriesPerTable entries we give up.
+    // Set the entries symbolic and assume they can be executed freely.
+    if (_tableEntries.size() > kMaxEntriesPerTable) {
+        defaultAssignments.setAllSymbolic();
+        return defaultAssignments;
+    }
+
+    Util::ScopedTimer timer("computeZ3ControlPlaneAssignments");
     auto z3TableKeyMatchOpt = Z3Cache::get(_tableKeyMatch);
     if (!z3TableKeyMatchOpt.has_value()) {
         ::P4::error("Failed to get Z3 table key match");

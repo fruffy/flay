@@ -25,6 +25,11 @@ const IR::SymbolicVariable *getDefaultActionVariable(cstring tableName);
 
 namespace P4::P4Tools::Flay {
 
+/// How many entries per table we can support before we fall back to making the entire table
+/// configuration symbolic.
+/// TODO: Consider making this an option?
+constexpr size_t kMaxEntriesPerTable = 50;
+
 /**************************************************************************************************
 TableMatchKeys
 **************************************************************************************************/
