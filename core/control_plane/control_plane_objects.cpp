@@ -307,24 +307,23 @@ bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
 }
 
 void TableConfiguration::setTableKeyMatch(const IR::Expression *tableKeyMatch) {
-    Z3Cache::set(tableKeyMatch);
     _tableKeyMatch = tableKeyMatch;
+    // When we set the table key match, we also need to recompute the match of all table entries.
+    auto z3TableKeyMatch = Z3Cache::set(tableKeyMatch);
+    for (auto &tableMatchEntry : _tableEntries) {
+        tableMatchEntry.get().setZ3Condition(z3TableKeyMatch);
+    }
 }
 
 int TableConfiguration::addTableEntry(TableMatchEntry &tableMatchEntry, bool replace) {
     if (replace) {
         _tableEntries.erase(tableMatchEntry);
     }
-    auto z3TableKeyMatchOpt = Z3Cache::get(_tableKeyMatch);
-    if (!z3TableKeyMatchOpt.has_value()) {
-        error("Failed to get Z3 table key match");
-        return EXIT_FAILURE;
-    }
-    tableMatchEntry.setZ3Condition(z3TableKeyMatchOpt.value());
+    tableMatchEntry.setZ3Condition(Z3Cache::set(_tableKeyMatch));
     return _tableEntries.emplace(tableMatchEntry).second ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-size_t TableConfiguration::deleteTableEntry(const TableMatchEntry &tableMatchEntry) {
+size_t TableConfiguration::deleteTableEntry(TableMatchEntry &tableMatchEntry) {
     return _tableEntries.erase(tableMatchEntry);
 }
 

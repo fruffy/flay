@@ -335,8 +335,7 @@ TableConfiguration
 **************************************************************************************************/
 
 /// The active set of table entries. Sorted by type.
-using TableEntrySet =
-    std::set<std::reference_wrapper<const TableMatchEntry>, std::less<const TableMatchEntry>>;
+using TableEntrySet = std::set<std::reference_wrapper<TableMatchEntry>, std::less<TableMatchEntry>>;
 
 /// Concrete configuration of a control plane table. May contain arbitrary many table match
 /// entries.
@@ -372,7 +371,7 @@ class TableConfiguration : public Z3ControlPlaneItem {
     int addTableEntry(TableMatchEntry &tableMatchEntry, bool replace);
 
     /// Delete an existing table entry.
-    size_t deleteTableEntry(const TableMatchEntry &tableMatchEntry);
+    size_t deleteTableEntry(TableMatchEntry &tableMatchEntry);
 
     /// Clear all table entries.
     void clearTableEntries();
