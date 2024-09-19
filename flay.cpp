@@ -51,7 +51,7 @@ int runServer(const FlayOptions &flayOptions, const FlayCompilerResult &flayComp
 }
 #endif
 
-std::optional<std::vector<AnalysisStatistics *>> runServiceWrapper(
+std::optional<FlayServiceStatisticsMap> runServiceWrapper(
     const FlayOptions &flayOptions, const FlayCompilerResult &compilerResult,
     IncrementalAnalysisMap incrementalAnalysisMap) {
     auto controlPlaneApi = flayOptions.controlPlaneApi();
@@ -159,7 +159,7 @@ int Flay::mainImpl(const CompilerResult &compilerResult) {
     return ::P4::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-std::optional<std::vector<AnalysisStatistics *>> optimizeProgramImpl(
+std::optional<FlayServiceStatisticsMap> optimizeProgramImpl(
     std::optional<std::reference_wrapper<const std::string>> program,
     const FlayOptions &flayOptions) {
     // Register supported Flay targets.
@@ -213,8 +213,8 @@ std::optional<std::vector<AnalysisStatistics *>> optimizeProgramImpl(
     return runServiceWrapper(flayOptions, flayCompilerResult, std::move(incrementalAnalysisMap));
 }
 
-std::optional<std::vector<AnalysisStatistics *>> Flay::optimizeProgram(
-    const std::string &program, const FlayOptions &flayOptions) {
+std::optional<FlayServiceStatisticsMap> Flay::optimizeProgram(const std::string &program,
+                                                              const FlayOptions &flayOptions) {
     try {
         return optimizeProgramImpl(program, flayOptions);
     } catch (const std::exception &e) {
@@ -226,8 +226,7 @@ std::optional<std::vector<AnalysisStatistics *>> Flay::optimizeProgram(
     return std::nullopt;
 }
 
-std::optional<std::vector<AnalysisStatistics *>> Flay::optimizeProgram(
-    const FlayOptions &flayOptions) {
+std::optional<FlayServiceStatisticsMap> Flay::optimizeProgram(const FlayOptions &flayOptions) {
     try {
         return optimizeProgramImpl(std::nullopt, flayOptions);
     } catch (const std::exception &e) {

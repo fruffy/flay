@@ -36,7 +36,7 @@ class FlayServiceWrapper {
     void outputOptimizedProgram(const std::filesystem::path &optimizedOutputFile);
 
     /// Compute and return some statistics on the changes in the program.
-    [[nodiscard]] std::vector<AnalysisStatistics *> computeFlayServiceStatistics() const;
+    [[nodiscard]] FlayServiceStatisticsMap computeFlayServiceStatistics() const;
 };
 
 }  // namespace P4::P4Tools::Flay

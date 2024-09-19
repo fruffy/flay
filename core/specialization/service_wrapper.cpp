@@ -82,7 +82,7 @@ std::vector<std::string> FlayServiceWrapper::findFiles(std::string_view pattern)
     return files;
 }
 
-std::vector<AnalysisStatistics *> FlayServiceWrapper::computeFlayServiceStatistics() const {
+FlayServiceStatisticsMap FlayServiceWrapper::computeFlayServiceStatistics() const {
     return _flayService.computeFlayServiceStatistics();
 }
 
