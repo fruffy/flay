@@ -4,4 +4,6 @@ statement_count_before:13
 statement_count_after:12
 cyclomatic_complexity:10
 num_parsers_paths:9
+num_updates_processed:0
+num_respecializations:0
 

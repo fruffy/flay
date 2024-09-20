@@ -1,6 +1,8 @@
 Replaced node at line 87: mac_da.apply(); with my_drop_0/my_drop();
-statement_count_before:13
-statement_count_after:13
+statement_count_before:12
+statement_count_after:12
 cyclomatic_complexity:1
 num_parsers_paths:1
+num_updates_processed:0
+num_respecializations:0
 
