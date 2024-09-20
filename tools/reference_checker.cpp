@@ -226,7 +226,7 @@ int run(const ReferenceCheckerOptions &options, const FlayOptions &flayOptions) 
     }
 
     std::stringstream flayOptimizationOutput;
-    for (const auto *statistic : flayServiceStatistics) {
+    for (const auto &[analysisName, statistic] : flayServiceStatistics) {
         flayOptimizationOutput << *statistic;
     }
 
@@ -256,7 +256,6 @@ int run(const ReferenceCheckerOptions &options, const FlayOptions &flayOptions) 
         auto referenceName = options.getInputFile().stem();
         for (const auto &entry : std::filesystem::directory_iterator(referenceFolder)) {
             const auto &referenceFile = entry.path();
-
             if (referenceFile.extension() == ".ref" && referenceFile.stem() == referenceName) {
                 return compareAgainstReference(flayOptimizationOutput, referenceFile);
             }

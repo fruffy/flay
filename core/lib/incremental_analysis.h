@@ -111,6 +111,7 @@ class IncrementalAnalysis : public ICastable {
     /// affect the semantics of the program, and specialize the program if necessary.
     std::optional<const IR::P4Program *> processControlPlaneUpdate(
         const IR::P4Program &program, const ControlPlaneUpdate &controlPlaneUpdate) {
+        printInfo("Processing 1 control plane update.");
         ASSIGN_OR_RETURN(SymbolSet symbolSet, convertControlPlaneUpdate(controlPlaneUpdate),
                          std::nullopt);
         ASSIGN_OR_RETURN(bool changeNeeded, checkForSemanticsChange(symbolSet), std::nullopt);
@@ -118,9 +119,7 @@ class IncrementalAnalysis : public ICastable {
         if (!changeNeeded) {
             return std::optional{nullptr};
         }
-
-        auto newProgram = specializeProgram(program);
-        return newProgram;
+        return specializeProgram(program);
     }
 
     /// Receive a series of control plane updates, convert each update to its intermediate
@@ -143,7 +142,6 @@ class IncrementalAnalysis : public ICastable {
                 return std::optional{nullptr};
             }
         }
-
         return specializeProgram(program);
     }
 

@@ -66,6 +66,8 @@ int FlayServiceBase::specializeProgram() {
 int FlayServiceBase::processControlPlaneUpdate(const ControlPlaneUpdate &controlPlaneUpdate) {
     Util::ScopedTimer timer("Processing control plane update");
     const auto *optimizedProg = &originalProgram();
+    _updateCount++;
+    bool hasRespecialized = false;
     for (const auto &[analysisName, incrementalAnalysis] : _incrementalAnalysisMap) {
         auto optProgram =
             incrementalAnalysis->processControlPlaneUpdate(*optimizedProg, controlPlaneUpdate);
@@ -73,9 +75,14 @@ int FlayServiceBase::processControlPlaneUpdate(const ControlPlaneUpdate &control
             return EXIT_FAILURE;
         }
         if (optProgram.value() != nullptr) {
+            _respecializationCount++;
             optimizedProg = optProgram.value();
             _optimizedProgram = optimizedProg;
+            hasRespecialized = true;
         }
+    }
+    if (hasRespecialized) {
+        _respecializationCount++;
     }
     return EXIT_SUCCESS;
 }
@@ -83,7 +90,9 @@ int FlayServiceBase::processControlPlaneUpdate(const ControlPlaneUpdate &control
 int FlayServiceBase::processControlPlaneUpdate(
     const std::vector<const ControlPlaneUpdate *> &controlPlaneUpdates) {
     Util::ScopedTimer timer("Processing control plane updates");
+    _updateCount += controlPlaneUpdates.size();
     const auto *optimizedProg = &originalProgram();
+    bool hasRespecialized = false;
     for (const auto &[analysisName, incrementalAnalysis] : _incrementalAnalysisMap) {
         auto optProgram =
             incrementalAnalysis->processControlPlaneUpdate(*optimizedProg, controlPlaneUpdates);
@@ -93,7 +102,11 @@ int FlayServiceBase::processControlPlaneUpdate(
         if (optProgram.value() != nullptr) {
             optimizedProg = optProgram.value();
             _optimizedProgram = optimizedProg;
+            hasRespecialized = true;
         }
+    }
+    if (hasRespecialized) {
+        _respecializationCount++;
     }
     return EXIT_SUCCESS;
 }
@@ -107,19 +120,19 @@ void FlayServiceBase::recordProgramChange() const {
               statementCountBefore, statementCountAfter, stmtPct);
 }
 
-std::vector<AnalysisStatistics *> FlayServiceBase::computeFlayServiceStatistics() const {
+FlayServiceStatisticsMap FlayServiceBase::computeFlayServiceStatistics() const {
     auto statementCountBefore = countStatements(midEndProgram());
     auto statementCountAfter = countStatements(optimizedProgram());
     auto cyclomaticComplexity = computeCyclomaticComplexity(midEndProgram());
     auto numParsersPaths = ParserPathsCounter::computeParserPaths(midEndProgram());
-    std::vector<AnalysisStatistics *> statistics;
-    statistics.reserve(_incrementalAnalysisMap.size() + 1);
+    FlayServiceStatisticsMap statistics;
     for (const auto &[analysisName, incrementalAnalysis] : _incrementalAnalysisMap) {
-        statistics.push_back(incrementalAnalysis->computeAnalysisStatistics());
+        statistics.emplace(analysisName, incrementalAnalysis->computeAnalysisStatistics());
     }
-    statistics.push_back(new FlayServiceStatistics(&optimizedProgram(), statementCountBefore,
-                                                   statementCountAfter, cyclomaticComplexity,
-                                                   numParsersPaths));
+    statistics.emplace(
+        "main", new FlayServiceStatistics(&optimizedProgram(), statementCountBefore,
+                                          statementCountAfter, cyclomaticComplexity,
+                                          numParsersPaths, updateCount(), respecializationCount()));
     return statistics;
 }
 

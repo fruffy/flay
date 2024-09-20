@@ -47,23 +47,30 @@ inline double measureSizeDifference(const IR::P4Program &programBefore,
 struct FlayServiceStatistics : public AnalysisStatistics {
     FlayServiceStatistics(const IR::P4Program *optimizedProgram, uint64_t statementCountBefore,
                           uint64_t statementCountAfter, size_t cyclomaticComplexity,
-                          size_t numParsersPaths)
+                          size_t numParsersPaths, size_t numUpdatesProcessed,
+                          size_t numRespecializations)
         : optimizedProgram(optimizedProgram),
           statementCountBefore(statementCountBefore),
           statementCountAfter(statementCountAfter),
           cyclomaticComplexity(cyclomaticComplexity),
-          numParsersPaths(numParsersPaths) {}
+          numParsersPaths(numParsersPaths),
+          numUpdatesProcessed(numUpdatesProcessed),
+          numRespecializations(numRespecializations) {}
 
-    // The optimized program.
+    /// The optimized program.
     const IR::P4Program *optimizedProgram;
-    // The number of statements in the original program.
+    /// The number of statements in the original program.
     uint64_t statementCountBefore;
-    // The number of statements in the optimized program.
+    /// The number of statements in the optimized program.
     uint64_t statementCountAfter;
-    // The cyclomatic complexity of the input program.
+    /// The cyclomatic complexity of the input program.
     size_t cyclomaticComplexity;
-    // The total number of paths for parsers
+    /// The total number of paths for parsers
     size_t numParsersPaths;
+    /// The total number of updates processed.
+    size_t numUpdatesProcessed = 0;
+    /// The total number of times a respecialization was necessary.
+    size_t numRespecializations = 0;
 
     [[nodiscard]] std::string toFormattedString() const override {
         std::stringstream output;
@@ -71,13 +78,25 @@ struct FlayServiceStatistics : public AnalysisStatistics {
         output << "statement_count_after:" << statementCountAfter << "\n";
         output << "cyclomatic_complexity:" << cyclomaticComplexity << "\n";
         output << "num_parsers_paths:" << numParsersPaths << "\n";
+        output << "num_updates_processed:" << numUpdatesProcessed << "\n";
+        output << "num_respecializations:" << numRespecializations << "\n";
         return output.str();
     }
 
     DECLARE_TYPEINFO(FlayServiceStatistics);
 };
 
+/// Maps a particular specialization category to its statistics.
+using FlayServiceStatisticsMap = ordered_map<std::string, AnalysisStatistics *>;
+
 class FlayServiceBase {
+ private:
+    /// Number of updates processed.
+    size_t _updateCount = 0;
+
+    /// Number of times respecialization was necessary.
+    size_t _respecializationCount = 0;
+
  protected:
     /// The incremental analysis.
     IncrementalAnalysisMap _incrementalAnalysisMap;
@@ -93,6 +112,12 @@ class FlayServiceBase {
     const IR::P4Program *_optimizedProgram = nullptr;
 
     int specializeProgram();
+
+    /// Return the number of updates processed.
+    [[nodiscard]] size_t updateCount() const { return _updateCount; }
+
+    /// Return the number of times respecialization was necessary.
+    [[nodiscard]] size_t respecializationCount() const { return _respecializationCount; }
 
  public:
     explicit FlayServiceBase(const FlayCompilerResult &compilerResult,
@@ -121,7 +146,7 @@ class FlayServiceBase {
         const std::vector<const ControlPlaneUpdate *> &controlPlaneUpdates);
 
     /// Compute and return some statistics on the changes in the program.
-    [[nodiscard]] std::vector<AnalysisStatistics *> computeFlayServiceStatistics() const;
+    [[nodiscard]] FlayServiceStatisticsMap computeFlayServiceStatistics() const;
 };
 
 }  // namespace P4::P4Tools::Flay

@@ -310,7 +310,7 @@ void TableConfiguration::setTableKeyMatch(const IR::Expression *tableKeyMatch) {
     _tableKeyMatch = tableKeyMatch;
     // When we set the table key match, we also need to recompute the match of all table entries.
     auto z3TableKeyMatch = Z3Cache::set(tableKeyMatch);
-    for (auto &tableMatchEntry : _tableEntries) {
+    for (const auto &tableMatchEntry : _tableEntries) {
         tableMatchEntry.get().setZ3Condition(z3TableKeyMatch);
     }
 }
