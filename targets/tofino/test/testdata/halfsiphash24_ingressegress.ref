@@ -1,4 +1,4 @@
-
+Eliminated node at line 388: do_not_recirc_end_in_ig;
 statement_count_before:193
 statement_count_after:189
 cyclomatic_complexity:90

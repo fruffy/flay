@@ -1,4 +1,5 @@
 Eliminated node at line 38: if (meta.field == 0) {
+Eliminated node at line 45: actions = { set_true; }
 Eliminated node at line 49: change_cond.apply();
 Replaced node at line 38: if (meta.field == 0) { with 0
 Replaced node at line 44: key = { ostd.egress_spec: exact; } with 0

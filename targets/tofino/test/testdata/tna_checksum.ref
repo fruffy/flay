@@ -1,3 +1,13 @@
+Eliminated node at line 173: snat;
+Eliminated node at line 174: stpat;
+Eliminated node at line 175: sntpat;
+Eliminated node at line 176: supat;
+Eliminated node at line 177: snupat;
+Eliminated node at line 178: checksum_upd_ipv4;
+Eliminated node at line 179: checksum_upd_tcp;
+Eliminated node at line 180: checksum_upd_udp;
+Eliminated node at line 181: checksum_upd_ipv4_tcp_udp;
+Eliminated node at line 193: set_output_port;
 Eliminated node at line 199: translate.apply();
 Eliminated node at line 201: output_port.apply();
 Eliminated node at line 205: if (hdr.udp.checksum == 0 && ig_md.checksum_upd_udp) {

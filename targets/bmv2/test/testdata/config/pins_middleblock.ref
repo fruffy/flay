@@ -1,3 +1,42 @@
+Eliminated node at line 985: @proto_id(1) mark_for_tunnel_decap_and_set_vrf;
+Eliminated node at line 849: @proto_id(1) disable_vlan_checks;
+Eliminated node at line 1463: @proto_id(1) set_vrf;
+Eliminated node at line 484: @proto_id(2) set_nexthop_id(local_metadata);
+Eliminated node at line 485: @proto_id(3) set_wcmp_group_id;
+Eliminated node at line 486: @proto_id(5) set_nexthop_id_and_metadata;
+Eliminated node at line 487: @proto_id(6) set_wcmp_group_id_and_metadata;
+Eliminated node at line 488: @proto_id(7) set_metadata_and_drop;
+Eliminated node at line 500: @proto_id(2) set_nexthop_id(local_metadata);
+Eliminated node at line 501: @proto_id(3) set_wcmp_group_id;
+Eliminated node at line 502: @proto_id(5) set_nexthop_id_and_metadata;
+Eliminated node at line 503: @proto_id(6) set_wcmp_group_id_and_metadata;
+Eliminated node at line 504: @proto_id(7) set_metadata_and_drop;
+Eliminated node at line 515: @proto_id(1) set_multicast_group_id;
+Eliminated node at line 525: @proto_id(1) set_multicast_group_id;
+Eliminated node at line 1219: @proto_id(1) acl_copy();
+Eliminated node at line 1220: @proto_id(2) acl_trap();
+Eliminated node at line 1221: @proto_id(3) acl_forward();
+Eliminated node at line 1222: @proto_id(4) acl_mirror();
+Eliminated node at line 1223: @proto_id(5) acl_drop(local_metadata);
+Eliminated node at line 1336: @proto_id(4) acl_forward();
+Eliminated node at line 1337: @proto_id(1) acl_mirror();
+Eliminated node at line 1338: @proto_id(2) redirect_to_nexthop();
+Eliminated node at line 1339: @proto_id(3) redirect_to_ipmc_group();
+Eliminated node at line 1381: @proto_id(1) acl_forward();
+Eliminated node at line 1382: @proto_id(2) acl_drop(local_metadata);
+Eliminated node at line 1383: @proto_id(3) acl_deny();
+Eliminated node at line 562: @proto_id(1) set_dst_mac;
+Eliminated node at line 583: @proto_id(1) set_port_and_src_mac;
+Eliminated node at line 584: @proto_id(2) set_port_and_src_mac_and_vlan_id;
+Eliminated node at line 615: @proto_id(1) set_nexthop;
+Eliminated node at line 616: @proto_id(2) set_p2p_tunnel_encap_nexthop;
+Eliminated node at line 617: @proto_id(3) set_ip_nexthop;
+Eliminated node at line 618: @proto_id(4) set_ip_nexthop_and_disable_rewrites;
+Eliminated node at line 635: @proto_id(1) mark_for_p2p_tunnel_encap;
+Eliminated node at line 648: @proto_id(1) set_nexthop_id(local_metadata);
+Eliminated node at line 734: @proto_id(1) mirror_as_ipv4_erspan;
+Eliminated node at line 735: @proto_id(2) mirror_with_vlan_tag_and_ipfix_encapsulation;
+Eliminated node at line 708: @proto_id(1) ingress_clone;
 Eliminated node at line 992: ipv6_tunnel_termination_table.apply();
 Eliminated node at line 862: disable_vlan_checks_table.apply();
 Eliminated node at line 1540: acl_pre_ingress_table.apply();
@@ -16,6 +55,8 @@ Eliminated node at line 660: if (local_metadata.nexthop_id_valid) {
 Eliminated node at line 673: if (local_metadata.acl_drop) {
 Eliminated node at line 742: if (local_metadata.marked_to_mirror) {
 Eliminated node at line 712: ingress_clone_table.apply();
+Eliminated node at line 931: @proto_id(1) set_multicast_src_mac;
+Eliminated node at line 1061: @proto_id(1) acl_drop(local_metadata);
 Eliminated node at line (unknown): 
 Eliminated node at line 936: multicast_router_interface_table.apply();
 Eliminated node at line 946: if (local_metadata.enable_src_mac_rewrite) {

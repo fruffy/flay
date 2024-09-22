@@ -1,3 +1,14 @@
+Eliminated node at line 256: nop;
+Eliminated node at line 257: set_ingress_dst_port_range_id;
+Eliminated node at line 266: nop;
+Eliminated node at line 267: set_ingress_src_port_range_id;
+Eliminated node at line 387: set_source_interface;
+Eliminated node at line 399: set_seid();
+Eliminated node at line 410: set_seid();
+Eliminated node at line 427: set_far_id();
+Eliminated node at line 438: far_forward();
+Eliminated node at line 439: far_encap_forward();
+Eliminated node at line 318: forward();
 Eliminated node at line 292: ingress_l4_src_port.apply();
 Eliminated node at line 293: ingress_l4_dst_port.apply();
 Eliminated node at line 484: source_interface_lookup_by_port.apply();

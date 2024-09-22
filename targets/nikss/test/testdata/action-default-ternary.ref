@@ -1,3 +1,4 @@
+Eliminated node at line 99: actions = { do_forward; NoAction; }
 Replaced node at line 104: tbl_ternary.apply(); with do_forward(1);
 statement_count_before:14
 statement_count_after:14

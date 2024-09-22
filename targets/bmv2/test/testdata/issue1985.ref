@@ -1,3 +1,4 @@
+Eliminated node at line 28: a(hdr.h.isValid() || (bool) 1w1);
 Eliminated node at line 32: t.apply();
 statement_count_before:2
 statement_count_after:1

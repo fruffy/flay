@@ -1,3 +1,5 @@
+Eliminated node at line 92: hit;
+Eliminated node at line 107: hit;
 Eliminated node at line 118: dmac.apply();
 Eliminated node at line 119: dmac_indirect.apply();
 statement_count_before:11

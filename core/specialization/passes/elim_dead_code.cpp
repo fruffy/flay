@@ -6,6 +6,7 @@
 #include "backends/p4tools/common/lib/table_utils.h"
 #include "backends/p4tools/modules/flay/core/lib/return_macros.h"
 #include "backends/p4tools/modules/flay/options.h"
+#include "ir/indexed_vector.h"
 #include "ir/node.h"
 #include "ir/vector.h"
 #include "lib/error.h"
@@ -83,14 +84,15 @@ const IR::Node *ElimDeadCode::preorder(IR::SwitchStatement *switchStmt) {
             }
             continue;
         }
-        printInfo("---DEAD_CODE--- %1% can be deleted.", switchCase->label);
+        printInfo("---DEAD_CODE--- SwitchCase %1% can be deleted.", switchCase->label);
         _eliminatedNodes.emplace_back(switchCase, nullptr);
+        printInfo("---DEAD_CODE--- Switchcase %1% can be deleted.", switchCase->label);
         // We are removing a statement that had previous fall-through labels.
         if (previousFallThrough && !filteredSwitchCases.empty() &&
             switchCase->statement != nullptr) {
             auto *previous = filteredSwitchCases.back()->clone();
-            printInfo("---DEAD_CODE--- Merging statements of %1% into %2%.", switchCase->label,
-                      previous->label);
+            printInfo("---DEAD_CODE--- Merging statements of switchcase %1% into switchcase %2%.",
+                      switchCase->label, previous->label);
             previous->statement = switchCase->statement;
             filteredSwitchCases.pop_back();
             filteredSwitchCases.push_back(previous);
@@ -150,6 +152,54 @@ const IR::Node *ElimDeadCode::preorder(IR::Member *member) {
     return result;
 }
 
+const IR::Node *ElimDeadCode::preorder(IR::P4Table *table) {
+    IR::IndexedVector<IR::ActionListElement> actionListVector;
+
+    ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &defaultAction, table->getDefaultAction(), table,
+                                  ::P4::error("Table %1% does not have a default action.", table));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(
+        const auto &defaultActionCall, defaultAction.to<IR::MethodCallExpression>(), table,
+        ::P4::error("%1% is not a method call expression.", defaultAction));
+
+    const auto *actionList = table->getActionList();
+    for (const auto *action : actionList->actionList) {
+        // Do not remove actions which have a default only annotation.
+        // Do not remove the default action.
+        if (action->getAnnotation(IR::Annotation::defaultOnlyAnnotation) != nullptr ||
+            defaultActionCall.method->toString() ==
+                action->expression->checkedTo<IR::MethodCallExpression>()->method->toString()) {
+            actionListVector.push_back(action);
+            continue;
+        }
+        auto reachabilityOpt = _reachabilityMap.get().isNodeReachable(action);
+        if (!reachabilityOpt.has_value()) {
+            actionListVector.push_back(action);
+            continue;
+        }
+        if (reachabilityOpt.value()) {
+            printInfo("---DEAD_CODE--- ActionListElement %1% will always be executed.", action);
+            actionListVector.clear();
+            actionListVector.push_back(action);
+            break;
+        }
+        _eliminatedNodes.emplace_back(action, nullptr);
+        printInfo("---DEAD_CODE--- ActionListElement %1% can be deleted.", action);
+    }
+    auto *newActionList = new IR::ActionList(actionListVector);
+    IR::TableProperties properties;
+    for (const auto *property : table->properties->properties) {
+        if (property->name == IR::TableProperties::actionsPropertyName) {
+            auto *newProp = property->clone();
+            newProp->value = newActionList;
+            properties.push_back(newProp);
+        } else {
+            properties.push_back(property);
+        }
+    }
+    table->properties = new IR::TableProperties(properties);
+    return table;
+}
+
 const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
     const auto *call = stmt->methodCall->method->to<IR::Member>();
     RETURN_IF_FALSE(call != nullptr && call->member == IR::IApply::applyMethodName, stmt);
@@ -169,7 +219,7 @@ const IR::Node *ElimDeadCode::preorder(IR::MethodCallStatement *stmt) {
         ::P4::error("Table %1% does not have a default action.", tableDecl));
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         const auto &defaultActionCall, defaultAction.to<IR::MethodCallExpression>(), stmt,
-        ::P4::error("%1% is not a method call expression.", table.getDefaultAction()));
+        ::P4::error("%1% is not a method call expression.", defaultAction));
     for (const auto *action : tableActionList) {
         // Do not remove the default action.
         if (defaultActionCall.method->toString() ==

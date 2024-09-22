@@ -1,3 +1,4 @@
+Eliminated node at line 85: do_act;
 Eliminated node at line 91: tns.apply();
 Replaced node at line 82: local_metadata.row0.alt0.valid : exact; with 0
 statement_count_before:12

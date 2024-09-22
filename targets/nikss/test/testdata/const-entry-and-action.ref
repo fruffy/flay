@@ -1,4 +1,4 @@
-
+Eliminated node at line 88: actions = { do_forward; NoAction; }
 statement_count_before:20
 statement_count_after:20
 cyclomatic_complexity:24

@@ -1,3 +1,4 @@
+Eliminated node at line 53: actions = { NoAction; fwd; }
 Eliminated node at line 58: if (tbl.apply().hit)
 Eliminated node at line 58: if (tbl.apply().hit)
 statement_count_before:8

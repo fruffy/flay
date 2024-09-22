@@ -1,4 +1,14 @@
+Eliminated node at line 66: on_miss;
+Eliminated node at line 67: rewrite_src_dst_mac;
 Eliminated node at line 75: rewrite_mac.apply();
+Eliminated node at line 97: set_vrf;
+Eliminated node at line 106: on_miss;
+Eliminated node at line 107: fib_hit_nexthop;
+Eliminated node at line 117: on_miss;
+Eliminated node at line 118: fib_hit_nexthop;
+Eliminated node at line 128: on_miss;
+Eliminated node at line 129: set_egress_details;
+Eliminated node at line 138: set_bd;
 Eliminated node at line 147: port_mapping.apply();
 Eliminated node at line 148: bd.apply();
 Eliminated node at line 150: on_miss: {

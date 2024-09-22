@@ -1,3 +1,4 @@
+Eliminated node at line 79: actions = { NoAction; act; }
 Replaced node at line 84: t1.apply(); with act();
 statement_count_before:12
 statement_count_after:12

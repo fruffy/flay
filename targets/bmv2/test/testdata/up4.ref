@@ -1,3 +1,18 @@
+Eliminated node at line 521: set_session_uplink;
+Eliminated node at line 522: set_session_uplink_drop;
+Eliminated node at line 532: set_session_downlink;
+Eliminated node at line 533: set_session_downlink_drop;
+Eliminated node at line 534: set_session_downlink_buff;
+Eliminated node at line 569: uplink_term_fwd;
+Eliminated node at line 570: uplink_term_drop;
+Eliminated node at line 581: downlink_term_fwd;
+Eliminated node at line 582: downlink_term_drop;
+Eliminated node at line 613: load_tunnel_param;
+Eliminated node at line 424: route;
+Eliminated node at line 390: set_port;
+Eliminated node at line 391: punt;
+Eliminated node at line 392: clone_to_cpu;
+Eliminated node at line 393: drop;
 Eliminated node at line 686: if (interfaces.apply().hit) {
 Eliminated node at line 683: if (!my_station.apply().hit) {
 Eliminated node at line 437: routes_v4.apply();

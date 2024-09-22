@@ -1,3 +1,4 @@
+Eliminated node at line 82: foo2_action;
 Eliminated node at line 88: foo2_table.apply();
 statement_count_before:7
 statement_count_after:6
