@@ -6,6 +6,7 @@
 #include "backends/p4tools/common/control_plane/symbolic_variables.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/control_plane/substitute_variable.h"
+#include "backends/p4tools/modules/flay/core/lib/simplify_expression.h"
 #include "backends/p4tools/modules/flay/core/lib/z3_cache.h"
 #include "ir/irutils.h"
 #include "lib/timer.h"
@@ -29,10 +30,10 @@ namespace P4::P4Tools::Flay {
 TableMatchKeys
 **************************************************************************************************/
 
-TableMatchKey::TableMatchKey(cstring name, const IR::Expression *computedKey)
-    : _name(name), _computedKey(computedKey) {
-    Z3Cache::set(_computedKey);
-};
+TableMatchKey::TableMatchKey(cstring tableName, cstring name)
+    : _tableName(tableName), _name(name){};
+
+cstring TableMatchKey::tableName() const { return _tableName; }
 
 cstring TableMatchKey::name() const { return _name; }
 
@@ -49,11 +50,12 @@ Z3ControlPlaneAssignmentSet TableMatchKey::computeZ3ControlPlaneAssignments() co
     P4C_UNIMPLEMENTED("computeZ3ControlPlaneAssignments");
 }
 
-ExactTableMatchKey::ExactTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                                       const IR::Expression *value)
-    : TableMatchKey(name, new IR::Equ(variable, value)),
-      _variable(variable),
-      _keyExpression(value) {}
+ExactTableMatchKey::ExactTableMatchKey(cstring tableName, cstring name, const IR::Expression *value)
+    : TableMatchKey(tableName, name),
+      _variable(ControlPlaneState::getTableKey(tableName, name, value->type)),
+      _keyExpression(value) {
+    setComputedKey(new IR::Equ(_variable, value));
+}
 
 const IR::SymbolicVariable *ExactTableMatchKey::variable() const { return _variable; }
 
@@ -77,13 +79,14 @@ const IR::Expression *createTernaryKey(const IR::SymbolicVariable *variable,
 
 }  // namespace
 
-TernaryTableMatchKey::TernaryTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                                           const IR::SymbolicVariable *mask,
+TernaryTableMatchKey::TernaryTableMatchKey(cstring tableName, cstring name,
                                            const IR::Expression *keyExpression)
-    : TableMatchKey(name, createTernaryKey(variable, mask, keyExpression)),
-      _variable(variable),
-      _mask(mask),
-      _keyExpression(keyExpression) {}
+    : TableMatchKey(tableName, name),
+      _variable(ControlPlaneState::getTableKey(tableName, name, keyExpression->type)),
+      _mask(ControlPlaneState::getTableTernaryMask(tableName, name, keyExpression->type)),
+      _keyExpression(keyExpression) {
+    setComputedKey(createTernaryKey(_variable, _mask, keyExpression));
+}
 
 const IR::SymbolicVariable *TernaryTableMatchKey::variable() const { return _variable; }
 
@@ -115,12 +118,14 @@ const IR::Expression *createLpmKey(const IR::SymbolicVariable *variable,
 
 }  // namespace
 
-LpmTableMatchKey::LpmTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                                   const IR::Expression *value, const IR::SymbolicVariable *prefix)
-    : TableMatchKey(name, createLpmKey(variable, prefix, value)),
-      _variable(variable),
-      _keyExpression(value),
-      _prefixVar(prefix) {}
+LpmTableMatchKey::LpmTableMatchKey(cstring tableName, cstring name,
+                                   const IR::Expression *keyExpression)
+    : TableMatchKey(tableName, name),
+      _variable(ControlPlaneState::getTableKey(tableName, name, keyExpression->type)),
+      _keyExpression(keyExpression),
+      _prefixVar(ControlPlaneState::getTableMatchLpmPrefix(tableName, name, keyExpression->type)) {
+    setComputedKey(createLpmKey(_variable, _prefixVar, _keyExpression));
+}
 
 const IR::SymbolicVariable *LpmTableMatchKey::variable() const { return _variable; }
 
@@ -136,11 +141,12 @@ std::optional<z3::expr> LpmTableMatchKey::computeZ3ControlPlaneConstraint() cons
     return Z3Cache::get(computedKey());
 }
 
-OptionalMatchKey::OptionalMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                                   const IR::Expression *value)
-    : TableMatchKey(name, new IR::Equ(variable, value)),
-      _variable(variable),
-      _keyExpression(value) {}
+OptionalMatchKey::OptionalMatchKey(cstring tableName, cstring name, const IR::Expression *value)
+    : TableMatchKey(tableName, name),
+      _variable(ControlPlaneState::getTableKey(tableName, name, value->type)),
+      _keyExpression(value) {
+    setComputedKey(new IR::Equ(_variable, value));
+}
 
 const IR::SymbolicVariable *OptionalMatchKey::variable() const { return _variable; }
 
@@ -154,11 +160,13 @@ std::optional<z3::expr> OptionalMatchKey::computeZ3ControlPlaneConstraint() cons
     return Z3Cache::get(computedKey());
 }
 
-SelectorMatchKey::SelectorMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                                   const IR::Expression *value)
-    : TableMatchKey(name, new IR::Equ(variable, value)),
-      _variable(variable),
-      _keyExpression(value) {}
+SelectorMatchKey::SelectorMatchKey(cstring tableName, cstring name,
+                                   const IR::Expression *keyExpression)
+    : TableMatchKey(tableName, name),
+      _variable(ControlPlaneState::getTableKey(tableName, name, keyExpression->type)),
+      _keyExpression(keyExpression) {
+    setComputedKey(new IR::Equ(_variable, keyExpression));
+}
 
 const IR::SymbolicVariable *SelectorMatchKey::variable() const { return _variable; }
 
@@ -184,19 +192,18 @@ const IR::Expression *createRangeKey(const IR::SymbolicVariable *minKey,
 
 }  // namespace
 
-RangeTableMatchKey::RangeTableMatchKey(cstring name, const IR::SymbolicVariable *minKey,
+RangeTableMatchKey::RangeTableMatchKey(cstring tableName, cstring name,
+                                       const IR::Expression *keyExpression)
 
-                                       const IR::SymbolicVariable *maxKey,
-                                       const IR::Expression *value)
+    : TableMatchKey(tableName, name),
+      _range(Bmv2ControlPlaneState::getTableRange(tableName, name, keyExpression->type)),
+      _keyExpression(keyExpression) {
+    setComputedKey(createRangeKey(_range.first, _range.second, keyExpression));
+}
 
-    : TableMatchKey(name, createRangeKey(minKey, maxKey, value)),
-      _minKey(minKey),
-      _maxKey(maxKey),
-      _keyExpression(value) {}
+const IR::SymbolicVariable *RangeTableMatchKey::minKey() const { return _range.first; }
 
-const IR::SymbolicVariable *RangeTableMatchKey::minKey() const { return _minKey; }
-
-const IR::Expression *RangeTableMatchKey::maxKey() const { return _maxKey; }
+const IR::SymbolicVariable *RangeTableMatchKey::maxKey() const { return _range.second; }
 
 const IR::Expression *RangeTableMatchKey::keyExpression() const { return _keyExpression; }
 
@@ -290,6 +297,25 @@ Z3ControlPlaneAssignmentSet WildCardMatchEntry::computeZ3ControlPlaneAssignments
 TableConfiguration
 **************************************************************************************************/
 
+const IR::Expression *TableConfiguration::buildKeyMatches(const KeyMap &keyMap) {
+    if (keyMap.empty()) {
+        return IR::BoolLiteral::get(false);
+    }
+    const IR::Expression *hitCondition = nullptr;
+    for (const auto *key : keyMap) {
+        const auto *matchExpr = key->computeControlPlaneConstraint();
+        if (hitCondition == nullptr) {
+            hitCondition = matchExpr;
+        } else {
+            hitCondition = new IR::LAnd(hitCondition, matchExpr);
+        }
+    }
+    // The table can only "hit" when it is actually configured by the control-plane.
+    // Pay attention to how we use "toString" for the path name here.
+    // We need to match these choices correctly. TODO: Make this very explicit.
+    return hitCondition;
+}
+
 bool TableConfiguration::CompareTableMatch::operator()(const TableMatchEntry &left,
                                                        const TableMatchEntry &right) {
     return left.priority() > right.priority();
@@ -306,10 +332,10 @@ bool TableConfiguration::operator<(const ControlPlaneItem &other) const {
                                           : typeid(*this).hash_code() < typeid(other).hash_code();
 }
 
-void TableConfiguration::setTableKeyMatch(const IR::Expression *tableKeyMatch) {
-    _tableKeyMatch = tableKeyMatch;
+void TableConfiguration::setTableKeyMatch(const KeyMap &tableKeyMap) {
+    _tableKeyMatch = SimplifyExpression::simplify(buildKeyMatches(tableKeyMap));
     // When we set the table key match, we also need to recompute the match of all table entries.
-    auto z3TableKeyMatch = Z3Cache::set(tableKeyMatch);
+    auto z3TableKeyMatch = Z3Cache::set(_tableKeyMatch);
     for (const auto &tableMatchEntry : _tableEntries) {
         tableMatchEntry.get().setZ3Condition(z3TableKeyMatch);
     }
@@ -334,27 +360,27 @@ void TableConfiguration::setDefaultTableAction(TableDefaultAction defaultTableAc
 }
 
 ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments() const {
-    auto defaultAssignments = _defaultTableAction.computeControlPlaneAssignments();
-    defaultAssignments.emplace(*ControlPlaneState::getTableActive(_tableName),
-                               *IR::BoolLiteral::get(_tableEntries.size() > 0));
+    auto assignments = _defaultTableAction.computeControlPlaneAssignments();
+    assignments.emplace(*ControlPlaneState::getTableActive(_tableName),
+                        *IR::BoolLiteral::get(_tableEntries.size() > 0));
     if (_tableEntries.size() == 0) {
-        return defaultAssignments;
+        return assignments;
     }
 
     // If we have more than kMaxEntriesPerTable entries we give up.
     // Set the entries symbolic and assume they can be executed freely.
     if (_tableEntries.size() > kMaxEntriesPerTable) {
-        for (const auto &[symbol, assignment] : defaultAssignments) {
+        for (const auto &[symbol, assignment] : assignments) {
             const auto *symbolicVar =
                 ToolsVariables::getSymbolicVariable(symbol.get().type, symbol.get().label + "*");
-            auto it = defaultAssignments.find(symbol);
-            if (it == defaultAssignments.end()) {
-                defaultAssignments.emplace(symbol, *symbolicVar);
+            auto it = assignments.find(symbol);
+            if (it == assignments.end()) {
+                assignments.emplace(symbol, *symbolicVar);
             } else {
                 it->second = *symbolicVar;
             }
         }
-        return defaultAssignments;
+        return assignments;
     }
 
     for (const auto &tableEntry : _tableEntries) {
@@ -363,47 +389,48 @@ ControlPlaneAssignmentSet TableConfiguration::computeControlPlaneAssignments() c
         const auto *constraint = _tableKeyMatch->apply(SubstituteSymbolicVariable(keyAssignments));
 
         for (const auto &[variable, assignment] : actionAssignments) {
-            auto it = defaultAssignments.find(variable);
-            if (it != defaultAssignments.end()) {
+            auto it = assignments.find(variable);
+            if (it != assignments.end()) {
                 it->second = *new IR::Mux(constraint, &assignment.get(), &it->second.get());
             } else {
-                defaultAssignments.insert({variable, assignment});
+                assignments.insert({variable, assignment});
             }
         }
     }
-    return defaultAssignments;
+    return assignments;
 }
 
 Z3ControlPlaneAssignmentSet TableConfiguration::computeZ3ControlPlaneAssignments() const {
-    auto defaultAssignments = _defaultTableAction.computeZ3ControlPlaneAssignments();
-    defaultAssignments.add(*ControlPlaneState::getTableActive(_tableName),
-                           Z3Cache::set(IR::BoolLiteral::get(_tableEntries.size() > 0)));
+    auto assignments = _defaultTableAction.computeZ3ControlPlaneAssignments();
+    assignments.add(*ControlPlaneState::getTableActive(_tableName),
+                    Z3Cache::set(IR::BoolLiteral::get(_tableEntries.size() > 0)));
     if (_tableEntries.size() == 0) {
-        return defaultAssignments;
+        return assignments;
     }
 
     // If we have more than kMaxEntriesPerTable entries we give up.
     // Set the entries symbolic and assume they can be executed freely.
     if (_tableEntries.size() > kMaxEntriesPerTable) {
-        defaultAssignments.setAllSymbolic();
-        return defaultAssignments;
+        assignments.setAllSymbolic();
+        return assignments;
     }
 
     Util::ScopedTimer timer("computeZ3ControlPlaneAssignments");
     auto z3TableKeyMatchOpt = Z3Cache::get(_tableKeyMatch);
     if (!z3TableKeyMatchOpt.has_value()) {
         error("Failed to get Z3 table key match");
-        return defaultAssignments;
+        return assignments;
     }
     for (const auto &tableEntry : _tableEntries) {
         auto constraint = tableEntry.get()._z3Condition();
         if (!constraint.has_value()) {
-            return defaultAssignments;
+            return assignments;
         }
-        defaultAssignments.mergeConditionally(constraint.value(),
-                                              tableEntry.get().z3ActionAssignment());
+        assignments.mergeConditionally(
+            tableEntry.get().computeZ3ControlPlaneAssignments().substitute(constraint.value()),
+            tableEntry.get().z3ActionAssignment());
     }
-    return defaultAssignments;
+    return assignments;
 }
 
 /**************************************************************************************************

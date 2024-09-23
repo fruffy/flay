@@ -34,20 +34,33 @@ constexpr size_t kMaxEntriesPerTable = 50;
 TableMatchKeys
 **************************************************************************************************/
 class TableMatchKey : public Z3ControlPlaneItem {
+    /// The name of the table associated with this key.
+    cstring _tableName;
+
     /// The control plane identifier for this match key.
     cstring _name;
 
     /// The computed key expression.
     const IR::Expression *_computedKey = nullptr;
 
+ protected:
+    explicit TableMatchKey(cstring tableName, cstring name);
+
  public:
-    explicit TableMatchKey(cstring name, const IR::Expression *computedKey);
+    /// @returns the name of the table associated with this key.
+    [[nodiscard]] cstring tableName() const;
 
     /// @returns the control plane identifier for this match key.
     [[nodiscard]] cstring name() const;
 
     /// @returns the computed key expression.
     [[nodiscard]] const IR::Expression *computedKey() const { return _computedKey; }
+
+    /// Sets the computed key expression.
+    void setComputedKey(const IR::Expression *key) {
+        _computedKey = key;
+        Z3Cache::set(key);
+    }
 
     bool operator<(const ControlPlaneItem &other) const override;
     [[nodiscard]] ControlPlaneAssignmentSet computeControlPlaneAssignments() const override;
@@ -75,8 +88,8 @@ class ExactTableMatchKey : public TableMatchKey {
     const IR::Expression *_keyExpression;
 
  public:
-    explicit ExactTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                                const IR::Expression *value);
+    explicit ExactTableMatchKey(cstring tableName, cstring name,
+                                const IR::Expression *keyExpression);
 
     /// @returns the symbolic variable that represents the table match key.
     [[nodiscard]] const IR::SymbolicVariable *variable() const;
@@ -105,8 +118,7 @@ class TernaryTableMatchKey : public TableMatchKey {
     const IR::Expression *_keyExpression;
 
  public:
-    TernaryTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                         const IR::SymbolicVariable *mask, const IR::Expression *keyExpression);
+    TernaryTableMatchKey(cstring tableName, cstring name, const IR::Expression *keyExpression);
 
     /// @returns the symbolic variable that represents the table match key.
     [[nodiscard]] const IR::SymbolicVariable *variable() const;
@@ -138,8 +150,7 @@ class LpmTableMatchKey : public TableMatchKey {
     const IR::SymbolicVariable *_prefixVar;
 
  public:
-    LpmTableMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                     const IR::Expression *value, const IR::SymbolicVariable *prefix);
+    LpmTableMatchKey(cstring tableName, cstring name, const IR::Expression *keyExpression);
 
     /// @returns the symbolic variable that represents the table match key.
     [[nodiscard]] const IR::SymbolicVariable *variable() const;
@@ -166,8 +177,7 @@ class OptionalMatchKey : public TableMatchKey {
     const IR::Expression *_keyExpression;
 
  public:
-    explicit OptionalMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                              const IR::Expression *value);
+    explicit OptionalMatchKey(cstring tableName, cstring name, const IR::Expression *keyExpression);
 
     /// @returns the symbolic variable that represents the table match key.
     [[nodiscard]] const IR::SymbolicVariable *variable() const;
@@ -191,8 +201,7 @@ class SelectorMatchKey : public TableMatchKey {
     const IR::Expression *_keyExpression;
 
  public:
-    explicit SelectorMatchKey(cstring name, const IR::SymbolicVariable *variable,
-                              const IR::Expression *value);
+    explicit SelectorMatchKey(cstring tableName, cstring name, const IR::Expression *keyExpression);
 
     /// @returns the symbolic variable that represents the table match key.
     [[nodiscard]] const IR::SymbolicVariable *variable() const;
@@ -207,25 +216,20 @@ class SelectorMatchKey : public TableMatchKey {
 };
 
 class RangeTableMatchKey : public TableMatchKey {
-    /// The symbolic variable that represents the minimum table match key.
-    const IR::SymbolicVariable *_minKey;
-
-    /// The symbolic variable that represents the maximum table match key.
-    const IR::SymbolicVariable *_maxKey;
+    /// The symbolic variable that represents the minimum and maximum range of the key.
+    std::pair<const IR::SymbolicVariable *, const IR::SymbolicVariable *> _range;
 
     /// The value expression the key must match on.
     const IR::Expression *_keyExpression;
 
  public:
-    RangeTableMatchKey(cstring name, const IR::SymbolicVariable *minKey,
-
-                       const IR::SymbolicVariable *maxKey, const IR::Expression *value);
+    RangeTableMatchKey(cstring tableName, cstring name, const IR::Expression *keyExpression);
 
     /// @returns the symbolic variable that represents the minimum table match key.
     [[nodiscard]] const IR::SymbolicVariable *minKey() const;
 
     /// @returns the symbolic variable that represents the maximum table match key.
-    [[nodiscard]] const IR::Expression *maxKey() const;
+    [[nodiscard]] const IR::SymbolicVariable *maxKey() const;
 
     /// @returns the value expression the key must match on.
     [[nodiscard]] const IR::Expression *keyExpression() const;
@@ -337,6 +341,8 @@ TableConfiguration
 /// The active set of table entries. Sorted by type.
 using TableEntrySet = std::set<std::reference_wrapper<TableMatchEntry>, std::less<TableMatchEntry>>;
 
+using KeyMap = std::vector<const TableMatchKey *>;
+
 /// Concrete configuration of a control plane table. May contain arbitrary many table match
 /// entries.
 class TableConfiguration : public Z3ControlPlaneItem {
@@ -358,6 +364,9 @@ class TableConfiguration : public Z3ControlPlaneItem {
         bool operator()(const TableMatchEntry &left, const TableMatchEntry &right);
     };
 
+    /// Produce a single key match expression from a map of keys.
+    static const IR::Expression *buildKeyMatches(const KeyMap &keyMap);
+
  public:
     explicit TableConfiguration(cstring tableName, TableDefaultAction defaultTableAction,
                                 TableEntrySet tableEntries);
@@ -365,7 +374,7 @@ class TableConfiguration : public Z3ControlPlaneItem {
     bool operator<(const ControlPlaneItem &other) const override;
 
     /// Set the table key match expression.
-    void setTableKeyMatch(const IR::Expression *tableKeyMatch);
+    void setTableKeyMatch(const KeyMap &tableKeyMap);
 
     /// Adds a new table entry.
     int addTableEntry(TableMatchEntry &tableMatchEntry, bool replace);

@@ -3,12 +3,10 @@
 
 #include <z3++.h>
 
-#include "backends/p4tools/common/lib/logging.h"
 #include "backends/p4tools/common/lib/variables.h"
 #include "backends/p4tools/modules/flay/core/control_plane/control_plane_assignment.h"
 #include "backends/p4tools/modules/flay/core/lib/z3_cache.h"
 #include "ir/ir.h"
-#include "ir/node.h"
 
 namespace P4::P4Tools::Flay {
 
@@ -87,7 +85,7 @@ class Z3ControlPlaneAssignmentSet
             substitutionVariables.push_back(Z3Cache::set(&match.first.get()));
             substitutionAssignments.push_back(match.second);
         }
-        return toSubstitute.substitute(substitutionVariables, substitutionAssignments);
+        return toSubstitute.substitute(substitutionVariables, substitutionAssignments).simplify();
     }
 
     /// Merges the other set into this one.

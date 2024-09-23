@@ -98,13 +98,13 @@ const IR::Key *TableExecutor::resolveKey(const IR::Key *key) const {
 KeyMap TableExecutor::computeHitCondition(const IR::Key &key) const {
     KeyMap keyMap;
     for (const auto *keyField : key.keyElements) {
-        keyMap.insert(computeTargetMatchType(keyField));
+        keyMap.push_back(computeTargetMatchType(keyField));
     }
     return keyMap;
 }
 
 const TableMatchKey *TableExecutor::computeTargetMatchType(const IR::KeyElement *keyField) const {
-    const auto *keyExpr = keyField->expression;
+    const auto *keyExpression = keyField->expression;
     const auto matchType = keyField->matchType->toString();
     const auto *nameAnnot = keyField->getAnnotation(IR::Annotation::nameAnnotation);
     // Some hidden tables do not have any key name annotations.
@@ -114,22 +114,14 @@ const TableMatchKey *TableExecutor::computeTargetMatchType(const IR::KeyElement 
     if (nameAnnot != nullptr) {
         fieldName = nameAnnot->getName();
     }
-    // Create a new variable constant that corresponds to the key expression.
-    const auto *ctrlPlaneKey =
-        ControlPlaneState::getTableKey(symbolicTablePrefix(), fieldName, keyExpr->type);
-
     if (matchType == P4Constants::MATCH_KIND_EXACT) {
-        return new ExactTableMatchKey(fieldName, ctrlPlaneKey, keyExpr);
+        return new ExactTableMatchKey(symbolicTablePrefix(), fieldName, keyExpression);
     }
     if (matchType == P4Constants::MATCH_KIND_TERNARY) {
-        const auto *ternaryMask =
-            ControlPlaneState::getTableTernaryMask(symbolicTablePrefix(), fieldName, keyExpr->type);
-        return new TernaryTableMatchKey(fieldName, ctrlPlaneKey, ternaryMask, keyExpr);
+        return new TernaryTableMatchKey(symbolicTablePrefix(), fieldName, keyExpression);
     }
     if (matchType == P4Constants::MATCH_KIND_LPM) {
-        const auto *maskVar = ControlPlaneState::getTableMatchLpmPrefix(symbolicTablePrefix(),
-                                                                        fieldName, keyExpr->type);
-        return new LpmTableMatchKey(fieldName, ctrlPlaneKey, keyExpr, maskVar);
+        return new LpmTableMatchKey(symbolicTablePrefix(), fieldName, keyExpression);
     }
     P4C_UNIMPLEMENTED("Match type %s not implemented for table keys.", matchType);
 }
@@ -239,25 +231,6 @@ void TableExecutor::processTableActionOptions(
     }
 }
 
-const IR::Expression *TableExecutor::buildKeyMatches(const KeyMap &keyMap) {
-    if (keyMap.empty()) {
-        return IR::BoolLiteral::get(false);
-    }
-    const IR::Expression *hitCondition = nullptr;
-    for (const auto *key : keyMap) {
-        const auto *matchExpr = key->computeControlPlaneConstraint();
-        if (hitCondition == nullptr) {
-            hitCondition = matchExpr;
-        } else {
-            hitCondition = new IR::LAnd(hitCondition, matchExpr);
-        }
-    }
-    // The table can only "hit" when it is actually configured by the control-plane.
-    // Pay attention to how we use "toString" for the path name here.
-    // We need to match these choices correctly. TODO: Make this very explicit.
-    return hitCondition;
-}
-
 const IR::Expression *TableExecutor::processTable() {
     const auto &table = getP4Table();
     TableUtils::TableProperties properties;
@@ -265,11 +238,9 @@ const IR::Expression *TableExecutor::processTable() {
 
     // Then, resolve the key.
     const auto *key = table.getKey();
-    const IR::Expression *tableKeyExpression = nullptr;
+    KeyMap tableKeyMap;
     if (key != nullptr) {
-        tableKeyExpression = buildKeyMatches(computeHitCondition(*resolveKey(key)));
-    } else {
-        tableKeyExpression = IR::BoolLiteral::get(false);
+        tableKeyMap = computeHitCondition(*resolveKey(key));
     }
 
     const auto *defaultActionPath = TableUtils::getDefaultActionName(table);
@@ -289,8 +260,7 @@ const IR::Expression *TableExecutor::processTable() {
     if (tableControlPlaneItem != controlPlaneConstraints().end()) {
         auto *tableControlPlaneConfiguration =
             tableControlPlaneItem->second.get().checkedTo<TableConfiguration>();
-        tableControlPlaneConfiguration->setTableKeyMatch(
-            SimplifyExpression::simplify(tableKeyExpression));
+        tableControlPlaneConfiguration->setTableKeyMatch(tableKeyMap);
     } else {
         ::P4::error("Table %s has no control plane configuration", table.controlPlaneName());
     }
