@@ -15,8 +15,6 @@ namespace P4::P4Tools::Flay {
 /// Forward declaration of the calling expression resolver.
 class ExpressionResolver;
 
-using KeyMap = std::set<const TableMatchKey *>;
-
 /// Executes a table and synthesizes control plane action parameters.
 class TableExecutor {
  private:
@@ -47,9 +45,6 @@ class TableExecutor {
     void processTableActionOptions(const TableUtils::TableProperties &tableProperties,
                                    const ExecutionState &referenceState,
                                    ReturnProperties &tableReturnProperties) const;
-
-    /// Produce a single key match expression from a map of keys.
-    static const IR::Expression *buildKeyMatches(const KeyMap &keyMap);
 
  protected:
     /// Computes a series of boolean conditions that must be true for the table to hit a particular
