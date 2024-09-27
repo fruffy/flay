@@ -19,7 +19,7 @@ std::optional<bool> Z3SolverReachabilityMap::computeNodeReachability(
     const IR::Node *node, const Z3ControlPlaneAssignmentSet &assignmentSet) {
     auto it = find(node);
     if (it == end()) {
-        ::P4::error("Reachability mapping for node %1% does not exist.", node);
+        error("Reachability mapping for node %1% does not exist.", node);
         return std::nullopt;
     }
     auto *reachabilityExpression = it->second;
@@ -65,7 +65,7 @@ std::optional<bool> Z3SolverReachabilityMap::isNodeReachable(const IR::Node *nod
         // reachabilityNode->getCondition());
         return reachabilityNode->getReachability();
     }
-    ::P4::warning(
+    warning(
         "Unable to find node %1% in the reachability map of this execution state. There might be "
         "issues with the source information.",
         node);

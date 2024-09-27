@@ -50,7 +50,7 @@ class ReferenceCheckerOptions : public FlayOptions {
             [this](const char *arg) {
                 file = arg;
                 if (!std::filesystem::exists(file)) {
-                    ::P4::error("The input P4 program '%s' does not exist.", file.c_str());
+                    error("The input P4 program '%s' does not exist.", file.c_str());
                     return false;
                 }
                 return true;
@@ -108,22 +108,22 @@ class ReferenceCheckerOptions : public FlayOptions {
         auto *unprocessedOptions = process(argc, argv);
         if (unprocessedOptions != nullptr && !unprocessedOptions->empty()) {
             for (const auto &option : *unprocessedOptions) {
-                ::P4::error("Unprocessed input: %s", option);
+                error("Unprocessed input: %s", option);
             }
             return EXIT_FAILURE;
         }
         if (file.empty()) {
-            ::P4::error("No input file specified.");
+            error("No input file specified.");
             return EXIT_FAILURE;
         }
         if (!_referenceFile.has_value() && !_referenceFolder.has_value()) {
-            ::P4::error(
+            error(
                 "Neither a reference file nor a reference folder have been specified. Use either "
                 "--reference-file or --reference-folder.");
             return EXIT_FAILURE;
         }
         if (_referenceFile.has_value() && _referenceFolder.has_value()) {
-            ::P4::error(
+            error(
                 "Both a reference file and a reference folder have been specified. Use only one.");
             return EXIT_FAILURE;
         }
@@ -168,7 +168,7 @@ int compareAgainstReference(const std::stringstream &flayOptimizationOutput,
     printInfo("Running diff command: \"%s\"", command.str());
     FILE *pipe = popen(command.str().c_str(), "r");
     if (pipe == nullptr) {
-        ::P4::error("Unable to create pipe to diff command.");
+        error("Unable to create pipe to diff command.");
         return EXIT_FAILURE;
     }
     // Read and print the output of the diff command.
@@ -178,7 +178,7 @@ int compareAgainstReference(const std::stringstream &flayOptimizationOutput,
         result << buffer;
     }
     if (pclose(pipe) != 0) {
-        ::P4::error("Diff command failed.\n%1%", result.str());
+        error("Diff command failed.\n%1%", result.str());
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
@@ -198,12 +198,12 @@ std::optional<std::filesystem::path> getFilePath(const ReferenceCheckerOptions &
         try {
             std::filesystem::create_directories(referenceFolder);
         } catch (const std::exception &err) {
-            ::P4::error("Unable to create directory %1%: %2%", referenceFolder.c_str(), err.what());
+            error("Unable to create directory %1%: %2%", referenceFolder.c_str(), err.what());
             return std::nullopt;
         }
         referencePath = referenceFolder / referencePath;
     } else {
-        ::P4::error("Neither a reference file nor a reference folder have been specified.");
+        error("Neither a reference file nor a reference folder have been specified.");
         return std::nullopt;
     }
     return referencePath.replace_extension(suffix);
@@ -249,8 +249,8 @@ int run(const ReferenceCheckerOptions &options, const FlayOptions &flayOptions) 
     if (referenceFolderOpt.has_value()) {
         auto referenceFolder = std::filesystem::absolute(referenceFolderOpt.value());
         if (!std::filesystem::is_directory(referenceFolder)) {
-            ::P4::error("Reference folder %1% does not exist or is not a folder.",
-                        referenceFolder.c_str());
+            error("Reference folder %1% does not exist or is not a folder.",
+                  referenceFolder.c_str());
             return EXIT_FAILURE;
         }
         auto referenceName = options.getInputFile().stem();
@@ -260,10 +260,10 @@ int run(const ReferenceCheckerOptions &options, const FlayOptions &flayOptions) 
                 return compareAgainstReference(flayOptimizationOutput, referenceFile);
             }
         }
-        ::P4::error("Reference file not found in folder.");
+        error("Reference file not found in folder.");
         return EXIT_FAILURE;
     }
-    ::P4::error("Neither a reference file nor a reference folder have been specified.");
+    error("Neither a reference file nor a reference folder have been specified.");
     return EXIT_FAILURE;
 }
 
@@ -289,5 +289,5 @@ int main(int argc, char *argv[]) {
     if (result == EXIT_FAILURE) {
         return EXIT_FAILURE;
     }
-    return ::P4::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return P4::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

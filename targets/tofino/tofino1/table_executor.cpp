@@ -48,16 +48,15 @@ std::optional<const IR::IDeclaration *> checkForActionProfileOrSelector(
     if (implTypeDeclaration->name == "ActionSelector") {
         constexpr int kexpectedArgumentSize = 5;
         if (declarationArguments->size() < kexpectedArgumentSize) {
-            ::P4::error("Action selector %1% requires %2% arguments, but only %3% were provided.",
-                        implTypeDeclaration->controlPlaneName(), kexpectedArgumentSize,
-                        declarationArguments->size());
+            error("Action selector %1% requires %2% arguments, but only %3% were provided.",
+                  implTypeDeclaration->controlPlaneName(), kexpectedArgumentSize,
+                  declarationArguments->size());
             return std::nullopt;
         }
         const auto *actionProfileReference = declarationArguments->at(0)->expression;
         const auto *actionProfileReferencePath = actionProfileReference->to<IR::PathExpression>();
         if (actionProfileReferencePath == nullptr) {
-            ::P4::error("Action profile reference %1% is not a path expression.",
-                        actionProfileReference);
+            error("Action profile reference %1% is not a path expression.", actionProfileReference);
             return std::nullopt;
         }
         return state.findDecl(actionProfileReferencePath);

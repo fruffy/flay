@@ -34,7 +34,7 @@ std::optional<p4::v1::WriteRequest> FlayClient::parseWriteRequestFile(
     if (google::protobuf::TextFormat::Parse(input, &request)) {
         printInfo("Parsed configuration: %1%", request.DebugString());
     } else {
-        ::P4::error("WriteRequest not valid (partial content: %1%", request.ShortDebugString());
+        error("WriteRequest not valid (partial content: %1%", request.ShortDebugString());
         return std::nullopt;
     }
     // Close the open file.

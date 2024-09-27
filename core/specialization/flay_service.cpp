@@ -34,7 +34,7 @@ void FlayServiceBase::outputOptimizedProgram(
     const std::filesystem::path &optimizedOutputFile) const {
     std::ofstream output(optimizedOutputFile);
     if (!output.is_open()) {
-        ::P4::error("Could not open file %1% for writing.", optimizedOutputFile.c_str());
+        error("Could not open file %1% for writing.", optimizedOutputFile.c_str());
         return;
     }
     P4::ToP4 toP4(&output, false);

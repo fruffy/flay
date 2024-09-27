@@ -28,7 +28,7 @@ bool ControlPlaneStateInitializer::computeMatch(const IR::Expression &entryKey,
 
     if (matchType == P4Constants::MATCH_KIND_EXACT) {
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,
-                                      ::P4::error("Entry %1% is not a literal.", entryKey));
+                                      error("Entry %1% is not a literal.", entryKey));
         keySet.emplace(keySymbol, exactValue);
         return true;
     }
@@ -45,16 +45,16 @@ bool ControlPlaneStateInitializer::computeMatch(const IR::Expression &entryKey,
         if (const auto *maskExpr = entryKey.to<IR::Mask>()) {
             ASSIGN_OR_RETURN_WITH_MESSAGE(
                 const auto &maskLeft, maskExpr->left->to<IR::Literal>(), false,
-                ::P4::error("Left mask element %1% is not a literal.", maskExpr->left));
+                error("Left mask element %1% is not a literal.", maskExpr->left));
             ASSIGN_OR_RETURN_WITH_MESSAGE(
                 const auto &maskRight, maskExpr->right->to<IR::Literal>(), false,
-                ::P4::error("Right mask element %1% is not a literal.", maskExpr->right));
+                error("Right mask element %1% is not a literal.", maskExpr->right));
             keySet.emplace(keySymbol, maskLeft);
             keySet.emplace(*lpmPrefixSymbol, maskRight);
             return true;
         }
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,
-                                      ::P4::error("%1% is not a literal.", entryKey));
+                                      error("%1% is not a literal.", entryKey));
         keySet.emplace(keySymbol, exactValue);
         keySet.emplace(*lpmPrefixSymbol, *IR::Constant::get(keyType, keyType->width_bits()));
         return true;
@@ -71,44 +71,42 @@ bool ControlPlaneStateInitializer::computeMatch(const IR::Expression &entryKey,
         if (const auto *maskExpr = entryKey.to<IR::Mask>()) {
             ASSIGN_OR_RETURN_WITH_MESSAGE(
                 const auto &maskLeft, maskExpr->left->to<IR::Literal>(), false,
-                ::P4::error("Left mask element %1% is not a literal.", maskExpr->left));
+                error("Left mask element %1% is not a literal.", maskExpr->left));
             ASSIGN_OR_RETURN_WITH_MESSAGE(
                 const auto &maskRight, maskExpr->right->to<IR::Literal>(), false,
-                ::P4::error("Right mask element %1% is not a literal.", maskExpr->right));
+                error("Right mask element %1% is not a literal.", maskExpr->right));
             keySet.emplace(keySymbol, maskLeft);
             keySet.emplace(*maskSymbol, maskRight);
             return true;
         }
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,
-                                      ::P4::error("Entry %1% is not a literal.", entryKey));
+                                      error("Entry %1% is not a literal.", entryKey));
         keySet.emplace(keySymbol, exactValue);
         keySet.emplace(*maskSymbol, *IR::getMaxValueConstant(keyType));
         return true;
     }
-    ::P4::error("Match type %1% is not supported.", matchType);
+    error("Match type %1% is not supported.", matchType);
     return false;
 }
 
 std::optional<ControlPlaneAssignmentSet> ControlPlaneStateInitializer::computeEntryKeySet(
     const IR::P4Table &table, const IR::Entry &entry) {
     ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &key, table.getKey(), std::nullopt,
-                                  ::P4::error("Table %1% has no key.", table));
+                                  error("Table %1% has no key.", table));
     auto numKeys = key.keyElements.size();
-    RETURN_IF_FALSE_WITH_MESSAGE(
-        numKeys == entry.keys->size(), std::nullopt,
-        ::P4::error("Entry key list and key match list must be equal in size."));
+    RETURN_IF_FALSE_WITH_MESSAGE(numKeys == entry.keys->size(), std::nullopt,
+                                 error("Entry key list and key match list must be equal in size."));
     ControlPlaneAssignmentSet keySet;
     auto tableName = table.controlPlaneName();
     for (size_t idx = 0; idx < numKeys; ++idx) {
         const auto *keyElement = key.keyElements.at(idx);
         const auto *keyExpr = keyElement->expression;
         RETURN_IF_FALSE_WITH_MESSAGE(keyExpr != nullptr, std::nullopt,
-                                     ::P4::error("Entry %1% in table %2% is null"));
+                                     error("Entry %1% in table %2% is null"));
         ASSIGN_OR_RETURN_WITH_MESSAGE(
             const auto &nameAnnotation, keyElement->getAnnotation(IR::Annotation::nameAnnotation),
             std::nullopt,
-            ::P4::error("Key %1% in table %2% does not have a name annotation.", keyElement,
-                        table));
+            error("Key %1% in table %2% does not have a name annotation.", keyElement, table));
         auto fieldName = nameAnnotation.getName();
         const auto matchType = keyElement->matchType->toString();
         const auto *keySymbol = ControlPlaneState::getTableKey(tableName, fieldName, keyExpr->type);
@@ -128,20 +126,19 @@ std::optional<TableEntrySet> ControlPlaneStateInitializer::initializeTableEntrie
 
     for (const auto *entry : entries->entries) {
         const auto *actionCallExpression = entry->getAction();
-        ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &actionCall,
-                                      actionCallExpression->to<IR::MethodCallExpression>(),
-                                      std::nullopt,
-                                      ::P4::error("Action %1% in table %2% is not a method call.",
-                                                  actionCallExpression, table));
         ASSIGN_OR_RETURN_WITH_MESSAGE(
-            const auto &methodName, actionCall.method->to<IR::PathExpression>(), std::nullopt,
-            ::P4::error("Action %1% in table %2% is not a path expression.", actionCallExpression,
-                        table));
+            const auto &actionCall, actionCallExpression->to<IR::MethodCallExpression>(),
+            std::nullopt,
+            error("Action %1% in table %2% is not a method call.", actionCallExpression, table));
+        ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &methodName,
+                                      actionCall.method->to<IR::PathExpression>(), std::nullopt,
+                                      error("Action %1% in table %2% is not a path expression.",
+                                            actionCallExpression, table));
         ASSIGN_OR_RETURN_WITH_MESSAGE(
             auto &actionDecl, getDeclaration(methodName.path, false), std::nullopt,
-            ::P4::error("Action reference %1% not found in the reference map", methodName));
+            error("Action reference %1% not found in the reference map", methodName));
         ASSIGN_OR_RETURN_WITH_MESSAGE(auto &action, actionDecl.to<IR::P4Action>(), std::nullopt,
-                                      ::P4::error("%1% is not a P4Action.", actionDecl));
+                                      error("%1% is not a P4Action.", actionDecl));
         ASSIGN_OR_RETURN(auto actionConstraint, computeEntryAction(*table, action, actionCall),
                          std::nullopt);
         ASSIGN_OR_RETURN(auto entryKeySet, computeEntryKeySet(*table, *entry), std::nullopt);
@@ -150,7 +147,7 @@ std::optional<TableEntrySet> ControlPlaneStateInitializer::initializeTableEntrie
         if (entry->priority != nullptr) {
             ASSIGN_OR_RETURN_WITH_MESSAGE(auto entryPriorityConstant,
                                           entry->priority->to<IR::Constant>(), std::nullopt,
-                                          ::P4::error("%1% is not a constant.", entry->priority));
+                                          error("%1% is not a constant.", entry->priority));
             entryPriority = entryPriorityConstant.asInt();
         } else {
             // Assign the lowest priority by default.
@@ -171,8 +168,8 @@ std::optional<ControlPlaneAssignmentSet> ControlPlaneStateInitializer::computeEn
                              *IR::StringLiteral::get(actionDecl.controlPlaneName()));
     RETURN_IF_FALSE_WITH_MESSAGE(
         actionCall.arguments->size() == actionDecl.parameters->parameters.size(), std::nullopt,
-        ::P4::error("Entry call %1% in table %2% does not have the right number of arguments.",
-                    actionCall, table));
+        error("Entry call %1% in table %2% does not have the right number of arguments.",
+              actionCall, table));
     for (size_t idx = 0; idx < actionCall.arguments->size(); ++idx) {
         const auto *argument = actionCall.arguments->at(idx);
         const auto *parameter = actionDecl.parameters->parameters.at(idx);
@@ -181,7 +178,7 @@ std::optional<ControlPlaneAssignmentSet> ControlPlaneStateInitializer::computeEn
             parameter->type);
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &expressionLiteral,
                                       argument->expression->to<IR::Literal>(), std::nullopt,
-                                      ::P4::error("%1% is not a literal.", argument->expression));
+                                      error("%1% is not a literal.", argument->expression));
         actionConstraint.emplace(*actionVariable, expressionLiteral);
     }
     return actionConstraint;
@@ -193,16 +190,15 @@ ControlPlaneStateInitializer::computeDefaultActionConstraints(const IR::P4Table 
     const auto *defaultAction = table->getDefaultAction();
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         const auto &actionCall, defaultAction->to<IR::MethodCallExpression>(), std::nullopt,
-        ::P4::error("Action %1% in table %2% is not a method call.", defaultAction, table));
+        error("Action %1% in table %2% is not a method call.", defaultAction, table));
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         const auto &methodName, actionCall.method->to<IR::PathExpression>(), std::nullopt,
-        ::P4::error("Action %1% in table %2% is not a path expression.", defaultAction, table));
+        error("Action %1% in table %2% is not a path expression.", defaultAction, table));
     ASSIGN_OR_RETURN_WITH_MESSAGE(
         auto &decl, getDeclaration(methodName.path, false), std::nullopt,
-        ::P4::error("Action reference %1% not found in the reference map.", methodName));
-    ASSIGN_OR_RETURN_WITH_MESSAGE(
-        auto &actionDecl, decl.to<IR::P4Action>(), std::nullopt,
-        ::P4::error("Action reference %1% is not a P4Action.", methodName));
+        error("Action reference %1% not found in the reference map.", methodName));
+    ASSIGN_OR_RETURN_WITH_MESSAGE(auto &actionDecl, decl.to<IR::P4Action>(), std::nullopt,
+                                  error("Action reference %1% is not a P4Action.", methodName));
 
     ControlPlaneAssignmentSet defaultActionConstraints;
     defaultActionConstraints.emplace(*ControlPlaneState::getTableActionChoice(tableName),
@@ -211,16 +207,15 @@ ControlPlaneStateInitializer::computeDefaultActionConstraints(const IR::P4Table 
                                      *IR::StringLiteral::get(cstring("*NONE*")));
     const auto *arguments = actionCall.arguments;
     const auto *parameters = actionDecl.parameters;
-    RETURN_IF_FALSE_WITH_MESSAGE(
-        arguments->size() == parameters->parameters.size(), std::nullopt,
-        ::P4::error("Number of arguments does not match number of parameters."));
+    RETURN_IF_FALSE_WITH_MESSAGE(arguments->size() == parameters->parameters.size(), std::nullopt,
+                                 error("Number of arguments does not match number of parameters."));
 
     for (size_t idx = 0; idx < arguments->size(); ++idx) {
         const auto *parameter = parameters->parameters.at(idx);
         const auto *argument = arguments->at(idx);
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &expressionLiteral,
                                       argument->expression->to<IR::Literal>(), std::nullopt,
-                                      ::P4::error("%1% is not a literal.", argument->expression));
+                                      error("%1% is not a literal.", argument->expression));
         defaultActionConstraints.emplace(*ControlPlaneState::getTableActionArgument(
                                              tableName, actionDecl.controlPlaneName(),
                                              parameter->controlPlaneName(), parameter->type),

@@ -143,9 +143,8 @@ std::optional<ControlPlaneConstraints> FlayTarget::computeControlPlaneConstraint
         }
     }
 
-    ::P4::error(
-        "Control plane file format %1% for control plane %2% not supported for this target.",
-        confPath.extension().c_str(), options.controlPlaneApi().data());
+    error("Control plane file format %1% for control plane %2% not supported for this target.",
+          confPath.extension().c_str(), options.controlPlaneApi().data());
     return std::nullopt;
 }
 

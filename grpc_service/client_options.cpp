@@ -49,8 +49,7 @@ FlayClientOptions::FlayClientOptions(std::string_view message) : Options(message
         [this](const char *arg) {
             auto protoUpdate = std::filesystem::path(arg);
             if (!std::filesystem::exists(protoUpdate)) {
-                ::P4::error("%1% does not exist. Please provide a valid file path.",
-                            protoUpdate.c_str());
+                error("%1% does not exist. Please provide a valid file path.", protoUpdate.c_str());
                 return false;
             }
             protoUpdates.emplace_back(protoUpdate);

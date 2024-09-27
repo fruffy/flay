@@ -262,7 +262,7 @@ const IR::Expression *TableExecutor::processTable() {
             tableControlPlaneItem->second.get().checkedTo<TableConfiguration>();
         tableControlPlaneConfiguration->setTableKeyMatch(tableKeyMap);
     } else {
-        ::P4::error("Table %s has no control plane configuration", table.controlPlaneName());
+        error("Table %s has no control plane configuration", table.controlPlaneName());
     }
 
     return new IR::StructExpression(

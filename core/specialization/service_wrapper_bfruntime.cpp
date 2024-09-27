@@ -26,8 +26,8 @@ int BfRuntimeFlayServiceWrapper::parseControlUpdatesFromPattern(std::string_view
 }
 
 int BfRuntimeFlayServiceWrapper::run() {
-    if (::P4::errorCount() > 0) {
-        ::P4::error("Encountered errors trying to starting the service.");
+    if (errorCount() > 0) {
+        error("Encountered errors trying to starting the service.");
         return EXIT_FAILURE;
     }
     _flayService.recordProgramChange();

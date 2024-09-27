@@ -39,7 +39,7 @@ bool FlayService::startServer(const std::string &serverAddress) {
 
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
     if (!server) {
-        ::P4::error("Failed to start the Flay service.");
+        error("Failed to start the Flay service.");
         return false;
     }
 
