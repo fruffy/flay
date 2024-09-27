@@ -21,8 +21,8 @@ void run(const FlayClientOptions &options) {
         }
         auto result = client.sendWriteRequest(request.value());
         if (!result.ok()) {
-            ::P4::error("Code %1% - Failed to send write request. Reason: %2%", result.error_code(),
-                        result.error_message());
+            error("Code %1% - Failed to send write request. Reason: %2%", result.error_code(),
+                  result.error_message());
             return;
         }
     }
@@ -41,11 +41,11 @@ int main(int argc, char *argv[]) {
 
     // Process command-line options.
     options.process(argc, argv);
-    if (::P4::errorCount() != 0) {
+    if (P4::errorCount() != 0) {
         return EXIT_FAILURE;
     }
 
     // Run the Flay client.
     P4::P4Tools::Flay::run(options);
-    return ::P4::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return P4::errorCount() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

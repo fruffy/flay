@@ -314,7 +314,7 @@ const IR::Node *ExpressionStrengthReduction::postorder(IR::Mul *expr) {
 
 const IR::Node *ExpressionStrengthReduction::postorder(IR::Div *expr) {
     if (isZero(expr->right)) {
-        ::P4::error(ErrorType::ERR_EXPRESSION, "%1%: Division by zero", expr);
+        error(ErrorType::ERR_EXPRESSION, "%1%: Division by zero", expr);
         return expr;
     }
     if (isOne(expr->right)) {
@@ -329,7 +329,7 @@ const IR::Node *ExpressionStrengthReduction::postorder(IR::Div *expr) {
 
 const IR::Node *ExpressionStrengthReduction::postorder(IR::Mod *expr) {
     if (isZero(expr->right)) {
-        ::P4::error(ErrorType::ERR_EXPRESSION, "%1%: Modulo by zero", expr);
+        error(ErrorType::ERR_EXPRESSION, "%1%: Modulo by zero", expr);
         return expr;
     }
     if (isZero(expr->left)) {
@@ -397,7 +397,7 @@ const IR::Node *ExpressionStrengthReduction::postorder(IR::ArrayIndex *expr) {
         if (const auto *cst = expr->right->to<IR::Constant>()) {
             auto index = cst->asInt();
             if (index < 0 || static_cast<size_t>(index) >= hse->components.size()) {
-                ::P4::error(ErrorType::ERR_EXPRESSION, "%1%: Index %2% out of bounds", index, expr);
+                error(ErrorType::ERR_EXPRESSION, "%1%: Index %2% out of bounds", index, expr);
                 return expr;
             }
             return hse->components.at(index);

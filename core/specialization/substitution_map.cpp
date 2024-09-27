@@ -24,7 +24,7 @@ std::optional<bool> IrSubstitutionMap::computeNodeSubstitution(
     const IR::Expression *expression, const ControlPlaneAssignmentSet &controlPlaneAssignments) {
     auto it = find(expression);
     if (it == end()) {
-        ::P4::error("Substitution mapping for node %1% does not exist.", expression);
+        error("Substitution mapping for node %1% does not exist.", expression);
         return std::nullopt;
     }
 
@@ -56,7 +56,7 @@ std::optional<const IR::Literal *> IrSubstitutionMap::isExpressionConstant(
     if (it != end()) {
         return it->second->substitution();
     }
-    ::P4::warning(
+    warning(
         "Unable to find node %1% in the expression map of this execution state. There might be "
         "issues with the source information.",
         expression);

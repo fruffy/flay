@@ -31,16 +31,16 @@ bool Bmv2ControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
         if (const auto *rangeExpr = entryKey.to<IR::Range>()) {
             ASSIGN_OR_RETURN_WITH_MESSAGE(
                 const auto &minExpr, rangeExpr->left->to<IR::Literal>(), false,
-                ::P4::error("Left mask element %1% is not a literal.", rangeExpr->left));
+                error("Left mask element %1% is not a literal.", rangeExpr->left));
             ASSIGN_OR_RETURN_WITH_MESSAGE(
                 const auto &maxExpr, rangeExpr->right->to<IR::Literal>(), false,
-                ::P4::error("Right mask element %1% is not a literal.", rangeExpr->right));
+                error("Right mask element %1% is not a literal.", rangeExpr->right));
             keySet.emplace(*minKey, minExpr);
             keySet.emplace(*maxKey, maxExpr);
             return true;
         }
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,
-                                      ::P4::error("Entry %1% is not a literal.", entryKey));
+                                      error("Entry %1% is not a literal.", entryKey));
         keySet.emplace(*minKey, exactValue);
         keySet.emplace(*maxKey, exactValue);
         return true;
@@ -56,7 +56,7 @@ bool Bmv2ControlPlaneInitializer::computeMatch(const IR::Expression &entryKey,
             return true;
         }
         ASSIGN_OR_RETURN_WITH_MESSAGE(const auto &exactValue, entryKey.to<IR::Literal>(), false,
-                                      ::P4::error("Entry %1% is not a literal.", entryKey));
+                                      error("Entry %1% is not a literal.", entryKey));
         keySet.emplace(keySymbol, exactValue);
         return true;
     }
@@ -70,7 +70,7 @@ Bmv2ControlPlaneInitializer::generateInitialControlPlaneConstraints(const IR::P4
     _defaultConstraints.emplace("clone_session", *new CloneSession(std::nullopt));
 
     program->apply(*this);
-    if (::P4::errorCount() > 0) {
+    if (errorCount() > 0) {
         return std::nullopt;
     }
     return defaultConstraints();

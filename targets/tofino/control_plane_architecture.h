@@ -112,9 +112,9 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
             if (instance) {
                 if (instance->type->name != ActionProfileTraits<Arch::TNA>::typeName() &&
                     instance->type->name != ActionSelectorTraits<Arch::TNA>::typeName()) {
-                    ::P4::error(ErrorType::ERR_EXPECTED,
-                                "Expected an action profile or action selector: %1%",
-                                instance->expression);
+                    error(ErrorType::ERR_EXPECTED,
+                          "Expected an action profile or action selector: %1%",
+                          instance->expression);
                 } else if (isConstructedInPlace) {
                     symbols->add(SymbolType::P4RT_ACTION_PROFILE(), *instance->name);
                 }
@@ -125,8 +125,8 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
                 table, CounterTraits::directPropertyName(), refMap, typeMap, &isConstructedInPlace);
             if (instance) {
                 if (instance->type->name != CounterTraits::directTypeName()) {
-                    ::P4::error(ErrorType::ERR_EXPECTED, "Expected a direct counter: %1%",
-                                instance->expression);
+                    error(ErrorType::ERR_EXPECTED, "Expected a direct counter: %1%",
+                          instance->expression);
                 } else if (isConstructedInPlace) {
                     symbols->add(SymbolType::P4RT_DIRECT_COUNTER(), *instance->name);
                 }
@@ -137,8 +137,8 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
                                                           refMap, typeMap, &isConstructedInPlace);
             if (instance) {
                 if (instance->type->name != MeterTraits::directTypeName()) {
-                    ::P4::error(ErrorType::ERR_EXPECTED, "Expected a direct meter: %1%",
-                                instance->expression);
+                    error(ErrorType::ERR_EXPECTED, "Expected a direct meter: %1%",
+                          instance->expression);
                 } else if (isConstructedInPlace) {
                     symbols->add(SymbolType::P4RT_DIRECT_METER(), *instance->name);
                 }
@@ -301,8 +301,8 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
             instance->substitution.lookupByName(ActionProfileTraits<Arch::TNA>::sizeParamName())
                 ->expression;
         if (!size->template is<IR::Constant>()) {
-            ::P4::error(ErrorType::ERR_INVALID, "Action profile '%1%' has non-constant size '%2%'",
-                        *instance->name, size);
+            error(ErrorType::ERR_INVALID, "Action profile '%1%' has non-constant size '%2%'",
+                  *instance->name, size);
             return std::nullopt;
         }
         return getActionProfile(*instance->name, instance->type,
@@ -331,8 +331,8 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
             size = instance->getParameterValue(ActionProfileTraits<Arch::TNA>::sizeParamName());
         }
         if (!size->template is<IR::Constant>()) {
-            ::P4::error(ErrorType::ERR_INVALID, "Action profile '%1%' has non-constant size '%2%'",
-                        decl->controlPlaneName(), size);
+            error(ErrorType::ERR_INVALID, "Action profile '%1%' has non-constant size '%2%'",
+                  decl->controlPlaneName(), size);
             return std::nullopt;
         }
         return getActionProfile(decl->controlPlaneName(), instance->type,
@@ -357,10 +357,10 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
                 CHECK_NULL(maxGroupSizeConstant);
                 profile->set_max_group_size(maxGroupSizeConstant->asInt());
             } else {
-                ::P4::warning(ErrorType::WARN_IGNORE,
-                              "Ignoring annotation @max_group_size on action profile '%1%', "
-                              "which does not have a selector",
-                              actionProfile.annotations);
+                warning(ErrorType::WARN_IGNORE,
+                        "Ignoring annotation @max_group_size on action profile '%1%', "
+                        "which does not have a selector",
+                        actionProfile.annotations);
             }
         }
 
@@ -486,10 +486,9 @@ class P4RuntimeArchHandlerTofino final : public P4RuntimeArchHandlerIface {
         const IR::Property *impl = getTableImplementationProperty(table);
         if (impl == nullptr) return std::nullopt;
         if (!impl->value->is<IR::ExpressionValue>()) {
-            ::P4::error(
-                ErrorType::ERR_EXPECTED,
-                "Expected implementation property value for table %1% to be an expression: %2%",
-                table->controlPlaneName(), impl);
+            error(ErrorType::ERR_EXPECTED,
+                  "Expected implementation property value for table %1% to be an expression: %2%",
+                  table->controlPlaneName(), impl);
             return std::nullopt;
         }
         auto expr = impl->value->to<IR::ExpressionValue>()->expression;

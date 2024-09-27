@@ -213,7 +213,7 @@ class ExpressionRewriter : public PassManager {
 const IR::Expression *simplify(const IR::Expression *expr) {
     static ExpressionRewriter REWRITER;
     expr = expr->apply(REWRITER);
-    BUG_CHECK(::P4::errorCount() == 0, "Encountered errors while trying to simplify expressions.");
+    BUG_CHECK(errorCount() == 0, "Encountered errors while trying to simplify expressions.");
     return expr;
 }
 

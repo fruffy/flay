@@ -148,7 +148,7 @@ CompilerResultOrError V1ModelFlayTarget::runCompilerImpl(const CompilerOptions &
     } else {
         /// After the front end, get the P4Runtime API for the V1model architecture.
         p4runtimeApi = P4::P4RuntimeSerializer::get()->generateP4Runtime(program, "v1model"_cs);
-        if (::P4::errorCount() > 0) {
+        if (errorCount() > 0) {
             return std::nullopt;
         }
     }

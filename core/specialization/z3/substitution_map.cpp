@@ -81,7 +81,7 @@ std::optional<const IR::Literal *> Z3SolverSubstitutionMap::isExpressionConstant
     if (it != end()) {
         return it->second->substitution();
     }
-    ::P4::warning(
+    warning(
         "Unable to find node %1% in the expression map of this execution state. There might be "
         "issues with the source information.",
         expression);

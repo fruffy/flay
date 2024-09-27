@@ -18,7 +18,7 @@ std::optional<bool> IRReachabilityMap::computeNodeReachability(
     const IR::Node *node, const ControlPlaneAssignmentSet &controlPlaneAssignments) {
     auto it = find(node);
     if (it == end()) {
-        ::P4::error("Reachability mapping for node %1% does not exist.", node);
+        error("Reachability mapping for node %1% does not exist.", node);
         return std::nullopt;
     }
     auto *reachabilityExpression = it->second;
@@ -47,7 +47,7 @@ std::optional<bool> IRReachabilityMap::isNodeReachable(const IR::Node *node) con
     if (it != end()) {
         return it->second->getReachability();
     }
-    ::P4::warning(
+    warning(
         "Unable to find node %1% in the reachability map of this execution state. There might be "
         "issues with the source information.",
         node);
