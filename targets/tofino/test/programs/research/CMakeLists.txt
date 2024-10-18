@@ -84,7 +84,7 @@ set (FLAY_TOFINO_TEST_DIR ${CMAKE_CURRENT_LIST_DIR}/../..)
 
 set(TNA_RESEARCH_TESTS
   ${switcharoo_SOURCE_DIR}/p4src/switcharoo.p4
-  ${p4sta_SOURCE_DIR}/stamper_targets/Wedge100B65/PLEASE_COPY/tofino_stamper_v1_2_0.p4
+  ${p4sta_SOURCE_DIR}/stamper_targets/Wedge100B65/p4_files/v1.2.1/tofino_stamper_v1_2_1.p4
   ${p4_projects_SOURCE_DIR}/RTT-tofino/p4src/RTT.p4
   ${p4_projects_SOURCE_DIR}/PRECISION-tofino/p4src/PRECISION.p4
   ${p4_projects_SOURCE_DIR}/P40f-tofino/p40f_tofino.p4

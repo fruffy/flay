@@ -115,30 +115,38 @@ std::optional<ControlPlaneConstraints> FlayTarget::computeControlPlaneConstraint
         // By default we only support P4Runtime parsing.
         if (options.controlPlaneApi() == "P4RUNTIME") {
             auto deserializedConfig =
-                Protobuf::deserializeObjectFromFile<p4runtime::flaytests::Config>(confPath);
+                Protobuf::deserializeObjectFromFile<p4::v1::WriteRequest>(confPath);
             if (!deserializedConfig.has_value()) {
                 return std::nullopt;
             }
             SymbolSet symbolSet;
-            if (P4Runtime::updateControlPlaneConstraints(deserializedConfig.value(),
-                                                         *compilerResult.getP4RuntimeApi().p4Info,
-                                                         constraints, symbolSet) != EXIT_SUCCESS) {
-                return std::nullopt;
+            for (const auto &msg : deserializedConfig.value().updates()) {
+                if (P4Runtime::updateControlPlaneConstraintsWithEntityMessage(
+                        msg.entity(), *compilerResult.getP4RuntimeApi().p4Info, constraints,
+                        msg.type(), symbolSet) != EXIT_SUCCESS) {
+                    return std::nullopt;
+                }
             }
+            printInfo("Parsed %1% control plane updates for the initial configuration.",
+                      deserializedConfig.value().updates().size());
             return constraints;
         }
         if (options.controlPlaneApi() == "BFRUNTIME") {
             auto deserializedConfig =
-                Protobuf::deserializeObjectFromFile<bfruntime::flaytests::Config>(confPath);
+                Protobuf::deserializeObjectFromFile<bfrt_proto::WriteRequest>(confPath);
             if (!deserializedConfig.has_value()) {
                 return std::nullopt;
             }
             SymbolSet symbolSet;
-            if (BfRuntime::updateControlPlaneConstraints(deserializedConfig.value(),
-                                                         *compilerResult.getP4RuntimeApi().p4Info,
-                                                         constraints, symbolSet) != EXIT_SUCCESS) {
-                return std::nullopt;
+            for (const auto &msg : deserializedConfig.value().updates()) {
+                if (BfRuntime::updateControlPlaneConstraintsWithEntityMessage(
+                        msg.entity(), *compilerResult.getP4RuntimeApi().p4Info, constraints,
+                        msg.type(), symbolSet) != EXIT_SUCCESS) {
+                    return std::nullopt;
+                }
             }
+            printInfo("Parsed %1% control plane updates for the initial configuration.",
+                      deserializedConfig.value().updates().size());
             return constraints;
         }
     }
@@ -151,13 +159,12 @@ std::optional<ControlPlaneConstraints> FlayTarget::computeControlPlaneConstraint
 MidEnd FlayTarget::mkMidEnd(const CompilerOptions &options) const {
     MidEnd midEnd(options);
     midEnd.setStopOnError(true);
-    auto *refMap = midEnd.getRefMap();
     auto *typeMap = midEnd.getTypeMap();
     midEnd.addPasses({
         // Sort call arguments according to the order of the function's parameters.
-        new P4::OrderArguments(refMap, typeMap),
+        new P4::OrderArguments(typeMap),
         // Replace any slices in the left side of assignments and convert them to casts.
-        new P4::RemoveLeftSlices(refMap, typeMap),
+        new P4::RemoveLeftSlices(typeMap),
         new PassRepeated({
             // Local copy propagation and dead-code elimination.
             // Skip this if skipSideEffectOrdering is set.
@@ -165,14 +172,14 @@ MidEnd FlayTarget::mkMidEnd(const CompilerOptions &options) const {
             FlayOptions::get().skipSideEffectOrdering()
                 ? nullptr
                 : new P4::LocalCopyPropagation(
-                      refMap, typeMap, nullptr,
+                      typeMap, nullptr,
                       [](const Visitor::Context * /*context*/, const IR::Expression * /*expr*/) {
                           return true;
                       }),
             // Simplify control flow that has constants as conditions.
             new P4::SimplifyControlFlow(typeMap),
             // Compress member access to struct expressions.
-            new P4::ConstantFolding(refMap, typeMap),
+            new P4::ConstantFolding(typeMap),
         }),
     });
     return midEnd;
@@ -186,11 +193,11 @@ PassManager FlayTarget::mkPrivateMidEnd(const CompilerOptions &options, P4::Refe
     midEnd.addDebugHook(options.getDebugHook(), true);
     midEnd.addPasses({
         // Replace serializable enum constants with their values.
-        new P4::EliminateSerEnums(refMap, typeMap),
+        new P4::EliminateSerEnums(typeMap),
         // Replace types introduced by 'type' with 'typedef'.
-        new P4::EliminateNewtype(refMap, typeMap),
+        new P4::EliminateNewtype(typeMap),
         // Make sure that we have no TypeDef left in the program.
-        new P4::EliminateTypedef(refMap, typeMap),
+        new P4::EliminateTypedef(typeMap),
         // Remove exit statements from the program.
         // TODO: We should not depend on this pass. It has bugs.
         new P4::RemoveExits(typeMap),
@@ -199,11 +206,11 @@ PassManager FlayTarget::mkPrivateMidEnd(const CompilerOptions &options, P4::Refe
         new P4::ParsersUnroll(true, refMap, typeMap),
         new P4::TypeChecking(refMap, typeMap, true),
         // Convert enums and errors to bit<32>.
-        new P4::ConvertEnums(refMap, typeMap, new EnumOn32Bits()),
-        new P4::ConvertErrors(refMap, typeMap, new ErrorOn32Bits()),
+        new P4::ConvertEnums(typeMap, new EnumOn32Bits()),
+        new P4::ConvertErrors(typeMap, new ErrorOn32Bits()),
         // Simplify header stack assignments with runtime indices into conditional statements.
         // TODO: Get rid of this pass.
-        new P4::HSIndexSimplifier(refMap, typeMap),
+        new P4::HSIndexSimplifier(typeMap),
         // Parse BMv2-specific annotations.
         new BMV2::ParseAnnotations(),
         // Convert Type_Varbits into a type that contains information about the assigned width.
