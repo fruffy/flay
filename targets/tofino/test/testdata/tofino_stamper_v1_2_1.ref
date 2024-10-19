@@ -1,0 +1,39 @@
+Eliminated node at line 470: t_l1_forwarding.apply();
+Eliminated node at line 471: t_l2_forwarding.apply();
+Eliminated node at line 475: t_l3_forwarding.apply();
+Eliminated node at line 480: t_add_empty_timestamp_tcp.apply();
+Eliminated node at line 481: if(meta.l4_metadata.new_offset > 0){
+Eliminated node at line 487: t_timestamp2_tcp.apply();
+Eliminated node at line 493: t_add_empty_timestamp_udp.apply();
+Eliminated node at line 496: t_timestamp2_udp.apply();
+Eliminated node at line 501: if(meta.l4_metadata.added_empty_header == 1w0x1 || meta.l4_metadata.timestamp2 == 1w0x1){
+Eliminated node at line 505: if(meta.l4_metadata.timestamp2 == 1w0x1){
+Eliminated node at line 523: if(meta.l4_metadata.added_empty_header == 1w0x1){
+Eliminated node at line 555: if(meta.l4_metadata.updateChecksum == 1w0x1){
+Eliminated node at line 994: if(hdr.gtpu.isValid()&&hdr.tcp.isValid()&&hdr.ext_host_stats.isValid()){ //indicates TCP encapsulated in GTP-U and to ext host
+Eliminated node at line 1008: broadcast_mac.apply();
+Eliminated node at line 1011: if (hdr.ext_host_stats.isValid()){
+Eliminated node at line 1057: t_mark_duplicate.apply();
+Eliminated node at line 1086: if(meta.l4_metadata.updateEgressIPChecksum == 1w0x1){
+Replaced node at line 261: } else if(meta.timestamp_metadata.delta < min_value) { with 0
+Replaced node at line 270: if (meta.timestamp_metadata.delta > max_value) { with 0
+Replaced node at line 281: if(counter >= (bit<32>)meta.l4_metadata.threshold_multicast) { with 0
+Replaced node at line 414: ig_intr_tm_md.ucast_egress_port : exact; with 0
+Replaced node at line 436: ig_intr_tm_md.ucast_egress_port : exact; with 0
+Replaced node at line 457: ig_intr_tm_md.ucast_egress_port : exact; with 0
+Replaced node at line 481: if(meta.l4_metadata.new_offset > 0){ with 0
+Replaced node at line 486: if(hdr.tcp_options_128bit_custom.myType == 16w0x0f10 && meta.l4_metadata.added_empty_header == 0){ with 0
+Replaced node at line 495: if(hdr.tcp_options_128bit_custom.myType == 16w0x0f10 && meta.l4_metadata.added_empty_header == 0){ with 0
+Replaced node at line 501: if(meta.l4_metadata.added_empty_header == 1w0x1 || meta.l4_metadata.timestamp2 == 1w0x1){ with 0
+Replaced node at line 501: if(meta.l4_metadata.added_empty_header == 1w0x1 || meta.l4_metadata.timestamp2 == 1w0x1){ with 0
+Replaced node at line 505: if(meta.l4_metadata.timestamp2 == 1w0x1){ with 0
+Replaced node at line 523: if(meta.l4_metadata.added_empty_header == 1w0x1){ with 0
+Replaced node at line 555: if(meta.l4_metadata.updateChecksum == 1w0x1){ with 0
+Replaced node at line 1086: if(meta.l4_metadata.updateEgressIPChecksum == 1w0x1){ with 0
+statement_count_before:196
+statement_count_after:164
+cyclomatic_complexity:73
+num_parsers_paths:130
+num_updates_processed:0
+num_respecializations:0
+

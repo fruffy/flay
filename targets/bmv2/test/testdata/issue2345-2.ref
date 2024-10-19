@@ -1,7 +1,7 @@
 Eliminated node at line 40: return;
 Replaced node at line 39: if (h.eth_hdr.eth_type == 1) { with 2
-statement_count_before:17
-statement_count_after:17
+statement_count_before:13
+statement_count_after:13
 cyclomatic_complexity:1
 num_parsers_paths:1
 num_updates_processed:0
